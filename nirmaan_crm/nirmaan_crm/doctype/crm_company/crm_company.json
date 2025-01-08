@@ -1,0 +1,98 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-07 20:02:45.990572",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_details_section",
+  "company_nick",
+  "company_name",
+  "company_address",
+  "company_logo",
+  "company_website",
+  "no_of_employees",
+  "annual_revenue",
+  "industry",
+  "territory"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_details_section",
+   "fieldtype": "Section Break",
+   "label": "Company Details"
+  },
+  {
+   "fieldname": "company_nick",
+   "fieldtype": "Data",
+   "label": "Company Nick"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name"
+  },
+  {
+   "fieldname": "company_address",
+   "fieldtype": "Link",
+   "label": "Company Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "company_logo",
+   "fieldtype": "Attach",
+   "label": "Company Logo"
+  },
+  {
+   "fieldname": "company_website",
+   "fieldtype": "Data",
+   "label": "Company Website"
+  },
+  {
+   "fieldname": "no_of_employees",
+   "fieldtype": "Data",
+   "label": "No. of Employees"
+  },
+  {
+   "fieldname": "annual_revenue",
+   "fieldtype": "Data",
+   "label": "Annual Revenue"
+  },
+  {
+   "fieldname": "industry",
+   "fieldtype": "Link",
+   "label": "Industry",
+   "options": "CRM Industry"
+  },
+  {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "CRM Territory"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-01-07 20:24:00.438175",
+ "modified_by": "Administrator",
+ "module": "Nirmaan CRM",
+ "name": "CRM Company",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

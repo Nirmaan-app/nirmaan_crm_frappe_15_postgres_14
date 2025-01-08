@@ -1,0 +1,15 @@
+{
+  "name": "nirmaan_crm",
+  "version": "1.0.0",
+  "description": "Bare bones CRM for offline leads",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "cd crm && yarn install",
+    "dev": "cd crm && yarn dev",
+    "build": "cd crm && yarn build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
