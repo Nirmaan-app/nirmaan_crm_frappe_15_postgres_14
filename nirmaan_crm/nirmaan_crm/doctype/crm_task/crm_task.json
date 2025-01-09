@@ -10,6 +10,7 @@
   "reference_docname",
   "task_details_section",
   "title",
+  "type",
   "priority",
   "start_date",
   "assigned_to",
@@ -75,11 +76,16 @@
    "fieldname": "description",
    "fieldtype": "Data",
    "label": "Description"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "label": "Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-07 21:19:15.673379",
+ "modified": "2025-01-09 19:33:50.651652",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Task",
