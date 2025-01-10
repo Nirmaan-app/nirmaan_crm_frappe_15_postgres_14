@@ -5,17 +5,108 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_1lmn"
+  "links_section",
+  "contact",
+  "company",
+  "lead_details_section",
+  "project_name",
+  "project_address",
+  "project_type",
+  "project_work_packages",
+  "boq_attachment",
+  "lead_date",
+  "last_submitted_date",
+  "is_converted",
+  "lead_owner",
+  "lead_source",
+  "lead_status"
  ],
  "fields": [
   {
-   "fieldname": "section_break_1lmn",
-   "fieldtype": "Section Break"
+   "fieldname": "links_section",
+   "fieldtype": "Section Break",
+   "label": "Links"
+  },
+  {
+   "fieldname": "contact",
+   "fieldtype": "Link",
+   "label": "Contact",
+   "options": "CRM Contacts"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "CRM Company"
+  },
+  {
+   "fieldname": "lead_details_section",
+   "fieldtype": "Section Break",
+   "label": "Lead Details"
+  },
+  {
+   "fieldname": "project_name",
+   "fieldtype": "Data",
+   "label": "Project Name"
+  },
+  {
+   "fieldname": "project_address",
+   "fieldtype": "Link",
+   "label": "Project Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "project_type",
+   "fieldtype": "Link",
+   "label": "Project Type",
+   "options": "Project Types"
+  },
+  {
+   "fieldname": "project_work_packages",
+   "fieldtype": "JSON",
+   "label": "Project Work Packages"
+  },
+  {
+   "fieldname": "boq_attachment",
+   "fieldtype": "Attach",
+   "label": "BOQ Attachment"
+  },
+  {
+   "fieldname": "lead_date",
+   "fieldtype": "Data",
+   "label": "Lead Date"
+  },
+  {
+   "fieldname": "last_submitted_date",
+   "fieldtype": "Data",
+   "label": "Last Submitted Date"
+  },
+  {
+   "fieldname": "is_converted",
+   "fieldtype": "Data",
+   "label": "Is Converted"
+  },
+  {
+   "fieldname": "lead_owner",
+   "fieldtype": "Link",
+   "label": "Lead Owner",
+   "options": "Nirmaan Users"
+  },
+  {
+   "fieldname": "lead_source",
+   "fieldtype": "Data",
+   "label": "Lead Source"
+  },
+  {
+   "fieldname": "lead_status",
+   "fieldtype": "Link",
+   "label": "Lead Status",
+   "options": "CRM Lead Status"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-07 20:24:29.966495",
+ "modified": "2025-01-09 19:33:20.698893",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Leads",
