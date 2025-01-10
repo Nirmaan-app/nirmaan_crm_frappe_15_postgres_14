@@ -1,5 +1,4 @@
-name: Build and Push nirmaan_stack
-
+name: Build and Push nirmaan_crm
 on:
   push:
     tags:
@@ -39,16 +38,16 @@ jobs:
             "branch": "main"
           },
           {
-            "url": "https://github.com/Nirmaan-app/nirmaan_stack_frappe15_postgres_14.git",
-            "branch": "${{ env.LATEST_STACK_TAG }}" 
+            "url": "https://${{ secrets.GH_PAT }}@github.com/Nirmaan-app/nirmaan_crm_frappe_15_postgres_14.git",
+            "branch": "${{ env.RELEASE_VERSION }}"
           },
+          # {
+          #   "url": "https://github.com/Nirmaan-app/nirmaan_stack_frappe15_postgres_14.git",
+          #   "branch": "${{ env.LATEST_STACK_TAG }}" 
+          # },
           {
             "url": "https://github.com/Nirmaan-app/Frappe-attachments-s3.git",
             "branch": "master"
-          },
-          {
-            "url": "https://${{ secrets.GH_PAT }}@github.com/Nirmaan-app/nirmaan_crm_frappe_15_postgres_14.git",
-            "branch": "${{ env.RELEASE_VERSION }}"
           }
         ]'
         echo "APPS_JSON_BASE64=$(echo ${APPS_JSON} | base64 -w 0)" >> $GITHUB_ENV
