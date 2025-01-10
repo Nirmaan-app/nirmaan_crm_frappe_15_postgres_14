@@ -81,5 +81,5 @@ jobs:
           FRAPPE_PATH=https://github.com/frappe/frappe
           FRAPPE_BRANCH=version-15
           PYTHON_VERSION=3.11.6
-          NODE_VERSION=18.17.0
+          NODE_VERSION=18.20.5
           APPS_JSON_BASE64=${{ env.APPS_JSON_BASE64 }}
