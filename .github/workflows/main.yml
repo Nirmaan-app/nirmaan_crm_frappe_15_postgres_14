@@ -1,5 +1,4 @@
 name: Build and Push nirmaan_crm
-
 on:
   push:
     tags:
@@ -41,7 +40,7 @@ jobs:
           {
             "url": "https://${{ secrets.GH_PAT }}@github.com/Nirmaan-app/nirmaan_crm_frappe_15_postgres_14.git",
             "branch": "${{ env.RELEASE_VERSION }}"
-          }
+          },
           # {
           #   "url": "https://github.com/Nirmaan-app/nirmaan_stack_frappe15_postgres_14.git",
           #   "branch": "${{ env.LATEST_STACK_TAG }}" 
