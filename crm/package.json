@@ -4,9 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build --base=/assets/nirmaan_crm/crm/ && yarn copy-html-entry",
-    "lint": "eslint .",
+    "dev": "vite --host",
+    "build": "vite build --base=/assets/nirmaan_crm/crm/ && yarn run copy-html-entry",
     "preview": "vite preview",
     "copy-html-entry": "cp ../nirmaan_crm/public/crm/index.html ../nirmaan_crm/www/crm.html"
   },
