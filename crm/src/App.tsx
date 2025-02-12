@@ -13,6 +13,9 @@ import { Tasks } from "./pages/Tasks/Tasks";
 import { Calendar } from "./pages/Calendar/Calendar";
 import { Settings } from "./pages/Settings/Settings";
 import { MainContent } from "./pages/HomeLayout/MainContent";
+import { NewContactForm } from "./pages/Prospect/Contacts/New-Contact-Form";
+import { NewCompanyForm } from "./pages/Prospect/Companies/New-Company-Form";
+import { Contact } from "./pages/Prospect/Contacts/Contact";
 
 
 const router = createBrowserRouter(
@@ -20,10 +23,15 @@ const router = createBrowserRouter(
    <>
       <Route path="/" element={<HomeLayout />}>
           <Route index element={<MainContent />} />
-					<Route path="prospect" element={<Prospect />} /> 
-					 <Route path="tasks" element={<Tasks />} />
-					 <Route path="calendar" element={<Calendar />} />
-					 <Route path="settings" element={<Settings />} />
+					<Route path="prospects">
+            <Route index element={<Prospect />} />
+            <Route path="new-contact" element={<NewContactForm/>} />
+            <Route path="new-company" element={<NewCompanyForm/>} />
+            <Route path="contact" element={<Contact />} />
+          </Route> 
+					<Route path="tasks" element={<Tasks />} />
+					<Route path="calendar" element={<Calendar />} />
+					<Route path="settings" element={<Settings />} />
       </Route>
    </>
   )

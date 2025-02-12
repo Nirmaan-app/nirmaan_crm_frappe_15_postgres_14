@@ -16,7 +16,7 @@ export const BottomBar = () => {
 		},
 		{
 			label : "Prospect",
-			path: "/prospect",
+			path: "/prospects",
 			icon : Users
 		},
 		{
@@ -37,7 +37,11 @@ export const BottomBar = () => {
 	]
 
 	useEffect(() => {
-		setActiveTab(items.find(i => i?.path === location.pathname)?.label)
+		if(location.pathname === "/") {
+			setActiveTab("Home")
+		} else {
+			setActiveTab(items.slice(1).find(i => location.pathname.includes(i.path))?.label)
+		}
 	}, [location.pathname])
 
 

@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestCRMIndustry(FrappeTestCase):
+class TestCRMCompanyType(FrappeTestCase):
 	pass

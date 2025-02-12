@@ -1,14 +1,18 @@
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { ConfigProvider, Menu, MenuProps } from "antd"
-import { ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Contacts } from "./Contacts/Contacts";
+import { Companies } from "./Companies/Companies";
+import { useTheme } from "@/components/ui/ThemeProvider";
+import { Plus } from "lucide-react";
 
 export const Prospect = () => {
 
+    const {theme} = useTheme()
     const [searchParams] = useSearchParams();
-    const [activePage, setActivePage] = useState(searchParams.get("tab") || "contact");
+    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "contact");
+    const navigate = useNavigate()
 
     type MenuItem = Required<MenuProps>["items"][number];
 
@@ -32,10 +36,18 @@ export const Prospect = () => {
     ];
 
     const onClick: MenuProps["onClick"] = (e) => {
-        if (activePage === e.key) return;
+        if (activeTab === e.key) return;
         updateURL("tab", e.key);
-        setActivePage(e.key);
-      };
+        setActiveTab(e.key);
+    };
+
+    const handleNewFormNav = () => {
+      if(activeTab === "contact") {
+        navigate("new-contact")
+      } else {
+        navigate("new-company")
+      }
+    }
 
 
     return (
@@ -45,41 +57,37 @@ export const Prospect = () => {
               components: {
                 Menu: {
                   horizontalItemSelectedColor: "#D03B45",
-                  itemSelectedBg: "#FFD3CC",
                   itemSelectedColor: "#D03B45",
+                  itemColor: theme === "dark" ? "white" : "black"
                 },
               },
             }}
           >
             <Menu
-              selectedKeys={[activePage]}
+              selectedKeys={[activeTab]}
               onClick={onClick}
               mode="horizontal"
               items={items}
-              style={{ marginTop: "-1.5rem"}}
+              style={{ backgroundColor: "transparent", marginTop: "-1rem" }}
             />
           </ConfigProvider>
 
           <div className="flex flex-col gap-8 h-full relative">
             <Input type="text" className="focus:border-none rounded-lg" placeholder="Search Names, Company, Project, etc..." />
-            {activePage === "contact" ? (
-               <div className="flex flex-col gap-4 max-sm:text-sm text-muted-foreground">
-               {Array.from({ length: 20 }, (_, i) => (
-                 <>
-                   <div key={i} className="h-12 px-4 flex items-start justify-between">
-                    <div className="flex flex-col">
-                        <strong className="text-black">Neelesh Kumar</strong>
-                        <span>Incuspaze</span>
-                    </div>
-                     <ChevronRight />
-                   </div>
-                   {i !== 19 && <Separator />}
-                 </>
-               ))}
-             </div>
+            {activeTab === "contact" ? (
+              <Contacts />
             ) : (
-              <div>Hello Customer</div>
+              <Companies />
             )}
+          </div>
+
+          <div className="fixed bottom-24 right-6">
+            <button
+              onClick={handleNewFormNav}
+              className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center`}
+            >
+              <Plus size={24} />
+            </button>
           </div>
         </div>
     )

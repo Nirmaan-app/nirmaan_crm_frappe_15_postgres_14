@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class CRMIndustry(Document):
+class CRMCompanyType(Document):
 	pass
