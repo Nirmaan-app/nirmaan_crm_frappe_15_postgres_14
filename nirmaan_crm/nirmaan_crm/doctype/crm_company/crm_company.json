@@ -62,7 +62,7 @@
    "fieldname": "industry",
    "fieldtype": "Link",
    "label": "Industry",
-   "options": "CRM Industry"
+   "options": "CRM Company Type"
   },
   {
    "fieldname": "territory",
@@ -73,7 +73,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-09 19:26:54.727026",
+ "modified": "2025-02-12 16:23:44.500777",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Company",
