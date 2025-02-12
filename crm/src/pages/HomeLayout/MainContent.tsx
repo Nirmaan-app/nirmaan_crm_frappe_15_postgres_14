@@ -13,7 +13,7 @@ export const MainContent = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4 h-full relative">
+    <div className="flex flex-col gap-4 h-full relative pt-2">
       <Input type="text" className="focus:border-none rounded-lg" placeholder="Search Names, Company, Project, etc..." />
       <h3 className="text-lg font-semibold text-center dark:text-white">Welcome, Siva!</h3>
       <div className="p-6 border-2 border-muted flex flex-col gap-4">

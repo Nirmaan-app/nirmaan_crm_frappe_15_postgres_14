@@ -10,7 +10,7 @@ export const NavBar = () => {
 	const items = [
 		{
 			label : "Prospects",
-			path: "/prospect",
+			path: "/prospects",
 		},
 		{
 			label : "Tasks",
@@ -23,22 +23,41 @@ export const NavBar = () => {
 		{
 			label : "Settings",
 			path: "/settings",
+		},
+		{
+			label : "Contact",
+			path: "/prospects/new-contact",
+		},
+		{
+			label : "Company",
+			path: "/prospects/new-company",
+		},
+		{
+			label : "Contact",
+			path: "/prospects/contact",
+		},
+		{
+			label : "Company",
+			path: "/prospects/company",
 		}
 	]
 	return (
-		<>
-		
+		<nav className="fixed top-0 left-0 w-full bg-navbarbackground shadow px-4 py-2 z-10">
 		{location.pathname === "/" ? (
-			<nav className="fixed top-0 left-0 w-full bg-navbarbackground shadow p-4 flex justify-between items-center z-10">
+			<div className="flex justify-between items-center">
 				<h1 className="text-xl text-destructive font-semibold">Nirmaan CRM</h1>
 				<Bell />
-			</nav>
+			</div>
+		) : ["/prospects", "/tasks", "/calendar", "/settings"].includes(location.pathname) ? (
+			<div className="dark:text-white">
+				<h2 className="text-center font-semibold">{items.find(i => location.pathname.includes(i.path))?.label}</h2>
+			</div>
 		) : (
-			<nav className="fixed top-0 left-0 w-full bg-navbarbackground dark:text-white shadow p-4 z-10 grid grid-cols-3">
-				<ArrowLeft onClick={() => navigate(-1)} />
+			<div className="dark:text-white grid grid-cols-3 items-center">
+				<ArrowLeft className="cursor-pointer" onClick={() => navigate(-1)} />
 				<h2 className="text-center font-semibold">{items.find(i => i.path === location.pathname)?.label}</h2>
-			</nav>
+			</div>
 		)}
-		</>
+		</nav>
 	)
 }
