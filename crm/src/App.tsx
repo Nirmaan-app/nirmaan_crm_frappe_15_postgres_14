@@ -16,7 +16,9 @@ import { MainContent } from "./pages/HomeLayout/MainContent";
 import { NewContactForm } from "./pages/Prospect/Contacts/New-Contact-Form";
 import { NewCompanyForm } from "./pages/Prospect/Companies/New-Company-Form";
 import { Contact } from "./pages/Prospect/Contacts/Contact";
-
+import { Company } from "./pages/Prospect/Companies/Company";
+import { ApplicationProvider } from "./contexts/ApplicationContext";
+import {NewTaskDialog} from "./pages/Tasks/TaskDialogs";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -28,10 +30,16 @@ const router = createBrowserRouter(
             <Route path="new-contact" element={<NewContactForm/>} />
             <Route path="new-company" element={<NewCompanyForm/>} />
             <Route path="contact" element={<Contact />} />
+            <Route path="company" element={<Company />} />
           </Route> 
-					<Route path="tasks" element={<Tasks />} />
+
 					<Route path="calendar" element={<Calendar />} />
 					<Route path="settings" element={<Settings />} />
+
+          <Route path="tasks">
+            <Route index element={<Tasks />} />
+            {/* <Route path="new-task" element={<NewTaskDialog />} /> */}
+          </Route>
       </Route>
    </>
   )
@@ -56,9 +64,12 @@ const App: FC = () => {
       }
       siteName={getSiteName()}
     >
+      <ApplicationProvider>
           <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
             <RouterProvider router={router} />
+            <NewTaskDialog />
           </ThemeProvider>
+      </ApplicationProvider>
     </FrappeProvider>
   );
 };

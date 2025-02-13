@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, useController } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -24,8 +24,9 @@ const companyFormSchema = z.object({
         .min(3, {
             message: "Minimum 3 characters required!",
         }),
-    company_address: z.string().optional(),
-    company_website : z.string().url().optional(),
+    company_location: z.string().optional(),
+    location: z.string().optional(),
+    company_website : z.string().optional(),
     industry : z.string().optional(),
 });
 
@@ -56,13 +57,13 @@ export const NewCompanyForm = () => {
             if(isValid) {
                 await createDoc("CRM Company", {
                     company_name: values.company_name,
-                    company_address: values.company_address,
-                    company_website: values.company_website,
+                    company_location: values.company_location === "Other" ? values.location : values.company_location,
+                    company_website: values?.company_website && (!values.company_website.startsWith("https://") ? `https://${values.company_website}` : values.company_website),
                     industry: values.industry,
                 })
                 await mutate("CRM Company")
 
-                navigate("/prospects?tab=company")
+                navigate(-1)
 
                 toast({
                     title: "Success!",
@@ -81,6 +82,25 @@ export const NewCompanyForm = () => {
     }
 
     const companyTypeOptions = companyTypesList?.map(com => ({label : com?.name, value : com?.name}));
+
+    const companyLocationOptions = [
+        { label: "Bangalore", value: "Bangalore" },
+        { label: "Chennai", value: "Chennai" },
+        { label: "Hyderabad", value: "Hyderabad" },
+        { label: "Kolkata", value: "Kolkata" },
+        { label: "Mumbai", value: "Mumbai" },
+        { label: "Pune", value: "Pune" },
+        {label: "Delhi", value: "Delhi"},
+        {label: "Ahmedabad", value: "Ahmedabad"},
+        {label: "Gurgaon", value: "Gurgaon"},
+        {label: "Other", value: "Other"},
+    ];
+
+    const companyLocation = form.watch("company_location");
+
+    if(companyTypesListLoading) {
+        return <div>Loading...</div>
+    }
 
     return (
         <div className="w-full h-full relative">
@@ -107,17 +127,33 @@ export const NewCompanyForm = () => {
                     />
                     <FormField
                         control={form.control}
-                        name="company_address"
+                        name="company_location"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="flex">Location</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter Company Location" {...field} />
+                                    <ReactSelect className="text-sm text-muted-foreground" placeholder="Select Location" options={companyLocationOptions} onBlur={field.onBlur} name={field.name} onChange={(e) => field.onChange(e.value)} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
+
+                    {companyLocation === "Other" && (
+                        <FormField
+                            control={form.control}
+                            name="location"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Input placeholder="Enter Location manually" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+
                     <FormField
                         control={form.control}
                         name="company_website"
@@ -125,7 +161,7 @@ export const NewCompanyForm = () => {
                             <FormItem>
                                 <FormLabel>Website</FormLabel>
                                 <FormControl>
-                                    <Input type="url" placeholder="Enter Company Website URL" {...field} />
+                                    <WebsiteInput control={form.control} name="company_website" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -153,3 +189,29 @@ export const NewCompanyForm = () => {
         </div>
     )
 }
+
+
+const WebsiteInput = ({ control, name }) => {
+    const { field } = useController({ control, name });
+  
+    const handleChange = (e) => {
+      let value = e.target.value;
+      field.onChange(value);
+    };
+  
+    return (
+      <div className="relative w-full">
+        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 font-semibold select-none">
+          https://
+        </span>
+  
+        <Input
+          type="text"
+          className="pl-[80px]"
+          placeholder="Enter Company Website"
+          value={field.value}
+          onChange={handleChange}
+        />
+      </div>
+    );
+  };
