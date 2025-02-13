@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
-import { SquarePen, Trash2 } from "lucide-react";
+import { useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig, useFrappeDeleteDoc } from "frappe-react-sdk";
+import { SquarePen, Trash2, Plus, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { AlertDialog, AlertDialogContent, AlertDialogCancel, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,6 +19,8 @@ import {
 import { Input } from "@/components/ui/input";
 import ReactSelect from 'react-select'
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { useApplicationContext } from "@/contexts/ApplicationContext";
 
 const contactFormSchema = z.object({
     first_name: z
@@ -55,15 +57,33 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 export const Contact = () => {
 
+    const { taskDialog, toggleTaskDialog } = useApplicationContext()
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate()
     const id = searchParams.get("id")
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const {updateDoc, loading: updateLoading} = useFrappeUpdateDoc()
+    const {deleteDoc, loading: deleteLoading} = useFrappeDeleteDoc()
 
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
     const toggleEditDialog = () => {
         setEditDialogOpen(!editDialogOpen);
     };
 
-    const {data, isLoading: dataLoading} = useFrappeGetDoc("CRM Contacts", id, id ? undefined : null)
+    const [deleteDialog, setDeleteDialog] = useState(false);
+    const toggleDeleteDialog = () => {
+        setDeleteDialog(!deleteDialog);
+    };
+
+    const [isOpen, setIsOpen] = useState(false);
+    const handleClose = (e: React.MouseEvent) => {
+      if ((e.target as HTMLElement).id === "overlay") {
+        setIsOpen(false);
+      }
+    };
+
+    const {mutate} = useSWRConfig()
+
+    const {data, isLoading: dataLoading, mutate : dataMutate} = useFrappeGetDoc("CRM Contacts", id, id ? undefined : null)
 
     const {data : contactCompany, isLoading: contactCompanyLoading} = useFrappeGetDoc("CRM Company", data?.company, data?.company ? undefined : null)
 
@@ -98,9 +118,63 @@ export const Contact = () => {
         }
     }, [data, form]);
 
-    const onSubmit = (data: ContactFormValues) => {
-        console.log(data);
-    };
+    const onSubmit = async (values: ContactFormValues) => {
+        try {
+            const isValid = await form.trigger()
+            if(isValid) {
+                await updateDoc("CRM Contacts", data?.name, {
+                    first_name: values.first_name,
+                    last_name: values.last_name,
+                    company: values.company,
+                    designation: values.designation,
+                    email: values.email,
+                    mobile: values.mobile,
+                })
+
+                await dataMutate()
+                await mutate("CRM Contacts")
+
+                toggleEditDialog()
+
+                toast({
+                    title: "Success!",
+                    description: "Contact updated successfully!",
+                    variant: "success"
+                })
+            }
+        } catch (error) {
+            console.log("error", error)
+            toast({
+                title: "Failed!",
+                description: `${error?.Error || error?.message}`,
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleConfirmDelete = async () => {
+        try {
+            await deleteDoc("CRM Contacts", data?.name)
+
+            await mutate("CRM Contacts")
+            toast({
+                title: "Success!",
+                description: `Contact: ${data?.first_name} ${data?.last_name} deleted successfully!`,
+                variant: "success"
+            })
+            navigate('/prospects?tab=contact')
+
+            toggleDeleteDialog()
+
+        } catch (error) {
+            console.log("error", error)
+            toast({
+                title: "Failed!",
+                description: `${error?.Error || error?.message}`,
+                variant: "destructive"
+            })
+        }
+    }
 
     const companyOptions = companiesList?.map(com => ({label : com?.company_name, value : com?.name}));
 
@@ -140,13 +214,13 @@ export const Contact = () => {
                             </div>
                             <div>
                                 <p className="text-xs">Company Type</p>
-                                <p className="text-sm font-semibold text-destructive">{contactCompany?.company_type}</p>
+                                <p className="text-sm font-semibold text-destructive">{contactCompany?.industry || "--"}</p>
                             </div>
                         </div>
                         <div className="flex flex-col gap-6">
                             <div className="text-end">
                                 <p className="text-xs">Location</p>
-                                <p className="text-sm font-semibold text-destructive">{contactCompany?.company_address || "--"}</p>
+                                <p className="text-sm font-semibold text-destructive">{contactCompany?.company_location || "--"}</p>
                             </div>
                         </div>
                     </div>
@@ -156,11 +230,23 @@ export const Contact = () => {
                         <SquarePen />
                         Edit
                     </Button>
-                    <Button variant="outline" className="text-destructive border-destructive">
+                    <Button onClick={toggleDeleteDialog} variant="outline" className="text-destructive border-destructive">
                         <Trash2 />
                         Delete
                     </Button>
                 </div>
+
+                <AlertDialog open={deleteDialog} onOpenChange={toggleDeleteDialog}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        </AlertDialogHeader>
+                        <AlertDialogDescription className="flex gap-2 items-end">
+                            <Button onClick={handleConfirmDelete} className="flex-1">Delete</Button>
+                            <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
+                        </AlertDialogDescription>
+                    </AlertDialogContent>
+                </AlertDialog>
 
                 <AlertDialog open={editDialogOpen} onOpenChange={toggleEditDialog}>
                     <AlertDialogContent>
@@ -206,7 +292,7 @@ export const Contact = () => {
                         name="company"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="flex">Company Name<sup className="text-sm text-destructive">*</sup></FormLabel>
+                                <FormLabel className="flex">Company<sup className="text-sm text-destructive">*</sup></FormLabel>
                                 <FormControl>
                                     <ReactSelect defaultValue={companyOptions.find(i => i?.value === field.value)} className="text-sm text-muted-foreground" placeholder="Select Company" options={companyOptions} onBlur={field.onBlur} name={field.name} onChange={(e) => field.onChange(e.value)} />
                                 </FormControl>
@@ -261,16 +347,45 @@ export const Contact = () => {
                 </form>
             </Form>
                                 
-                            </AlertDialogDescription>
+            </AlertDialogDescription>
 
                         <div className="flex items-end gap-2">
-                            <Button className="flex-1">Save</Button>
+                            <Button onClick={() => onSubmit(form.getValues())} className="flex-1">Save</Button>
                             <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
                         </div>
                         </AlertDialogHeader>
                     </AlertDialogContent>
                 </AlertDialog>
             </section>
+
+            {/* Overlay for Blur Effect */}
+            {isOpen && (
+              <div
+                id="overlay"
+                className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-[1px] transition-opacity duration-300"
+                onClick={handleClose}
+              />
+            )}
+            <div className="fixed bottom-24 right-6 flex flex-col items-end gap-4">
+              {isOpen && (
+                <div
+                  className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2 relative z-10"
+                  style={{ transition: "opacity 0.3s ease-in-out" }}
+                >
+                  <button>New Project</button>
+                  <Separator />
+                  <button onClick={toggleTaskDialog}>New Task</button>
+                </div>
+              )}
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 relative z-10 ${
+                  isOpen ? "rotate-90" : "rotate-0"
+                }`}
+              >
+                {isOpen ? <X size={24} /> : <Plus size={24} />}
+              </button>
+            </div>
         </div>
     )
 }

@@ -13,8 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
-import ReactSelect from 'react-select'
+import ReactSelect, { components } from 'react-select'
 import { toast } from "@/hooks/use-toast";
+import { CirclePlus } from "lucide-react";
 
 const contactFormSchema = z.object({
     first_name: z
@@ -143,9 +144,12 @@ export const NewContactForm = () => {
                         name="company"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="flex">Company Name<sup className="text-sm text-destructive">*</sup></FormLabel>
+                                <FormLabel className="flex">Company<sup className="text-sm text-destructive">*</sup></FormLabel>
                                 <FormControl>
-                                    <ReactSelect className="text-sm text-muted-foreground" placeholder="Select Company" options={companyOptions} onBlur={field.onBlur} name={field.name} onChange={(e) => field.onChange(e.value)} />
+                                    <ReactSelect className="text-sm text-muted-foreground" placeholder="Select Company" options={companyOptions} 
+                                        onBlur={field.onBlur} name={field.name} onChange={(e) => field.onChange(e.value)} 
+                                        components={{ MenuList: CustomMenuList }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -204,3 +208,36 @@ export const NewContactForm = () => {
         </div>
     )
 }
+
+const CustomMenuList = (props) => {
+    const { children} = props;
+
+    const navigate = useNavigate();
+
+    const onNewCompanyClick = () => {
+        setTimeout(() => {
+            navigate("/prospects/new-company");
+          }, 150); // Small delay to prevent accidental click on next screen
+    };
+  
+    return (
+      <div>
+        <components.MenuList {...props}>
+          <div>{children}</div>
+        </components.MenuList>
+        <div
+          className={`sticky top-0 z-10 border-destructive border`}
+        >
+            <Button
+              variant={"ghost"}
+              className="w-full rounded-none"
+              onClick={onNewCompanyClick}
+              onTouchStart={onNewCompanyClick}
+            >
+              <CirclePlus />
+              New Company
+            </Button>
+        </div>
+      </div>
+    );
+  };
