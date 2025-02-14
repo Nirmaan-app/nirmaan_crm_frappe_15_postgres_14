@@ -73,7 +73,7 @@ export const NewContactForm = () => {
         try {
             const isValid = await form.trigger()
             if(isValid) {
-                await createDoc("CRM Contacts", {
+                const res = await createDoc("CRM Contacts", {
                     first_name: values.first_name,
                     last_name: values.last_name,
                     company: values.company,
@@ -87,7 +87,7 @@ export const NewContactForm = () => {
 
                 toast({
                     title: "Success!",
-                    description: "Contact created successfully!",
+                    description: `Contact: ${res.first_name} ${res.last_name} created successfully!`,
                     variant: "success"
                 })
             }
@@ -95,7 +95,7 @@ export const NewContactForm = () => {
             console.log("error", error)
             toast({
                 title: "Failed!",
-                description: `${error?.Error || error?.message}`,
+                description: error?.message || "Failed to create contact!",
                 variant: "destructive"
             })
         }

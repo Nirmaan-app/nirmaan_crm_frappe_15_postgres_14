@@ -2,15 +2,10 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight, Plus, X } from "lucide-react";
 import { useState } from "react";
+import { useApplicationContext } from "@/contexts/ApplicationContext";
 
 export const MainContent = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleClose = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).id === "overlay") {
-      setIsOpen(false);
-    }
-  };
+  const { setOverlayOpen, overlayOpen } = useApplicationContext()
 
   return (
     <div className="flex flex-col gap-4 h-full relative pt-2">
@@ -43,19 +38,10 @@ export const MainContent = () => {
         ))}
       </div>
 
-      {/* Overlay for Blur Effect */}
-      {isOpen && (
-        <div
-          id="overlay"
-          className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-[1px] transition-opacity duration-300"
-          onClick={handleClose}
-        />
-      )}
-
-      <div className="fixed bottom-24 right-6 flex flex-col items-end gap-4">
-        {isOpen && (
+      <div className="fixed bottom-24 z-30 right-6 flex flex-col items-end gap-4">
+        {overlayOpen && (
           <div
-            className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2 relative z-10"
+            className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2"
             style={{ transition: "opacity 0.3s ease-in-out" }}
           >
             <button>New Contact</button>
@@ -68,12 +54,12 @@ export const MainContent = () => {
           </div>
         )}
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 relative z-10 ${
-            isOpen ? "rotate-90" : "rotate-0"
+          onClick={() => setOverlayOpen(!overlayOpen)}
+          className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 ${
+            overlayOpen ? "rotate-90" : "rotate-0"
           }`}
         >
-          {isOpen ? <X size={24} /> : <Plus size={24} />}
+          {overlayOpen ? <X size={24} /> : <Plus size={24} />}
         </button>
       </div>
     </div>

@@ -1,8 +1,14 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { NavBar } from "./NavBar";
 import { BottomBar } from "./BottomBar";
+import { useApplicationContext } from "@/contexts/ApplicationContext";
+import {NewTaskForm} from "@/pages/Tasks/TaskDialogs"
 
 export const HomeLayout = () => {
+
+	const { overlayOpen, setOverlayOpen, handleClose } = useApplicationContext()
+
+	const location = useLocation()
 
 	return (
 		<div className="flex flex-col h-screen">
@@ -13,6 +19,17 @@ export const HomeLayout = () => {
 			</main>
 
 			<BottomBar />
+
+			{location.pathname !== "/tasks/new" && <NewTaskForm />}
+
+			{/* Overlay for Blur Effect */}
+			{overlayOpen && (
+      		  <div
+      		    id="overlay"
+      		    className="fixed z-20 inset-0 bg-black bg-opacity-20 backdrop-blur-[1px] transition-all duration-300"
+      		    onClick={handleClose}
+      		  />
+      		)}
 		</div>
 	);
 };

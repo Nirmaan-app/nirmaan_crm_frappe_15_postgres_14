@@ -10,6 +10,7 @@ import { FC } from "react";
 import { ThemeProvider } from "./components/ui/ThemeProvider";
 import { Prospect } from "./pages/Prospect/Prospect";
 import { Tasks } from "./pages/Tasks/Tasks";
+import { Task } from "./pages/Tasks/Task";
 import { Calendar } from "./pages/Calendar/Calendar";
 import { Settings } from "./pages/Settings/Settings";
 import { MainContent } from "./pages/HomeLayout/MainContent";
@@ -18,7 +19,7 @@ import { NewCompanyForm } from "./pages/Prospect/Companies/New-Company-Form";
 import { Contact } from "./pages/Prospect/Contacts/Contact";
 import { Company } from "./pages/Prospect/Companies/Company";
 import { ApplicationProvider } from "./contexts/ApplicationContext";
-import {NewTaskDialog} from "./pages/Tasks/TaskDialogs";
+import {NewTaskForm} from "./pages/Tasks/TaskDialogs";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -38,7 +39,8 @@ const router = createBrowserRouter(
 
           <Route path="tasks">
             <Route index element={<Tasks />} />
-            {/* <Route path="new-task" element={<NewTaskDialog />} /> */}
+            <Route path="new" element={<NewTaskForm />} />
+            <Route path="task" element={<Task />} />
           </Route>
       </Route>
    </>
@@ -67,7 +69,6 @@ const App: FC = () => {
       <ApplicationProvider>
           <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
             <RouterProvider router={router} />
-            <NewTaskDialog />
           </ThemeProvider>
       </ApplicationProvider>
     </FrappeProvider>

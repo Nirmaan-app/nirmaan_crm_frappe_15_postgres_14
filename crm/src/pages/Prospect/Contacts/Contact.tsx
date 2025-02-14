@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig, useFrappeDeleteDoc } from "frappe-react-sdk";
 import { SquarePen, Trash2, Plus, X } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogContent, AlertDialogCancel, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
 import React, { useState, useEffect, useContext } from "react";
 import * as z from "zod";
@@ -19,8 +19,16 @@ import {
 import { Input } from "@/components/ui/input";
 import ReactSelect from 'react-select'
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 import { useApplicationContext } from "@/contexts/ApplicationContext";
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+  } from "@/components/ui/table"
 
 const contactFormSchema = z.object({
     first_name: z
@@ -57,7 +65,7 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 export const Contact = () => {
 
-    const { taskDialog, toggleTaskDialog } = useApplicationContext()
+    const { taskDialog, toggleTaskDialog, overlayOpen, setOverlayOpen } = useApplicationContext()
     const [searchParams] = useSearchParams();
     const navigate = useNavigate()
     const id = searchParams.get("id")
@@ -90,7 +98,13 @@ export const Contact = () => {
     const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList<CRMCompany>("CRM Company", {
         fields: ["name", "company_name"],
         limit: 1000,
-      }, "CRM Company")
+    }, "CRM Company")
+
+    const {data : tasksData, isLoading: tasksDataLoading} = useFrappeGetDocList("CRM Task", {
+      fields: ["*"],
+      filters: [["reference_doctype", "=", "CRM Contacts"], ["reference_docname", "=", id]],
+      limit: 1000,
+    }, id ? `CRM Task ${id}` : null)
 
     const form = useForm<ContactFormValues>({
         resolver: zodResolver(contactFormSchema),
@@ -179,7 +193,7 @@ export const Contact = () => {
     const companyOptions = companiesList?.map(com => ({label : com?.company_name, value : com?.name}));
 
     return (
-        <div className="dark:text-white">
+        <div className="dark:text-white space-y-4">
             <section>
                 <h2 className="font-medium mb-2">Contact Details</h2>
                 <div className="p-4 shadow rounded-md flex flex-col gap-4">
@@ -252,7 +266,7 @@ export const Contact = () => {
                     <AlertDialogContent>
                         <AlertDialogHeader className="text-start">
                             <AlertDialogTitle className="text-destructive text-center">Edit Contact</AlertDialogTitle>
-                            <AlertDialogDescription>
+                            <AlertDialogDescription asChild>
                             <Form {...form}>
                 <form
                     onSubmit={(event) => {
@@ -358,32 +372,75 @@ export const Contact = () => {
                 </AlertDialog>
             </section>
 
-            {/* Overlay for Blur Effect */}
-            {isOpen && (
-              <div
-                id="overlay"
-                className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-[1px] transition-opacity duration-300"
-                onClick={handleClose}
-              />
-            )}
-            <div className="fixed bottom-24 right-6 flex flex-col items-end gap-4">
-              {isOpen && (
+            <Separator />
+
+            <section>
+                <h2 className="font-medium mb-2">Actions</h2>
+                <div className="p-4 shadow rounded-md flex flex-col gap-4">
+                    <Table>
+                      {/* <TableCaption>A list of your recent invoices.</TableCaption> */}
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[30%]">Task</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="w-[5%]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {tasksData?.length ? (
+                            tasksData?.map(task => (
+                                <TableRow key={task?.name}>
+                                  <TableCell className="font-medium">{task?.type}</TableCell>
+                                  <TableCell>{task?.start_date}</TableCell>
+                                  <TableCell>{task?.status}</TableCell>
+                                  <TableCell>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="14" viewBox="0 0 8 14" fill="none">
+                                      <path fill-rule="evenodd" clip-rule="evenodd" d="M7.70832 6.28927C7.89579 6.4768 8.00111 6.73111 8.00111 6.99627C8.00111 7.26144 7.89579 7.51575 7.70832 7.70327L2.05132 13.3603C1.95907 13.4558 1.84873 13.532 1.72672 13.5844C1.60472 13.6368 1.4735 13.6644 1.34072 13.6655C1.20794 13.6667 1.07626 13.6414 0.953366 13.5911C0.83047 13.5408 0.718817 13.4666 0.624924 13.3727C0.531032 13.2788 0.456778 13.1671 0.406498 13.0442C0.356217 12.9213 0.330915 12.7897 0.332069 12.6569C0.333223 12.5241 0.360809 12.3929 0.413218 12.2709C0.465627 12.1489 0.541809 12.0385 0.637319 11.9463L5.58732 6.99627L0.637319 2.04627C0.455161 1.85767 0.354367 1.60507 0.356645 1.34287C0.358924 1.08068 0.464092 0.829864 0.6495 0.644456C0.834909 0.459047 1.08572 0.353879 1.34792 0.3516C1.61011 0.349322 1.86272 0.450116 2.05132 0.632274L7.70832 6.28927Z" fill="black" fill-opacity="0.9"/>
+                                    </svg>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-center py-2">
+                                    No Tasks Found
+                                </TableCell>
+                            </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                </div>
+            </section>
+
+            <section>
+                <h2 className="font-medium mb-2">Last Remark</h2>
+                <div className="p-4 shadow rounded-md flex flex-col gap-4">
+                    hello
+                </div>
+            </section>
+
+            <div className="fixed z-30 bottom-24 right-6 flex flex-col items-end gap-4">
+              {overlayOpen && (
                 <div
-                  className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2 relative z-10"
+                  className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2"
                   style={{ transition: "opacity 0.3s ease-in-out" }}
                 >
                   <button>New Project</button>
                   <Separator />
-                  <button onClick={toggleTaskDialog}>New Task</button>
+                  <button onClick={() => {
+                    toggleTaskDialog()
+                    setOverlayOpen(!overlayOpen)
+                  }}>New Task</button>
                 </div>
               )}
               <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 relative z-10 ${
-                  isOpen ? "rotate-90" : "rotate-0"
+                onClick={() => setOverlayOpen(!overlayOpen)}
+                className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 ${
+                    overlayOpen ? "rotate-90" : "rotate-0"
                 }`}
               >
-                {isOpen ? <X size={24} /> : <Plus size={24} />}
+                {overlayOpen ? <X size={24} /> : <Plus size={24} />}
               </button>
             </div>
         </div>

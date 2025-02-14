@@ -39,6 +39,14 @@ export const NavBar = () => {
 		{
 			label : "Company",
 			path: "/prospects/company",
+		},
+		{
+			label : "New Task",
+			path: "/tasks/new",
+		},
+		{
+			label : "Task",
+			path: "/tasks/task",
 		}
 	]
 	return (
