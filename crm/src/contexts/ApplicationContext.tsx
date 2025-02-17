@@ -4,6 +4,9 @@ interface ApplicationContextProps {
   taskDialog: boolean;
   setTaskDialog: (open: boolean) => void;
   toggleTaskDialog: () => void;
+  overlayOpen: boolean;
+  setOverlayOpen: (open: boolean) => void;
+  handleClose: (e: React.MouseEvent) => void;
 }
 
 const ApplicationContext = createContext<ApplicationContextProps | undefined>(
@@ -17,8 +20,16 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     setTaskDialog((prev) => !prev);
   };
 
+  const [overlayOpen, setOverlayOpen] = useState(false);
+
+  const handleClose = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).id === "overlay") {
+      setOverlayOpen(false);
+    }
+  };
+
   return (
-    <ApplicationContext.Provider value={{ taskDialog, setTaskDialog, toggleTaskDialog }}>
+    <ApplicationContext.Provider value={{ taskDialog, setTaskDialog, toggleTaskDialog, overlayOpen, setOverlayOpen, handleClose }}>
       {children}
     </ApplicationContext.Provider>
   );

@@ -55,7 +55,7 @@ export const NewCompanyForm = () => {
         try {
             const isValid = await form.trigger()
             if(isValid) {
-                await createDoc("CRM Company", {
+                const res = await createDoc("CRM Company", {
                     company_name: values.company_name,
                     company_location: values.company_location === "Other" ? values.location : values.company_location,
                     company_website: values?.company_website && (!values.company_website.startsWith("https://") ? `https://${values.company_website}` : values.company_website),
@@ -67,7 +67,7 @@ export const NewCompanyForm = () => {
 
                 toast({
                     title: "Success!",
-                    description: "Company created successfully!",
+                    description: `Company ${res.company_name} created successfully!`,
                     variant: "success"
                 })
             }
@@ -75,7 +75,7 @@ export const NewCompanyForm = () => {
             console.log("error", error)
             toast({
                 title: "Failed!",
-                description: `${error?.Error || error?.message}`,
+                description: error?.message || "Failed to create company!",
                 variant: "destructive"
             })
         }

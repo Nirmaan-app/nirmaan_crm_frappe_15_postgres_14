@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig, useFrappeDeleteDoc } from "frappe-react-sdk";
-import { SquarePen, Trash2 } from "lucide-react";
+import { SquarePen, Trash2, Plus, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { AlertDialog, AlertDialogContent, AlertDialogCancel, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import ReactSelect from 'react-select'
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useApplicationContext } from "@/contexts/ApplicationContext";
 
 const companyFormSchema = z.object({
     company_name: z
@@ -38,6 +39,7 @@ type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
 export const Company = () => {
 
+    const { taskDialog, toggleTaskDialog, overlayOpen, setOverlayOpen } = useApplicationContext()
     const [searchParams] = useSearchParams();
     const navigate = useNavigate()
     const id = searchParams.get("id")
@@ -166,7 +168,10 @@ export const Company = () => {
                             </div>
                             <div className="text-end">
                                 <p className="text-xs">Website</p>
-                                <p className="text-sm font-semibold text-destructive">{data?.company_website || "--"}</p>
+                                <a  href={data?.company_website} target="_blank" rel="noreferrer">
+                                    <p className="text-sm font-semibold text-destructive underline">{data?.company_website || "--"}</p>
+                                </a>
+                                {/* <p className="text-sm font-semibold text-destructive">{data?.company_website || "--"}</p> */}
                             </div>
                         </div>
                     </div>
@@ -217,7 +222,7 @@ export const Company = () => {
                     <AlertDialogContent>
                         <AlertDialogHeader className="text-start">
                             <AlertDialogTitle className="text-destructive text-center">Edit Contact</AlertDialogTitle>
-                            <AlertDialogDescription>
+                            <AlertDialogDescription asChild>
                             <Form {...form}>
                 <form
                     onSubmit={(event) => {
@@ -292,6 +297,27 @@ export const Company = () => {
                     </AlertDialogContent>
                 </AlertDialog>
             </section>
+
+            <div className="fixed z-30 bottom-24 right-6 flex flex-col items-end gap-4">
+              {overlayOpen && (
+                <div
+                  className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2"
+                  style={{ transition: "opacity 0.3s ease-in-out" }}
+                >
+                  <button>New Contact</button>
+                  <Separator />
+                  <button >New Project</button>
+                </div>
+              )}
+              <button
+                onClick={() => setOverlayOpen(!overlayOpen)}
+                className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 ${
+                    overlayOpen ? "rotate-90" : "rotate-0"
+                }`}
+              >
+                {overlayOpen ? <X size={24} /> : <Plus size={24} />}
+              </button>
+            </div>
         </div>
     )
 }
