@@ -1,25 +1,25 @@
 import { FrappeProvider } from "frappe-react-sdk";
+import { FC } from "react";
 import {
   Route,
   RouterProvider,
   createBrowserRouter,
   createRoutesFromElements,
 } from "react-router-dom";
-import { HomeLayout } from "./pages/HomeLayout/Home";
-import { FC } from "react";
 import { ThemeProvider } from "./components/ui/ThemeProvider";
-import { Prospect } from "./pages/Prospect/Prospect";
-import { Tasks } from "./pages/Tasks/Tasks";
-import { Task } from "./pages/Tasks/Task";
-import { Calendar } from "./pages/Calendar/Calendar";
-import { Settings } from "./pages/Settings/Settings";
+import { ApplicationProvider } from "./contexts/ApplicationContext";
+import { TaskCalendar } from "./pages/Calendar/Calendar";
+import { HomeLayout } from "./pages/HomeLayout/Home";
 import { MainContent } from "./pages/HomeLayout/MainContent";
-import { NewContactForm } from "./pages/Prospect/Contacts/New-Contact-Form";
+import { Company } from "./pages/Prospect/Companies/Company";
 import { NewCompanyForm } from "./pages/Prospect/Companies/New-Company-Form";
 import { Contact } from "./pages/Prospect/Contacts/Contact";
-import { Company } from "./pages/Prospect/Companies/Company";
-import { ApplicationProvider } from "./contexts/ApplicationContext";
-import {NewTaskForm} from "./pages/Tasks/TaskDialogs";
+import { NewContactForm } from "./pages/Prospect/Contacts/New-Contact-Form";
+import { Prospect } from "./pages/Prospect/Prospect";
+import { Settings } from "./pages/Settings/Settings";
+import { Task } from "./pages/Tasks/Task";
+import { NewTaskForm } from "./pages/Tasks/TaskDialogs";
+import { Tasks } from "./pages/Tasks/Tasks";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -34,7 +34,7 @@ const router = createBrowserRouter(
             <Route path="company" element={<Company />} />
           </Route> 
 
-					<Route path="calendar" element={<Calendar />} />
+					<Route path="calendar" element={<TaskCalendar />} />
 					<Route path="settings" element={<Settings />} />
 
           <Route path="tasks">
