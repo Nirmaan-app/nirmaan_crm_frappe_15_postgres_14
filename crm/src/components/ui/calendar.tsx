@@ -1,9 +1,10 @@
 "use client"
 
 import { Button, buttonVariants } from "@/components/ui/button"
+import { useApplicationContext } from "@/contexts/ApplicationContext"
 import { cn } from "@/lib/utils"
 import { differenceInCalendarDays } from "date-fns"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, PlusIcon } from "lucide-react"
 import * as React from "react"
 import {
   DayPicker,
@@ -149,11 +150,11 @@ function Calendar({
     props.rangeMiddleClassName
   )
   const _selectedClassName = cn(
-    "[&>button]:bg-[#000399] [&>button]:border [&>button]:border-[#000399] [&>button]:rounded-full [&>button]:text-white [&>button]:hover:bg-[#000399] [&>button]:hover:text-white",
+    "[&>button]:bg-[#000399] [&>button]:border-none [&>button]:dark:bg-primary [&>button]:rounded-full [&>button]:text-white [&>button]:hover:bg-[#000399] [&>button]:hover:text-white",
     props.selectedClassName
   )
   const _todayClassName = cn(
-    "[&>button]:bg-background [&>button]:border [&>button]:border-destructive [&>button]:rounded-full [&>button]:text-destructive",
+    " [&>button]:border [&>button]:border-destructive [&>button]:rounded-full [&>button]:text-destructive",
     props.todayClassName
   )
   const _outsideClassName = cn(
@@ -340,6 +341,8 @@ function Nav({
     goToMonth(nextMonth)
     onNextClick?.(nextMonth)
   }, [goToMonth, nextMonth])
+
+  const { toggleTaskDialog} = useApplicationContext()
   return (
     <nav className={cn("flex items-center", className)}>
       <Button
@@ -374,6 +377,10 @@ function Nav({
         onClick={handleNextClick}
       >
         <ChevronRight className="h-4 w-4" />
+      </Button>
+      <Button onClick={toggleTaskDialog} className="absolute right-0 h-7 px-2">
+        <PlusIcon className="h-4 w-4" />
+        Task
       </Button>
     </nav>
   )

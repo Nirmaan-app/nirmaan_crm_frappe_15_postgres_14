@@ -1,9 +1,5 @@
-import { useApplicationContext } from "@/contexts/ApplicationContext";
-import { useContext, useState, useEffect } from "react";
-import { AlertDialog, AlertDialogContent, AlertDialogCancel, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useController } from "react-hook-form";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
@@ -13,11 +9,15 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import ReactSelect from 'react-select'
+import { useApplicationContext } from "@/contexts/ApplicationContext";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { useFrappeCreateDoc, useFrappeGetDoc, useSWRConfig, useFrappeGetDocList } from "frappe-react-sdk";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFrappeCreateDoc, useFrappeGetDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import ReactSelect from 'react-select';
+import * as z from "zod";
 
 const taskFormSchema = z.object({
     reference_docname: z
@@ -77,7 +77,7 @@ export const NewTaskForm = () => {
             if(!isValid) return;
 
             const contact = contactsData?.find((contact) => contact.name === values.reference_docname)
-            const res = await createDoc("CRM Task", {
+            await createDoc("CRM Task", {
                 reference_doctype: "CRM Contacts",
                 reference_docname: values?.reference_docname,
                 type: values.type,
@@ -129,7 +129,7 @@ export const NewTaskForm = () => {
                 <AlertDialogHeader className="text-start">
                     <AlertDialogTitle className="text-destructive text-center">Add New Task</AlertDialogTitle>
                     <AlertDialogDescription asChild>
-                        <TaskForm form={form} onSubmit={onSubmit} location={location} />
+                        <TaskForm form={form} onSubmit={onSubmit} location={location} contactsData={contactsData} />
                     </AlertDialogDescription>
                     <div className="flex items-end gap-2">
                         <Button onClick={() => onSubmit(form.getValues())} className="flex-1">Save</Button>
@@ -158,7 +158,7 @@ export const TaskForm = ({ form, onSubmit, location, contactsData, reSchedule = 
                     }}
                     className="space-y-4 py-4"
                 >
-                    {location.pathname === "/tasks/new" && (
+                    {["/tasks/new", "/calendar"].includes(location.pathname) && (
                         <FormField
                             control={form.control}
                             name="reference_docname"

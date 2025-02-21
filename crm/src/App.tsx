@@ -20,6 +20,7 @@ import { Settings } from "./pages/Settings/Settings";
 import { Task } from "./pages/Tasks/Task";
 import { NewTaskForm } from "./pages/Tasks/TaskDialogs";
 import { Tasks } from "./pages/Tasks/Tasks";
+import { TasksVariantPage } from "./pages/Tasks/TasksVariantPage";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -41,6 +42,10 @@ const router = createBrowserRouter(
             <Route index element={<Tasks />} />
             <Route path="new" element={<NewTaskForm />} />
             <Route path="task" element={<Task />} />
+            <Route path="history" element={<TasksVariantPage variant="history" />} />
+            <Route path="pending" element={<TasksVariantPage variant="pending" />} />
+            <Route path="upcoming" element={<TasksVariantPage variant="upcoming" />} />
+
           </Route>
       </Route>
    </>

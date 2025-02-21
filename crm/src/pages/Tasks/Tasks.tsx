@@ -1,8 +1,8 @@
-import { CirclePlus, History, Hourglass, SkipForward, ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useFrappeGetDocList } from "frappe-react-sdk";
 import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
-import {useState, useEffect} from 'React'
+import { useFrappeGetDocList } from "frappe-react-sdk";
+import { ChevronRight, History, Hourglass, Plus, SkipForward } from "lucide-react";
+import { useEffect, useState } from 'React';
+import { useNavigate } from "react-router-dom";
 
 export const Tasks = () => {
     const navigate = useNavigate();
@@ -27,7 +27,6 @@ export const Tasks = () => {
       }, "CRM Company")
 
     const cards = [
-        { title: "New", icon: CirclePlus, path: "/tasks/new" },
         { title: "History", icon: History, path: "/tasks/history" },
         { title: "Pending", icon: Hourglass, path: "/tasks/pending" },
         { title: "Upcoming", icon: SkipForward, path: "/tasks/upcoming" },
@@ -70,7 +69,7 @@ export const Tasks = () => {
     return (
         <div>
             {/* Navigation Cards */}
-            <div className="grid grid-cols-4 gap-2 text-white">
+            <div className="grid grid-cols-3 gap-2 text-white">
                 {cards.map((card) => (
                     <div
                         onClick={() => navigate(card.path)}
@@ -131,6 +130,15 @@ export const Tasks = () => {
                     </ul>
                 </div>
             </div>
+            <div className="fixed bottom-24 right-6">
+              <button
+                onClick={() => navigate("/tasks/new")}
+                className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center`}
+              >
+                <Plus size={24} />
+              </button>
+            </div>
+
         </div>
     );
 };
