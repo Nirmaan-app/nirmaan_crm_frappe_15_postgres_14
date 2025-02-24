@@ -1,13 +1,5 @@
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig, useFrappeDeleteDoc } from "frappe-react-sdk";
-import { SquarePen, Trash2, Plus, X } from "lucide-react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { AlertDialog, AlertDialogContent, AlertDialogCancel, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
-import React, { useState, useEffect, useContext } from "react";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import {
     Form,
     FormControl,
@@ -17,18 +9,25 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import ReactSelect from 'react-select'
-import { toast } from "@/hooks/use-toast";
-import { useApplicationContext } from "@/contexts/ApplicationContext";
+import { Separator } from "@/components/ui/separator";
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
     TableHead,
     TableHeader,
-    TableRow,
-  } from "@/components/ui/table"
+    TableRow
+} from "@/components/ui/table";
+import { useApplicationContext } from "@/contexts/ApplicationContext";
+import { toast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
+import { Plus, SquarePen, Trash2, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import ReactSelect from 'react-select';
+import * as z from "zod";
 
 const contactFormSchema = z.object({
     first_name: z
@@ -95,7 +94,7 @@ export const Contact = () => {
 
     const {data : contactCompany, isLoading: contactCompanyLoading} = useFrappeGetDoc("CRM Company", data?.company, data?.company ? undefined : null)
 
-    const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList<CRMCompany>("CRM Company", {
+    const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList("CRM Company", {
         fields: ["name", "company_name"],
         limit: 1000,
     }, "CRM Company")

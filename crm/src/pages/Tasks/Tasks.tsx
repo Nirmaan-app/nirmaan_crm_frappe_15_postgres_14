@@ -1,15 +1,12 @@
 import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
+import { getFilteredTasks } from "@/utils/taskutils";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, History, Hourglass, Plus, SkipForward } from "lucide-react";
-import { useEffect, useState } from 'React';
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const Tasks = () => {
     const navigate = useNavigate();
-
-    const [todayTasks, setTodayTasks] = useState([])
-
-    const [tomorrowTasks, setTomorrowTasks] = useState([])
 
     const { data: tasksData, isLoading: tasksDataLoading } = useFrappeGetDocList("CRM Task", {
         fields: ["*"],
@@ -37,24 +34,18 @@ export const Tasks = () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowDate = tomorrow.toISOString().split("T")[0];
 
-    useEffect(() => {
-        if(tasksData && contactsList && companiesList) {
-            const todayTasks = tasksData
-            ?.filter((task) => task?.start_date?.startsWith(today))
-            ?.sort((a, b) => a?.start_date?.localeCompare(b?.start_date))
-            ?.map((t) => ({...t, contact: contactsList?.find(c => c.name === t.reference_docname)}))
-            ?.map((k) => ({...k, company: companiesList?.find(c => c.name === k.contact?.company)}))
+    const todayTasks = useMemo(() => getFilteredTasks(tasksData, today, contactsList, companiesList), [tasksData, contactsList, companiesList])
 
-            const tomorrowTasks = tasksData
-                ?.filter((task) => task?.start_date?.startsWith(tomorrowDate))
-                ?.sort((a, b) => a?.start_date?.localeCompare(b?.start_date))
-                ?.map((t) => ({...t, contact: contactsList?.find(c => c.name === t.reference_docname)}))
-                ?.map((k) => ({...k, company: companiesList?.find(c => c.name === k.contact?.company)}))
+    const tomorrowTasks = useMemo(() => getFilteredTasks(tasksData, tomorrowDate, contactsList, companiesList), [tasksData, contactsList, companiesList])
 
-            setTodayTasks(todayTasks)
-            setTomorrowTasks(tomorrowTasks)
-        }
-    }, [tasksData, contactsList, companiesList])
+    // useEffect(() => {
+    //     if(tasksData && contactsList && companiesList) {
+    //         const todayTasks =   getFilteredTasks(tasksData, today, contactsList, companiesList)
+    //         const tomorrowTasks = getFilteredTasks(tasksData, tomorrowDate, contactsList, companiesList)
+    //         setTodayTasks(todayTasks)
+    //         setTomorrowTasks(tomorrowTasks)
+    //     }
+    // }, [tasksData, contactsList, companiesList])
 
     
 

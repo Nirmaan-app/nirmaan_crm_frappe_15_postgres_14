@@ -9,8 +9,11 @@ import {
 import { ThemeProvider } from "./components/ui/ThemeProvider";
 import { ApplicationProvider } from "./contexts/ApplicationContext";
 import { TaskCalendar } from "./pages/Calendar/Calendar";
-import { HomeLayout } from "./pages/HomeLayout/Home";
-import { MainContent } from "./pages/HomeLayout/MainContent";
+import { AppLayout } from "./pages/Layout/AppLayout";
+import { HomePage } from "./pages/Layout/HomePage";
+import { NewProjectScreens } from "./pages/Projects/NewProjectScreens";
+import { Project } from "./pages/Projects/Project";
+import { Projects } from "./pages/Projects/Projects";
 import { Company } from "./pages/Prospect/Companies/Company";
 import { NewCompanyForm } from "./pages/Prospect/Companies/New-Company-Form";
 import { Contact } from "./pages/Prospect/Contacts/Contact";
@@ -25,8 +28,8 @@ import { TasksVariantPage } from "./pages/Tasks/TasksVariantPage";
 const router = createBrowserRouter(
   createRoutesFromElements(
    <>
-      <Route path="/" element={<HomeLayout />}>
-          <Route index element={<MainContent />} />
+      <Route path="/" element={<AppLayout />}>
+          <Route index element={<HomePage />} />
 					<Route path="prospects">
             <Route index element={<Prospect />} />
             <Route path="new-contact" element={<NewContactForm/>} />
@@ -46,6 +49,12 @@ const router = createBrowserRouter(
             <Route path="pending" element={<TasksVariantPage variant="pending" />} />
             <Route path="upcoming" element={<TasksVariantPage variant="upcoming" />} />
 
+          </Route>
+
+          <Route path="projects">
+            <Route index element={<Projects />} />
+            <Route path="new" element={<NewProjectScreens />} />
+            <Route path="project" element={<Project />} />
           </Route>
       </Route>
    </>

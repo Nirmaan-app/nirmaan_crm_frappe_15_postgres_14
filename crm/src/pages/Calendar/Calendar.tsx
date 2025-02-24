@@ -46,8 +46,6 @@ useEffect(() => {
     return set;
   }, [data]);
 
-  console.log("tasksDateSet", tasksDatesSet)
-
   const isTaskDate = React.useCallback((date: Date) => {
     const dStr = date.toISOString().split("T")[0];
     return tasksDatesSet.has(dStr);
