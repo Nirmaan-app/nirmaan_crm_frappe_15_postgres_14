@@ -1,15 +1,12 @@
-import { CirclePlus, History, Hourglass, SkipForward, ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useFrappeGetDocList } from "frappe-react-sdk";
 import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
-import {useState, useEffect} from 'React'
+import { getFilteredTasks } from "@/utils/taskutils";
+import { useFrappeGetDocList } from "frappe-react-sdk";
+import { ChevronRight, History, Hourglass, Plus, SkipForward } from "lucide-react";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const Tasks = () => {
     const navigate = useNavigate();
-
-    const [todayTasks, setTodayTasks] = useState([])
-
-    const [tomorrowTasks, setTomorrowTasks] = useState([])
 
     const { data: tasksData, isLoading: tasksDataLoading } = useFrappeGetDocList("CRM Task", {
         fields: ["*"],
@@ -27,7 +24,6 @@ export const Tasks = () => {
       }, "CRM Company")
 
     const cards = [
-        { title: "New", icon: CirclePlus, path: "/tasks/new" },
         { title: "History", icon: History, path: "/tasks/history" },
         { title: "Pending", icon: Hourglass, path: "/tasks/pending" },
         { title: "Upcoming", icon: SkipForward, path: "/tasks/upcoming" },
@@ -38,24 +34,18 @@ export const Tasks = () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowDate = tomorrow.toISOString().split("T")[0];
 
-    useEffect(() => {
-        if(tasksData && contactsList && companiesList) {
-            const todayTasks = tasksData
-            ?.filter((task) => task?.start_date?.startsWith(today))
-            ?.sort((a, b) => a?.start_date?.localeCompare(b?.start_date))
-            ?.map((t) => ({...t, contact: contactsList?.find(c => c.name === t.reference_docname)}))
-            ?.map((k) => ({...k, company: companiesList?.find(c => c.name === k.contact?.company)}))
+    const todayTasks = useMemo(() => getFilteredTasks(tasksData, today, contactsList, companiesList), [tasksData, contactsList, companiesList])
 
-            const tomorrowTasks = tasksData
-                ?.filter((task) => task?.start_date?.startsWith(tomorrowDate))
-                ?.sort((a, b) => a?.start_date?.localeCompare(b?.start_date))
-                ?.map((t) => ({...t, contact: contactsList?.find(c => c.name === t.reference_docname)}))
-                ?.map((k) => ({...k, company: companiesList?.find(c => c.name === k.contact?.company)}))
+    const tomorrowTasks = useMemo(() => getFilteredTasks(tasksData, tomorrowDate, contactsList, companiesList), [tasksData, contactsList, companiesList])
 
-            setTodayTasks(todayTasks)
-            setTomorrowTasks(tomorrowTasks)
-        }
-    }, [tasksData, contactsList, companiesList])
+    // useEffect(() => {
+    //     if(tasksData && contactsList && companiesList) {
+    //         const todayTasks =   getFilteredTasks(tasksData, today, contactsList, companiesList)
+    //         const tomorrowTasks = getFilteredTasks(tasksData, tomorrowDate, contactsList, companiesList)
+    //         setTodayTasks(todayTasks)
+    //         setTomorrowTasks(tomorrowTasks)
+    //     }
+    // }, [tasksData, contactsList, companiesList])
 
     
 
@@ -70,7 +60,7 @@ export const Tasks = () => {
     return (
         <div>
             {/* Navigation Cards */}
-            <div className="grid grid-cols-4 gap-2 text-white">
+            <div className="grid grid-cols-3 gap-2 text-white">
                 {cards.map((card) => (
                     <div
                         onClick={() => navigate(card.path)}
@@ -131,6 +121,15 @@ export const Tasks = () => {
                     </ul>
                 </div>
             </div>
+            <div className="fixed bottom-24 right-6">
+              <button
+                onClick={() => navigate("/tasks/new")}
+                className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center`}
+              >
+                <Plus size={24} />
+              </button>
+            </div>
+
         </div>
     );
 };

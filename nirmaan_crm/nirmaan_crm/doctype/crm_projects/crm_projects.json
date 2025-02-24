@@ -1,0 +1,97 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-24 13:17:02.289620",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "links_section",
+  "project_company",
+  "project_contact",
+  "project_details_section",
+  "project_name",
+  "project_location",
+  "project_status",
+  "project_size",
+  "project_type",
+  "project_packages"
+ ],
+ "fields": [
+  {
+   "fieldname": "links_section",
+   "fieldtype": "Section Break",
+   "label": "Links"
+  },
+  {
+   "fieldname": "project_company",
+   "fieldtype": "Link",
+   "label": "Project Company",
+   "options": "CRM Company"
+  },
+  {
+   "fieldname": "project_contact",
+   "fieldtype": "Link",
+   "label": "Project Contact",
+   "options": "CRM Contacts"
+  },
+  {
+   "fieldname": "project_details_section",
+   "fieldtype": "Section Break",
+   "label": "Project Details"
+  },
+  {
+   "fieldname": "project_name",
+   "fieldtype": "Data",
+   "label": "Project Name"
+  },
+  {
+   "fieldname": "project_location",
+   "fieldtype": "Data",
+   "label": "Project Location"
+  },
+  {
+   "fieldname": "project_status",
+   "fieldtype": "Data",
+   "label": "Project Status"
+  },
+  {
+   "fieldname": "project_size",
+   "fieldtype": "Data",
+   "label": "Project Size"
+  },
+  {
+   "fieldname": "project_type",
+   "fieldtype": "Data",
+   "label": "Project Type"
+  },
+  {
+   "fieldname": "project_packages",
+   "fieldtype": "Data",
+   "label": "Project Packages"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-24 13:30:03.776395",
+ "modified_by": "Administrator",
+ "module": "Nirmaan CRM",
+ "name": "CRM Projects",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

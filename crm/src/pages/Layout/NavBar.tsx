@@ -1,4 +1,4 @@
-import { ArrowLeft, Bell } from "lucide-react"
+import { ArrowLeft, Bell } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export const NavBar = () => {
@@ -47,10 +47,34 @@ export const NavBar = () => {
 		{
 			label : "Task",
 			path: "/tasks/task",
-		}
+		},
+		{
+			label : "Tasks History",
+			path: "/tasks/history",
+		},
+		{
+			label : "Pending Tasks",
+			path: "/tasks/pending",
+		},
+		{
+			label : "Upcoming Tasks",
+			path: "/tasks/upcoming",
+		},
+		{
+			label : "Projects",
+			path: "/projects",
+		},
+		{
+			label : "New Project",
+			path: "/projects/new",
+		},
+		{
+			label : "Project",
+			path: "/projects/project",
+		},
 	]
 	return (
-		<nav className="fixed top-0 left-0 w-full bg-navbarbackground shadow px-4 py-2 z-10">
+		<nav className="fixed top-0 left-0 w-full bg-navbarbackground shadow px-4 py-3 z-10">
 		{location.pathname === "/" ? (
 			<div className="flex justify-between items-center">
 				<h1 className="text-xl text-destructive font-semibold">Nirmaan CRM</h1>
@@ -61,9 +85,9 @@ export const NavBar = () => {
 				<h2 className="text-center font-semibold">{items.find(i => location.pathname.includes(i.path))?.label}</h2>
 			</div>
 		) : (
-			<div className="dark:text-white grid grid-cols-3 items-center">
-				<ArrowLeft className="cursor-pointer" onClick={() => navigate(-1)} />
-				<h2 className="text-center font-semibold">{items.find(i => i.path === location.pathname)?.label}</h2>
+			<div className="dark:text-white relative">
+				<ArrowLeft className="cursor-pointer absolute left-0 top-1/2 transform -translate-y-1/2 " onClick={() => navigate(-1)} />
+				<h2 className="font-semibold text-center">{items.find(i => i.path === location.pathname)?.label}</h2>
 			</div>
 		)}
 		</nav>
