@@ -8,9 +8,6 @@ export const AppLayout = () => {
 	const MobileLayout = React.lazy(() => import("./MobileLayout"));
 	const DesktopLayout = React.lazy(() => import("./DesktopLayout"));
 
-
-	console.log("isMobile", isMobile)
-
 	// const isMobile = () => {
 	// 	const userAgent = navigator.userAgent || navigator.vendor || window.opera;
 	// 	return /Mobi|Android|BlackBerry|iPhone|iPad|iPod|Opera Mini/i.test(userAgent);

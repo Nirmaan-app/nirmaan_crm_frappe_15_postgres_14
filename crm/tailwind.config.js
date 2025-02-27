@@ -40,8 +40,8 @@ module.exports = {
   				foreground: 'hsl(var(--accent-foreground))'
   			},
   			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
+  				DEFAULT: 'hsl(var(--primary))',
+  				foreground: 'hsl(var(--primary-foreground))'
   			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
@@ -53,7 +53,14 @@ module.exports = {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			}
-  		}
+  		},
+			height: {
+				navbar: 'var(--navbar-height)',
+			},
+			width: {
+				sidebar: 'var(--sidebar-width)',
+				notifications: 'var(--notifications-width)',
+			}
   	}
   },
   plugins: [require("tailwindcss-animate")],

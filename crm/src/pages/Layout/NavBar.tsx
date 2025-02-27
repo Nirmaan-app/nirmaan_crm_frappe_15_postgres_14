@@ -77,7 +77,7 @@ export const NavBar = () => {
 		<nav className="fixed top-0 left-0 w-full bg-navbarbackground shadow px-4 py-3 z-10">
 		{location.pathname === "/" ? (
 			<div className="flex justify-between items-center">
-				<h1 className="text-xl text-destructive font-semibold">Nirmaan CRM</h1>
+				<h1 className="text-xl text-primary font-semibold">Nirmaan CRM</h1>
 				<Bell />
 			</div>
 		) : ["/prospects", "/tasks", "/calendar", "/settings"].includes(location.pathname) ? (

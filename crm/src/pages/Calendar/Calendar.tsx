@@ -62,7 +62,7 @@ useEffect(() => {
         selected={selectedDate}
         onDayClick={(day) => setSelectedDate(day.toISOString().split("T")[0])}
         modifiers={{ hasTask: isTaskDate }}
-        modifiersClassNames={{ hasTask: "border-b-2 pb-2 border-[#000399] dark:text-primary text-[#000399]" }}
+        modifiersClassNames={{ hasTask: "border-b border-[#000399] dark:border-primary dark:text-primary text-[#000399]" }}
      />
      <Card className="bg-[#0003CB1A] dark:bg-background text-[#000399] dark:text-primary dark:border-foreground">
       <CardHeader>

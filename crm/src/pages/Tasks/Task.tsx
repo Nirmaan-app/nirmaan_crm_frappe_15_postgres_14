@@ -1,37 +1,27 @@
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
     TableHead,
     TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { AlertDialog, AlertDialogContent, AlertDialogCancel, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
-import { SquarePen, Trash2, Plus, X } from "lucide-react";
-import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import React, { useState, useEffect, useContext } from "react";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import ReactSelect from 'react-select'
-import { toast } from "@/hooks/use-toast";
-import {useFrappeGetDoc, useFrappeGetDocList, useSWRConfig, useFrappeUpdateDoc, useFrappeDeleteDoc} from "frappe-react-sdk";
-import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
-import {Button} from "@/components/ui/button";
-import {Separator} from "@/components/ui/separator";
-import {TaskForm} from "./TaskDialogs";
+    TableRow
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { toast } from "@/hooks/use-toast";
+import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFrappeCreateDoc, useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
+import { SquarePen, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import ReactSelect from 'react-select';
+import * as z from "zod";
+import { TaskForm } from "./TaskDialogs";
 
 const taskFormSchema = z.object({
     reference_docname: z
@@ -66,8 +56,11 @@ export const Task = () => {
     })
 
     const {updateDoc, loading: updateLoading} = useFrappeUpdateDoc()
+    const {createDoc, loading: createLoading} = useFrappeCreateDoc()
     const {deleteDoc, loading: deleteLoading} = useFrappeDeleteDoc()
     const {mutate} = useSWRConfig()
+
+    const [checked, setChecked] = useState(false);
 
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const toggleEditDialog = () => {
@@ -82,11 +75,6 @@ export const Task = () => {
     const [completeDialog, setCompleteDialog] = useState(false);
     const toggleCompleteDialog = () => {
         setCompleteDialog(!completeDialog);
-    };
-
-    const [reScheduleDialog, setReScheduleDialog] = useState(false);
-    const toggleReScheduleDialog = () => {
-        setReScheduleDialog(!reScheduleDialog);
     };
 
     const [scheduleTask, setScheduleTask] = useState(false);
@@ -200,12 +188,15 @@ export const Task = () => {
 
             toggleCompleteDialog()
 
-            const type = dialogType === "complete" ? "followUp" : "reSchedule"
-            
-            setDialogType(type)
+            if(dialogType === "complete" && checked) {
+                newScheduleTask()
+                toggleScheduleTask()
+            } else if (dialogType === "incomplete" && checked) {
+                toggleEditDialog()
+                setDialogType("reSchedule")
+            }
 
-            toggleReScheduleDialog()
-
+            setChecked(false)
             setStatus("")
             setRemarks("")
             
@@ -224,7 +215,7 @@ export const Task = () => {
             const isValid = await form.trigger();
             if(!isValid) return;
 
-            const res = await createDoc("CRM Task", {
+            await createDoc("CRM Task", {
                 reference_doctype: "CRM Contacts",
                 reference_docname: values?.reference_docname,
                 type: values.type,
@@ -394,7 +385,7 @@ export const Task = () => {
                 <Button
                     onClick={() => {
                         setStatus({label: "Incomplete", value: "Incomplete"})
-                        setDialogType("Incomplete")
+                        setDialogType("incomplete")
                         toggleCompleteDialog()
                     }}
                  variant="outline" className="text-destructive border-destructive">Incomplete</Button>
@@ -417,42 +408,20 @@ export const Task = () => {
                                 />
                                 </div>
                                 <div className="space-y-2">
-                                <Label htmlFor="remarks" className="flex">Remarks</Label>
-                                <Textarea id="remarks" value={remarks} onChange={(e) => setRemarks(e.target.value)} placeholder="Enter Remarks" className="text-sm text-muted-foreground" rows={3} />
+                                    <Label htmlFor="remarks" className="flex">Remarks</Label>
+                                    <Textarea id="remarks" value={remarks} onChange={(e) => setRemarks(e.target.value)} placeholder="Enter Remarks" className="text-sm text-muted-foreground" rows={3} />
                                 </div>
+                                <div className="flex items-center gap-2"> 
+                                    <input className="w-5 h-5" id="schedule" type="checkbox" value={checked} onChange={(e) => setChecked(e.target.checked)} />
+                                    <Label htmlFor="schedule" className="flex">{dialogType === "complete" ? 
+                                    "Schedule next task?" : "Re-schedule this task?"}</Label>
                                 </div>
+                            </div>
                         </AlertDialogDescription>
 
                     <div className="flex items-end gap-2">
                         <Button onClick={handleUpdateTask} className="flex-1">Confirm</Button>
                         <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
-                    </div>
-                    </AlertDialogHeader>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            <AlertDialog open={reScheduleDialog} onOpenChange={toggleReScheduleDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader className="text-start">
-                        <AlertDialogTitle className="text-destructive text-center">{dialogType === "followUp"
-                        ? "Do you want to schedule a follow-up task?"
-                         : "Do you want to re-schedule this task?"}</AlertDialogTitle>
-
-                    <div className="flex items-end gap-2">
-                        <Button className="flex-1"
-                        onClick={() => {
-                            const type = dialogType === "followUp" ? "newTask" : "reSchedule"
-                            if(type === "newTask") {
-                                newScheduleTask()
-                                toggleScheduleTask()
-                            } else {
-                                setDialogType(type)
-                                toggleEditDialog()
-                            }
-                            toggleReScheduleDialog()
-                        }}
-                        >Yes</Button>
-                        <AlertDialogCancel className="flex-1">No</AlertDialogCancel>
                     </div>
                     </AlertDialogHeader>
                 </AlertDialogContent>
