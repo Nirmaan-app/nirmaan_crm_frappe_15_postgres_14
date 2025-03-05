@@ -1,4 +1,4 @@
-export const formatDate = (dateString : Date) => {
+export const formatDate = (dateString : Date | string | undefined) : string => {
     if (!dateString) return "";
     return new Intl.DateTimeFormat('en-GB', {
         day: '2-digit',
@@ -6,9 +6,9 @@ export const formatDate = (dateString : Date) => {
         year: 'numeric',
     }).format(new Date(dateString));
 };
+ 
 
-
-export const formatTime12Hour = (time: string) => {
+export const formatTime12Hour = (time: string | undefined) : string => {
     if(!time) return ""
     const [hours, minutes] = time.split(":").map(Number);
     const period = hours >= 12 ? "PM" : "AM";
@@ -16,7 +16,8 @@ export const formatTime12Hour = (time: string) => {
     return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 };
 
-export const formatCasualDate = (inputDate: string | Date): string => {
+export const formatCasualDate = (inputDate: string | Date | undefined): string => {
+    if(!inputDate) return ""
     const date = new Date(inputDate);
   
     const day = date.getDate().toString().padStart(2, '0');

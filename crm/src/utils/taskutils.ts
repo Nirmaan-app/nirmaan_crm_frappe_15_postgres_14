@@ -1,12 +1,16 @@
-export const getFilteredTasks = (tasks : any[], filterDate: string, contacts: any[], companies: any[]) => {
+import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
+import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 
-  const contactsMap = new Map<string, any>();
+export const getFilteredTasks = (tasks : CRMTask[] | undefined, filterDate: string, contacts: CRMContacts[] | undefined, companies: CRMCompany[] | undefined) => {
+
+  const contactsMap = new Map<string | undefined, any>();
 
   contacts?.map((contact) => {
     contactsMap.set(contact.name, contact)
   })
 
-  const companiesMap = new Map<string, any>();
+  const companiesMap = new Map<string | undefined, any>();
 
   companies?.map((company) => {
     companiesMap.set(company.name, company)

@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useApplicationContext } from "@/contexts/ApplicationContext";
 import { toast } from "@/hooks/use-toast";
+import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useFrappeGetDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
 import { useEffect } from "react";
@@ -48,9 +49,9 @@ export const NewTaskForm = () => {
 
     const {mutate} = useSWRConfig()
 
-    const {data : contactData, isLoading: contactDataLoading} = useFrappeGetDoc("CRM Contacts", id, (id && taskDialog) ? undefined : null)
+    const {data : contactData, isLoading: contactDataLoading} = useFrappeGetDoc<CRMContacts>("CRM Contacts", id, (id && taskDialog) ? undefined : null)
 
-    const {data : contactsData, isLoading: contactsDataLoading} = useFrappeGetDocList("CRM Contacts", {
+    const {data : contactsData, isLoading: contactsDataLoading} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
         fields: ["first_name", "last_name", "name"],
         limit: 1000,
     })
@@ -87,7 +88,7 @@ export const NewTaskForm = () => {
 
             await mutate("CRM Task")
 
-            await mutate(`CRM Task ${contact.name}`)
+            await mutate(`CRM Task ${contact?.name}`)
 
             toast({
                 title: "Success!",
@@ -114,7 +115,7 @@ export const NewTaskForm = () => {
     if(location.pathname === "/tasks/new") {
         return (
             <div>
-                <TaskForm form={form} onSubmit={onSubmit} location={location} contactsData={contactsData} />
+                <TaskForm form={form} onSubmit={onSubmit} contactsData={contactsData} />
                 <div className="flex flex-col gap-2">
                     <Button onClick={() => onSubmit(form.getValues())} className="flex-1">Save</Button>
                     <Button onClick={() => navigate(-1)} variant={"outline"} className="text-destructive border-destructive">Cancel</Button>
@@ -129,7 +130,7 @@ export const NewTaskForm = () => {
                 <AlertDialogHeader className="text-start">
                     <AlertDialogTitle className="text-destructive text-center">Add New Task</AlertDialogTitle>
                     <AlertDialogDescription asChild>
-                        <TaskForm form={form} onSubmit={onSubmit} location={location} contactsData={contactsData} />
+                        <TaskForm form={form} onSubmit={onSubmit} contactsData={contactsData} />
                     </AlertDialogDescription>
                     <div className="flex items-end gap-2">
                         <Button onClick={() => onSubmit(form.getValues())} className="flex-1">Save</Button>
@@ -141,7 +142,16 @@ export const NewTaskForm = () => {
     )
 }
 
-export const TaskForm = ({ form, onSubmit, location, contactsData, reSchedule = false }) => {
+interface TaskFormProps {
+    form: any;
+    onSubmit?: (values: any) => void;
+    contactsData?: any[];
+    reSchedule?: boolean;
+}
+
+export const TaskForm = ({ form, onSubmit, contactsData, reSchedule = false } : TaskFormProps) => {
+
+    const location = useLocation();
 
     const contactOptions = contactsData?.map((contact) => ({
         label: `${contact?.first_name} ${contact?.last_name}`,
@@ -158,7 +168,7 @@ export const TaskForm = ({ form, onSubmit, location, contactsData, reSchedule = 
                     }}
                     className="space-y-4 py-4"
                 >
-                    {["/tasks/new", "/calendar"].includes(location.pathname) && (
+                    {["/tasks/new", "/calendar", "/tasks"].includes(location.pathname) && (
                         <FormField
                             control={form.control}
                             name="reference_docname"

@@ -101,10 +101,10 @@ body, html {
 
     @screen xl {
         :root {
-            --notifications-width: 380px;
+            --notifications-width: 300px;
           }
           .dark {
-            --notifications-width: 380px;
+            --notifications-width: 300px;
           }
     }
 }
@@ -127,4 +127,8 @@ body, html {
   body {
     @apply bg-background text-foreground;
     }
+}
+
+.cardBorder {
+    @apply border-gray-300;
 }

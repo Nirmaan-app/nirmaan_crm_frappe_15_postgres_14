@@ -1,6 +1,4 @@
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
@@ -10,12 +8,16 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
-import ReactSelect, { components } from 'react-select'
 import { toast } from "@/hooks/use-toast";
+import { useViewport } from "@/hooks/useViewPort";
+import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
 import { CirclePlus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import ReactSelect, { components, MenuListProps } from 'react-select';
+import * as z from "zod";
 
 const contactFormSchema = z.object({
     first_name: z
@@ -53,12 +55,12 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 export const NewContactForm = () => {
 
     const navigate = useNavigate()
-
     const {mutate} = useSWRConfig()
+    const {isMobile} = useViewport()
 
     const {createDoc , loading: createLoading} = useFrappeCreateDoc()
 
-    const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList("CRM Company", {
+    const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList<CRMCompany>("CRM Company", {
         fields: ["name", "company_name"],
         limit: 1000
     })
@@ -104,7 +106,10 @@ export const NewContactForm = () => {
     const companyOptions = companiesList?.map(com => ({label : com?.company_name, value : com?.name}));
 
     return (
-        <div className="w-full h-full relative">
+        <div className={`w-full relative ${!isMobile ? "p-4 border cardBorder shadow rounded-lg" : ""}`}>
+            {!isMobile && (
+                <h2 className="text-center font-bold">Add New Contact</h2>
+            )}
             <Form {...form}>
                 <form
                     onSubmit={(event) => {
@@ -203,13 +208,19 @@ export const NewContactForm = () => {
             </Form>
             <div className="sticky bottom-0 flex flex-col gap-2">
                 <Button onClick={() => onSubmit(form.getValues())}>Next</Button>
-                <Button onClick={() => navigate(-1)} variant={"outline"} className="text-destructive border-destructive">Cancel</Button>
+                <Button onClick={() => {
+                    if(isMobile) {
+                        navigate(-1)
+                    } else {
+                        navigate("/prospects?tab=contact")
+                    }
+                }} variant={"outline"} className="text-destructive border-destructive">Cancel</Button>
             </div>
         </div>
     )
 }
 
-const CustomMenuList = (props) => {
+const CustomMenuList = (props : MenuListProps) => {
     const { children} = props;
 
     const navigate = useNavigate();

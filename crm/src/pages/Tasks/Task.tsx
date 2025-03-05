@@ -1,6 +1,6 @@
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
 import { Separator } from "@/components/ui/separator";
 import {
     Table,
@@ -11,19 +11,21 @@ import {
     TableRow
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
+import { useTaskActions } from "@/hooks/useTaskActions";
+import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappeCreateDoc, useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
-import { SquarePen, Trash2 } from "lucide-react";
+import { useFrappeGetDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
+import { ChevronRight, SquarePen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ReactSelect from 'react-select';
 import * as z from "zod";
 import { TaskForm } from "./TaskDialogs";
 
-const taskFormSchema = z.object({
+export const taskFormSchema = z.object({
     reference_docname: z
         .string({
             required_error: "Required!"
@@ -36,28 +38,28 @@ const taskFormSchema = z.object({
     time: z.string().optional(),
 });
 
-type TaskFormValues = z.infer<typeof taskFormSchema>;
+export type TaskFormValues = z.infer<typeof taskFormSchema>;
 
 export const Task = () => {
 
     const [searchParams] = useSearchParams();
     const navigate = useNavigate()
-    const location = useLocation()
     const id = searchParams.get("id")
 
-    const {data, isLoading: dataLoading, mutate : dataMutate} = useFrappeGetDoc("CRM Task", id, id ? undefined : null)
+    const {deleteTask, updateTask, scheduleTask} = useTaskActions()
 
-    const {data : contactData, isLoading: contactDataLoading} = useFrappeGetDoc("CRM Contacts", data?.reference_docname, data?.reference_docname ? undefined : null)
+    const {data, isLoading: dataLoading, mutate : dataMutate} = useFrappeGetDoc<CRMTask>("CRM Task", id, id ? undefined : null)
 
-    const {data : tasksData, isLoading: tasksDataLoading, mutate : tasksMutate} = useFrappeGetDocList("CRM Task", {
+    const {data : contactData, isLoading: contactDataLoading} = useFrappeGetDoc<CRMContacts>("CRM Contacts", data?.reference_docname, data?.reference_docname ? undefined : null)
+
+    const {data : tasksData, isLoading: tasksDataLoading, mutate : tasksMutate} = useFrappeGetDocList<CRMTask>("CRM Task", {
         fields: ["*"],
         filters: [["reference_docname", "=", data?.reference_docname]],
         limit: 1000
-    })
-
-    const {updateDoc, loading: updateLoading} = useFrappeUpdateDoc()
-    const {createDoc, loading: createLoading} = useFrappeCreateDoc()
-    const {deleteDoc, loading: deleteLoading} = useFrappeDeleteDoc()
+    },
+    data?.reference_docname ? undefined : null
+    )
+    
     const {mutate} = useSWRConfig()
 
     const [checked, setChecked] = useState(false);
@@ -77,12 +79,12 @@ export const Task = () => {
         setCompleteDialog(!completeDialog);
     };
 
-    const [scheduleTask, setScheduleTask] = useState(false);
-    const toggleScheduleTask = () => {
-        setScheduleTask(!scheduleTask);
+    const [scheduleTaskDialog, setScheduleTaskDialog] = useState(false);
+    const toggleScheduleTaskDialog = () => {
+        setScheduleTaskDialog(!scheduleTaskDialog);
     };
 
-    const [status, setStatus] = useState("");
+    const [status, setStatus] = useState<{ label : string, value : string }>({label : "", value : ""});
     const [remarks, setRemarks] = useState("");
     const [dialogType, setDialogType] = useState("");
 
@@ -118,133 +120,53 @@ export const Task = () => {
     }
 
     const onSubmit = async (values: TaskFormValues) => {
-        try {
-            await updateDoc("CRM Task", data?.name, {
-                reference_docname: values.reference_docname,
-                type: values.type,
-                start_date: `${values.date} ${values.time}`,
-            })
 
-            await dataMutate()
-            await mutate("CRM Task")
+        await updateTask(data?.name, {
+            reference_docname: values.reference_docname,
+            type: values.type,
+            start_date: `${values.date} ${values.time}`,
+        })
 
-            toast({
-                title: "Success!",
-                description: `Task updated successfully!`,
-                variant: "success"
-            })
-
-            toggleEditDialog()
-            
-        } catch (error) {
-            console.log("error", error)
-            toast({
-                title: "Failed!",
-                description: error?.message || "Failed to update task!",
-                variant: "destructive"
-            })
-        }
+        await dataMutate()
+        toggleEditDialog()
     }
 
     const handleConfirmDelete = async () => {
-        try {
-            await deleteDoc("CRM Task", data?.name)
-
-            await mutate("CRM Task")
-            toast({
-                title: "Success!",
-                description: `Task deleted successfully!`,
-                variant: "success"
-            })
-            navigate(-1)
-
-            toggleDeleteDialog()
-
-        } catch (error) {
-            console.log("error", error)
-            toast({
-                title: "Failed!",
-                description: error?.message || "Failed to delete task!",
-                variant: "destructive"
-            })
-        }
+        await deleteTask(data?.name)
+        navigate(-1)
+        toggleDeleteDialog()
     }
 
     const handleUpdateTask = async () => {
-        try {
-            await updateDoc("CRM Task", data?.name, {
-                status: status?.value,
-                description: remarks,
-            })
+        await updateTask(data?.name, {
+            status: status?.value,
+            description: remarks,
+        })
 
-            await dataMutate()
-            await mutate("CRM Task")
+        await dataMutate()
 
-            toast({
-                title: "Success!",
-                description: `Task updated successfully!`,
-                variant: "success"
-            })
+        toggleCompleteDialog()
 
-            toggleCompleteDialog()
-
-            if(dialogType === "complete" && checked) {
-                newScheduleTask()
-                toggleScheduleTask()
-            } else if (dialogType === "incomplete" && checked) {
-                toggleEditDialog()
-                setDialogType("reSchedule")
-            }
-
-            setChecked(false)
-            setStatus("")
-            setRemarks("")
-            
-        } catch (error) {
-            console.log("error", error)
-            toast({
-                title: "Failed!",
-                description: error?.message || "Failed to update task!",
-                variant: "destructive"
-            })
+        if(dialogType === "complete" && checked) {
+            newScheduleTask()
+            toggleScheduleTaskDialog()
+        } else if (dialogType === "incomplete" && checked) {
+            setDialogType("reSchedule")
+            toggleEditDialog()
         }
+        setChecked(false)
+        setStatus({ label : "", value : ""})
+        setRemarks("")
     }
 
     const handleNewScheduleTask = async (values : TaskFormValues) => {
-        try {
-            const isValid = await form.trigger();
-            if(!isValid) return;
+        const isValid = await form.trigger();
+        if(!isValid) return;
 
-            await createDoc("CRM Task", {
-                reference_doctype: "CRM Contacts",
-                reference_docname: values?.reference_docname,
-                type: values.type,
-                start_date: `${values.date} ${values.time}`,
-                status: "Pending"
-            })
-
-            await mutate("CRM Task")
-
-            await tasksMutate()
-
-            await mutate(`CRM Task ${contactData.name}`)
-
-            toast({
-                title: "Success!",
-                description: `New Task successfully scheduled for contact: ${contactData?.first_name} ${contactData?.last_name}!`,
-                variant: "success"
-            })
-
-            toggleScheduleTask()
-            
-        } catch (error) {
-            console.log("error", error)
-            toast({
-                title: "Failed!",
-                description: error?.message || "Failed to add schedule task!",
-                variant: "destructive"
-            })
-        }
+        await scheduleTask(values)
+        await tasksMutate()
+        await mutate(`CRM Task ${contactData.name}`)
+        toggleScheduleTaskDialog()  
     }
 
     const completeStatusOptions = [
@@ -299,35 +221,22 @@ export const Task = () => {
                 </Button>
             </div>
 
-            <AlertDialog open={deleteDialog} onOpenChange={toggleDeleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    </AlertDialogHeader>
-                    <AlertDialogDescription className="flex gap-2 items-end">
-                        <Button 
-                        onClick={handleConfirmDelete} 
-                        className="flex-1">Delete</Button>
-                        <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
-                    </AlertDialogDescription>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ReusableAlertDialog 
+            open={deleteDialog} onOpenChange={toggleDeleteDialog} 
+            title="Are you sure?" 
+            confirmText="Delete" 
+            cancelText="Cancel" 
+            onConfirm={handleConfirmDelete}
+            />
 
-            <AlertDialog open={editDialogOpen} onOpenChange={toggleEditDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader className="text-start">
-                        <AlertDialogTitle className="text-destructive text-center">{dialogType === "reSchedule" ? "Re-Schedule Task" : "Edit Task"}</AlertDialogTitle>
-                        <AlertDialogDescription asChild>
-                            <TaskForm form={form} onSubmit={onSubmit} location={location} reSchedule={dialogType === "reSchedule" ? true : false} />    
-                        </AlertDialogDescription>
-
-                    <div className="flex items-end gap-2">
-                        <Button onClick={() => onSubmit(form.getValues())} className="flex-1">Save</Button>
-                        <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
-                    </div>
-                    </AlertDialogHeader>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ReusableAlertDialog
+                open={editDialogOpen} onOpenChange={toggleEditDialog}
+                title={dialogType === "reSchedule" ? "Re-Schedule Task" : "Edit Task"}
+                confirmText="Save"
+                cancelText="Cancel"
+                onConfirm={() => onSubmit(form.getValues())}
+                children={<TaskForm form={form} reSchedule={dialogType === "reSchedule" ? true : false} />}
+             />
         </section>
 
         <Separator />
@@ -350,10 +259,8 @@ export const Task = () => {
                                 <TableRow key={task?.name}>
                                   <TableCell className="font-medium">{task?.type}</TableCell>
                                   <TableCell>{formatDate(task?.start_date?.split(" ")?.[0])}</TableCell>
-                                  <TableCell>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="14" viewBox="0 0 8 14" fill="none">
-                                      <path fill-rule="evenodd" clip-rule="evenodd" d="M7.70832 6.28927C7.89579 6.4768 8.00111 6.73111 8.00111 6.99627C8.00111 7.26144 7.89579 7.51575 7.70832 7.70327L2.05132 13.3603C1.95907 13.4558 1.84873 13.532 1.72672 13.5844C1.60472 13.6368 1.4735 13.6644 1.34072 13.6655C1.20794 13.6667 1.07626 13.6414 0.953366 13.5911C0.83047 13.5408 0.718817 13.4666 0.624924 13.3727C0.531032 13.2788 0.456778 13.1671 0.406498 13.0442C0.356217 12.9213 0.330915 12.7897 0.332069 12.6569C0.333223 12.5241 0.360809 12.3929 0.413218 12.2709C0.465627 12.1489 0.541809 12.0385 0.637319 11.9463L5.58732 6.99627L0.637319 2.04627C0.455161 1.85767 0.354367 1.60507 0.356645 1.34287C0.358924 1.08068 0.464092 0.829864 0.6495 0.644456C0.834909 0.459047 1.08572 0.353879 1.34792 0.3516C1.61011 0.349322 1.86272 0.450116 2.05132 0.632274L7.70832 6.28927Z" fill="black" fill-opacity="0.9"/>
-                                    </svg>
+                                    <TableCell>
+                                        <ChevronRight className="w-4 h-4" />
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -391,11 +298,13 @@ export const Task = () => {
                  variant="outline" className="text-destructive border-destructive">Incomplete</Button>
             </div>
 
-            <AlertDialog open={completeDialog} onOpenChange={toggleCompleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader className="text-start">
-                        <AlertDialogTitle className="text-destructive text-center">Task {dialogType === "complete" ? "Completed" : "Incomplete"}</AlertDialogTitle>
-                        <AlertDialogDescription asChild>
+            <ReusableAlertDialog 
+            open={completeDialog} onOpenChange={toggleCompleteDialog} 
+            title={dialogType === "complete" ? "Task Completed" : "Task Incomplete"} 
+            confirmText="Confirm" 
+            cancelText="Cancel"
+            onConfirm={handleUpdateTask}
+            children={
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                 <Label htmlFor="status" className="flex">Current Status<sup className="text-sm text-destructive">*</sup></Label>
@@ -417,30 +326,18 @@ export const Task = () => {
                                     "Schedule next task?" : "Re-schedule this task?"}</Label>
                                 </div>
                             </div>
-                        </AlertDialogDescription>
+            }
+            />
 
-                    <div className="flex items-end gap-2">
-                        <Button onClick={handleUpdateTask} className="flex-1">Confirm</Button>
-                        <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
-                    </div>
-                    </AlertDialogHeader>
-                </AlertDialogContent>
-            </AlertDialog>
-
-        <AlertDialog open={scheduleTask} onOpenChange={toggleScheduleTask}>
-            <AlertDialogContent>
-                <AlertDialogHeader className="text-start">
-                    <AlertDialogTitle className="text-destructive text-center">Schedule Task</AlertDialogTitle>
-                    <AlertDialogDescription asChild>
-                        <TaskForm form={form} onSubmit={onSubmit} location={location} />
-                    </AlertDialogDescription>
-                    <div className="flex items-end gap-2">
-                        <Button onClick={() => handleNewScheduleTask(form.getValues())} className="flex-1">Confirm</Button>
-                        <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
-                    </div>
-                </AlertDialogHeader>
-            </AlertDialogContent>
-        </AlertDialog>
+            <ReusableAlertDialog 
+            open={scheduleTaskDialog} onOpenChange={toggleScheduleTaskDialog} 
+            title="Schedule Task" 
+            confirmText="Confirm" 
+            cancelText="Cancel" 
+            onConfirm={() => handleNewScheduleTask(form.getValues())}
+            children={ <TaskForm form={form} />}
+            disableConfirm={!form.getValues("type") || !form.getValues("time") || !form.getValues("date")}
+            />
         </div>
     )
 }

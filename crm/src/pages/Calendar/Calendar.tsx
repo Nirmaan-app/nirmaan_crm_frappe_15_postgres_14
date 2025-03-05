@@ -1,12 +1,15 @@
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTime12Hour } from "@/utils/FormatDate";
+import { format } from "date-fns";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import React, { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 export const TaskCalendar = () => {
 
-  const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const [selectedDate, setSelectedDate] = React.useState<string | null>(searchParams.get("date") || format(new Date(), "yyyy-MM-dd"));
 
   const [tasksData, setTasksData] = React.useState<any>([]);
 
@@ -47,10 +50,21 @@ useEffect(() => {
   }, [data]);
 
   const isTaskDate = React.useCallback((date: Date) => {
-    const dStr = date.toISOString().split("T")[0];
+    const dStr = format(date, "yyyy-MM-dd");
     return tasksDatesSet.has(dStr);
   }, [tasksDatesSet]);
 
+  const updateURL = (key, value) => {
+        const url = new URL(window.location);
+        url.searchParams.set(key, value);
+        window.history.pushState({}, "", url);
+    };
+  
+  const handleDateChange = (date) => {
+    if(searchParams.get("date") === date) return;
+    updateURL("date", date);
+    setSelectedDate(date);
+  }
  
   return (
     <div>
@@ -60,7 +74,7 @@ useEffect(() => {
         timeZone="Asia/Calcutta"
         className="min-w-full"
         selected={selectedDate}
-        onDayClick={(day) => setSelectedDate(day.toISOString().split("T")[0])}
+        onDayClick={(day) => handleDateChange(format(day, "yyyy-MM-dd"))}
         modifiers={{ hasTask: isTaskDate }}
         modifiersClassNames={{ hasTask: "border-b border-[#000399] dark:border-primary dark:text-primary text-[#000399]" }}
      />

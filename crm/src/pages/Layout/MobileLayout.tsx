@@ -1,14 +1,11 @@
 import { useApplicationContext } from "@/contexts/ApplicationContext";
-import { NewTaskForm } from "@/pages/Tasks/TaskDialogs";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { BottomBar } from "./BottomBar";
 import { NavBar } from "./NavBar";
 
 export const MobileLayout = () => {
 
   const { overlayOpen, handleClose } = useApplicationContext()
-
-  const location = useLocation()
 
   return (
     <div className="flex flex-col h-dvh">
@@ -19,8 +16,6 @@ export const MobileLayout = () => {
       </main>
 
       <BottomBar />
-
-      {location.pathname !== "/tasks/new" && <NewTaskForm />}
 
       {/* Overlay for Blur Effect */}
       {overlayOpen && (

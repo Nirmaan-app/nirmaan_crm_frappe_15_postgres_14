@@ -2,6 +2,7 @@
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { useApplicationContext } from "@/contexts/ApplicationContext"
+import { useViewport } from "@/hooks/useViewPort"
 import { cn } from "@/lib/utils"
 import { differenceInCalendarDays } from "date-fns"
 import { ChevronLeft, ChevronRight, PlusIcon } from "lucide-react"
@@ -83,18 +84,20 @@ function Calendar({
     }, [yearRange])
   )
 
+  const {isMobile} = useViewport()
+
   const { onNextClick, onPrevClick, startMonth, endMonth } = props
 
   const columnsDisplayed = navView === "years" ? 1 : numberOfMonths
 
-  const _monthsClassName = cn("relative flex", props.monthsClassName)
+  const _monthsClassName = cn("relative", props.monthsClassName)
   const _monthCaptionClassName = cn(
-    "relative mx-24 flex h-7 items-center justify-center border border-gray-300 rounded-md",
+    `relative ${isMobile ? "mx-24" : ""} flex h-7 items-center justify-center border border-gray-300 rounded-md`,
     props.monthCaptionClassName
   )
   const _weekdaysClassName = cn("flex flex-row border-b border-gray-300", props.weekdaysClassName)
   const _weekdayClassName = cn(
-    "w-12 text-sm font-normal text-muted-foreground",
+    `${isMobile ? "w-12" : "w-8"} text-sm font-normal text-muted-foreground`,
     props.weekdayClassName
   )
   const _monthClassName = cn("w-full", props.monthClassName)
@@ -125,12 +128,12 @@ function Calendar({
   const _monthGridClassName = cn("mx-auto mt-4", props.monthGridClassName)
   const _weekClassName = cn("mt-2 flex w-max items-start border-b border-gray-300", props.weekClassName)
   const _dayClassName = cn(
-    "flex size-12 flex-1 items-center justify-center p-0 text-sm",
+    `flex ${isMobile ? "size-12" : "size-8"} flex-1 items-center justify-center p-0 text-sm`,
     props.dayClassName
   )
   const _dayButtonClassName = cn(
     buttonVariants({ variant: "ghost" }),
-    "size-8 rounded-full p-0 font-normal transition-none aria-selected:opacity-100",
+    `${isMobile ? "size-8" : "size-6"} rounded-full p-0 font-normal transition-none aria-selected:opacity-100`,
     props.dayButtonClassName
   )
   const buttonRangeClassName =
@@ -204,7 +207,8 @@ function Calendar({
           return <Icon className="h-4 w-4" />
         },
         Nav: ({ className }) => (
-          <Nav
+          isMobile ? (
+            <Nav
             className={className}
             displayYears={displayYears}
             navView={navView}
@@ -213,6 +217,9 @@ function Calendar({
             endMonth={endMonth}
             onPrevClick={onPrevClick}
           />
+          ) : (
+            <div />
+          )
         ),
         CaptionLabel: (props) => (
           <CaptionLabel
@@ -502,7 +509,7 @@ function YearGrid({
                 goToMonth(
                   new Date(
                     displayYears.from + i,
-                    (selected as Date | undefined)?.getMonth() ?? 0
+                    (new Date(selected) as Date | undefined)?.getMonth() ?? 0
                   )
                 )
               }}

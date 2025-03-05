@@ -1,13 +1,5 @@
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig, useFrappeDeleteDoc } from "frappe-react-sdk";
-import { SquarePen, Trash2, Plus, X } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
-import { AlertDialog, AlertDialogContent, AlertDialogCancel, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
-import { useState, useEffect } from "react";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useController } from "react-hook-form";
 import {
     Form,
     FormControl,
@@ -17,10 +9,23 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import ReactSelect from 'react-select'
-import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApplicationContext } from "@/contexts/ApplicationContext";
+import { toast } from "@/hooks/use-toast";
+import { useViewport } from "@/hooks/useViewPort";
+import { CRMCompanyType } from "@/types/NirmaanCRM/CRMCompanyType";
+import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
+import { Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useController, useForm } from "react-hook-form";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import ReactSelect from 'react-select';
+import * as z from "zod";
+import { CompanyContacts, CompanyDetails, CompanyProjects } from "./CompanyDetails";
 
 const companyFormSchema = z.object({
     company_name: z
@@ -39,7 +44,8 @@ type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
 export const Company = () => {
 
-    const { taskDialog, toggleTaskDialog, overlayOpen, setOverlayOpen } = useApplicationContext()
+    const {isMobile} = useViewport()
+    const { overlayOpen, setOverlayOpen } = useApplicationContext()
     const [searchParams] = useSearchParams();
     const navigate = useNavigate()
     const id = searchParams.get("id")
@@ -56,14 +62,40 @@ export const Company = () => {
         setDeleteDialog(!deleteDialog);
     };
 
+    const [innerTab, setInnerTab] = useState(searchParams.get("innerTab") || "details");
+    const updateURL = (key, value) => {
+        const url = new URL(window.location);
+        url.searchParams.set(key, value);
+        window.history.pushState({}, "", url);
+    };
+
+    const handleChangeInnerTab = (e : string) => {
+        if(innerTab === e) return;
+        setInnerTab(e);
+        updateURL("innerTab", e);
+    }
+
     const {mutate} = useSWRConfig()
 
     const {data, isLoading: dataLoading, mutate : dataMutate} = useFrappeGetDoc("CRM Company", id, id ? undefined : null)
 
-    const {data : companyTypesList, isLoading: companyTypesListLoading} = useFrappeGetDocList("CRM Company Type", {
+    const {data : companyTypesList, isLoading: companyTypesListLoading} = useFrappeGetDocList<CRMCompanyType>("CRM Company Type", {
         fields: ["*"],
         limit: 1000
     })
+
+    const {data : contactsList, isLoading: contactsListLoading} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
+        fields: ["*"],
+        filters: [["company", "=", id]],
+        limit: 1000,
+    }, id ? `CRM Contacts ${id}` : null)
+
+    const {data : companyProjects, isLoading: companyProjectsLoading} = useFrappeGetDocList<CRMPRojects>("CRM Projects", {
+        fields: ["*"],
+        filters: [["project_company", "=", id]],
+        limit: 1000
+    }, id ? `CRM Projects ${id}` : null)
+
 
     const form = useForm<CompanyFormValues>({
         resolver: zodResolver(companyFormSchema),
@@ -87,7 +119,7 @@ export const Company = () => {
         }
     }, [data, form]);
 
-    const onSubmit = async (values: ContactFormValues) => {
+    const onSubmit = async (values: CompanyFormValues) => {
         try {
             const isValid = await form.trigger()
             if(isValid) {
@@ -147,66 +179,70 @@ export const Company = () => {
 
     return (
         <div className="dark:text-white">
-            <section>
-                <h2 className="font-medium mb-2">Company Details</h2>
-                <div className="p-4 shadow rounded-md flex flex-col gap-4">
-                    <div className="flex justify-between">
-                        <div className="flex flex-col gap-6">
-                            <div>
-                                <p className="text-xs">Company Name</p>
-                                <p className="text-sm font-semibold text-destructive">{data?.company_name}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs">Company Type</p>
-                                <p className="text-sm font-semibold text-destructive">{data?.industry || "--"}</p>
-                            </div>
+            {isMobile ? (
+                    <>
+                        <h2 className="font-medium mb-2">Company Details</h2>
+                        <CompanyDetails data={data} toggleEditDialog={toggleEditDialog} toggleDeleteDialog={toggleDeleteDialog} />
+                    </>
+                ) : (
+                    <Tabs onValueChange={(e) => handleChangeInnerTab(e)} defaultValue={innerTab}>
+                        <div className="flex items-center justify-between relative">
+                        <TabsList>
+                            <TabsTrigger value="details">Company Details</TabsTrigger>
+                            <TabsTrigger value="projects">Projects</TabsTrigger>
+                            <TabsTrigger value="contacts">Contacts</TabsTrigger>
+                        </TabsList>
+                        {
+                            innerTab === "projects" &&
+                                <Button>
+                                    <Plus className="w-4 h-4" />
+                                    New Project
+                                </Button>
+                            }
+                        {
+                            innerTab === "contacts" && (
+                                <Button>
+                                    <Plus className="w-4 h-4" />
+                                    New Contact
+                                </Button>
+                            ) 
+                        }
                         </div>
-                        <div className="flex flex-col gap-6">
-                            <div className="text-end">
-                                <p className="text-xs">Location</p>
-                                <p className="text-sm font-semibold text-destructive">{data?.company_location || "--"}</p>
-                            </div>
-                            <div className="text-end">
-                                <p className="text-xs">Website</p>
-                                <a  href={data?.company_website} target="_blank" rel="noreferrer">
-                                    <p className="text-sm font-semibold text-destructive underline">{data?.company_website || "--"}</p>
-                                </a>
-                                {/* <p className="text-sm font-semibold text-destructive">{data?.company_website || "--"}</p> */}
-                            </div>
-                        </div>
-                    </div>
+                        <TabsContent value="details">
+                            <CompanyDetails data={data} toggleEditDialog={toggleEditDialog} toggleDeleteDialog={toggleDeleteDialog} />
+                        </TabsContent>
+                        <TabsContent value="projects">
+                            <CompanyProjects projectsData={companyProjects} contactsData={contactsList} />
+                        </TabsContent>
+                        <TabsContent value="contacts">
+                            <CompanyContacts contactsData={contactsList} />
+                        </TabsContent>
+                    </Tabs>
+                )}
+            {isMobile && (
+                <div className="fixed z-30 bottom-24 right-6 flex flex-col items-end gap-4">
+                {overlayOpen && (
+                  <div
+                    className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2"
+                    style={{ transition: "opacity 0.3s ease-in-out" }}
+                  >
+                    <button>New Contact</button>
                     <Separator />
-                    <div className="flex justify-between">
-                        <div className="flex flex-col gap-6">
-                            <div>
-                                <p className="text-xs">Total Projects</p>
-                                <p className="text-sm font-semibold text-destructive">N/A</p>
-                            </div>
-                            <div>
-                                <p className="text-xs">Total Contacts</p>
-                                <p className="text-sm font-semibold text-destructive">N/A</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-6">
-                            <div className="text-end">
-                                <p className="text-xs">Active Projects</p>
-                                <p className="text-sm font-semibold text-destructive">N/A</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                    <Button onClick={toggleEditDialog} variant="outline" className="text-destructive border-destructive">
-                        <SquarePen />
-                        Edit
-                    </Button>
-                    <Button onClick={toggleDeleteDialog} variant="outline" className="text-destructive border-destructive">
-                        <Trash2 />
-                        Delete
-                    </Button>
-                </div>
+                    <button >New Project</button>
+                  </div>
+                )}
+                <button
+                  onClick={() => setOverlayOpen(!overlayOpen)}
+                  className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 ${
+                      overlayOpen ? "rotate-90" : "rotate-0"
+                  }`}
+                >
+                  {overlayOpen ? <X size={24} /> : <Plus size={24} />}
+                </button>
+              </div>
+            )}
 
-                <AlertDialog open={deleteDialog} onOpenChange={toggleDeleteDialog}>
+            <AlertDialog open={deleteDialog} onOpenChange={toggleDeleteDialog}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -296,28 +332,6 @@ export const Company = () => {
                         </AlertDialogHeader>
                     </AlertDialogContent>
                 </AlertDialog>
-            </section>
-
-            <div className="fixed z-30 bottom-24 right-6 flex flex-col items-end gap-4">
-              {overlayOpen && (
-                <div
-                  className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2"
-                  style={{ transition: "opacity 0.3s ease-in-out" }}
-                >
-                  <button>New Contact</button>
-                  <Separator />
-                  <button >New Project</button>
-                </div>
-              )}
-              <button
-                onClick={() => setOverlayOpen(!overlayOpen)}
-                className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 ${
-                    overlayOpen ? "rotate-90" : "rotate-0"
-                }`}
-              >
-                {overlayOpen ? <X size={24} /> : <Plus size={24} />}
-              </button>
-            </div>
         </div>
     )
 }

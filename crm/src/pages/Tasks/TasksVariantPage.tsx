@@ -12,6 +12,9 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import { useViewport } from "@/hooks/useViewPort";
+import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { formatDate } from "@/utils/FormatDate";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, ListFilter } from "lucide-react";
@@ -20,6 +23,7 @@ import { useState } from "react";
 export const TasksVariantPage = ({ variant }: { variant: string }) => {
 
   const [filterBy, setFilterBy] = useState("All");
+  const {isMobile} = useViewport()
 
   const [filterByMenuOpen, setFilterByMenuOpen] = useState(false);
 
@@ -27,16 +31,16 @@ export const TasksVariantPage = ({ variant }: { variant: string }) => {
     setFilterByMenuOpen((prevState) => !prevState);
   };
 
-  const contactsMap = new Map<string, any>();
+  const contactsMap = new Map<string | undefined, any>();
 
-  const {data: tasksData, isLoading: tasksDataLoading, error: tasksError} = useFrappeGetDocList("CRM Task", {
+  const {data: tasksData, isLoading: tasksDataLoading, error: tasksError} = useFrappeGetDocList<CRMTask>("CRM Task", {
     fields: ["*"],
     filters: [["status", filterBy === "All" ? "not in" : "in", filterBy === "All" ? [] : [filterBy]]],
     limit: 100000,
     orderBy: {field: "creation", order: "desc"}
   })
 
-  const {data: contactsData, isLoading: contactsDataLoading, error: contactsError} = useFrappeGetDocList("CRM Contacts", {
+  const {data: contactsData, isLoading: contactsDataLoading, error: contactsError} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
     fields: ["*"],
     limit: 100000,
   })
@@ -47,12 +51,16 @@ export const TasksVariantPage = ({ variant }: { variant: string }) => {
 
   return (
     <div>
-        <Input type="text" className="focus:border-none rounded-lg" placeholder="Search Names, Company, Project, etc..." />
-        <Separator className="my-4" />
+      {isMobile && (
+        <>
+         <Input type="text" className="focus:border-none rounded-lg" placeholder="Search Names, Company, Project, etc..." />
+         <Separator className="my-4" />
+        </>
+      )}
         <div className="flex items-center justify-between">
           <h2 className="font-semibold tracking-tight">{variant === "history" ? "Tasks History" : `${variant?.slice(0, 1)?.toUpperCase() + variant?.slice(1)} Tasks`}</h2>
           <DropdownMenu open={filterByMenuOpen} onOpenChange={toggleFilterByMenu}>
-            <DropdownMenuTrigger className="flex items-center gap-4 px-2 py-1 rounded-lg border shadow hover:bg-gray-200">
+            <DropdownMenuTrigger className="flex items-center gap-4 px-2 py-1 rounded-lg border cardBorder shadow">
                     <ListFilter className="w-4 h-4" />
                     <p className="min-w-[75px] text-end text-sm">{filterBy}</p>
             </DropdownMenuTrigger>
@@ -79,7 +87,7 @@ export const TasksVariantPage = ({ variant }: { variant: string }) => {
           </DropdownMenu>
         </div>
 
-        <Card className="mt-4 p-0">
+        <Card className="mt-4 p-0 cardBorder">
             <CardContent className="p-3">
             <Table>
               <TableHeader>

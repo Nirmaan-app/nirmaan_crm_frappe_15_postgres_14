@@ -1,3 +1,7 @@
+import { useViewport } from "@/hooks/useViewPort";
+import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
+import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
 import { getFilteredTasks } from "@/utils/taskutils";
 import { useFrappeGetDocList } from "frappe-react-sdk";
@@ -7,18 +11,19 @@ import { useNavigate } from "react-router-dom";
 
 export const Tasks = () => {
     const navigate = useNavigate();
+    const {isMobile} = useViewport()
 
-    const { data: tasksData, isLoading: tasksDataLoading } = useFrappeGetDocList("CRM Task", {
+    const { data: tasksData, isLoading: tasksDataLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {
         fields: ["*"],
         limit: 1000,
     }, "CRM Task");
 
-    const {data : contactsList, isLoading: contactsListLoading} = useFrappeGetDocList("CRM Contacts", {
+    const {data : contactsList, isLoading: contactsListLoading} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
         fields: ["*"],
         limit: 10000
     }, "CRM Contacts")
 
-    const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList("CRM Company", {
+    const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList<CRMCompany>("CRM Company", {
         fields: ["name", "company_name"],
         limit: 1000,
       }, "CRM Company")
@@ -107,7 +112,7 @@ export const Tasks = () => {
                     <ul className="mt-4 space-y-2">
                         {tomorrowTasks?.length ? (
                             tomorrowTasks.map((task) => {
-                                const [, time] = task.start_date.split(" ");
+                                const [, time] = task?.start_date?.split(" ");
                                 return (
                                     <li onClick={() => navigate(`task?id=${task?.name}`)} key={task?.name} className="p-2 border-b rounded-md flex justify-between items-center text-sm">
                                         <span>{task?.type} {task?.contact?.first_name} {task?.contact?.last_name} from {task?.company?.company_name} at {formatTime12Hour(time)}</span>
@@ -121,15 +126,17 @@ export const Tasks = () => {
                     </ul>
                 </div>
             </div>
-            <div className="fixed bottom-24 right-6">
-              <button
-                onClick={() => navigate("/tasks/new")}
-                className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center`}
-              >
-                <Plus size={24} />
-              </button>
-            </div>
 
+            {isMobile && (
+            <div className="fixed bottom-24 right-6">
+                <button
+                  onClick={() => navigate("/tasks/new")}
+                  className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center`}
+                >
+                  <Plus size={24} />
+                </button>
+              </div>
+            )}
         </div>
     );
 };
