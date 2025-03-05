@@ -1,5 +1,5 @@
 
-export interface CRMIndustry{
+export interface CRMCompanyType{
 	name: string
 	creation: string
 	modified: string
@@ -10,6 +10,6 @@ export interface CRMIndustry{
 	parentfield?: string
 	parenttype?: string
 	idx?: number
-	/**	Industry Name : Data	*/
-	industry_name?: string
+	/**	Company Type Name : Data	*/
+	company_type_name?: string
 }

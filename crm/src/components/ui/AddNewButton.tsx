@@ -20,13 +20,13 @@ export const AddNewButton = ({options}) => {
             style={{ transition: "opacity 0.3s ease-in-out" }}
           >
             {options.map((option, index, arr) => (
-              <>
+              <div key={option.path}>
                 <button onClick={() => {
                   navigate(option.path)
                   setOverlayOpen(false)
                 }}>{option.label}</button>
                 {index !== arr.length - 1 && <Separator />}
-              </>
+              </div>
             ))}
           </div>
         )}
@@ -51,13 +51,13 @@ export const AddNewButton = ({options}) => {
             style={{ transition: "opacity 0.3s ease-in-out" }}
           >
             {options.map((option, index, arr) => (
-              <>
+              <div key={option.path}>
                 <button onClick={() => {
                   navigate(option.path)
                   setOverlayOpen(false)
                 }}>{option.label}</button>
                 {index !== arr.length - 1 && <Separator />}
-              </>
+              </div>
             ))}
           </div>
         )}

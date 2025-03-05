@@ -1,6 +1,4 @@
-import { useForm, useController } from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
@@ -10,11 +8,15 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
-import ReactSelect from 'react-select'
 import { toast } from "@/hooks/use-toast";
+import { useViewport } from "@/hooks/useViewPort";
+import { CRMCompanyType } from "@/types/NirmaanCRM/CRMCompanyType";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
+import { Control, FieldValues, useController, useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import ReactSelect from 'react-select';
+import * as z from "zod";
 
 const companyFormSchema = z.object({
     company_name: z
@@ -35,12 +37,12 @@ type CompanyFormValues = z.infer<typeof companyFormSchema>;
 export const NewCompanyForm = () => {
 
     const navigate = useNavigate()
-
     const {mutate} = useSWRConfig()
+    const {isMobile} = useViewport()
 
     const {createDoc , loading: createLoading} = useFrappeCreateDoc()
 
-    const {data : companyTypesList, isLoading: companyTypesListLoading} = useFrappeGetDocList("CRM Company Type", {
+    const {data : companyTypesList, isLoading: companyTypesListLoading} = useFrappeGetDocList<CRMCompanyType>("CRM Company Type", {
         fields: ["*"],
         limit: 1000
     })
@@ -103,7 +105,10 @@ export const NewCompanyForm = () => {
     }
 
     return (
-        <div className="w-full h-full relative">
+        <div className={`w-full relative ${!isMobile ? "p-4 border cardBorder shadow rounded-lg" : ""}`}>
+             {!isMobile && (
+                <h2 className="text-center font-bold">Add New Company</h2>
+            )}
             <Form {...form}>
                 <form
                     onSubmit={(event) => {
@@ -184,17 +189,27 @@ export const NewCompanyForm = () => {
             </Form>
             <div className="sticky bottom-0 flex flex-col gap-2">
                 <Button onClick={() => onSubmit(form.getValues())}>Next</Button>
-                <Button onClick={() => navigate(-1)} variant={"outline"} className="text-destructive border-destructive">Cancel</Button>
+                <Button onClick={() => {
+                    if(isMobile) {
+                        navigate(-1)
+                    } else {
+                        navigate("/prospects?tab=company")
+                    }
+                }} variant={"outline"} className="text-destructive border-destructive">Cancel</Button>
             </div>
         </div>
     )
 }
 
+interface WebsiteInputProps<TFieldValues extends FieldValues = FieldValues> {
+    control: Control<TFieldValues>;
+    name: string;
+  }
 
-const WebsiteInput = ({ control, name }) => {
+const WebsiteInput = <TFieldValues extends FieldValues = FieldValues>({ control, name } : WebsiteInputProps<TFieldValues>) => {
     const { field } = useController({ control, name });
   
-    const handleChange = (e) => {
+    const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
       let value = e.target.value;
       field.onChange(value);
     };

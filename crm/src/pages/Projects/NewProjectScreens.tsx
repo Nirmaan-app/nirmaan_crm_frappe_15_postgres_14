@@ -1,17 +1,20 @@
 import { Button } from "@/components/ui/button";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { useViewport } from "@/hooks/useViewPort";
+import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
+import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import ReactSelect from 'react-select';
 import * as z from "zod";
@@ -49,7 +52,8 @@ const projectFormSchema = z.object({
     project_location: z.string().optional(),
     project_size: z.string().optional(),
     project_type: z.string().optional(),
-    project_packages: z.string().optional()
+    project_packages: z.string().optional(),
+    project_status: z.string().optional()
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
@@ -57,9 +61,7 @@ type ProjectFormValues = z.infer<typeof projectFormSchema>;
 export const NewProjectScreens = () => {
 
     const navigate = useNavigate()
-
     const {mutate} = useSWRConfig()
-
     const {createDoc , loading: createLoading} = useFrappeCreateDoc()
 
     const form = useForm<ProjectFormValues>({
@@ -67,10 +69,6 @@ export const NewProjectScreens = () => {
       defaultValues: {},
       mode: "onBlur",
   });
-
-  const project_company = form.watch("project_company")
-
-  console.log("project_company", project_company)
 
     const onSubmit = async (values: ProjectFormValues) => {
         try {
@@ -116,8 +114,10 @@ export const NewProjectScreens = () => {
     )
 }
 
-export const NewProjectForm = ({form, edit = false}) => {
-  const {data: companiesList, isLoading: companiesListLoading} = useFrappeGetDocList("CRM Company", {
+export const NewProjectForm = ({form, edit = false} : {form : UseFormReturn<ProjectFormValues>, edit? : boolean}) => {
+
+  const {isMobile} = useViewport()
+  const {data: companiesList, isLoading: companiesListLoading} = useFrappeGetDocList<CRMCompany>("CRM Company", {
     fields: ["name", "company_name"],
     limit: 1000,
     orderBy: {field: "company_name", order: "asc"}
@@ -125,7 +125,7 @@ export const NewProjectForm = ({form, edit = false}) => {
 
   const companySelected = form.watch("project_company")
 
-  const {data: contactsList, isLoading: contactsListLoading} = useFrappeGetDocList("CRM Contacts", {
+  const {data: contactsList, isLoading: contactsListLoading} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
     fields: ["name", "first_name", "last_name"],
     filters: [["company", "=", companySelected?.value]],
     limit: 1000,
@@ -137,7 +137,11 @@ export const NewProjectForm = ({form, edit = false}) => {
   const contactOptions = contactsList?.map(con => ({label : `${con?.first_name} ${con?.last_name}`, value : con?.name}));
 
   return (
-    <Form {...form}>
+        <div className={`w-full relative ${!isMobile && !edit ? "p-4 border cardBorder shadow rounded-lg" : ""}`}>
+             {!isMobile && !edit && (
+                <h2 className="text-center font-bold">Add New Project</h2>
+            )}
+            <Form {...form}>
                 <form
                     // onSubmit={(event) => {
                     //     event.stopPropagation();
@@ -259,5 +263,6 @@ export const NewProjectForm = ({form, edit = false}) => {
                     )}
                 </form>
             </Form>
+        </div>
   )
 }

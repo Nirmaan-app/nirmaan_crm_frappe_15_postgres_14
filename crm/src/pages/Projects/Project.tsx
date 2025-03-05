@@ -2,10 +2,14 @@ import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
+import { useViewport } from "@/hooks/useViewPort";
+import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
+import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects";
 import { formatDate } from "@/utils/FormatDate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
-import { SquarePen, Trash2 } from "lucide-react";
+import { ArrowLeft, SquarePen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -54,6 +58,7 @@ type ProjectFormValues = z.infer<typeof projectFormSchema>;
 export const Project = () => {
 
     const [searchParams] = useSearchParams();
+    const {isDesktop} = useViewport()
     const navigate = useNavigate()
     const id = searchParams.get("id")
     const {updateDoc, loading: updateLoading} = useFrappeUpdateDoc()
@@ -71,11 +76,11 @@ export const Project = () => {
 
     const {mutate} = useSWRConfig()
 
-    const {data, isLoading: dataLoading, mutate : dataMutate} = useFrappeGetDoc("CRM Projects", id, id ? undefined : null)
+    const {data, isLoading: dataLoading, mutate : dataMutate} = useFrappeGetDoc<CRMPRojects>("CRM Projects", id, id ? undefined : null)
 
-    const {data : projectCompany, isLoading: projectCompanyLoading} = useFrappeGetDoc("CRM Company", data?.project_company, data?.project_company ? undefined : null)
+    const {data : projectCompany, isLoading: projectCompanyLoading} = useFrappeGetDoc<CRMCompany>("CRM Company", data?.project_company, data?.project_company ? undefined : null)
 
-    const {data : projectContact, isLoading: projectContactLoading} = useFrappeGetDoc("CRM Contacts", data?.project_contact, data?.project_contact ? undefined : null)
+    const {data : projectContact, isLoading: projectContactLoading} = useFrappeGetDoc<CRMContacts>("CRM Contacts", data?.project_contact, data?.project_contact ? undefined : null)
 
     const form = useForm<ProjectFormValues>({
         resolver: zodResolver(projectFormSchema),
@@ -170,8 +175,13 @@ export const Project = () => {
     return (
         <div className="dark:text-white space-y-4">
             <section>
-                <h2 className="font-medium mb-2">Project Details</h2>
-                <div className="p-4 shadow rounded-md flex flex-col gap-4">
+                <div className="font-medium mb-2 flex items-center gap-1">
+                    {isDesktop && (
+                        <ArrowLeft className="cursor-pointer" onClick={() => navigate(-1)} />
+                    )}
+                    <h2 className="font-medium">Project Details</h2>
+                </div>
+                <div className="p-4 border cardBorder shadow rounded-md flex flex-col gap-4">
                     <div className="flex justify-between">
                         <div className="flex flex-col gap-6">
                             <div>

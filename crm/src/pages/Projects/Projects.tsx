@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany"
+import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects"
 import { useFrappeGetDocList } from "frappe-react-sdk"
 import { ChevronRight, Plus } from "lucide-react"
 import { useNavigate } from "react-router-dom"
@@ -9,7 +10,7 @@ export const Projects = () => {
 
   const navigate = useNavigate()
 
-  const {data: projectsData, isLoading: projectsDataLoading} = useFrappeGetDocList("CRM Projects", {
+  const {data: projectsData, isLoading: projectsDataLoading} = useFrappeGetDocList<CRMPRojects>("CRM Projects", {
     fields: ["*"],
     limit: 1000,
   }, "CRM Projects")

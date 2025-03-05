@@ -10,20 +10,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApplicationContext } from "@/contexts/ApplicationContext";
 import { toast } from "@/hooks/use-toast";
+import { useViewport } from "@/hooks/useViewPort";
+import { ContactDetails, ContactProjects, ContactTasks } from "@/pages/Prospects/Contacts/ContactDetails";
+import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
+import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects";
+import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
-import { Plus, SquarePen, Trash2, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ReactSelect from 'react-select';
@@ -64,46 +63,59 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 export const Contact = () => {
 
-    const { taskDialog, toggleTaskDialog, overlayOpen, setOverlayOpen } = useApplicationContext()
+    const { toggleTaskDialog, overlayOpen, setOverlayOpen } = useApplicationContext()
     const [searchParams] = useSearchParams();
     const navigate = useNavigate()
     const id = searchParams.get("id")
     const {updateDoc, loading: updateLoading} = useFrappeUpdateDoc()
     const {deleteDoc, loading: deleteLoading} = useFrappeDeleteDoc()
+    const {isMobile} = useViewport()
 
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const toggleEditDialog = () => {
         setEditDialogOpen(!editDialogOpen);
     };
 
+    const [innerTab, setInnerTab] = useState(searchParams.get("innerTab") || "details");
+    const updateURL = (key : string, value : string) => {
+        const url = new URL(window.location);
+        url.searchParams.set(key, value);
+        window.history.pushState({}, "", url);
+    };
+
+    const handleChangeInnerTab = (e : string) => {
+        if(innerTab === e) return;
+        setInnerTab(e);
+        updateURL("innerTab", e);
+    }
+
     const [deleteDialog, setDeleteDialog] = useState(false);
     const toggleDeleteDialog = () => {
         setDeleteDialog(!deleteDialog);
     };
 
-    const [isOpen, setIsOpen] = useState(false);
-    const handleClose = (e: React.MouseEvent) => {
-      if ((e.target as HTMLElement).id === "overlay") {
-        setIsOpen(false);
-      }
-    };
-
     const {mutate} = useSWRConfig()
 
-    const {data, isLoading: dataLoading, mutate : dataMutate} = useFrappeGetDoc("CRM Contacts", id, id ? undefined : null)
+    const {data, isLoading: dataLoading, mutate : dataMutate} = useFrappeGetDoc<CRMContacts>("CRM Contacts", id, id ? undefined : null)
 
-    const {data : contactCompany, isLoading: contactCompanyLoading} = useFrappeGetDoc("CRM Company", data?.company, data?.company ? undefined : null)
+    const {data : contactCompany, isLoading: contactCompanyLoading} = useFrappeGetDoc<CRMCompany>("CRM Company", data?.company, data?.company ? undefined : null)
 
-    const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList("CRM Company", {
+    const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList<CRMCompany>("CRM Company", {
         fields: ["name", "company_name"],
         limit: 1000,
     }, "CRM Company")
 
-    const {data : tasksData, isLoading: tasksDataLoading} = useFrappeGetDocList("CRM Task", {
+    const {data : tasksData, isLoading: tasksDataLoading} = useFrappeGetDocList<CRMTask>("CRM Task", {
       fields: ["*"],
       filters: [["reference_doctype", "=", "CRM Contacts"], ["reference_docname", "=", id]],
       limit: 1000,
     }, id ? `CRM Task ${id}` : null)
+
+    const {data : contactProjects, isLoading: contactProjectsLoading} = useFrappeGetDocList<CRMPRojects>("CRM Projects", {
+        fields: ["*"],
+        filters: [["project_contact", "=", id]],
+        limit: 1000
+    }, id ? `CRM Projects ${id}` : null)
 
     const form = useForm<ContactFormValues>({
         resolver: zodResolver(contactFormSchema),
@@ -193,63 +205,80 @@ export const Contact = () => {
 
     return (
         <div className="dark:text-white space-y-4">
-            <section>
-                <h2 className="font-medium mb-2">Contact Details</h2>
-                <div className="p-4 shadow rounded-md flex flex-col gap-4">
-                    <div className="flex justify-between">
-                        <div className="flex flex-col gap-6">
-                            <div>
-                                <p className="text-xs">Name</p>
-                                <p className="text-sm font-semibold text-destructive">{data?.first_name} {data?.last_name}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs">Email</p>
-                                <p className="text-sm font-semibold text-destructive">{data?.email || "--"}</p>
-                            </div>
+                {isMobile ? (
+                    <>
+                        <h2 className="font-medium mb-2">Contact Details</h2>
+                        <ContactDetails data={data} contactCompany={contactCompany} toggleEditDialog={toggleEditDialog} toggleDeleteDialog={toggleDeleteDialog} />
+                        <Separator />
+                        <h2 className="font-medium mb-2">Tasks</h2>   
+                        <ContactTasks tasksData={tasksData} />
+                    </>
+                ) : (
+                    <Tabs onValueChange={(e) => handleChangeInnerTab(e)} defaultValue={innerTab}>
+                        <div className="flex items-center justify-between relative">
+                        <TabsList>
+                            <TabsTrigger value="details">Contact Details</TabsTrigger>
+                            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                            <TabsTrigger value="projects">Projects</TabsTrigger>
+                        </TabsList>
+                        {
+                            innerTab === "tasks" &&
+                                <Button onClick={toggleTaskDialog}>
+                                    <Plus className="w-4 h-4" />
+                                    New Task
+                                </Button>
+                            }
+                        {
+                            innerTab === "projects" && (
+                                <Button>
+                                    <Plus className="w-4 h-4" />
+                                    New Project
+                                </Button>
+                            ) 
+                        }
                         </div>
-                        <div className="flex flex-col gap-6">
-                            <div className="text-end">
-                                <p className="text-xs">Designation</p>
-                                <p className="text-sm font-semibold text-destructive">{data?.designation || "--"}</p>
-                            </div>
-                            <div className="text-end">
-                                <p className="text-xs">Mobile</p>
-                                <p className="text-sm font-semibold text-destructive">{data?.mobile || "--"}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between">
-                        <div className="flex flex-col gap-6">
-                            <div>
-                                <p className="text-xs">Company Name</p>
-                                <p className="text-sm font-semibold text-destructive">{contactCompany?.company_name}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs">Company Type</p>
-                                <p className="text-sm font-semibold text-destructive">{contactCompany?.industry || "--"}</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-6">
-                            <div className="text-end">
-                                <p className="text-xs">Location</p>
-                                <p className="text-sm font-semibold text-destructive">{contactCompany?.company_location || "--"}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                    <Button onClick={toggleEditDialog} variant="outline" className="text-destructive border-destructive">
-                        <SquarePen />
-                        Edit
-                    </Button>
-                    <Button onClick={toggleDeleteDialog} variant="outline" className="text-destructive border-destructive">
-                        <Trash2 />
-                        Delete
-                    </Button>
-                </div>
+                        <TabsContent value="details">
+                            <ContactDetails data={data} contactCompany={contactCompany} toggleEditDialog={toggleEditDialog} toggleDeleteDialog={toggleDeleteDialog} />
+                        </TabsContent>
+                        <TabsContent value="tasks">
+                            <ContactTasks tasksData={tasksData} />
+                        </TabsContent>
+                        <TabsContent value="projects">
+                            <ContactProjects projectsData={contactProjects} companiesData={companiesList} />
+                        </TabsContent>
+                    </Tabs>
+                )}
 
-                <AlertDialog open={deleteDialog} onOpenChange={toggleDeleteDialog}>
+            {isMobile && (
+                <>
+                    <div className="fixed z-30 bottom-24 right-6 flex flex-col items-end gap-4">
+                      {overlayOpen && (
+                        <div
+                          className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2"
+                          style={{ transition: "opacity 0.3s ease-in-out" }}
+                        >
+                          <button>New Project</button>
+                          <Separator />
+                          <button onClick={() => {
+                            toggleTaskDialog()
+                            setOverlayOpen(!overlayOpen)
+                          }}>New Task</button>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => setOverlayOpen(!overlayOpen)}
+                        className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 ${
+                            overlayOpen ? "rotate-90" : "rotate-0"
+                        }`}
+                      >
+                        {overlayOpen ? <X size={24} /> : <Plus size={24} />}
+                      </button>
+                    </div>
+                </>
+            )}
+
+            <AlertDialog open={deleteDialog} onOpenChange={toggleDeleteDialog}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -369,79 +398,6 @@ export const Contact = () => {
                         </AlertDialogHeader>
                     </AlertDialogContent>
                 </AlertDialog>
-            </section>
-
-            <Separator />
-
-            <section>
-                <h2 className="font-medium mb-2">Actions</h2>
-                <div className="p-4 shadow rounded-md flex flex-col gap-4">
-                    <Table>
-                      {/* <TableCaption>A list of your recent invoices.</TableCaption> */}
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[30%]">Task</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="w-[5%]"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {tasksData?.length ? (
-                            tasksData?.map(task => (
-                                <TableRow key={task?.name}>
-                                  <TableCell className="font-medium">{task?.type}</TableCell>
-                                  <TableCell>{task?.start_date}</TableCell>
-                                  <TableCell>{task?.status}</TableCell>
-                                  <TableCell>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="14" viewBox="0 0 8 14" fill="none">
-                                      <path fill-rule="evenodd" clip-rule="evenodd" d="M7.70832 6.28927C7.89579 6.4768 8.00111 6.73111 8.00111 6.99627C8.00111 7.26144 7.89579 7.51575 7.70832 7.70327L2.05132 13.3603C1.95907 13.4558 1.84873 13.532 1.72672 13.5844C1.60472 13.6368 1.4735 13.6644 1.34072 13.6655C1.20794 13.6667 1.07626 13.6414 0.953366 13.5911C0.83047 13.5408 0.718817 13.4666 0.624924 13.3727C0.531032 13.2788 0.456778 13.1671 0.406498 13.0442C0.356217 12.9213 0.330915 12.7897 0.332069 12.6569C0.333223 12.5241 0.360809 12.3929 0.413218 12.2709C0.465627 12.1489 0.541809 12.0385 0.637319 11.9463L5.58732 6.99627L0.637319 2.04627C0.455161 1.85767 0.354367 1.60507 0.356645 1.34287C0.358924 1.08068 0.464092 0.829864 0.6495 0.644456C0.834909 0.459047 1.08572 0.353879 1.34792 0.3516C1.61011 0.349322 1.86272 0.450116 2.05132 0.632274L7.70832 6.28927Z" fill="black" fill-opacity="0.9"/>
-                                    </svg>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={4} className="text-center py-2">
-                                    No Tasks Found
-                                </TableCell>
-                            </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                </div>
-            </section>
-
-            <section>
-                <h2 className="font-medium mb-2">Last Remark</h2>
-                <div className="p-4 shadow rounded-md flex flex-col gap-4">
-                    hello
-                </div>
-            </section>
-
-            <div className="fixed z-30 bottom-24 right-6 flex flex-col items-end gap-4">
-              {overlayOpen && (
-                <div
-                  className="p-4 bg-destructive text-white shadow-lg rounded-lg flex flex-col gap-2"
-                  style={{ transition: "opacity 0.3s ease-in-out" }}
-                >
-                  <button>New Project</button>
-                  <Separator />
-                  <button onClick={() => {
-                    toggleTaskDialog()
-                    setOverlayOpen(!overlayOpen)
-                  }}>New Task</button>
-                </div>
-              )}
-              <button
-                onClick={() => setOverlayOpen(!overlayOpen)}
-                className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center transition-transform duration-300 ${
-                    overlayOpen ? "rotate-90" : "rotate-0"
-                }`}
-              >
-                {overlayOpen ? <X size={24} /> : <Plus size={24} />}
-              </button>
-            </div>
         </div>
     )
 }

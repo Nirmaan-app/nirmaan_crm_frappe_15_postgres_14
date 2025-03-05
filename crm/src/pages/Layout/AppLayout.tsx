@@ -1,5 +1,6 @@
 import { useViewport } from "@/hooks/useViewPort";
 import React, { Suspense } from "react";
+import { NewTaskForm } from "../Tasks/TaskDialogs";
 
 export const AppLayout = () => {
 
@@ -16,8 +17,11 @@ export const AppLayout = () => {
 	// console.log("isMobile", isMobile())
 
 	return (
+		<>
 			<Suspense fallback={<div>Loading...</div>}>
       	{isMobile ? <MobileLayout /> : <DesktopLayout />}
     	</Suspense>
+			<NewTaskForm />
+		</>
 	);
 };

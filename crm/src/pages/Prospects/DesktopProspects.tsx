@@ -1,26 +1,25 @@
-import { Input } from "@/components/ui/input";
-import { ConfigProvider, Menu, MenuProps } from "antd"
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Contacts } from "./Contacts/Contacts";
-import { Companies } from "./Companies/Companies";
 import { useTheme } from "@/components/ui/ThemeProvider";
+import { ConfigProvider, Menu, MenuProps } from "antd";
 import { Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Companies } from "./Companies/Companies";
+import { Contacts } from "./Contacts/Contacts";
 
-export const Prospect = () => {
+export const DesktopProspects = () => {
 
     const {theme} = useTheme()
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "contact");
     const navigate = useNavigate()
 
     type MenuItem = Required<MenuProps>["items"][number];
 
-    const updateURL = (key, value) => {
-        const url = new URL(window.location);
-        url.searchParams.set(key, value);
-        window.history.pushState({}, "", url);
-    };
+    // const updateURL = (key, value) => {
+    //     const url = new URL(window.location);
+    //     url.searchParams.set(key, value);
+    //     window.history.pushState({}, "", url);
+    // };
 
     const items: MenuItem[] = [
       {
@@ -35,20 +34,26 @@ export const Prospect = () => {
       }
     ];
 
+    useEffect(() => {
+      if(!searchParams.get("tab")) {
+        setSearchParams({tab: "contact"})
+      }
+    }, [])
+
     const onClick: MenuProps["onClick"] = (e) => {
         if (activeTab === e.key) return;
-        updateURL("tab", e.key);
+        // updateURL("tab", e.key);
+        setSearchParams({tab: e.key})
         setActiveTab(e.key);
     };
 
     const handleNewFormNav = () => {
       if(activeTab === "contact") {
-        navigate("new-contact")
+        navigate("/prospects/new-contact")
       } else {
-        navigate("new-company")
+        navigate("/prospects/new-company")
       }
     }
-
 
     return (
         <div className="w-full flex flex-col gap-4">
@@ -72,22 +77,16 @@ export const Prospect = () => {
             />
           </ConfigProvider>
 
-          <div className="flex flex-col gap-8 h-full relative">
-            <Input type="text" className="focus:border-none rounded-lg" placeholder="Search Names, Company, Project, etc..." />
+          <div className="flex flex-col gap-8 h-full relative px-4">
+            <button onClick={handleNewFormNav} className="flex items-center justify-center border border-primary rounded-lg p-6 text-primary">
+              <Plus className="w-4 h-4" />
+              <span className="">{activeTab=== "contact" ? "New Contact" : "New Company"}</span>
+            </button>
             {activeTab === "contact" ? (
               <Contacts />
             ) : (
               <Companies />
             )}
-          </div>
-
-          <div className="fixed bottom-24 right-6">
-            <button
-              onClick={handleNewFormNav}
-              className={`p-3 bg-destructive text-white rounded-full shadow-lg flex items-center justify-center`}
-            >
-              <Plus size={24} />
-            </button>
           </div>
         </div>
     )
