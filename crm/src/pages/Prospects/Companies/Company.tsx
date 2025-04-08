@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApplicationContext } from "@/contexts/ApplicationContext";
 import { toast } from "@/hooks/use-toast";
+import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useViewport } from "@/hooks/useViewPort";
 import { CRMCompanyType } from "@/types/NirmaanCRM/CRMCompanyType";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
@@ -20,9 +21,9 @@ import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
 import { Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useController, useForm } from "react-hook-form";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ReactSelect from 'react-select';
 import * as z from "zod";
 import { CompanyContacts, CompanyDetails, CompanyProjects } from "./CompanyDetails";
@@ -46,34 +47,28 @@ export const Company = () => {
 
     const {isMobile} = useViewport()
     const { overlayOpen, setOverlayOpen } = useApplicationContext()
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate()
-    const id = searchParams.get("id")
     const {updateDoc, loading: updateLoading} = useFrappeUpdateDoc()
     const {deleteDoc, loading: deleteLoading} = useFrappeDeleteDoc()
 
+    const [id] = useStateSyncedWithParams<string>("id", "");
+
     const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const toggleEditDialog = () => {
+    const toggleEditDialog = useCallback(() => {
         setEditDialogOpen(!editDialogOpen);
-    };
+    }, [editDialogOpen]);
 
     const [deleteDialog, setDeleteDialog] = useState(false);
-    const toggleDeleteDialog = () => {
+    const toggleDeleteDialog = useCallback(() => {
         setDeleteDialog(!deleteDialog);
-    };
+    }, [deleteDialog]);
 
-    const [innerTab, setInnerTab] = useState(searchParams.get("innerTab") || "details");
-    const updateURL = (key, value) => {
-        const url = new URL(window.location);
-        url.searchParams.set(key, value);
-        window.history.pushState({}, "", url);
-    };
+    const [innerTab, setInnerTab] = useStateSyncedWithParams<"details" | "projects" | "contacts">("innerTab", "details");
 
-    const handleChangeInnerTab = (e : string) => {
+    const handleChangeInnerTab = useCallback((e : "details" | "projects" | "contacts") => {
         if(innerTab === e) return;
         setInnerTab(e);
-        updateURL("innerTab", e);
-    }
+    }, [innerTab, setInnerTab]);
 
     const {mutate} = useSWRConfig()
 
@@ -175,7 +170,7 @@ export const Company = () => {
         }
     }
 
-    const companyTypeOptions = companyTypesList?.map(com => ({label : com?.name, value : com?.name}));
+    const companyTypeOptions = useMemo(() => companyTypesList?.map(com => ({label : com?.name, value : com?.name})) || [], [companyTypesList])
 
     return (
         <div className="dark:text-white">

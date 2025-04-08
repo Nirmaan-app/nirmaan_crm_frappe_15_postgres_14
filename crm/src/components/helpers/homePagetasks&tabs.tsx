@@ -8,11 +8,11 @@ import { getFilteredTasks } from "@/utils/taskutils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeGetDocCount, useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, CircleCheck } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import ReactSelect from 'react-select';
 import { ReusableAlertDialog, ReusableDialog } from "../ui/ReusableDialogs";
+import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 
@@ -23,7 +23,7 @@ export const HomePageTasksAndTabs = () => {
   const {isMobile} = useViewport()
   const [dialogType, setDialogType] = useState("")
   const [currentTask, setCurrentTask] = useState({})
-  const [status, setStatus] = useState({})
+  const [status, setStatus] = useState("")
   const [remarks, setRemarks] = useState("");
 
   const [checked, setChecked] = useState(false);
@@ -32,20 +32,20 @@ export const HomePageTasksAndTabs = () => {
 
   const [taskStatusDialog, setTaskStatusDialog] = useState(false)
 
-  const toggleTaskStatusDialog = () => {
+  const toggleTaskStatusDialog = useCallback(() => {
     setTaskStatusDialog(!taskStatusDialog)
-  }
+  }, [taskStatusDialog])
 
   const [taskUpdateDialog, setTaskUpdateDialog] = useState(false)
 
-  const toggleTaskUpdateDialog = () => {
+  const toggleTaskUpdateDialog = useCallback(() => {
     setTaskUpdateDialog(!taskUpdateDialog)
-  }
+  }, [taskUpdateDialog])
 
   const [scheduleTaskDialog, setScheduleTaskDialog] = useState(false);
-  const toggleScheduleTaskDialog = () => {
+  const toggleScheduleTaskDialog = useCallback(() => {
       setScheduleTaskDialog(!scheduleTaskDialog);
-  };
+  }, [scheduleTaskDialog]);
   
   const { data: tasksData, isLoading: tasksDataLoading } = useFrappeGetDocList("CRM Task", {
       fields: ["*"],
@@ -95,7 +95,8 @@ export const HomePageTasksAndTabs = () => {
 
   const handleUpdateTask = async () => {
     await updateTask(currentTask?.name, {
-        status: status?.value,
+        // status: status?.value,
+        status: status,
         description: remarks,
     })
 
@@ -111,7 +112,8 @@ export const HomePageTasksAndTabs = () => {
     }
 
     setChecked(false)
-    setStatus({})
+    // setStatus({})
+    setStatus("")
     setRemarks("")
 }
 
@@ -217,17 +219,22 @@ const handleNewScheduleTask = async (values : TaskFormValues) => {
             confirmText="Confirm" 
             cancelText="Cancel"
             onConfirm={handleUpdateTask}
-            disableConfirm={!status?.value}
+            disableConfirm={!status}
             children={
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                 <Label htmlFor="status" className="flex">Current Status<sup className="text-sm text-destructive">*</sup></Label>
-                                <ReactSelect id="status"
+                                {/* <ReactSelect id="status"
                                     value={status}
                                     className="text-sm text-muted-foreground border-destructive" 
                                     placeholder="Select Status" 
                                     options={dialogType === "complete" ? completeStatusOptions : inCompleteStatusOptions}
                                     onChange={(e) => setStatus(e)} 
+                                /> */}
+                                <Input
+                                  value={status || ""}
+                                  onChange={(e) => setStatus(e.target.value)}
+                                  placeholder="Type Status"
                                 />
                                 </div>
                                 <div className="space-y-2">

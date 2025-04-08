@@ -1,13 +1,12 @@
-import { useSearchParams } from "react-router-dom";
+import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { Company } from "./Companies/Company";
 import { Contact } from "./Contacts/Contact";
 
 export const DesktopContactOrCompany = () => {
-  const [searchParams] = useSearchParams();
 
-  const id = searchParams.get("id");
+  const [id] = useStateSyncedWithParams<string>("id", "");
 
-  const tab = searchParams.get("tab");
+  const [tab] = useStateSyncedWithParams<string>("tab", "contact");
 
  if(tab === "contact" && id) {
   return <Contact />

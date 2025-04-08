@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Bell, CalendarFold, EllipsisVertical } from "lucide-react"
+import { Link } from "react-router-dom"
 
 export const NavBarDesktop = () => {
   return (
@@ -10,7 +11,11 @@ export const NavBarDesktop = () => {
         width : 'calc(100% - var(--notifications-width))',
       }}
        className="flex items-center justify-between">
-        <h2 className="font-medium text-2xl text-primary">Nirmaan CRM</h2>
+        <h2 className="font-medium text-2xl text-primary">
+          <Link to="/">
+          Nirmaan CRM
+          </Link>
+        </h2>
         <Input
           className="w-[50%]"
           placeholder="Search Something..."

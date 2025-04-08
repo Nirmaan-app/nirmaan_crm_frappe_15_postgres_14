@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
 import { Separator } from "@/components/ui/separator";
@@ -18,10 +19,9 @@ import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeGetDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
 import { ChevronRight, SquarePen, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import ReactSelect from 'react-select';
 import * as z from "zod";
 import { TaskForm } from "./TaskDialogs";
 
@@ -65,26 +65,27 @@ export const Task = () => {
     const [checked, setChecked] = useState(false);
 
     const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const toggleEditDialog = () => {
+    const toggleEditDialog = useCallback(() => {
         setEditDialogOpen(!editDialogOpen);
-    };
+    }, [editDialogOpen]);
 
     const [deleteDialog, setDeleteDialog] = useState(false);
-    const toggleDeleteDialog = () => {
+    const toggleDeleteDialog = useCallback(() => {
         setDeleteDialog(!deleteDialog);
-    };
+    }, [deleteDialog]);
 
     const [completeDialog, setCompleteDialog] = useState(false);
-    const toggleCompleteDialog = () => {
+    const toggleCompleteDialog = useCallback(() => {
         setCompleteDialog(!completeDialog);
-    };
+    }, [completeDialog]);
 
     const [scheduleTaskDialog, setScheduleTaskDialog] = useState(false);
-    const toggleScheduleTaskDialog = () => {
+    const toggleScheduleTaskDialog = useCallback(() => {
         setScheduleTaskDialog(!scheduleTaskDialog);
-    };
+    }, [scheduleTaskDialog]);
 
-    const [status, setStatus] = useState<{ label : string, value : string }>({label : "", value : ""});
+    // const [status, setStatus] = useState<{ label : string, value : string }>({label : "", value : ""});
+    const [status, setStatus] = useState<string>("");
     const [remarks, setRemarks] = useState("");
     const [dialogType, setDialogType] = useState("");
 
@@ -139,7 +140,8 @@ export const Task = () => {
 
     const handleUpdateTask = async () => {
         await updateTask(data?.name, {
-            status: status?.value,
+            // status: status?.value,
+            status: status,
             description: remarks,
         })
 
@@ -155,7 +157,8 @@ export const Task = () => {
             toggleEditDialog()
         }
         setChecked(false)
-        setStatus({ label : "", value : ""})
+        // setStatus({ label : "", value : ""})
+        setStatus("")
         setRemarks("")
     }
 
@@ -285,13 +288,15 @@ export const Task = () => {
 
             <div className="flex flex-col gap-4">
                 <Button onClick={() => {
-                    setStatus({label: "Completed", value: "Completed"})
+                    // setStatus({label: "Completed", value: "Completed"})
+                    setStatus("Completed")
                     setDialogType("complete")
                     toggleCompleteDialog()
                 }}>Complete</Button>
                 <Button
                     onClick={() => {
-                        setStatus({label: "Incomplete", value: "Incomplete"})
+                        // setStatus({label: "Incomplete", value: "Incomplete"})
+                        setStatus("Incomplete")
                         setDialogType("incomplete")
                         toggleCompleteDialog()
                     }}
@@ -303,17 +308,23 @@ export const Task = () => {
             title={dialogType === "complete" ? "Task Completed" : "Task Incomplete"} 
             confirmText="Confirm" 
             cancelText="Cancel"
+            disableConfirm={!status}
             onConfirm={handleUpdateTask}
             children={
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                 <Label htmlFor="status" className="flex">Current Status<sup className="text-sm text-destructive">*</sup></Label>
-                                <ReactSelect id="status"
+                                {/* <ReactSelect id="status"
                                     value={status}
                                     className="text-sm text-muted-foreground border-destructive" 
                                     placeholder="Select Status" 
                                     options={dialogType === "complete" ? completeStatusOptions : inCompleteStatusOptions}
                                     onChange={(e) => setStatus(e)} 
+                                /> */}
+                                <Input
+                                    value={status || ""}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                    placeholder="Type Status"
                                 />
                                 </div>
                                 <div className="space-y-2">

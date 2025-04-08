@@ -1,25 +1,22 @@
 import { useTheme } from "@/components/ui/ThemeProvider";
+import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { ConfigProvider, Menu, MenuProps } from "antd";
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Companies } from "./Companies/Companies";
 import { Contacts } from "./Contacts/Contacts";
 
 export const DesktopProspects = () => {
 
     const {theme} = useTheme()
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "contact");
+    const [activeTab, setActiveTab] = useStateSyncedWithParams<"contact" | "company">(
+        "tab", 
+        "contact"
+      );
     const navigate = useNavigate()
 
     type MenuItem = Required<MenuProps>["items"][number];
-
-    // const updateURL = (key, value) => {
-    //     const url = new URL(window.location);
-    //     url.searchParams.set(key, value);
-    //     window.history.pushState({}, "", url);
-    // };
 
     const items: MenuItem[] = [
       {
@@ -34,26 +31,20 @@ export const DesktopProspects = () => {
       }
     ];
 
-    useEffect(() => {
-      if(!searchParams.get("tab")) {
-        setSearchParams({tab: "contact"})
-      }
-    }, [])
+    // useEffect(() => {
+    //   if(!searchParams.get("tab")) {
+    //     setSearchParams({tab: "contact"})
+    //   }
+    // }, [])
 
-    const onClick: MenuProps["onClick"] = (e) => {
-        if (activeTab === e.key) return;
-        // updateURL("tab", e.key);
-        setSearchParams({tab: e.key})
-        setActiveTab(e.key);
-    };
+    const onClick: MenuProps["onClick"] = useCallback((e) => {
+      if (activeTab === e.key) return;
+      setActiveTab(e.key, ["id", "innerTab"]);
+    }, [activeTab, setActiveTab]);
 
-    const handleNewFormNav = () => {
-      if(activeTab === "contact") {
-        navigate("/prospects/new-contact")
-      } else {
-        navigate("/prospects/new-company")
-      }
-    }
+    const handleNewFormNav = useCallback(() => {
+      navigate(activeTab === "contact" ? "/prospects/new-contact?tab=contact" : "/prospects/new-company?tab=company");
+    }, [activeTab, navigate]);
 
     return (
         <div className="w-full flex flex-col gap-4">

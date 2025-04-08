@@ -2,6 +2,7 @@ import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescript
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
+import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useViewport } from "@/hooks/useViewPort";
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
@@ -12,7 +13,7 @@ import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeUpdateDoc, useSWRConfig }
 import { ArrowLeft, SquarePen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import * as z from "zod";
 import { NewProjectForm } from "./NewProjectScreens";
 
@@ -46,6 +47,10 @@ const projectFormSchema = z.object({
           label: z.string(),
           value: z.string(),
         }),
+    boq_date: z
+            .string({
+                required_error: "Project must have a BOQ date"
+            }),
     project_location: z.string().optional(),
     project_size: z.string().optional(),
     project_type: z.string().optional(),
@@ -57,10 +62,13 @@ type ProjectFormValues = z.infer<typeof projectFormSchema>;
 
 export const Project = () => {
 
-    const [searchParams] = useSearchParams();
+    // const [searchParams] = useSearchParams();
     const {isDesktop} = useViewport()
     const navigate = useNavigate()
-    const id = searchParams.get("id")
+    // const id = searchParams.get("id")
+
+    const [id] = useStateSyncedWithParams<string>("id", "")
+    
     const {updateDoc, loading: updateLoading} = useFrappeUpdateDoc()
     const {deleteDoc, loading: deleteLoading} = useFrappeDeleteDoc()
 
@@ -93,6 +101,7 @@ export const Project = () => {
             project_location: data?.project_location,
             project_packages: data?.project_packages,
             project_status: data?.project_status,
+            boq_date: data?.boq_date,
         },
         mode: "onBlur",
     });
@@ -108,6 +117,7 @@ export const Project = () => {
             project_location: data?.project_location,
             project_packages: data?.project_packages,
             project_status: data?.project_status,
+            boq_date: data?.boq_date,
           });
         }
     }, [data, form, projectCompany, projectContact]);
@@ -125,6 +135,7 @@ export const Project = () => {
                   project_location: values?.project_location,
                   project_packages: values?.project_packages,
                   project_status: values?.project_status,
+                  boq_date: values?.boq_date,
                 })
 
                 await dataMutate()

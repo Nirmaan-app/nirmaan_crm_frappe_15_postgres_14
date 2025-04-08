@@ -14,7 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useFrappeGetDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import ReactSelect from 'react-select';
@@ -54,7 +54,7 @@ export const NewTaskForm = () => {
     const {data : contactsData, isLoading: contactsDataLoading} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
         fields: ["first_name", "last_name", "name"],
         limit: 1000,
-    })
+    }, "CRM Contacts")
 
     const form = useForm<TaskFormValues>({
         resolver: zodResolver(taskFormSchema),
@@ -153,10 +153,10 @@ export const TaskForm = ({ form, onSubmit, contactsData, reSchedule = false } : 
 
     const location = useLocation();
 
-    const contactOptions = contactsData?.map((contact) => ({
+    const contactOptions = useMemo(() => contactsData?.map((contact) => ({
         label: `${contact?.first_name} ${contact?.last_name}`,
         value: contact?.name,
-    }))
+    })) || [], [contactsData])
 
     return (
 

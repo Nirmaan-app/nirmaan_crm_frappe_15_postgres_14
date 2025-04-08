@@ -1,4 +1,6 @@
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
     Form,
     FormControl,
@@ -13,10 +15,12 @@ import { useViewport } from "@/hooks/useViewPort";
 import { CRMCompanyType } from "@/types/NirmaanCRM/CRMCompanyType";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
+import { useCallback, useMemo, useState } from "react";
 import { Control, FieldValues, useController, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import ReactSelect from 'react-select';
 import * as z from "zod";
+import NewCompanyTypeForm from "./NewCompanyTypeForm";
 
 const companyFormSchema = z.object({
     company_name: z
@@ -39,13 +43,18 @@ export const NewCompanyForm = () => {
     const navigate = useNavigate()
     const {mutate} = useSWRConfig()
     const {isMobile} = useViewport()
+    const [companyTypeDialogOpen, setCompanyTypeDialogOpen] = useState(false);
+
+    const toggleCompanyTypeDialog = useCallback(() => {
+        setCompanyTypeDialogOpen((prevState) => !prevState);
+    }, [companyTypeDialogOpen]);
 
     const {createDoc , loading: createLoading} = useFrappeCreateDoc()
 
     const {data : companyTypesList, isLoading: companyTypesListLoading} = useFrappeGetDocList<CRMCompanyType>("CRM Company Type", {
         fields: ["*"],
         limit: 1000
-    })
+    }, "CRM Company Type")
 
     const form = useForm<CompanyFormValues>({
         resolver: zodResolver(companyFormSchema),
@@ -83,9 +92,9 @@ export const NewCompanyForm = () => {
         }
     }
 
-    const companyTypeOptions = companyTypesList?.map(com => ({label : com?.name, value : com?.name}));
+    const companyTypeOptions = useMemo(() => companyTypesList?.map(com => ({label : com?.name, value : com?.name})) || [], [companyTypesList])
 
-    const companyLocationOptions = [
+    const companyLocationOptions = useMemo(() => [
         { label: "Bangalore", value: "Bangalore" },
         { label: "Chennai", value: "Chennai" },
         { label: "Hyderabad", value: "Hyderabad" },
@@ -96,7 +105,7 @@ export const NewCompanyForm = () => {
         {label: "Ahmedabad", value: "Ahmedabad"},
         {label: "Gurgaon", value: "Gurgaon"},
         {label: "Other", value: "Other"},
-    ];
+    ], []);
 
     const companyLocation = form.watch("company_location");
 
@@ -179,7 +188,20 @@ export const NewCompanyForm = () => {
                             <FormItem>
                                 <FormLabel className="flex">Company Type</FormLabel>
                                 <FormControl>
-                                    <ReactSelect className="text-sm text-muted-foreground" placeholder="Select Company Type" options={companyTypeOptions} onBlur={field.onBlur} name={field.name} onChange={(e) => field.onChange(e.value)} />
+                                <CustomSelect 
+                                    options={companyTypeOptions}
+                                    onAddItemClick={toggleCompanyTypeDialog}
+                                    addButtonLabel="Add New Company Type"
+                                    placeholder="Select Company Type"
+                                    onChange={(e) => field.onChange(e?.value)}
+                                    value={companyTypeOptions.find(opt => opt.value === field.value)}
+                                    // isSearchable
+                                    // menuPortalTarget={document.body}
+                                    // menuPosition="absolute"
+                                    // styles={{
+                                    //     menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                    // }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -187,6 +209,16 @@ export const NewCompanyForm = () => {
                     />
                 </form>
             </Form>
+            <AlertDialog open={companyTypeDialogOpen} onOpenChange={toggleCompanyTypeDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader className="text-start">
+                        <AlertDialogTitle className="text-destructive text-center">Add New Company Type</AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                            <NewCompanyTypeForm toggleNewCompanyTypeDialog={toggleCompanyTypeDialog} />
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                </AlertDialogContent>
+            </AlertDialog>
             <div className="sticky bottom-0 flex flex-col gap-2">
                 <Button onClick={() => onSubmit(form.getValues())}>Next</Button>
                 <Button onClick={() => {

@@ -1,13 +1,15 @@
+import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects";
 import { useFrappeGetDocList } from "frappe-react-sdk";
-import { useSearchParams } from "react-router-dom";
 import { CompanyProjects } from "../Prospects/Companies/CompanyDetails";
+import { Project } from "./Project";
 
 export const DesktopProjectsView = () => {
-  const [searchParams] = useSearchParams();
 
-  const company = searchParams.get("company")
+  const [company] = useStateSyncedWithParams<string>("company", "")
+
+  const [id] = useStateSyncedWithParams<string>("id", "")
 
   const {data: projectsList, isLoading: projectsListLoading} = useFrappeGetDocList<CRMPRojects>("CRM Projects", {
       fields: ["*"],
@@ -20,6 +22,12 @@ export const DesktopProjectsView = () => {
     filters: [["company", "=", company]],
     limit: 1000
   }, company ? `CRM Contacts ${company}` : null)
+
+  if(id) {
+    return (
+        <Project />
+    )
+  }
 
   if(company) {
     return (

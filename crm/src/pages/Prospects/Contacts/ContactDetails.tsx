@@ -85,7 +85,7 @@ export const ContactDetails = ({data, contactCompany, toggleEditDialog, toggleDe
 }
 
 
-export const ContactTasks = ({tasksData} : {tasksData : CRMTask[]}) => {
+export const ContactTasks = ({tasksData} : {tasksData? : CRMTask[]}) => {
   const {isMobile} = useViewport()
   return (
     <div className="space-y-4">
