@@ -1,55 +1,48 @@
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/ui/ThemeProvider";
+import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { ConfigProvider, Menu, MenuProps } from "antd";
 import { Plus } from "lucide-react";
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Companies } from "./Companies/Companies";
 import { Contacts } from "./Contacts/Contacts";
 
 export const Prospects = () => {
+  const { theme } = useTheme();
+  const navigate = useNavigate();
+  
+  // Sync state with URL parameter
+  const [activeTab, setActiveTab] = useStateSyncedWithParams<"contact" | "company">(
+    "tab", 
+    "contact"
+  );
 
-    const {theme} = useTheme()
-    const [searchParams] = useSearchParams();
-    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "contact");
-    const navigate = useNavigate()
+  type MenuItem = Required<MenuProps>["items"][number];
 
-    type MenuItem = Required<MenuProps>["items"][number];
-
-    const updateURL = (key : string, value : string) => {
-        const url = new URL(window.location);
-        url.searchParams.set(key, value);
-        window.history.pushState({}, "", url);
-    };
-
-    const items: MenuItem[] = [
-      {
-        label: "Contact",
-        key: "contact",
-        style: { flex: 1, textAlign: "center" },
-      },
-      {
-        label: "Company",
-        key: "company",
-        style: { flex: 1, textAlign: "center" },
-      }
-    ];
-
-    const onClick: MenuProps["onClick"] = (e) => {
-        if (activeTab === e.key) return;
-        updateURL("tab", e.key);
-        setActiveTab(e.key);
-    };
-
-    const handleNewFormNav = () => {
-      if(activeTab === "contact") {
-        navigate("new-contact")
-      } else {
-        navigate("new-company")
-      }
+  const items: MenuItem[] = useMemo(() => [
+    {
+      label: "Contact",
+      key: "contact",
+      style: { flex: 1, textAlign: "center" },
+    },
+    {
+      label: "Company",
+      key: "company",
+      style: { flex: 1, textAlign: "center" },
     }
+  ], []);
 
-    return (
+  const onClick: MenuProps["onClick"] = useCallback((e) => {
+    if (activeTab === e.key) return;
+    setActiveTab(e.key, ["id"]);
+  }, [activeTab, setActiveTab]);
+
+  const handleNewFormNav = useCallback(() => {
+    navigate(activeTab === "contact" ? "new-contact" : "new-company");
+  }, [activeTab, navigate]);
+
+      return (
         <div className="w-full flex flex-col gap-4">
           <ConfigProvider
             theme={{

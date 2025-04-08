@@ -1,16 +1,16 @@
+import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Plus } from "lucide-react";
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const DesktopMiniCompanyView = () => {
 
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [company, setCompany] = useState(searchParams.get("company"))
+  const [company, setCompany] = useStateSyncedWithParams<string>("company", "")
 
   const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList<CRMCompany>("CRM Company", {
       fields: ["name", "company_name"],
@@ -22,14 +22,11 @@ export const DesktopMiniCompanyView = () => {
       limit: 1000
   }, `CRM Projects`)
 
-  const handleNavigate = (value : string)  => {
+  const handleNavigate = useCallback((value : string)  => {
     if(company !== value) {
-      setCompany(value)
-      // updateURL("id", value)
-      // setSearchParams({tab: "contact", id: value})
-      navigate(`projects?company=${value}`)
+      setCompany(value, ["id"])
     }
-  }
+  }, [setCompany, company]);
 
   return (
       <div className="flex flex-col gap-8 h-full relative px-4">

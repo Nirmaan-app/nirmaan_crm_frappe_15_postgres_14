@@ -14,6 +14,7 @@ import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
 import { CirclePlus } from "lucide-react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import ReactSelect, { components, MenuListProps } from 'react-select';
@@ -103,7 +104,7 @@ export const NewContactForm = () => {
         }
     }
 
-    const companyOptions = companiesList?.map(com => ({label : com?.company_name, value : com?.name}));
+    const companyOptions = useMemo(() => companiesList?.map(com => ({label : com?.company_name, value : com?.name})) || [], [companiesList])
 
     return (
         <div className={`w-full relative ${!isMobile ? "p-4 border cardBorder shadow rounded-lg" : ""}`}>

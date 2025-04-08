@@ -20,5 +20,8 @@ export interface CRMPRojects{
   /** Project Packages: Data */
   project_packages?: string
 	/** Project Status: Data */
-	status? : string
+	project_status? : string
+	/** BOQ Date: Datetime */
+	boq_date? : string
+
 }

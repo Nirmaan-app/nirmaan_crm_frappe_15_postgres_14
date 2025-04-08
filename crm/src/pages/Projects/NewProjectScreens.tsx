@@ -14,6 +14,7 @@ import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
+import { useMemo } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import ReactSelect from 'react-select';
@@ -49,6 +50,10 @@ const projectFormSchema = z.object({
       label: z.string(),
       value: z.string(),
     }),
+    boq_date: z
+        .string({
+            required_error: "Project must have a BOQ date"
+        }),
     project_location: z.string().optional(),
     project_size: z.string().optional(),
     project_type: z.string().optional(),
@@ -81,6 +86,7 @@ export const NewProjectScreens = () => {
                     project_location: values.project_location,
                     project_size: values.project_size,
                     project_type: values.project_type,
+                    boq_date: values.boq_date,
                 })
                 await mutate("CRM Projects")
 
@@ -104,7 +110,6 @@ export const NewProjectScreens = () => {
 
     return (
         <div className="w-full h-full relative">
-
             <NewProjectForm form={form} />
             <div className="sticky bottom-0 flex flex-col gap-2">
                 <Button onClick={() => onSubmit(form.getValues())}>Next</Button>
@@ -132,9 +137,9 @@ export const NewProjectForm = ({form, edit = false} : {form : UseFormReturn<Proj
     orderBy: {field: "first_name", order: "asc"}
   })
 
-  const companyOptions = companiesList?.map(com => ({label : com?.company_name, value : com?.name}));
+  const companyOptions = useMemo(() => companiesList?.map(com => ({label : com?.company_name, value : com?.name})) || [], [companiesList]);
 
-  const contactOptions = contactsList?.map(con => ({label : `${con?.first_name} ${con?.last_name}`, value : con?.name}));
+  const contactOptions = useMemo(() => contactsList?.map(con => ({label : `${con?.first_name} ${con?.last_name}`, value : con?.name})) || [], [contactsList]);
 
   return (
         <div className={`w-full relative ${!isMobile && !edit ? "p-4 border cardBorder shadow rounded-lg" : ""}`}>
@@ -203,6 +208,26 @@ export const NewProjectForm = ({form, edit = false} : {form : UseFormReturn<Proj
                                 </FormItem>
                             )}
                         />
+
+                    <FormField
+                        control={form.control}
+                        name="boq_date"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="flex">BOQ Date</FormLabel>
+                                <FormControl>
+                                    <Input 
+                                        type="date"
+                                        placeholder="DD/MM/YYYY"
+                                        {...field}
+                                        // max={new Date().toISOString().split("T")[0]}
+                                        // onKeyDown={(e) => e.preventDefault()}
+                                     />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
                     <FormField
                         control={form.control}

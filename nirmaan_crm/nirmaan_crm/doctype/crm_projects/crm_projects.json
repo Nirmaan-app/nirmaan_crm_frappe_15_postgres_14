@@ -11,6 +11,7 @@
   "project_details_section",
   "project_name",
   "project_location",
+  "boq_date",
   "project_status",
   "project_size",
   "project_type",
@@ -68,11 +69,17 @@
    "fieldname": "project_packages",
    "fieldtype": "Data",
    "label": "Project Packages"
+  },
+  {
+   "fieldname": "boq_date",
+   "fieldtype": "Date",
+   "label": "BOQ Date"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-24 13:30:03.776395",
+ "modified": "2025-04-08 13:13:04.920031",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Projects",

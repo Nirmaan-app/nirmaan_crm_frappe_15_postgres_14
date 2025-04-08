@@ -1,27 +1,19 @@
 import { Separator } from "@/components/ui/separator"
+import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager"
 import { useViewport } from "@/hooks/useViewPort"
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany"
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts"
 import { useFrappeGetDocList } from "frappe-react-sdk"
 import { ChevronRight } from "lucide-react"
-import { useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useCallback } from "react"
+import { useNavigate } from "react-router-dom"
 
 export const Contacts = () => {
 
   const navigate = useNavigate()
-
   const {isDesktop} = useViewport()
 
-  const [searchParams] = useSearchParams();
-
-  const [id, setId] = useState<string | null>(searchParams.get("id"))
-
-//   const updateURL = (key, value) => {
-//     const url = new URL(window.location);
-//     url.searchParams.set(key, value);
-//     window.history.pushState({}, "", url);
-// };
+  const [id, setId] = useStateSyncedWithParams<string>("id", "");
 
   const {data : contactsList, isLoading: contactsListLoading} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
     fields: ["*"],
@@ -33,16 +25,13 @@ export const Contacts = () => {
     limit: 1000,
   }, "CRM Company")
 
-  const handleNavigate = (value : string)  => {
+  const handleNavigate = useCallback((value: string)  => {
     if(!isDesktop) {
       navigate(`contact?id=${value}`)
     } else if(id !== value) {
-      setId(value)
-      // updateURL("id", value)
-      // setSearchParams({tab: "contact", id: value})
-      navigate(`prospects?tab=contact&id=${value}`)
+      setId(value, ["innerTab"])
     }
-  }
+  }, [navigate, isDesktop, id, setId]);
 
   return (
       <div className="flex flex-col gap-4 max-sm:text-sm text-muted-foreground">

@@ -74,7 +74,7 @@ export const desktopRoutes = [
         children: [
           { index: true, element: <DesktopProjectsView /> },
           { path: "new", element: <NewProjectScreens /> },
-          { path: "project", element: <Project /> },
+          // { path: "project", element: <Project /> },
         ],
       },
       {

@@ -8,11 +8,12 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { formatDate } from "@/utils/FormatDate";
 import { SquarePen, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
 
 interface CompanyDetailsProps {
   toggleEditDialog: () => void
@@ -90,7 +91,14 @@ interface CompanyProjectsProps {
 }
 
 export const CompanyProjects = ({projectsData, contactsData, projectsTab = false} : CompanyProjectsProps) => {
-  const navigate = useNavigate()
+
+  const [project, setProject] = useStateSyncedWithParams<string>("id", "")
+
+  const handleNavigate = useCallback((value : string)  => {
+      if(project !== value) {
+        setProject(value)
+      }
+    }, [setProject, project]);
 
   return (
     <section>
@@ -111,7 +119,7 @@ export const CompanyProjects = ({projectsData, contactsData, projectsTab = false
             {projectsData?.length ? (
                 projectsData?.map(project => (
                     <TableRow key={project?.name}>
-                      <TableCell onClick={() => navigate(`/projects/project?id=${project?.name}&company=${project?.project_company}`)} className="font-bold text-primary underline">{project?.project_name}</TableCell>
+                      <TableCell onClick={() => handleNavigate(project?.name)} className="font-bold text-primary underline">{project?.project_name}</TableCell>
                       <TableCell className="font-bold text-primary underline">{contactsData?.find(contact => contact?.name === project?.project_contact)?.first_name || "--"}</TableCell>
                       <TableCell>{"--"}</TableCell>
                       {projectsTab && <TableCell className="font-bold">{project?.project_location || "--"}</TableCell>}
