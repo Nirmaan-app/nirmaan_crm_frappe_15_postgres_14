@@ -17,7 +17,7 @@ import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useViewport } from "@/hooks/useViewPort";
 import { CRMCompanyType } from "@/types/NirmaanCRM/CRMCompanyType";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
-import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects";
+import { CRMPRojects } from "@/types/NirmaanCRM/CRMBOQ";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
 import { Plus, X } from "lucide-react";

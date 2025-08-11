@@ -5,8 +5,8 @@ import { ConfigProvider, Menu, MenuProps } from "antd";
 import { Plus } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Companies } from "./Companies/Companies";
-import { Contacts } from "./Contacts/Contacts";
+import { Companies } from "../Companies/Companies";
+import { Contacts } from "../Contacts/Contacts";
 
 export const Prospects = () => {
   const { theme } = useTheme();

@@ -272,7 +272,7 @@ const handleNewScheduleTask = async (values : TaskFormValues) => {
            <div
            role="button"
            aria-label="Projects"
-           onClick={() => navigate("/projects")}
+           onClick={() => navigate("/boqs")}
             className="h-24 bg-primary rounded-lg p-4 flex flex-col items-center justify-center">
             <p>Projects</p>
             <p className="font-normal text-base">{projectsCount}</p>

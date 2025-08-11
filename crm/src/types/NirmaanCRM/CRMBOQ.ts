@@ -1,4 +1,4 @@
-export interface CRMPRojects{
+export interface CRMPBOQ{
   name: string
 	project_name: string
 	creation: string

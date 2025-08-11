@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 export const HomePage = () => {
 
 const options = [
-  {label : "New Contact", path : "/prospects/new-contact"},
-  {label : "New Company", path : "/prospects/new-company"},
-  {label : "New Project", path : "/projects/new"},
+  {label : "New Contact", path : "/contacts/new-contact"},
+  {label : "New Company", path : "/companies/new-company"},
+  {label : "New Project", path : "/boqs/new"},
   {label : "New Task", path : "/tasks/new"},
 ]
 

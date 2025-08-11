@@ -16,6 +16,8 @@ export const AppLayout = () => {
 
 	// console.log("isMobile", isMobile())
 
+	console.log("IsMobile",isMobile)
+
 	return (
 		<>
 			<Suspense fallback={<div>Loading...</div>}>

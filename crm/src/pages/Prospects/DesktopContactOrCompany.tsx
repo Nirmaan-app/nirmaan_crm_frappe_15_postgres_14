@@ -1,6 +1,6 @@
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
-import { Company } from "./Companies/Company";
-import { Contact } from "./Contacts/Contact";
+import { Company } from "../Companies/Company";
+import { Contact } from "../Contacts/Contact";
 
 export const DesktopContactOrCompany = () => {
 
