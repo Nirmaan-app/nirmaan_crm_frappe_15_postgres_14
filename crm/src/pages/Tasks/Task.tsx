@@ -23,7 +23,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import * as z from "zod";
-import { TaskForm } from "./TaskDialogs";
+import { NewTaskForm } from "./NewTaskForm";
 
 export const taskFormSchema = z.object({
     reference_docname: z

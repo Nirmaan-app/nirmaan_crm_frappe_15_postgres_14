@@ -2,7 +2,7 @@ import { Separator } from "@/components/ui/separator";
 import { useTaskActions } from "@/hooks/useTaskActions";
 import { useViewport } from "@/hooks/useViewPort";
 import { taskFormSchema, TaskFormValues } from "@/pages/Tasks/Task";
-import { TaskForm } from "@/pages/Tasks/TaskDialogs";
+// import { NewTaskForm } from "@/pages/Tasks/NewTaskForm";
 import { formatCasualDate, formatTime12Hour } from "@/utils/FormatDate";
 import { getFilteredTasks } from "@/utils/taskutils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -249,16 +249,16 @@ const handleNewScheduleTask = async (values : TaskFormValues) => {
                             </div>
             }
             />
-
+{/* 
             <ReusableAlertDialog 
               open={scheduleTaskDialog} onOpenChange={toggleScheduleTaskDialog} 
               title={dialogType === "reSchedule" ? "Re-Schedule Task" : "Schedule New Task"}
               confirmText="Confirm" 
               cancelText="Cancel" 
               onConfirm={ dialogType === "reSchedule" ? () => handleReScheduleTask(form.getValues()) : () => handleNewScheduleTask(form.getValues())}
-              children={ <TaskForm form={form} />}
+              children={ <NewTaskForm form={form} />}
               disableConfirm={!form.getValues("type") || !form.getValues("time") || !form.getValues("date")}
-            />
+            /> */}
 
       <div className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-4"} gap-4 text-white font-light text-sm`}>
           <div

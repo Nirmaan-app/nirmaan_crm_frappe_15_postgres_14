@@ -117,3 +117,76 @@ export const ReusableDialog: React.FC<ReusableDialogProps> = ({
     </Dialog>
   );
 };
+
+
+
+// Define the props the component will accept
+interface ReusableFormDialogProps {
+  /**
+   * The boolean value from your Zustand store that controls visibility.
+   * e.g., `newCompany.isOpen`
+   */
+  isOpen: boolean;
+
+  /**
+   * The function from your Zustand store that closes the dialog.
+   * e.g., `closeNewCompanyDialog`
+   */
+  onClose: () => void;
+
+  /**
+   * The title to be displayed in the dialog's header.
+   */
+  title: string;
+
+  /**
+   * The actual form component that will be rendered inside the dialog.
+   */
+  children: React.ReactNode;
+}
+
+/**
+ * A reusable dialog component designed to wrap form components.
+ * It is controlled by external state (like a Zustand store).
+ */
+export const ReusableFormDialog = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+}: ReusableFormDialogProps) => {
+
+  // The `onOpenChange` event from ShadCN's Dialog is perfect for this.
+  // It fires with `false` when the user tries to close the dialog
+  // (by pressing Esc, clicking the 'x', or clicking the overlay).
+  // We simply connect it to our `onClose` function from the store.
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="max-h-[85vh] overflow-y-auto"
+        onOpenAutoFocus={(e) => e.preventDefault()} // Prevents auto-focusing the first input, which can be jarring
+      >
+        <DialogHeader className="text-left">
+          <DialogTitle className="text-destructive text-center mb-4 text-xl font-bold">
+            {title}
+          </DialogTitle>
+          
+          {/* 
+            The `DialogDescription` is a good semantic element, 
+            and `asChild` allows our children (the form) to be rendered
+            directly without an extra wrapper `div`.
+          */}
+          <DialogDescription asChild>
+            {children}
+          </DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
+  );
+};

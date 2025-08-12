@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as z from "zod";
-import { NewBOQForm } from "./NewBOQScreen"; // 2. Use new form component
+import { NewBOQForm } from "./NewBoqForm"; // 2. Use new form component
 
 // 3. Define a new schema for the BOQ form
 const boqFormSchema = z.object({

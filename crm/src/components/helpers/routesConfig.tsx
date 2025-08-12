@@ -11,23 +11,24 @@ import { HomePage } from "@/pages/Layout/HomePage";
 // --- Company Pages (Moved from Prospects) ---
 import { Companies } from "@/pages/Companies/Companies";
 import { Company } from "@/pages/Companies/Company";
-import { NewCompanyForm } from "@/pages/Companies/New-Company-Form";
+import { NewCompanyForm } from "@/pages/Companies/NewCompanyForm";
 
 // --- Contact Pages (Moved from Prospects) ---
 import { Contacts } from "@/pages/Contacts/Contacts";
 import { Contact } from "@/pages/Contacts/Contact";
-import { NewContactForm } from "@/pages/Contacts/New-Contact-Form";
+import { NewContactForm } from "@/pages/Contacts/NewContactForm";
 
 // --- BOQ Pages (Replaced Projects) ---
 import { BOQs } from "@/pages/BOQs/BOQs"; // Renamed from Projects
 import { BOQ } from "@/pages/BOQs/BOQ"; // Renamed from Project
-import { NewBOQScreen } from "@/pages/BOQs/NewBOQScreen"; // Renamed from NewProjectScreens
+
+// import { NewBOQScreen } from "@/pages/BOQs/NewBOQScreen"; // Renamed from NewProjectScreens
 import { DesktopBOQsView } from "@/pages/BOQs/DesktopBOQsView"; // Renamed from DesktopProjectsView
 
 // --- Task Pages (Unchanged) ---
 import { Tasks } from "@/pages/Tasks/Tasks";
 import { Task } from "@/pages/Tasks/Task";
-import { NewTaskForm } from "@/pages/Tasks/TaskDialogs";
+import { NewTaskForm } from "@/pages/Tasks/NewTaskForm";
 import { TasksVariantPage } from "@/pages/Tasks/TasksVariantPage";
 import { DesktopRenderTasks } from "@/pages/Tasks/DesktopRenderTasks";
 
@@ -50,7 +51,7 @@ export const mobileRoutes = [
         path: "companies",
         children: [
           { index: true, element: <Companies /> },
-          { path: "new-company", element: <NewCompanyForm /> },
+          // { path: "new-company", element: <NewCompanyForm /> },
           { path: "company", element: <Company /> }, // Detail view
         ],
       },
@@ -60,7 +61,7 @@ export const mobileRoutes = [
         path: "contacts",
         children: [
           { index: true, element: <Contacts /> },
-          { path: "new-contact", element: <NewContactForm /> },
+          // { path: "new-contact", element: <NewContactForm /> },
           { path: "contact", element: <Contact /> }, // Detail view
         ],
       },
@@ -70,7 +71,7 @@ export const mobileRoutes = [
         path: "boqs",
         children: [
           { index: true, element: <BOQs /> },
-          { path: "new", element: <NewBOQScreen /> },
+          // { path: "new", element: <NewBOQScreen /> },
           { path: "boq", element: <BOQ /> }, // Detail view
         ],
       },
@@ -83,7 +84,7 @@ export const mobileRoutes = [
         path: "tasks",
         children: [
           { index: true, element: <Tasks /> },
-          { path: "new", element: <NewTaskForm /> },
+          // { path: "new", element: <NewTaskForm /> },
           { path: "task", element: <Task /> },
           { path: "history", element: <TasksVariantPage variant="history" /> },
           { path: "pending", element: <TasksVariantPage variant="pending" /> },
@@ -108,16 +109,16 @@ export const desktopRoutes = [
       // NEW Top-level routes for Company and Contact.
       // The components themselves will handle the master-detail view using URL params.
       { path: "companies", element: <Companies /> },
-      { path: "companies/new-company", element: <NewCompanyForm /> },
+      // { path: "companies/new-company", element: <NewCompanyForm /> },
       { path: "contacts", element: <Contacts /> },
-      { path: "contacts/new-contact", element: <NewContactForm /> },
+      // { path: "contacts/new-contact", element: <NewContactForm /> },
 
       // NEW BOQ route object (replaces projects)
       {
         path: "boqs",
         children: [
           { index: true, element: <DesktopBOQsView /> },
-          { path: "new", element: <NewBOQScreen /> },
+          // { path: "new", element: <NewBOQScreen /> },
           // The detail view for a single BOQ can be handled within DesktopBOQsView via URL param
         ],
       },
