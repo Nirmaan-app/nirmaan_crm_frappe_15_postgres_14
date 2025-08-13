@@ -4,13 +4,14 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappeCreateDoc, useFrappeGetDoc, useSWRConfig,useFrappeGetDocList,FrappeFileUpload } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDoc, useSWRConfig,useFrappeGetDocList,FrappeFileUpload,useFrappeUpdateDoc } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from 'react-select';
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useRef,useMemo } from "react"; // Import useState and useRef
+import { useState, useRef,useMemo,useEffect } from "react"; // Import useState and useRef
 import { Upload } from "lucide-react";
+import {CRMContacts} from "@types/NirmaanCRM/CRMContacts"
 
 const contactFormSchema = z.object({
   first_name: z.string().min(1, "Name is required"),
@@ -25,37 +26,41 @@ const contactFormSchema = z.object({
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
-interface NewContactFormProps {
+// --- CHANGE 1: Update component props ---
+interface ContactFormProps {
   onSuccess?: () => void;
+  isEditMode?: boolean;
+  initialData?: CRMContacts | null;
 }
 
-export const NewContactForm = ({ onSuccess }: NewContactFormProps) => {
-  const { newContact, closeNewContactDialog } = useDialogStore();
-  const { createDoc, loading } = useFrappeCreateDoc();
+export const NewContactForm = ({ onSuccess, isEditMode = false, initialData = null }: ContactFormProps) => {
+  const { newContact, editContact, closeNewContactDialog, closeEditContactDialog } = useDialogStore();
+  const { createDoc, loading :createLoading} = useFrappeCreateDoc();
+    const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc(); 
   const { mutate } = useSWRConfig();
   
 
   // CORRECTED: State and ref for file handling
   const [visitingCard, setVisitingCard] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const companyIdFromContext = newContact.context.companyId;
-
   
-  // Fetch the company name to display in the disabled input
-  const { data: companyDoc } = useFrappeGetDoc("CRM Company", newContact.context.companyId, { enabled: !!newContact.context.companyId });
+ // Determine the context based on the mode
+  const context = isEditMode ? editContact.context.contactData : newContact.context;
+  const companyIdFromContext = isEditMode ? initialData?.company : newContact.context.companyId;
 
-  // 2. Fetch the full list of companies ONLY if NO ID is passed in the context
-  const { data: allCompanies } = useFrappeGetDocList<CRMCompany>(
-    "CRM Company", 
-    {
-      fields: ["name", "company_name"],
-      limit: 1000
-    },
+   const { data: allCompaniesData, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>(
+    "CRM Company",
+    { fields: ["name", "company_name"], limit: 1000 },
     { enabled: !companyIdFromContext }
   );
 
+  // 2. Fetch the full list of companies ONLY if NO ID is passed in the context
+
+const allCompanies = allCompaniesData || [];
+  console.log("All Companies ",allCompanies)
+
   const companyOptions = useMemo(() =>
-    allCompanies?.map(c => ({ label: c.company_name, value: c.name })) || [],
+    allCompanies?.map(c => ({ label: c.company_name, value: c.name })),
     [allCompanies]
   );
 
@@ -84,16 +89,33 @@ export const NewContactForm = ({ onSuccess }: NewContactFormProps) => {
     },
   });
 
+  // --- CHANGE 3: useEffect to pre-fill form for both create and edit ---
   useEffect(() => {
-    form.reset({
-      company: companyIdFromContext || "",
-      first_name: "",
-      mobile: "",
-      email: "",
-      department: "",
-      designation: "",
-    });
-  }, [companyIdFromContext, form]);
+    if (isEditMode && initialData) {
+      // Pre-fill form with existing data for editing
+      form.reset({
+        first_name: initialData.first_name || "",
+        last_name: initialData.last_name || "",
+        mobile: initialData.mobile || "",
+        email: initialData.email || "",
+        company: initialData.company || "",
+        department: initialData.department || "",
+        designation: initialData.designation || "",
+      });
+    } else {
+      // Reset form for creating a new contact
+      form.reset({
+        company: companyIdFromContext || "",
+        first_name: "",
+        last_name: "",
+        mobile: "",
+        email: "",
+        department: "",
+        designation: "",
+      });
+    }
+  }, [isEditMode, initialData, newContact.context, form]);
+
 
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,31 +124,33 @@ export const NewContactForm = ({ onSuccess }: NewContactFormProps) => {
     }
   };
 
-   const onSubmit = async (values: ContactFormValues) => {
+// --- CHANGE 4: Unified onSubmit handler ---
+  const onSubmit = async (values: ContactFormValues) => {
     try {
-      let uploadedFile: FrappeFileUpload | undefined;
-      // Step 1: Upload the file if it exists
-      if (visitingCard) {
-        // This is a placeholder for the actual upload function
-        // You need to implement this using `useFrappeFileUpload` or a custom fetch
-        console.log("Uploading file:", visitingCard.name);
-        // uploadedFile = await uploadFile(visitingCard); // This would be your actual upload call
+      // File upload logic can be shared
+      // ... (file upload logic here) ...
+
+      if (isEditMode) {
+        // UPDATE logic
+        await updateDoc("CRM Contacts", initialData.name, values);
+        await mutate(`CRM Contacts/${initialData.name}`);
+        toast({ title: "Success!", description: "Contact updated." });
+      } else {
+        // CREATE logic
+        const res = await createDoc("CRM Contacts", values);
+        toast({ title: "Success!", description: `Contact "${res.first_name}" created.` });
       }
       
-      // Step 2: Create the document with the file attachment's URL/name
-      const docToCreate = {
-        ...values,
-        visiting_card: uploadedFile?.file_url || '', // Pass the URL from the upload response
-      };
-      
-      const res = await createDoc("CRM Contacts", docToCreate);
-      await mutate("CRM Contacts");
-      toast({ title: "Success!", description: `Contact "${res.first_name}" created.` });
+      await mutate("CRM Contacts"); // Mutate the list for both cases
       onSuccess?.();
     } catch (error) {
       toast({ title: "Error", description: (error as Error).message, variant: "destructive" });
     }
   };
+
+  const loading = createLoading || updateLoading;
+  const handleCancel = isEditMode ? closeEditContactDialog : closeNewContactDialog;
+
 
 
 
@@ -175,7 +199,7 @@ export const NewContactForm = ({ onSuccess }: NewContactFormProps) => {
               <FormControl>
                 {companyIdFromContext ? (
                   // If context exists, show a disabled input with the company name.
-                  <Input value={companyDoc?.company_name || 'Loading...'} disabled />
+                  <Input value={companyIdFromContext || 'Loading...'} disabled />
                 ) : (
                   // If no context, show a searchable, enabled dropdown.
                   <ReactSelect
@@ -191,7 +215,27 @@ export const NewContactForm = ({ onSuccess }: NewContactFormProps) => {
             </FormItem>
           )}
         />
-        {/* Department and Designation would be ReactSelect or simple inputs */}
+        <FormField
+          control={form.control}
+          name="department"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Department</FormLabel>
+              <FormControl>
+                <ReactSelect
+                  options={departmentOptions}
+                  // Find the full option object that matches the current field value
+                  value={departmentOptions.find(d => d.value === field.value)}
+                  // When an option is selected, update the form state with just the value
+                  onChange={option => field.onChange(option?.value)}
+                  placeholder="Select Department"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="designation"
@@ -243,7 +287,7 @@ export const NewContactForm = ({ onSuccess }: NewContactFormProps) => {
 
 
         <div className="flex gap-2 justify-end pt-4">
-          <Button type="button" variant="outline" onClick={closeNewContactDialog}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={handleCancel}>Cancel</Button>
           <Button type="submit" className="bg-destructive hover:bg-destructive/90" disabled={loading}>
             {loading ? "Saving..." : "Confirm"}
           </Button>

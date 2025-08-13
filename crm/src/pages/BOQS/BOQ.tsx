@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as z from "zod";
-import { NewBOQForm } from "./NewBoqForm"; // 2. Use new form component
+import { NewBoqForm } from "./NewBoqForm"; // 2. Use new form component
 
 // 3. Define a new schema for the BOQ form
 const boqFormSchema = z.object({
@@ -222,7 +222,7 @@ export const BOQ = () => {
                         <AlertDialogHeader className="text-start">
                             <AlertDialogTitle className="text-destructive text-center">Edit BOQ</AlertDialogTitle>
                             <AlertDialogDescription asChild>
-                              <NewBOQForm form={form} edit={true} />
+                              <NewBoqForm form={form} edit={true} />
                             </AlertDialogDescription>
 
                         <div className="flex items-end gap-2">

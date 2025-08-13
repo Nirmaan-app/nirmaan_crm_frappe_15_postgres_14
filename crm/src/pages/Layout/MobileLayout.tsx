@@ -59,7 +59,7 @@ export const MobileLayout = () => {
     } else if (pathname.startsWith('/contacts/contact') && id) {
         newOptions = [
             { label: "Add New Task", action: () => openNewTaskDialog({ contactId: id }) },
-            { label: "Add New Note", action: () => { /* openNewNoteDialog({ contactId: id }) */ } }
+            { label: "Add New BOQ", action: () => openNewBoqDialog({ contactId: id })  }
         ];
     } else if (pathname.startsWith('/boqs/boq') && id) {
         newOptions = [
