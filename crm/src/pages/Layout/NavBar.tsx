@@ -5,6 +5,8 @@ export const NavBar = () => {
 
 	const location = useLocation();
 
+	console.log("location",location)
+
 	const navigate = useNavigate()
 
 	const items = [
@@ -23,16 +25,17 @@ export const NavBar = () => {
 		},
 		{
 			label : "Contact",
-			path: "/new-contact",
+			path: "/contacts/contact",
 		},
 		{
 			label : "Company",
-			path: "/companies/new-company",
+			path: "/companies/company",
 		},
 		{
 			label : "Contact",
 			path: "/contacts",
 		},
+	
 		{
 			label : "Company",
 			path: "/companies",
@@ -77,7 +80,7 @@ export const NavBar = () => {
 				<h1 className="text-xl text-primary font-semibold">Nirmaan CRM</h1>
 				<Bell />
 			</div>
-		) : ["/companies","/contacts", "/tasks","/boqs", "/calendar", "/settings","/companies/company"].includes(location.pathname) ? (
+		) : ["/companies","/contacts", "/tasks","/boqs", "/calendar", "/settings"].includes(location.pathname) ? (
 			<div className="dark:text-white">
 				<h2 className="text-center font-semibold">{items.find(i => location.pathname.includes(i.path))?.label}</h2>
 			</div>

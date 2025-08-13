@@ -55,7 +55,7 @@ export const useDialogStore = create<DialogState & DialogActions>((set) => ({
   // *** THE MISSING IMPLEMENTATION IS HERE ***
   openEditCompanyDialog: (context) => set({ editCompany: { isOpen: true, context } }),
   closeEditCompanyDialog: () => set((state) => ({ editCompany: { ...state.editCompany, isOpen: false } })),
-  // *****************************************
+  
 
   // --- Contact Dialog ---
   openNewContactDialog: (context = {}) => 

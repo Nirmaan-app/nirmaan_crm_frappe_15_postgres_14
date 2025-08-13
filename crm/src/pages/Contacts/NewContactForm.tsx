@@ -4,12 +4,12 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappeCreateDoc, useFrappeGetDoc, useSWRConfig,FrappeFileUpload } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDoc, useSWRConfig,useFrappeGetDocList,FrappeFileUpload } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from 'react-select';
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useRef } from "react"; // Import useState and useRef
+import { useState, useRef,useMemo } from "react"; // Import useState and useRef
 import { Upload } from "lucide-react";
 
 const contactFormSchema = z.object({
@@ -38,16 +38,43 @@ export const NewContactForm = ({ onSuccess }: NewContactFormProps) => {
   // CORRECTED: State and ref for file handling
   const [visitingCard, setVisitingCard] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const companyIdFromContext = newContact.context.companyId;
+
   
   // Fetch the company name to display in the disabled input
   const { data: companyDoc } = useFrappeGetDoc("CRM Company", newContact.context.companyId, { enabled: !!newContact.context.companyId });
 
+  // 2. Fetch the full list of companies ONLY if NO ID is passed in the context
+  const { data: allCompanies } = useFrappeGetDocList<CRMCompany>(
+    "CRM Company", 
+    {
+      fields: ["name", "company_name"],
+      limit: 1000
+    },
+    { enabled: !companyIdFromContext }
+  );
 
+  const companyOptions = useMemo(() =>
+    allCompanies?.map(c => ({ label: c.company_name, value: c.name })) || [],
+    [allCompanies]
+  );
+
+    // *** NEW: Define the static options for the Department dropdown ***
+  const departmentOptions = useMemo(() => [
+    { label: "Project", value: "Project" },
+    { label: "Quantity Survey Estimation", value: "Quantity Survey Estimation" },
+    { label: "Procurement", value: "Procurement" },
+    { label: "Senior Management", value: "Senior Management" },
+    { label: "Others", value: "Others" },
+  ], []);
+  
+
+  
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
-      company: newContact.context.companyId || "", // Pre-fill from store context
+      company: companyIdFromContext || "", // Pre-fill from store context
       first_name: "",
       last_name: "",
       mobile: "",
@@ -56,6 +83,18 @@ export const NewContactForm = ({ onSuccess }: NewContactFormProps) => {
       designation: "",
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      company: companyIdFromContext || "",
+      first_name: "",
+      mobile: "",
+      email: "",
+      department: "",
+      designation: "",
+    });
+  }, [companyIdFromContext, form]);
+
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -134,7 +173,19 @@ export const NewContactForm = ({ onSuccess }: NewContactFormProps) => {
             <FormItem>
               <FormLabel>Company</FormLabel>
               <FormControl>
-                <Input value={companyDoc?.company_name || field.value} disabled />
+                {companyIdFromContext ? (
+                  // If context exists, show a disabled input with the company name.
+                  <Input value={companyDoc?.company_name || 'Loading...'} disabled />
+                ) : (
+                  // If no context, show a searchable, enabled dropdown.
+                  <ReactSelect
+                    options={companyOptions}
+                    value={companyOptions.find(c => c.value === field.value)}
+                    onChange={val => field.onChange(val?.value)}
+                    placeholder="Search and select a company"
+                    isLoading={!allCompanies} // Show loading indicator while fetching
+                  />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
