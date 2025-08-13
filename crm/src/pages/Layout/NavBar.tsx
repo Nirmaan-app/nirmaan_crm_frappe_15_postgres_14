@@ -49,8 +49,8 @@ export const NavBar = () => {
 			path: "/tasks/task",
 		},
 		{
-			label : "Tasks History",
-			path: "/tasks/history",
+			label : "All Tasks ",
+			path: "/tasks/all",
 		},
 		{
 			label : "Pending Tasks",
@@ -65,8 +65,8 @@ export const NavBar = () => {
 			path: "/boqs",
 		},
 		{
-			label : "New Project",
-			path: "/projects/new",
+			label : "BOQ Details",
+			path: "/boqs/boq",
 		},
 		{
 			label : "Project",

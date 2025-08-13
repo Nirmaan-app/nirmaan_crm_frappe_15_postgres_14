@@ -61,11 +61,10 @@ export const MobileLayout = () => {
             { label: "Add New Task", action: () => openNewTaskDialog({ contactId: id }) },
             { label: "Add New BOQ", action: () => openNewBoqDialog({ contactId: id })  }
         ];
-    } else if (pathname.startsWith('/boqs/boq') && id) {
-        newOptions = [
-            { label: "Revise BOQ", action: () => { /* openReviseBoqDialog({ boqId: id }) */ } },
-            { label: "Add Follow-up", action: () => openNewTaskDialog({ boqId: id }) }
-        ];
+        
+    }
+    else if (pathname.startsWith('/boqs/boq') && id) {
+         newOptions = [];
     }
     
     // --- LIST PAGE OPTIONS (NOW FULLY CORRECTED) ---

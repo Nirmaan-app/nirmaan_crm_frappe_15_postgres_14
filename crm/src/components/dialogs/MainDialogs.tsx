@@ -2,19 +2,39 @@ import { useDialogStore } from "@/store/dialogStore";
 import { ReusableFormDialog } from "@/components/ui/ReusableDialogs";
 
 import { NewCompanyForm } from "@/pages/Companies/NewCompanyForm";
-import { NewBoqForm } from "@/pages/BOQs/NewBoqForm";
+import { NewBoqForm } from "@/pages/BOQS/NewBoqForm";
+import {EditBoqForm} from "@/pages/BOQS/EditBoqForm"
 import { NewTaskForm } from "@/pages/Tasks/NewTaskForm";
 import { NewContactForm } from "@/pages/Contacts/NewContactForm";
+import { EditTaskForm } from "@/pages/Tasks/EditTaskForm";
 
 export const MainDialogs = () => {
     const { 
         newCompany, closeNewCompanyDialog,
         editCompany, closeEditCompanyDialog,
         editContact,closeEditContactDialog,
+        editBoq,closeEditBoqDialog,
+        editTask,closeEditTaskDialog,
         newContact, closeNewContactDialog,
         newBoq, closeNewBoqDialog,
         newTask, closeNewTaskDialog
     } = useDialogStore();
+
+     // Helper to generate a dynamic title
+    const getEditBoqTitle = () => {
+        const mode = editBoq.context.mode;
+        if (mode === 'details') return 'Edit BOQ Details';
+        if (mode === 'status') return 'Update Status';
+        if (mode === 'remark') return 'Add New Remark';
+        return 'Edit BOQ';
+    };
+    const getEditTaskTitle = () => {
+        const mode = editTask.context.mode;
+        if (mode === 'edit') return 'Edit Task';
+        if (mode === 'updateStatus') return 'Update Task';
+        if (mode === 'scheduleNext') return 'Schedule New Task';
+        return 'Task';
+    };
 
     return (
         <>
@@ -67,12 +87,28 @@ export const MainDialogs = () => {
                 <NewBoqForm onSuccess={closeNewBoqDialog} />
             </ReusableFormDialog>
 
+             <ReusableFormDialog
+                isOpen={editBoq.isOpen}
+                onClose={closeEditBoqDialog}
+                title={getEditBoqTitle()}
+            >
+                <EditBoqForm onSuccess={closeEditBoqDialog} />
+            </ReusableFormDialog>
+
             <ReusableFormDialog
                 isOpen={newTask.isOpen}
                 onClose={closeNewTaskDialog}
                 title="Add New Task"
             >
                 <NewTaskForm onSuccess={closeNewTaskDialog} />
+            </ReusableFormDialog>
+
+            <ReusableFormDialog
+                isOpen={editTask.isOpen}
+                onClose={closeEditTaskDialog}
+                title={getEditTaskTitle()}
+            >
+                <EditTaskForm onSuccess={closeEditTaskDialog} />
             </ReusableFormDialog>
         </>
     );
