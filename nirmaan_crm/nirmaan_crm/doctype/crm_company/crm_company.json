@@ -1,18 +1,16 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:company_name",
  "creation": "2025-01-07 20:02:45.990572",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "company_details_section",
-  "company_nick",
   "company_name",
-  "company_address",
-  "company_logo",
   "company_website",
-  "industry",
-  "company_location"
+  "company_type",
+  "company_city"
  ],
  "fields": [
   {
@@ -21,25 +19,10 @@
    "label": "Company Details"
   },
   {
-   "fieldname": "company_nick",
-   "fieldtype": "Data",
-   "label": "Company Nick"
-  },
-  {
    "fieldname": "company_name",
    "fieldtype": "Data",
-   "label": "Company Name"
-  },
-  {
-   "fieldname": "company_address",
-   "fieldtype": "Link",
-   "label": "Company Address",
-   "options": "Address"
-  },
-  {
-   "fieldname": "company_logo",
-   "fieldtype": "Attach",
-   "label": "Company Logo"
+   "label": "Company Name",
+   "unique": 1
   },
   {
    "fieldname": "company_website",
@@ -47,23 +30,24 @@
    "label": "Company Website"
   },
   {
-   "fieldname": "industry",
+   "fieldname": "company_type",
    "fieldtype": "Link",
-   "label": "Industry",
+   "label": "Company Type",
    "options": "CRM Company Type"
   },
   {
-   "fieldname": "company_location",
+   "fieldname": "company_city",
    "fieldtype": "Data",
-   "label": "Company Location"
+   "label": "Company City"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-13 13:05:23.451039",
+ "modified": "2025-08-12 15:10:48.088627",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Company",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -79,6 +63,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

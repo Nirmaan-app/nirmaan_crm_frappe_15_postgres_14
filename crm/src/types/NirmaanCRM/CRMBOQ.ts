@@ -1,6 +1,6 @@
-export interface CRMPRojects{
+export interface CRMPBOQ{
   name: string
-	project_name: string
+	boq_name: string
 	creation: string
 	modified: string
 	owner: string
@@ -8,19 +8,19 @@ export interface CRMPRojects{
 	docstatus: 0 | 1 | 2
 	idx?: number
 	/**	Company Id : Link - CRM Company	*/
-	project_company?: string
+	boq_company?: string
 	/**	Contact Id : Link - CRM Contacts	*/
-	project_contact?: string
+	boq_contact?: string
 	/**	Project Location : Data	*/
-	project_location?: string
+	boq_location?: string
 	/**	Project Size : Data	*/
-	project_size?: string
+	boq_size?: string
 	/**	Project Type : Data	*/
-	project_type?: string
+	boq_type?: string
   /** Project Packages: Data */
-  project_packages?: string
+  boq_packages?: string
 	/** Project Status: Data */
-	project_status? : string
+	boq_status? : string
 	/** BOQ Date: Datetime */
 	boq_date? : string
 

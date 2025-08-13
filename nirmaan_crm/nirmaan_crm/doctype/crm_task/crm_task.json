@@ -8,15 +8,19 @@
   "links_section",
   "reference_doctype",
   "reference_docname",
+  "company",
+  "contact",
+  "boq",
   "task_details_section",
+  "remarks_column",
   "title",
   "type",
-  "priority",
   "start_date",
   "assigned_to",
   "status",
-  "due_date",
-  "description"
+  "description",
+  "time",
+  "remarks"
  ],
  "fields": [
   {
@@ -47,30 +51,20 @@
    "label": "Title"
   },
   {
-   "fieldname": "priority",
-   "fieldtype": "Data",
-   "label": "Priority"
-  },
-  {
    "fieldname": "start_date",
    "fieldtype": "Data",
-   "label": "Start Date"
+   "label": "Date"
   },
   {
    "fieldname": "assigned_to",
    "fieldtype": "Link",
    "label": "Assigned To",
-   "options": "Nirmaan Users"
+   "options": "CRM Contacts"
   },
   {
    "fieldname": "status",
    "fieldtype": "Data",
    "label": "Status"
-  },
-  {
-   "fieldname": "due_date",
-   "fieldtype": "Data",
-   "label": "Due Date"
   },
   {
    "fieldname": "description",
@@ -81,11 +75,44 @@
    "fieldname": "type",
    "fieldtype": "Data",
    "label": "Type"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "CRM Company"
+  },
+  {
+   "fieldname": "contact",
+   "fieldtype": "Link",
+   "label": "Contact",
+   "options": "CRM Contacts"
+  },
+  {
+   "fieldname": "boq",
+   "fieldtype": "Link",
+   "label": "BOQ",
+   "options": "CRM BOQ"
+  },
+  {
+   "fieldname": "remarks_column",
+   "fieldtype": "Column Break",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Text",
+   "label": "Remarks"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-09 19:33:50.651652",
+ "modified": "2025-08-11 20:22:38.073883",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Task",
@@ -104,6 +131,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

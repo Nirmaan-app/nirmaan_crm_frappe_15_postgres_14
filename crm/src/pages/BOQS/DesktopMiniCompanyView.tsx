@@ -1,6 +1,6 @@
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
-import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects";
+import { CRMPRojects } from "@/types/NirmaanCRM/CRMBOQ";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Plus } from "lucide-react";
 import { useCallback } from "react";

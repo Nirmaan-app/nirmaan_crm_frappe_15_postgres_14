@@ -36,7 +36,7 @@ export const Companies = () => {
                   aria-label="Company"
                   onClick={() => handleNavigate(company.name)} 
                  className={`flex items-center justify-between ${isDesktop ? "border cardBorder shadow rounded-lg p-6 w-full" : "h-16 px-4"} 
-                  ${(isDesktop && id === company?.name) ? "bg-[#E6E6FA]" : ""}
+                  ${(isDesktop && id === company?.company_name) ? "bg-[#E6E6FA]" : ""}
                 `}>
                       <strong className="text-black dark:text-muted-foreground">{company.company_name}</strong>
                       {!isDesktop && <ChevronRight />}

@@ -9,13 +9,13 @@ import {
 import { useViewport } from "@/hooks/useViewPort";
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
-import { CRMPRojects } from "@/types/NirmaanCRM/CRMProjects";
+import { CRMPRojects } from "@/types/NirmaanCRM/CRMBOQ";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { formatDate } from "@/utils/FormatDate";
 import { ChevronRight, SquarePen, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../../components/ui/button";
-import { Separator } from "../../../components/ui/separator";
+import { Button } from "../../components/ui/button";
+import { Separator } from "../../components/ui/separator";
 
 interface ContactDetailsProps {
   data? : CRMContacts

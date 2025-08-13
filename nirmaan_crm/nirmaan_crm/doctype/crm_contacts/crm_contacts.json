@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:email",
  "creation": "2025-01-06 17:54:59.100137",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -14,7 +15,8 @@
   "mobile",
   "email",
   "designation",
-  "department"
+  "department",
+  "visiting_card"
  ],
  "fields": [
   {
@@ -50,7 +52,8 @@
   {
    "fieldname": "email",
    "fieldtype": "Data",
-   "label": "Email"
+   "label": "Email",
+   "unique": 1
   },
   {
    "fieldname": "company",
@@ -67,14 +70,20 @@
    "fieldname": "department",
    "fieldtype": "Data",
    "label": "Department"
+  },
+  {
+   "fieldname": "visiting_card",
+   "fieldtype": "Attach",
+   "label": "Visiting Card"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-09 19:26:45.217300",
+ "modified": "2025-08-12 15:14:30.208893",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Contacts",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -90,6 +99,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
