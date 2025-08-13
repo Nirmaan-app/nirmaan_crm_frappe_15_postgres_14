@@ -10,6 +10,7 @@ export const MainDialogs = () => {
     const { 
         newCompany, closeNewCompanyDialog,
         editCompany, closeEditCompanyDialog,
+        editContact,closeEditContactDialog,
         newContact, closeNewContactDialog,
         newBoq, closeNewBoqDialog,
         newTask, closeNewTaskDialog
@@ -44,6 +45,17 @@ export const MainDialogs = () => {
                 title="Add New Contact"
             >
                 <NewContactForm onSuccess={closeNewContactDialog} />
+            </ReusableFormDialog>
+             <ReusableFormDialog
+                isOpen={editContact.isOpen}
+                onClose={closeEditContactDialog}
+                title="Edit Contact"
+            >
+                <NewContactForm 
+                    isEditMode={true} // Pass the edit mode flag
+                    initialData={editContact.context.contactData} // Pass the data
+                    onSuccess={closeEditContactDialog} 
+                />
             </ReusableFormDialog>
 
             {/* ... other dialogs follow the same pattern ... */}

@@ -46,6 +46,7 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
 //     { label: "Type 4", value: "Type 4" },
 //   ];
   // CORRECTED: Added location options as requested
+  
   const companyLocationOptions = useMemo(() => [
     { label: "Bengaluru", value: "Bengaluru" },
     { label: "Chennai", value: "Chennai" },

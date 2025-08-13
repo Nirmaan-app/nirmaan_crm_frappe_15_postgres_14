@@ -1,31 +1,35 @@
 // import { create } from 'zustand';
 
 
-import { CRMCompany } from '@/types/NirmaanCRM/CRMCompany'; // Make sure this import exists
+import { CRMCompany } from '@/types/NirmaanCRM/CRMCompany'; // Make sure this 
+// import exists
+import { CRMContacts } from '@/types/NirmaanCRM/CRMContacts';
 import { create } from 'zustand';
 
 // Context types define what data each dialog can receive
 type NewContactContext = { companyId?: string };
 type NewBoqContext = { companyId?: string };
 type NewTaskContext = { companyId?: string; contactId?: string; boqId?: string };
-type EditCompanyContext = { companyData: CRMCompany | null }; // Allow null for initial state
+//EDIT Type
+type EditCompanyContext = { companyData: CRMCompany | null }; 
+type EditContactContext = { contactData: CRMContacts | null };
+
 
 // The state now just holds the isOpen flag and the context data
 type DialogState = {
   newCompany: { isOpen: boolean };
-  editCompany: { isOpen: boolean; context: EditCompanyContext };
   newContact: { isOpen: boolean; context: NewContactContext };
   newBoq: { isOpen: boolean; context: NewBoqContext };
   newTask: { isOpen: boolean; context: NewTaskContext };
+
+   editCompany: { isOpen: boolean; context: EditCompanyContext };
+   editContact: { isOpen: boolean; context: EditContactContext };
 };
 
 // The actions are now explicit open/close functions
 type DialogActions = {
   openNewCompanyDialog: () => void;
   closeNewCompanyDialog: () => void;
-
-  openEditCompanyDialog: (context: EditCompanyContext) => void;
-  closeEditCompanyDialog: () => void;
 
   openNewContactDialog: (context?: NewContactContext) => void;
   closeNewContactDialog: () => void;
@@ -35,14 +39,23 @@ type DialogActions = {
   
   openNewTaskDialog: (context?: NewTaskContext) => void;
   closeNewTaskDialog: () => void;
+
+
+  openEditCompanyDialog: (context: EditCompanyContext) => void;
+  closeEditCompanyDialog: () => void;
+   openEditContactDialog: (context: EditContactContext) => void;
+  closeEditContactDialog: () => void;
 };
 
 const initialState: DialogState = {
   newCompany: { isOpen: false },
-  editCompany: { isOpen: false, context: { companyData: null } },
   newContact: { isOpen: false, context: {} },
   newBoq: { isOpen: false, context: {} },
   newTask: { isOpen: false, context: {} },
+
+  editCompany: { isOpen: false, context: { companyData: null } },
+  editContact: { isOpen: false, context: { contactData: null } },
+
 };
 
 export const useDialogStore = create<DialogState & DialogActions>((set) => ({
@@ -53,10 +66,7 @@ export const useDialogStore = create<DialogState & DialogActions>((set) => ({
   closeNewCompanyDialog: () => set({ newCompany: { isOpen: false } }),
 
   // *** THE MISSING IMPLEMENTATION IS HERE ***
-  openEditCompanyDialog: (context) => set({ editCompany: { isOpen: true, context } }),
-  closeEditCompanyDialog: () => set((state) => ({ editCompany: { ...state.editCompany, isOpen: false } })),
-  // *****************************************
-
+ 
   // --- Contact Dialog ---
   openNewContactDialog: (context = {}) => 
     set({ newContact: { isOpen: true, context } }),
@@ -74,6 +84,13 @@ export const useDialogStore = create<DialogState & DialogActions>((set) => ({
     set({ newTask: { isOpen: true, context } }),
   closeNewTaskDialog: () => 
     set((state) => ({ newTask: { ...state.newTask, isOpen: false } })),
+
+   openEditCompanyDialog: (context) => set({ editCompany: { isOpen: true, context } }),
+  closeEditCompanyDialog: () => set((state) => ({ editCompany: { ...state.editCompany, isOpen: false } })),
+  
+  openEditContactDialog: (context) => set({ editContact: { isOpen: true, context } }),
+  closeEditContactDialog: () => set((state) => ({ editContact: { ...state.editContact, isOpen: false } })),
+
 }));
 
 // // Context types define what data each dialog can receive
