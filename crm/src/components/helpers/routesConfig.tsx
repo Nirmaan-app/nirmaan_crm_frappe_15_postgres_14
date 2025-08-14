@@ -19,11 +19,11 @@ import { Contact } from "@/pages/Contacts/Contact";
 import { NewContactForm } from "@/pages/Contacts/NewContactForm";
 
 // --- BOQ Pages (Replaced Projects) ---
-import { BOQs } from "@/pages/BOQs/BOQs"; // Renamed from Projects
-import { BOQ } from "@/pages/BOQs/BOQ"; // Renamed from Project
+import { BOQs } from "@/pages/BOQS/BOQs"; // Renamed from Projects
+import { BOQ } from "@/pages/BOQS/BOQ"; // Renamed from Project
 
 // import { NewBOQScreen } from "@/pages/BOQs/NewBOQScreen"; // Renamed from NewProjectScreens
-import { DesktopBOQsView } from "@/pages/BOQs/DesktopBOQsView"; // Renamed from DesktopProjectsView
+import { DesktopBOQsView } from "@/pages/BOQS/DesktopBOQsView"; // Renamed from DesktopProjectsView
 
 // --- Task Pages (Unchanged) ---
 import { Tasks } from "@/pages/Tasks/Tasks";
@@ -86,7 +86,7 @@ export const mobileRoutes = [
           { index: true, element: <Tasks /> },
           // { path: "new", element: <NewTaskForm /> },
           { path: "task", element: <Task /> },
-          { path: "history", element: <TasksVariantPage variant="history" /> },
+          { path: "all", element: <TasksVariantPage variant="all" /> },
           { path: "pending", element: <TasksVariantPage variant="pending" /> },
           { path: "upcoming", element: <TasksVariantPage variant="upcoming" /> },
         ],

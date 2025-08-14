@@ -43,14 +43,14 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
 
                 <TabsContent value="boqs">
                     <div className="space-y-2">
-                        <div className="grid grid-cols-[1fr,auto,auto] text-sm font-semibold px-2">
+                        <div className="grid grid-cols-[1fr,1fr,1fr] text-sm font-semibold px-2">
                             <span>Name</span>
                             <span>Status</span>
                             <span className="text-right">Date</span>
                         </div>
                         {boqs.map((boq, index) => (
                             <React.Fragment key={boq.name}>
-                                <div onClick={() => navigate(`/boqs/boq?id=${boq.name}`)} className="grid grid-cols-[1fr,auto,auto] items-center px-2 py-3 cursor-pointer">
+                                <div onClick={() => navigate(`/boqs/boq?id=${boq.name}`)} className="grid grid-cols-[1fr,1fr,1fr] items-center px-2 py-3 cursor-pointer">
                                     <span className="font-medium">{boq.boq_name}</span>
                                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusClass(boq.boq_status)}`}>
                                         {boq.boq_status || 'N/A'}

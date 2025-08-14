@@ -4,6 +4,8 @@
 import { CRMCompany } from '@/types/NirmaanCRM/CRMCompany'; // Make sure this 
 // import exists
 import { CRMContacts } from '@/types/NirmaanCRM/CRMContacts';
+import { CRMPBOQ } from '@/types/NirmaanCRM/CRMBOQ';
+import {CRMTask} from '@types/NirmaanCRM/CRMTask'
 import { create } from 'zustand';
 
 // Context types define what data each dialog can receive
@@ -13,6 +15,16 @@ type NewTaskContext = { companyId?: string; contactId?: string; boqId?: string }
 //EDIT Type
 type EditCompanyContext = { companyData: CRMCompany | null }; 
 type EditContactContext = { contactData: CRMContacts | null };
+type EditBoqContext = { 
+  boqData: CRMBOQ | null;
+  mode: 'details' | 'status' | 'remark' | 'attachment'; 
+
+};
+type EditTaskContext = { 
+  taskData: CRMTask | null;
+  mode: 'edit' | 'updateStatus' | 'scheduleNext';
+};
+
 
 
 // The state now just holds the isOpen flag and the context data
@@ -24,6 +36,8 @@ type DialogState = {
 
    editCompany: { isOpen: boolean; context: EditCompanyContext };
    editContact: { isOpen: boolean; context: EditContactContext };
+   editBoq: { isOpen: boolean; context: EditBoqContext };
+   editTask: { isOpen: boolean; context: EditTaskContext };
 };
 
 // The actions are now explicit open/close functions
@@ -45,6 +59,13 @@ type DialogActions = {
   closeEditCompanyDialog: () => void;
    openEditContactDialog: (context: EditContactContext) => void;
   closeEditContactDialog: () => void;
+   openEditBoqDialog: (context: EditBoqContext) => void;
+  closeEditBoqDialog: () => void;
+
+  openEditTaskDialog: (context: EditTaskContext) => void;
+  closeEditTaskDialog: () => void;
+  
+
 };
 
 const initialState: DialogState = {
@@ -55,6 +76,8 @@ const initialState: DialogState = {
 
   editCompany: { isOpen: false, context: { companyData: null } },
   editContact: { isOpen: false, context: { contactData: null } },
+  editBoq: { isOpen: false, context: { boqData: null, mode: 'details' } },
+  editTask: { isOpen: false, context: { taskData: null, mode: 'edit' } },
 
 };
 
@@ -90,6 +113,13 @@ export const useDialogStore = create<DialogState & DialogActions>((set) => ({
   
   openEditContactDialog: (context) => set({ editContact: { isOpen: true, context } }),
   closeEditContactDialog: () => set((state) => ({ editContact: { ...state.editContact, isOpen: false } })),
+
+   openEditBoqDialog: (context) => set({ editBoq: { isOpen: true, context } }),
+  closeEditBoqDialog: () => set((state) => ({ editBoq: { ...state.editBoq, isOpen: false } })),
+
+  
+  openEditTaskDialog: (context) => set({ editTask: { isOpen: true, context } }),
+  closeEditTaskDialog: () => set((state) => ({ editTask: { ...state.editTask, isOpen: false } })),
 
 }));
 

@@ -1,128 +1,254 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
-import { useViewport } from "@/hooks/useViewPort";
-import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
-import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { EnrichedCRMTask } from "./Tasks"; // Import the enriched type from Tasks.tsx
 import { formatDate } from "@/utils/FormatDate";
 import { useFrappeGetDocList } from "frappe-react-sdk";
-import { ChevronRight, ListFilter } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, ListFilter, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { Button } from "@/components/ui/button";
 
-export const TasksVariantPage = ({ variant }: { variant: string }) => {
+// Define a type for the variant prop for better type safety
+type TaskVariant = 'all' | 'pending' | 'upcoming' | 'history';
 
-  const [filterBy, setFilterBy] = useState("All");
-  const {isMobile} = useViewport()
+// A reusable status pill component
+const StatusPill = ({ status }: { status: string }) => {
+    const getStatusClass = (status: string) => {
+        switch (status?.toLowerCase()) {
+            case 'completed': return 'bg-green-100 text-green-800 border-green-300';
+            case 'scheduled': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+            case 'incomplete': return 'bg-red-100 text-red-800 border-red-300';
+            case 'pending': return 'bg-amber-100 text-amber-800 border-amber-300';
+            default: return 'bg-gray-100 text-gray-800 border-gray-300';
+        }
+    };
+    return (
+        <span className={`text-xs font-semibold px-2 py-1 rounded-full border w-fit ${getStatusClass(status)}`}>
+            {status}
+        </span>
+    );
+};
 
-  const [filterByMenuOpen, setFilterByMenuOpen] = useState(false);
+export const TasksVariantPage = ({ variant }: { variant: TaskVariant }) => {
+    const navigate = useNavigate(); // Initialize navigate hook
 
-  const toggleFilterByMenu = () => {
-    setFilterByMenuOpen((prevState) => !prevState);
-  };
+    // --- DATA FETCHING ---
+    // More efficient query that gets linked fields directly
+    const { data: tasksData, isLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
+        fields: ["name", "status", "type", "modified", "contact.first_name", "contact.last_name"],
+        // You can add more complex filters based on the variant
+        filters: variant === 'pending' ? [['status', 'in', ['Pending', 'Incomplete']]] : {},
+        limit: 100,
+        orderBy: { field: "modified", order: "desc" }
+    });
 
-  const contactsMap = new Map<string | undefined, any>();
+    // --- DERIVED STATE ---
+    const enrichedTasks = useMemo(() => {
+        return tasksData?.map(task => ({
+            ...task,
+            contact_name: `${task["contact.first_name"] || ''} ${task["contact.last_name"] || ''}`.trim() || 'N/A',
+        })) || [];
+    }, [tasksData]);
+    
+    // Dynamically generate the title based on the variant
+    const title = `${variant.charAt(0).toUpperCase() + variant.slice(1)} Tasks - ${enrichedTasks.length}`;
 
-  const {data: tasksData, isLoading: tasksDataLoading, error: tasksError} = useFrappeGetDocList<CRMTask>("CRM Task", {
-    fields: ["*"],
-    filters: [["status", filterBy === "All" ? "not in" : "in", filterBy === "All" ? [] : [filterBy]]],
-    limit: 100000,
-    orderBy: {field: "creation", order: "desc"}
-  })
+    if (isLoading) {
+        return <div>Loading tasks...</div>;
+    }
 
-  const {data: contactsData, isLoading: contactsDataLoading, error: contactsError} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
-    fields: ["*"],
-    limit: 100000,
-  })
+    return (
+        <div className="space-y-4">
+            <h1 className="text-xl font-bold">{title}</h1>
+            
+            {/* Filter and Search UI */}
+            <div className="flex gap-2">
+                <Input placeholder="By Company" /> {/* Needs ReactSelect for functionality */}
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Search" className="pl-9" />
+                </div>
+            </div>
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Filter by:</p>
+                <div className="flex items-center border rounded-md">
+                    <Button variant="ghost" className="bg-slate-700 text-white rounded-r-none h-8">Last 30 Days</Button>
+                    <Button variant="ghost" className="text-muted-foreground rounded-l-none h-8">Select Date Range</Button>
+                </div>
+            </div>
 
-  contactsData?.map((contact) => {
-    contactsMap.set(contact.name, contact)
-  })
-
-  return (
-    <div>
-      {isMobile && (
-        <>
-         <Input type="text" className="focus:border-none rounded-lg" placeholder="Search Names, Company, Project, etc..." />
-         <Separator className="my-4" />
-        </>
-      )}
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold tracking-tight">{variant === "history" ? "Tasks History" : `${variant?.slice(0, 1)?.toUpperCase() + variant?.slice(1)} Tasks`}</h2>
-          <DropdownMenu open={filterByMenuOpen} onOpenChange={toggleFilterByMenu}>
-            <DropdownMenuTrigger className="flex items-center gap-4 px-2 py-1 rounded-lg border cardBorder shadow">
-                    <ListFilter className="w-4 h-4" />
-                    <p className="min-w-[75px] text-end text-sm">{filterBy}</p>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" className="p-4 mr-16">
-
-              <RadioGroup className="space-y-2" value={filterBy} onValueChange={(value) => {
-                toggleFilterByMenu();
-                setFilterBy(value);
-              }}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="All" id="All" />
-                <Label htmlFor="All">All</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Pending" id="Pending" />
-                <Label htmlFor="Pending">Pending</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Completed" id="Completed" />
-                <Label htmlFor="Completed">Completed</Label>
-              </div>
-              </RadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            {/* Task List Table */}
+            <Card className="mt-4 p-0 cardBorder">
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Contact</TableHead>
+                                <TableHead>Task Type</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Update Date</TableHead>
+                                <TableHead className="w-[5%]"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {enrichedTasks.length > 0 ? (
+                                enrichedTasks.map((task) => (
+                                    // *** THIS IS THE FIX ***
+                                    // Add onClick handler to the TableRow
+                                    <TableRow 
+                                        key={task.name} 
+                                        onClick={() => navigate(`/tasks/task?id=${task.name}`)}
+                                        className="cursor-pointer"
+                                    >
+                                        <TableCell className="font-medium">{task.first_name}</TableCell>
+                                        <TableCell>{task.type}</TableCell>
+                                        <TableCell><StatusPill status={task.status} /></TableCell>
+                                        <TableCell className="text-right">{formatDate(task.modified)}</TableCell>
+                                        <TableCell>
+                                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24">No tasks found.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </div>
+    );
+};
 
-        <Card className="mt-4 p-0 cardBorder">
-            <CardContent className="p-3">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[10%]">Contact</TableHead>
-                   <TableHead>{variant === "history" ? "Status" : "Task"}</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead className="w-[2%]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tasksData?.length > 0 ? (
-                  tasksData?.map((task) => {
-                    return (
-                      <TableRow key={task.name}>
-                        <TableCell>{contactsMap.get(task.reference_docname)?.first_name}</TableCell>
-                        <TableCell>{variant === "history" ? task.status : task.type}</TableCell>
-                        <TableCell>{formatDate(task.start_date.split(" ")[0])}</TableCell>
-                        <TableCell>
-                            <ChevronRight className="w-4 h-4" />
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-2">
-                      No Tasks Found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-             </Table>
-            </CardContent>
-        </Card>
-  </div>
-  )
-}
+// import { Card, CardContent } from "@/components/ui/card";
+// import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// import { Separator } from "@/components/ui/separator";
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow
+// } from "@/components/ui/table";
+// import { useViewport } from "@/hooks/useViewPort";
+// import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+// import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
+// import { formatDate } from "@/utils/FormatDate";
+// import { useFrappeGetDocList } from "frappe-react-sdk";
+// import { ChevronRight, ListFilter } from "lucide-react";
+// import { useState } from "react";
+
+// export const TasksVariantPage = ({ variant }: { variant: string }) => {
+
+//   const [filterBy, setFilterBy] = useState("All");
+//   const {isMobile} = useViewport()
+
+//   const [filterByMenuOpen, setFilterByMenuOpen] = useState(false);
+
+//   const toggleFilterByMenu = () => {
+//     setFilterByMenuOpen((prevState) => !prevState);
+//   };
+
+//   const contactsMap = new Map<string | undefined, any>();
+
+//   const {data: tasksData, isLoading: tasksDataLoading, error: tasksError} = useFrappeGetDocList<CRMTask>("CRM Task", {
+//     fields: ["*"],
+//     filters: [["status", filterBy === "All" ? "not in" : "in", filterBy === "All" ? [] : [filterBy]]],
+//     limit: 100000,
+//     orderBy: {field: "creation", order: "desc"}
+//   })
+
+//   const {data: contactsData, isLoading: contactsDataLoading, error: contactsError} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
+//     fields: ["*"],
+//     limit: 100000,
+//   })
+
+//   contactsData?.map((contact) => {
+//     contactsMap.set(contact.name, contact)
+//   })
+
+//   return (
+//     <div>
+//       {isMobile && (
+//         <>
+//          <Input type="text" className="focus:border-none rounded-lg" placeholder="Search Names, Company, Project, etc..." />
+//          <Separator className="my-4" />
+//         </>
+//       )}
+//         <div className="flex items-center justify-between">
+//           <h2 className="font-semibold tracking-tight">{variant === "history" ? "Tasks History" : `${variant?.slice(0, 1)?.toUpperCase() + variant?.slice(1)} Tasks`}</h2>
+//           <DropdownMenu open={filterByMenuOpen} onOpenChange={toggleFilterByMenu}>
+//             <DropdownMenuTrigger className="flex items-center gap-4 px-2 py-1 rounded-lg border cardBorder shadow">
+//                     <ListFilter className="w-4 h-4" />
+//                     <p className="min-w-[75px] text-end text-sm">{filterBy}</p>
+//             </DropdownMenuTrigger>
+//             <DropdownMenuContent side="bottom" className="p-4 mr-16">
+
+//               <RadioGroup className="space-y-2" value={filterBy} onValueChange={(value) => {
+//                 toggleFilterByMenu();
+//                 setFilterBy(value);
+//               }}>
+//               <div className="flex items-center space-x-2">
+//                 <RadioGroupItem value="All" id="All" />
+//                 <Label htmlFor="All">All</Label>
+//               </div>
+//               <div className="flex items-center space-x-2">
+//                 <RadioGroupItem value="Pending" id="Pending" />
+//                 <Label htmlFor="Pending">Pending</Label>
+//               </div>
+//               <div className="flex items-center space-x-2">
+//                 <RadioGroupItem value="Completed" id="Completed" />
+//                 <Label htmlFor="Completed">Completed</Label>
+//               </div>
+//               </RadioGroup>
+//             </DropdownMenuContent>
+//           </DropdownMenu>
+//         </div>
+
+//         <Card className="mt-4 p-0 cardBorder">
+//             <CardContent className="p-3">
+//             <Table>
+//               <TableHeader>
+//                 <TableRow>
+//                   <TableHead className="w-[10%]">Contact</TableHead>
+//                    <TableHead>{variant === "history" ? "Status" : "Task"}</TableHead>
+//                   <TableHead>Start Date</TableHead>
+//                   <TableHead className="w-[2%]"></TableHead>
+//                 </TableRow>
+//               </TableHeader>
+//               <TableBody>
+//                 {tasksData?.length > 0 ? (
+//                   tasksData?.map((task) => {
+//                     return (
+//                       <TableRow key={task.name}>
+//                         <TableCell>{contactsMap.get(task.reference_docname)?.first_name}</TableCell>
+//                         <TableCell>{variant === "history" ? task.status : task.type}</TableCell>
+//                         <TableCell>{formatDate(task.start_date.split(" ")[0])}</TableCell>
+//                         <TableCell>
+//                             <ChevronRight className="w-4 h-4" />
+//                         </TableCell>
+//                       </TableRow>
+//                     )
+//                   })
+//                 ) : (
+//                   <TableRow>
+//                     <TableCell colSpan={4} className="text-center py-2">
+//                       No Tasks Found
+//                     </TableCell>
+//                   </TableRow>
+//                 )}
+//               </TableBody>
+//              </Table>
+//             </CardContent>
+//         </Card>
+//   </div>
+//   )
+// }

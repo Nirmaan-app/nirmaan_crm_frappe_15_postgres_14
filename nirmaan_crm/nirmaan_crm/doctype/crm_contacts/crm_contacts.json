@@ -73,13 +73,13 @@
   },
   {
    "fieldname": "visiting_card",
-   "fieldtype": "Attach",
+   "fieldtype": "Attach Image",
    "label": "Visiting Card"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-12 15:14:30.208893",
+ "modified": "2025-08-13 16:18:24.631966",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Contacts",
