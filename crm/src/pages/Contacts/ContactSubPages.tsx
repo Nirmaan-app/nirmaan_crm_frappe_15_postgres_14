@@ -13,19 +13,42 @@ interface ContactSubPagesProps {
     tasks: CRMTask[];
 }
 
-const getStatusClass = (status: string) => {
-    // ... (same getStatusClass function from before)
-    switch (status?.toLowerCase()) {
-        case 'won': return 'bg-green-100 text-green-800';
-        case 'lost': return 'bg-red-100 text-red-800';
-        case 'hold': return 'bg-yellow-100 text-yellow-800';
-        case 'revision pending': return 'bg-orange-100 text-orange-800';
-        default: return 'bg-gray-100 text-gray-800';
-    }
-}
+import { useStatusStyles } from "@/hooks/useStatusStyles";
+
+
+// --- SUB-COMPONENT for rendering the Task list ---
+const TaskList = ({ tasks }: { tasks: CRMTask[] }) => {
+    const navigate = useNavigate();
+    const getTaskStatusClass = useStatusStyles('task');
+    return (
+        <div className="space-y-2">
+            <div className="grid grid-cols-3 text-sm font-semibold px-2">
+                <span>Task Type</span>
+                <span>Status</span>
+                <span className="text-right">Date</span>
+            </div>
+            {tasks.map((task, index) => (
+                <React.Fragment key={task.name}>
+                    <div onClick={() => navigate(`/tasks/task?id=${task.name}`)} className="grid grid-cols-3 items-center px-2 py-3 cursor-pointer hover:bg-secondary rounded-md">
+                        <span className="font-medium truncate pr-2">{task.type}</span>
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${getTaskStatusClass(task.status)}`}>
+                            {task.status || 'N/A'}
+                        </span>
+                        <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
+                            <span>{formatDate(task.start_date)}</span>
+                            <ChevronRight className="w-4 h-4" />
+                        </div>
+                    </div>
+                    {index < tasks.length - 1 && <Separator />}
+                </React.Fragment>
+            ))}
+        </div>
+    );
+};
 
 export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
     const navigate = useNavigate();
+   const getBoqStatusClass = useStatusStyles('boq'); 
 
     return (
         <div>
@@ -52,7 +75,7 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
                             <React.Fragment key={boq.name}>
                                 <div onClick={() => navigate(`/boqs/boq?id=${boq.name}`)} className="grid grid-cols-[1fr,1fr,1fr] items-center px-2 py-3 cursor-pointer">
                                     <span className="font-medium">{boq.boq_name}</span>
-                                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusClass(boq.boq_status)}`}>
+                                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${getBoqStatusClass(boq.boq_status)}`}>
                                         {boq.boq_status || 'N/A'}
                                     </span>
                                     <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
@@ -67,7 +90,11 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
                 </TabsContent>
 
                 <TabsContent value="tasks">
-                    <p className="text-center text-muted-foreground py-8">Tasks list will be displayed here.</p>
+                    {tasks && tasks.length > 0 ? (
+                        <TaskList tasks={tasks} />
+                    ) : (
+                        <p className="text-center text-muted-foreground py-8">No tasks found for this contact.</p>
+                    )}
                 </TabsContent>
             </Tabs>
         </div>

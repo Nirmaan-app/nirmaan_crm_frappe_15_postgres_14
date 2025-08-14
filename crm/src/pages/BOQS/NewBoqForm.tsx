@@ -106,7 +106,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
             {contactIdFromContext ? (
                 <Input value={contactDoc?.company || "Loading..."} disabled />
             ) : (
-                <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("contact", ""); }} placeholder="Select Company"/>
+                <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("contact", ""); }} menuPosition={'auto'} placeholder="Select Company"/>
             )}
         </FormControl><FormMessage /></FormItem> )} />
         
@@ -114,7 +114,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
             {contactIdFromContext ? (
                 <Input value={contactDoc ? `${contactDoc.first_name} ${contactDoc.last_name}` : "Loading..."} disabled />
             ) : (
-                <ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} placeholder="Select Contact" isDisabled={!selectedCompany && !companyId} />
+                <ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select Contact" isDisabled={!selectedCompany && !companyId} />
             )}
         </FormControl><FormMessage /></FormItem> )} />
 

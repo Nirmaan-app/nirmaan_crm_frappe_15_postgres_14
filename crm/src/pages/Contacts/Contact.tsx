@@ -29,7 +29,10 @@ export const Contact = () => {
     const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", id);
     const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", contactData?.company, { enabled: !!contactData?.company });
     const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: id }, fields: ["*"] });
+
     const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { contact: id }, fields: ["*"] });
+
+    console.log("tasksList",tasksList)
 
     const { deleteDoc } = useFrappeDeleteDoc();
 

@@ -74,7 +74,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
     form.reset({
       company: companyId || "",
       contact: contactIdFromContext || "",
-      boq: boqIdFromContext || "",
+      boq: boqIdFromContext || "",status:"Scheduled",
       type: "", start_date: "", time: "", remarks: ""
     });
   }, [companyId, contactIdFromContext, boqIdFromContext, form]);
@@ -105,7 +105,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
                 <Input value={contactDocFromContext?.company || (companyDocLoading ? "Loading..." : "")} disabled />
             ) : (
                 // Only if no context was provided at all, show the searchable dropdown.
-                <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("contact", ""); form.setValue("boq", ""); }} placeholder="Select Company"/>
+                <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("contact", ""); form.setValue("boq", ""); }} placeholder="Select Company" menuPosition={'auto'}/>
             )}
         </FormControl><FormMessage /></FormItem> )} />
 
@@ -116,12 +116,12 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
                 <Input value={contactDocFromContext ? `${contactDocFromContext.first_name} ${contactDocFromContext.last_name}` : "Loading..."} disabled />
             ) : (
                 // Otherwise, show the dropdown filtered by the selected company.
-                <ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("boq", ""); }} placeholder="Select Contact" isDisabled={!selectedCompanyByUser && !companyId} />
+                <ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("boq", ""); }} placeholder="Select Contact" menuPosition={'auto'} isDisabled={!selectedCompanyByUser && !companyId} />
             )}
         </FormControl><FormMessage /></FormItem> )} />
         
         <FormField name="boq" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Project (BOQ)</FormLabel><FormControl>
-            <ReactSelect options={boqOptions} isLoading={boqsLoading} value={boqOptions.find(b => b.value === field.value)} onChange={val => field.onChange(val?.value)} placeholder="Select BOQ (Optional)" isClearable isDisabled={!(selectedContactByUser || contactIdFromContext)} />
+            <ReactSelect options={boqOptions} isLoading={boqsLoading} value={boqOptions.find(b => b.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select BOQ (Optional)" isClearable isDisabled={!(selectedContactByUser || contactIdFromContext)} />
         </FormControl><FormMessage /></FormItem> )} />
 
         <FormField name="remarks" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Remarks</FormLabel><FormControl><Textarea placeholder="e.g. Discuss Q3 results." {...field} /></FormControl><FormMessage /></FormItem> )} />

@@ -46,9 +46,9 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
         <div className="bg-background p-4 rounded-lg border shadow-sm">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold">Task Details</h2>
-                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => openEditTaskDialog({ taskData: task, mode: 'edit' })}>
+               {task.status!="Completed" &&(<Button variant="ghost" size="sm" className="text-destructive" onClick={() => openEditTaskDialog({ taskData: task, mode: 'edit' })}>
                     <SquarePen className="w-4 h-4 mr-2" />EDIT
-                </Button>
+                </Button>)}
             </div>
             <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                 <DetailItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} href={`/contacts/contact?id=${contact?.name}`} />
@@ -70,17 +70,16 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
 // --- SUB-COMPONENT: Task History ---
 const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
     const navigate = useNavigate();
-    // ... (getStatusClass function) ...
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
             <h2 className="font-semibold mb-4">Contact Task History</h2>
-            {tasks.length > 0 ? tasks.map((task, i) => (
+            {tasks.length > 1 ? tasks.map((task, i) => (
                 <div key={task.name}>
-                    <div onClick={() => navigate(`/tasks/task?id=${task.name}`)} className="grid grid-cols-3 items-center py-3 cursor-pointer">
+                    <div onClick={() => navigate(`/contacts/contact?id=${task.contact}`)} className="grid grid-cols-3 items-center py-3 cursor-pointer">
                         <span>{task.type}</span>
                         <span className="text-muted-foreground text-sm">{formatDate(task.start_date)}</span>
                         <div className="flex items-center justify-end gap-2">
-                             <span className="text-xs font-semibold px-2 py-1 rounded-full">{task.status}</span>
+                             <span className="text-xs font-semibold px-2 py-1 rounded-full">{task.status||"New"}</span>
                              <ChevronRight className="w-4 h-4 text-muted-foreground"/>
                         </div>
                     </div>
@@ -123,11 +122,20 @@ export const Task = () => {
     const [id] = useStateSyncedWithParams<string>("id", "");
 
     // Fetch the main task and all its related documents
-    const { data: taskData, isLoading: taskLoading } = useFrappeGetDoc<CRMTask>("CRM Task", id);
-    const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", taskData?.contact, { enabled: !!taskData?.contact });
-    const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", taskData?.company, { enabled: !!taskData?.company });
+    const { data: taskData, isLoading: taskLoading,mutate:taskMutate } = useFrappeGetDoc<CRMTask>("CRM Task", id);
+    const { data: contactData, isLoading: contactLoading,mutate:contactMutate } = useFrappeGetDoc<CRMContacts>("CRM Contacts", taskData?.contact, { enabled: !!taskData?.contact });
+    const { data: companyData, isLoading: companyLoading,mutate:companyMutate } = useFrappeGetDoc<CRMCompany>("CRM Company", taskData?.company, { enabled: !!taskData?.company });
     const { data: boqData, isLoading: boqLoading } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", taskData?.boq, { enabled: !!taskData?.boq });
-    const { data: historyTasks, isLoading: historyLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { contact: taskData?.contact, name: ['!=', id] }, limit: 5, enabled: !!taskData?.contact });
+
+   const { data: historyTasks, isLoading: historyLoading } = useFrappeGetDocList<CRMTask>(
+        "CRM Task", 
+        { 
+            filters: { contact: taskData?.contact, name: ['!=', id] }, 
+            limit: 5, 
+            enabled: !!taskData?.contact,
+            fields: ["*"] // Specify required fields here
+        }
+    );
     const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM Task", reference_docname: id }, orderBy: {field: "creation", order: "desc"} });
 
     if (taskLoading || contactLoading || companyLoading) {
@@ -137,13 +145,17 @@ export const Task = () => {
     if (!taskData) {
         return <div>Task not found.</div>
     }
+    console.log("tasks",taskData)
 
     return (
         <div className="space-y-6 pb-24"> {/* Padding bottom to prevent overlap with fixed button */}
             <TaskDetailsCard task={taskData} contact={contactData} company={companyData} boq={boqData} />
             <TaskHistory tasks={historyTasks || []} />
             <TaskRemarks remarks={remarksList || []} />
+            {taskData.status!=="Completed"&&(
             <UpdateTaskButtons task={taskData} />
+
+            )}
         </div>
     );
 };

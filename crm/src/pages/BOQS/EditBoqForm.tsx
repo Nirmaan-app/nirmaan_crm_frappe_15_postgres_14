@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from "react-select";
 import { useEffect, useMemo } from "react";
+import { useStatusStyles } from "@/hooks/useStatusStyles";
 
 // --- STEP 1: EXPAND THE SCHEMA ---
 // Matches the Frappe Doctype and the UI Mockup
@@ -46,6 +47,8 @@ const statusOptions = [
 export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   const { editBoq, closeEditBoqDialog } = useDialogStore();
   const { boqData, mode } = editBoq.context;
+   const getBoqStatusClass = useStatusStyles('boq');
+
   
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
   const { createDoc, loading: createLoading } = useFrappeCreateDoc();
@@ -85,6 +88,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             company: boqData.company || "",
             contact: boqData.contact || "",
             remark_content: "",
+            boq_submission_date: boqData.boq_submission_date||"",
         });
     }
   }, [boqData, form]);
@@ -105,12 +109,13 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             boq_status: values.boq_status,
             contact: values.contact,
              company: values.company,
+             boq_submission_date: values.boq_submission_date,
             // company is not editable in this form
          });
          toast({ title: "Success", description: "BOQ details updated." });
       } else if (mode === 'status') {
         // Handle only the status update
-        await updateDoc("CRM BOQ", boqData.name, { boq_status: values.boq_status });
+        await updateDoc("CRM BOQ", boqData.name, { boq_status: values.boq_status,boq_submission_date: values.boq_submission_date, });
         toast({ title: "Success", description: "Status updated." });
 
       }else if (mode === 'remark') {
@@ -129,10 +134,25 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     }
   };
 
+  const selectMenuStyles = {
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+  };
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* --- STEP 3: RENDER ALL FIELDS FOR 'details' MODE --- */}
+        <div className="flex justify-between items-start text-sm mb-4">
+                  <div>
+                      <p className="text-xs text-muted-foreground">Project</p>
+                      <p className="font-semibold">{boqData?.boq_name}</p>
+                  </div>
+                  <div className="text-right">
+                      <p className="text-xs text-center text-muted-foreground"> Status</p>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${getBoqStatusClass(boqData?.boq_status)}`}>
+                          {boqData?.boq_status || 'N/A'}
+                      </span>
+                  </div>
+              </div>
         {mode === 'details' && (
            <>
             <FormField name="boq_name" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -152,6 +172,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                       value={statusOptions.find(s => s.value === field.value)}
                       onChange={val => field.onChange(val?.value)}
                       placeholder="Select a status"
+                      menuPosition={'auto'}
                     />
                   </FormControl>
                   <FormMessage />
@@ -175,13 +196,14 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                           field.onChange(val?.value);
                           form.setValue("contact", "");
                       }} 
+                      menuPosition={'auto'}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact Name</FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact Name</FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'}/></FormControl><FormMessage /></FormItem>)} />
            </>
         )}
         
@@ -194,10 +216,11 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 {/* Status-only mode is also correct */}
         {mode === 'status' && (
             <FormField name="boq_status" control={form.control} render={({ field }) => (
-                <FormItem><FormLabel>Update Status</FormLabel><FormControl><ReactSelect options={statusOptions} value={statusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)}/></FormControl></FormItem>
+                <FormItem><FormLabel>Update Status</FormLabel><FormControl><ReactSelect options={statusOptions} value={statusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'}/></FormControl></FormItem>
             )}/>
         )}
-
+ <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+            
 
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="outline" className="border-destructive text-destructive" onClick={closeEditBoqDialog}>Cancel</Button>
