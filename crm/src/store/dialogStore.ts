@@ -25,6 +25,10 @@ type EditTaskContext = {
   mode: 'edit' | 'updateStatus' | 'scheduleNext';
 };
 
+type DateRangeContext = { onConfirm: (dateRange: { from: Date; to: Date }) => void };
+type StatsDetailContext = { title: string; items: any[] };
+
+
 
 
 // The state now just holds the isOpen flag and the context data
@@ -38,6 +42,9 @@ type DialogState = {
    editContact: { isOpen: boolean; context: EditContactContext };
    editBoq: { isOpen: boolean; context: EditBoqContext };
    editTask: { isOpen: boolean; context: EditTaskContext };
+
+   dateRangePicker: { isOpen: boolean; context: DateRangeContext };
+  statsDetail: { isOpen: boolean; context: StatsDetailContext };
 };
 
 // The actions are now explicit open/close functions
@@ -64,6 +71,11 @@ type DialogActions = {
 
   openEditTaskDialog: (context: EditTaskContext) => void;
   closeEditTaskDialog: () => void;
+
+   openDateRangePickerDialog: (context: DateRangeContext) => void;
+  closeDateRangePickerDialog: () => void;
+  openStatsDetailDialog: (context: StatsDetailContext) => void;
+  closeStatsDetailDialog: () => void;
   
 
 };
@@ -79,6 +91,8 @@ const initialState: DialogState = {
   editBoq: { isOpen: false, context: { boqData: null, mode: 'details' } },
   editTask: { isOpen: false, context: { taskData: null, mode: 'edit' } },
 
+   dateRangePicker: { isOpen: false, context: { onConfirm: () => {} } },
+  statsDetail: { isOpen: false, context: { title: '', items: [] } },
 };
 
 export const useDialogStore = create<DialogState & DialogActions>((set) => ({
@@ -120,6 +134,12 @@ export const useDialogStore = create<DialogState & DialogActions>((set) => ({
   
   openEditTaskDialog: (context) => set({ editTask: { isOpen: true, context } }),
   closeEditTaskDialog: () => set((state) => ({ editTask: { ...state.editTask, isOpen: false } })),
+
+  //Home Page Dialogs 
+  openDateRangePickerDialog: (context) => set({ dateRangePicker: { isOpen: true, context } }),
+  closeDateRangePickerDialog: () => set((state) => ({ dateRangePicker: { ...state.dateRangePicker, isOpen: false } })),
+  openStatsDetailDialog: (context) => set({ statsDetail: { isOpen: true, context } }),
+  closeStatsDetailDialog: () => set((state) => ({ statsDetail: { ...state.statsDetail, isOpen: false } })),
 
 }));
 

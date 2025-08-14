@@ -28,7 +28,7 @@ const editTaskSchema = z.object({
 type EditTaskFormValues = z.infer<typeof editTaskSchema>;
 
 // Options for dropdowns
-const taskTypeOptions = [ {label: "Call", value: "Call"}, {label: "In Person", value: "In Person"}, {label: "Virtual", value: "Virtual"} ];
+const taskTypeOptions = [ {label: "Call", value: "Call"}, {label: "In Person", value: "In Person"}, {label: "Virtual", value: "Virtual"},{label: "Follow-up", value: "Follow-up"} ];
 const statusOptions = [{label: "Completed", value: "Completed"}, {label: "Incomplete", value: "Incomplete"} ];
 
 // {label: "Scheduled", value: "Scheduled"}

@@ -8,6 +8,11 @@ import { NewTaskForm } from "@/pages/Tasks/NewTaskForm";
 import { NewContactForm } from "@/pages/Contacts/NewContactForm";
 import { EditTaskForm } from "@/pages/Tasks/EditTaskForm";
 
+// --- NEW DIALOG IMPORTS ---
+import { DateRangePickerDialog } from "./DateRangePickerDialog";
+import { StatsDetailDialog } from "./StatsDetailDialog";
+
+
 export const MainDialogs = () => {
     const { 
         newCompany, closeNewCompanyDialog,
@@ -17,7 +22,10 @@ export const MainDialogs = () => {
         editTask,closeEditTaskDialog,
         newContact, closeNewContactDialog,
         newBoq, closeNewBoqDialog,
-        newTask, closeNewTaskDialog
+        newTask, closeNewTaskDialog,
+
+         dateRangePicker, closeDateRangePickerDialog,
+        statsDetail, closeStatsDetailDialog,
     } = useDialogStore();
 
      // Helper to generate a dynamic title
@@ -118,6 +126,24 @@ export const MainDialogs = () => {
                  className="max-w-lg"
             >
                 <EditTaskForm onSuccess={closeEditTaskDialog} />
+            </ReusableFormDialog>
+
+             {/* --- NEW: Date Range Picker Dialog --- */}
+            <ReusableFormDialog
+                isOpen={dateRangePicker.isOpen}
+                onClose={closeDateRangePickerDialog}
+                title="Select Date Range"
+            >
+                <DateRangePickerDialog />
+            </ReusableFormDialog>
+
+            {/* --- NEW: Stats Detail Dialog --- */}
+            <ReusableFormDialog
+                isOpen={statsDetail.isOpen}
+                onClose={closeStatsDetailDialog}
+                title="" // The title is handled inside the component itself
+            >
+                <StatsDetailDialog />
             </ReusableFormDialog>
         </>
     );
