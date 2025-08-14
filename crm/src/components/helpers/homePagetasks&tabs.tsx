@@ -12,7 +12,7 @@ import { ChevronRight, CircleCheck } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { ReusableAlertDialog, ReusableDialog } from "../ui/ReusableDialogs";
+import { ReusableAlertDialog } from "../ui/ReusableDialogs";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
@@ -195,7 +195,7 @@ const handleNewScheduleTask = async (values : TaskFormValues) => {
           </ul>
       </div>
 
-       <ReusableDialog
+       {/* <ReusableDialog
           open={taskStatusDialog}
           onOpenChange={toggleTaskStatusDialog}
           title="Task Completed"
@@ -212,7 +212,7 @@ const handleNewScheduleTask = async (values : TaskFormValues) => {
             setDialogType("incomplete")
             toggleTaskUpdateDialog()
           }}
-        />
+        /> */}
 
           <ReusableAlertDialog
             open={taskUpdateDialog} onOpenChange={toggleTaskUpdateDialog} 

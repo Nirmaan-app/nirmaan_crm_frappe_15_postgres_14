@@ -14,10 +14,22 @@ export type EnrichedCRMTask = CRMTask & {
     company_name?: string;
 };
 
-// A reusable component for a single task row in the dashboard
-const TaskDashboardRow = ({ task }: { task: EnrichedCRMTask }) => {
+const TaskDashboardRow = ({ task, context }: { task: EnrichedCRMTask, context: 'today' | 'tomorrow' | 'createdToday' }) => {
     const { openEditTaskDialog } = useDialogStore();
     const navigate = useNavigate();
+
+    // Determine button label and action based on the context
+    let buttonLabel = "Update";
+    let buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'updateStatus' });
+
+    if (context === 'tomorrow') {
+        buttonLabel = "Go To Task";
+        buttonAction = () => navigate(`/tasks/task?id=${task.name}`);
+    } else if (context === 'createdToday') {
+        buttonLabel = "Edit Task";
+        buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'edit' });
+    }
+    // For 'today', the default action is 'Update', so no 'if' statement is needed.
 
     return (
         <div className="flex items-center justify-between py-3 px-2 border-b last:border-b-0">
@@ -25,8 +37,8 @@ const TaskDashboardRow = ({ task }: { task: EnrichedCRMTask }) => {
                 <span className="font-medium">{task.type} {task.first_name} from {task.company}</span>
                 <span className="text-sm text-muted-foreground">at {formatTime12Hour(task.time)}</span>
             </div>
-            <Button variant="outline" size="sm" onClick={() => openEditTaskDialog({ taskData: task, mode: 'updateStatus' })}>
-                Update
+            <Button variant="outline" size="sm" onClick={buttonAction}>
+                {buttonLabel}
             </Button>
         </div>
     );
@@ -85,13 +97,13 @@ export const Tasks = () => {
             </div>
 
             {/* Accordion for task lists */}
-            <Accordion type="multiple" defaultValue={[]} className="w-full space-y-4">
+            <Accordion type="multiple" defaultValue={["today"]} className="w-full space-y-4">
                 <div className="bg-background rounded-lg border">
                     <AccordionItem value="today" className="border-b-0">
                         <AccordionTrigger className="px-4">Today's Tasks - {todayTasks.length} Tasks</AccordionTrigger>
                         <AccordionContent>
                             {todayTasks.length > 0 
-                                ? todayTasks.map(task => <TaskDashboardRow key={task.name} task={task} />)
+                                ? todayTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="today"/>)
                                 : <p className="text-center text-sm text-muted-foreground py-4">No tasks for today.</p>
                             }
                         </AccordionContent>
@@ -102,7 +114,7 @@ export const Tasks = () => {
                         <AccordionTrigger className="px-4">Tomorrow - {tomorrowTasks.length} Tasks</AccordionTrigger>
                         <AccordionContent>
                             {tomorrowTasks.length > 0
-                                ? tomorrowTasks.map(task => <TaskDashboardRow key={task.name} task={task} />)
+                                ? tomorrowTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="tomorrow" />)
                                 : <p className="text-center text-sm text-muted-foreground py-4">No tasks for tomorrow.</p>
                             }
                         </AccordionContent>
@@ -114,7 +126,7 @@ export const Tasks = () => {
                         <AccordionTrigger className="px-4">Tasks created today - {createdTodayTasks.length} Tasks</AccordionTrigger>
                         <AccordionContent>
                             {createdTodayTasks.length > 0
-                                ? createdTodayTasks.map(task => <TaskDashboardRow key={task.name} task={task} />)
+                                ? createdTodayTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="createdToday" />)
                                 : <p className="text-center text-sm text-muted-foreground py-4 px-4">No tasks were created today.</p>
                             }
                         </AccordionContent>

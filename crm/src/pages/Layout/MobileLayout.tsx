@@ -65,6 +65,8 @@ export const MobileLayout = () => {
     }
     else if (pathname.startsWith('/boqs/boq') && id) {
          newOptions = [];
+    }else if(pathname.startsWith('/tasks/task') && id) {
+         newOptions = [];
     }
     
     // --- LIST PAGE OPTIONS (NOW FULLY CORRECTED) ---

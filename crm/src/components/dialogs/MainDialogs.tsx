@@ -42,6 +42,7 @@ export const MainDialogs = () => {
                 isOpen={newCompany.isOpen}
                 onClose={closeNewCompanyDialog} // Use close action
                 title="Add New Company"
+                 className="max-w-lg"
             >
                 <NewCompanyForm onSuccess={closeNewCompanyDialog} />
             </ReusableFormDialog>
@@ -50,12 +51,14 @@ export const MainDialogs = () => {
                 isOpen={editCompany.isOpen}
                 onClose={closeEditCompanyDialog}
                 title="Edit Company"
+                 className="max-w-lg"
             >
                 {/* Render the same form, but in edit mode with initial data */}
                 <NewCompanyForm 
                     isEditMode={true}
                     initialData={editCompany.context.companyData}
                     onSuccess={closeEditCompanyDialog} 
+                     className="max-w-lg"
                 />
             </ReusableFormDialog>
 
@@ -63,6 +66,7 @@ export const MainDialogs = () => {
                 isOpen={newContact.isOpen}
                 onClose={closeNewContactDialog} // Use close action
                 title="Add New Contact"
+                 className="max-w-lg"
             >
                 <NewContactForm onSuccess={closeNewContactDialog} />
             </ReusableFormDialog>
@@ -70,6 +74,7 @@ export const MainDialogs = () => {
                 isOpen={editContact.isOpen}
                 onClose={closeEditContactDialog}
                 title="Edit Contact"
+                 className="max-w-lg"
             >
                 <NewContactForm 
                     isEditMode={true} // Pass the edit mode flag
@@ -83,6 +88,7 @@ export const MainDialogs = () => {
                 isOpen={newBoq.isOpen}
                 onClose={closeNewBoqDialog}
                 title="Add New BOQ"
+                 className="max-w-lg"
             >
                 <NewBoqForm onSuccess={closeNewBoqDialog} />
             </ReusableFormDialog>
@@ -91,6 +97,7 @@ export const MainDialogs = () => {
                 isOpen={editBoq.isOpen}
                 onClose={closeEditBoqDialog}
                 title={getEditBoqTitle()}
+                 className="max-w-lg"
             >
                 <EditBoqForm onSuccess={closeEditBoqDialog} />
             </ReusableFormDialog>
@@ -99,6 +106,7 @@ export const MainDialogs = () => {
                 isOpen={newTask.isOpen}
                 onClose={closeNewTaskDialog}
                 title="Add New Task"
+                 className="max-w-lg"
             >
                 <NewTaskForm onSuccess={closeNewTaskDialog} />
             </ReusableFormDialog>
@@ -107,6 +115,7 @@ export const MainDialogs = () => {
                 isOpen={editTask.isOpen}
                 onClose={closeEditTaskDialog}
                 title={getEditTaskTitle()}
+                 className="max-w-lg"
             >
                 <EditTaskForm onSuccess={closeEditTaskDialog} />
             </ReusableFormDialog>

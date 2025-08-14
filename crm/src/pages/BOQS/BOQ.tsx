@@ -13,20 +13,42 @@ import { ChevronDown, ChevronRight, Plus, SquarePen } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
-
+import { useStatusStyles } from "@/hooks/useStatusStyles";
 // --- SUB-COMPONENT 1: Header ---
+// Inside src/pages/BOQs/BOQ.tsx
+
+// Make sure useStatusStyles is imported at the top of the file
+
+// --- SUB-COMPONENT 1: Header (CORRECTED) ---
 const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
     const { openEditBoqDialog } = useDialogStore();
+    // Get the styling function from our custom hook
+    const getBoqStatusClass = useStatusStyles("boq");
+
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm flex justify-between items-start">
             <div>
                 <p className="text-xs text-muted-foreground">BOQ Name</p>
                 <h1 className="text-xl font-bold">{boq?.boq_name}</h1>
             </div>
-            <div onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })} className="cursor-pointer">
-                <p className="text-xs text-muted-foreground">Current Status</p>
-                <div className="border rounded-md px-3 py-2 min-w-[160px] flex justify-between items-center hover:bg-secondary transition-colors">
-                    <span className="font-semibold">{boq?.boq_status || 'N/A'}</span>
+            
+            {/* The entire right-side block is the clickable trigger */}
+            <div 
+                onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })} 
+                className="cursor-pointer"
+            >
+                <p className="text-xs text-muted-foreground mb-1 text-right">Current Status</p>
+                
+                {/* *** THE FIX IS HERE *** */}
+                {/* Use a flex container to place the pill and icon next to each other */}
+                <div className="flex items-center justify-end gap-2 hover:opacity-80 transition-opacity">
+                    
+                    {/* The Status Pill */}
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
+                        {boq.boq_status || 'N/A'} 
+                    </span>
+
+                    {/* The Chevron Icon */}
                     <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </div>
             </div>
@@ -34,10 +56,13 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
     );
 };
 
+
 // --- SUB-COMPONENT 2: Task List (Now with rendering logic) ---
 const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask[], boqId: string, companyId: string, contactId: string }) => {
     const navigate = useNavigate();
     // console.log("tasks",tasks)
+    const getTaskStatusClass=useStatusStyles("task")
+
     const { openNewTaskDialog } = useDialogStore();
     const getStatusClass = (status: string) => {
         switch (status?.toLowerCase()) {
@@ -69,7 +94,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                                 <span className="font-medium truncate pr-2">{task.type}</span>
                                 <span className="text-sm text-muted-foreground">{formatDate(task.start_date)}</span>
                                 <div className="flex items-center justify-end gap-2">
-                                    <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${getStatusClass(task.status)}`}>
+                                    <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${getTaskStatusClass(task.status)}`}>
                                         {task.status}
                                     </span>
                                     <ChevronRight className="w-4 h-4 text-muted-foreground" />

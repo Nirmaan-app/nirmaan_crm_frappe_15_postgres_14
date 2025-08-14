@@ -1,13 +1,13 @@
 // src/pages/Tasks/EditTaskForm.tsx
 import { Button } from "@/components/ui/button";
-// import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappeCreateDoc, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
+import { useFrappeCreateDoc,useFrappeGetDoc, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from "react-select";
@@ -29,7 +29,9 @@ type EditTaskFormValues = z.infer<typeof editTaskSchema>;
 
 // Options for dropdowns
 const taskTypeOptions = [ {label: "Call", value: "Call"}, {label: "In Person", value: "In Person"}, {label: "Virtual", value: "Virtual"} ];
-const statusOptions = [{label: "Completed", value: "Completed"}, {label: "Incomplete", value: "Incomplete"}, {label: "Scheduled", value: "Scheduled"}];
+const statusOptions = [{label: "Completed", value: "Completed"}, {label: "Incomplete", value: "Incomplete"} ];
+
+// {label: "Scheduled", value: "Scheduled"}
 const reasonOptions = [{label: "Can't be reached", value: "Can't be reached"}, {label: "Wants to reschedule", value: "Wants to reschedule"}, {label: "Others (mention in remarks)", value: "Others"}];
 
 export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
@@ -39,11 +41,17 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
   const { createDoc, loading: createLoading } = useFrappeCreateDoc();
   const { mutate } = useSWRConfig();
-
+  const { data: contactDoc, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>(
+    "CRM Contacts",
+    taskData?.contact, // The ID of the contact from the task
+    { enabled: !!taskData?.contact } // Only run this fetch if taskData and its contact field exist
+  );
   const form = useForm<EditTaskFormValues>({
     resolver: zodResolver(editTaskSchema),
     defaultValues: {},
   });
+
+  const selectedStatus = form.watch("status");
 
   useEffect(() => {
     if (taskData) {
@@ -51,7 +59,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         type: taskData.type || "",
         start_date: taskData.start_date?.split(" ")[0] || "",
         time: taskData.time || "",
-        status: taskData.status || "Scheduled",
+        status: "",
         reschedule: false,
         reason: "",
         remarks: "",
@@ -61,22 +69,27 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
   const loading = updateLoading || createLoading;
 
-  const onSubmit = async (values: EditTaskFormValues) => {
+ const onSubmit = async (values: EditTaskFormValues) => {
     try {
       if (!taskData) throw new Error("Task data is missing");
       
+      let shouldCloseDialog = true; // Assume we will close the dialog by default
+
       if (mode === 'edit') {
         await updateDoc("CRM Task", taskData.name, { type: values.type, start_date: `${values.start_date} ${values.time}`, time: values.time });
         toast({ title: "Success", description: "Task rescheduled." });
       } else if (mode === 'updateStatus') {
         await updateDoc("CRM Task", taskData.name, { status: values.status, description: `${values.reason || ''}\n${values.remarks || ''}`.trim() });
         toast({ title: "Success", description: "Task status updated." });
+        
+        // --- THIS IS THE KEY LOGIC CHANGE ---
         if (values.reschedule) {
-          // Open the same dialog in a different mode to reschedule
+          shouldCloseDialog = false; // Prevent the current dialog from closing
+          // Immediately open the dialog again, but in the new 'scheduleNext' mode.
+          // React will efficiently re-render the dialog's content.
           openEditTaskDialog({ taskData, mode: 'scheduleNext' });
         }
       } else if (mode === 'scheduleNext') {
-        // This creates a NEW task, copying details from the original
         await createDoc("CRM Task", {
             type: values.type,
             start_date: `${values.start_date} ${values.time}`,
@@ -89,14 +102,22 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         toast({ title: "Success", description: "New task scheduled." });
       }
 
-      await mutate("CRM Task"); // Mutate the list
-      await mutate(`CRM Task/${taskData.name}`);
-      onSuccess?.();
+      // Refresh the data for the list and detail pages
+      await mutate("CRM Task"); 
+      if (mode !== 'scheduleNext') { // Don't mutate the old task if we just created a new one
+          await mutate(`CRM Task/${taskData.name}`);
+      }
+      
+      // Only call onSuccess (which closes the dialog) if we are not rescheduling
+      if (shouldCloseDialog && onSuccess) {
+        onSuccess();
+      }
+
     } catch (error) {
       toast({ title: "Error", description: (error as Error).message, variant: "destructive" });
     }
   };
-
+  console.log("TaskData",taskData)
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -114,13 +135,36 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         {mode === 'updateStatus' && (
             <>
                 <div className="flex justify-between items-center text-sm mb-4">
-                    <span>Task: {taskData?.type} - {taskData?.["contact.first_name"]}</span>
+                    <span>Task: {taskData?.type} for {contactDoc?.first_name}</span>
                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">{taskData?.status}</span>
                 </div>
                 <FormField name="status" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Update Status To</FormLabel><FormControl><ReactSelect options={statusOptions} onChange={val => field.onChange(val?.value)}/></FormControl><FormMessage /></FormItem> )} />
-                <FormField name="reason" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Reason</FormLabel><FormControl><ReactSelect options={reasonOptions} onChange={val => field.onChange(val?.value)} isClearable/></FormControl><FormMessage /></FormItem> )} />
+               
+                                {selectedStatus === 'Incomplete' && (
+                    <FormField
+                      name="reason"
+                      control={form.control}
+                      render={({ field }) => ( 
+                        <FormItem>
+                          <FormLabel>Reason</FormLabel>
+                          <FormControl>
+                            <ReactSelect
+                              options={reasonOptions}
+                              value={reasonOptions.find(r => r.value === field.value)}
+                              onChange={val => field.onChange(val?.value)}
+                              isClearable
+                              menuPosition={'auto'}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                )}
+
+
                 <FormField name="remarks" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Remarks</FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                {/* <FormField name="reschedule" control={form.control} render={({ field }) => ( <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><div className="space-y-1 leading-none"><FormLabel>Re-schedule this task</FormLabel></div></FormItem> )} /> */}
+                <FormField name="reschedule" control={form.control} render={({ field }) => ( <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><div className="space-y-1 leading-none"><FormLabel>Re-schedule this task</FormLabel></div></FormItem> )} />
             </>
         )}
         

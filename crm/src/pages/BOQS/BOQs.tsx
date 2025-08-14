@@ -8,12 +8,13 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Plus, Search, SquarePen } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useStatusStyles } from "@/hooks/useStatusStyles";
 
 // This is the new, reusable card component for a single BOQ item
 const BoqListItem = ({ boq, companyName }: { boq: CRMBOQ, companyName: string }) => {
     const navigate = useNavigate();
     const { openNewTaskDialog, openEditBoqDialog } = useDialogStore(); // Assuming you add editBoq to store
-
+const getBoqStatusClass=useStatusStyles("boq")
     const getStatusClass = (status: string) => {
         switch (status?.toLowerCase()) {
             case 'won': return 'text-green-600 bg-green-50 border border-green-300';
@@ -35,7 +36,7 @@ const BoqListItem = ({ boq, companyName }: { boq: CRMBOQ, companyName: string })
                 </div>
             </div>
             <div className="flex justify-between items-center">
-                <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getStatusClass(boq.boq_status)}`}>
+                <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
                     {boq.boq_status || 'N/A'}
                 </span>
                 <div className="flex items-center gap-2">
@@ -50,7 +51,7 @@ const BoqListItem = ({ boq, companyName }: { boq: CRMBOQ, companyName: string })
                     <Button variant="ghost" size="icon" className="h-8 w-8"
                         onClick={(e) => {
                             e.stopPropagation();
-                            // openEditBoqDialog({ boqData: boq });
+                            openEditBoqDialog({ boqData: boq, mode: 'details' })
                         }}>
                         <SquarePen className="w-5 h-5 text-muted-foreground" />
                     </Button>
