@@ -50,7 +50,14 @@ export const MobileLayout = () => {
     // ===================================================================
 
     // --- DETAIL PAGE OPTIONS ---
-    if (pathname.startsWith('/companies/company') && id) {
+    if (pathname === '/') {
+            newOptions = [
+                { label: "Add New Contact", action: openNewContactDialog },
+                { label: "Add New Company", action: openNewCompanyDialog },
+                { label: "Add New Project", action: () => openNewBoqDialog({}) },
+                { label: "Add New Task", action: () => openNewTaskDialog({}) },
+            ];
+        }else if (pathname.startsWith('/companies/company') && id) {
         newOptions = [
             { label: "Add New BOQ", action: () => openNewBoqDialog({ companyId: id }) },
             { label: "Add New Contact", action: () => openNewContactDialog({ companyId: id }) },

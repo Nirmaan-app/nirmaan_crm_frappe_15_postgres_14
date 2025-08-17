@@ -80,7 +80,7 @@ export const NavBar = () => {
 				<h1 className="text-xl text-primary font-semibold">Nirmaan CRM</h1>
 				<Bell />
 			</div>
-		) : ["/companies","/contacts", "/tasks","/boqs", "/calendar", "/settings"].includes(location.pathname) ? (
+		) : ["/companies","/contacts", "/tasks","/boqs", "/settings"].includes(location.pathname) ? (
 			<div className="dark:text-white">
 				<h2 className="text-center font-semibold">{items.find(i => location.pathname.includes(i.path))?.label}</h2>
 			</div>

@@ -67,7 +67,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
   const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_name, value: c.name })) || [], [allCompanies]);
   const contactOptions = useMemo(() => contactsList?.map(c => ({ label: `${c.first_name} ${c.last_name}`, value: c.name })) || [], [contactsList]);
   const boqOptions = useMemo(() => boqsList?.map(b => ({ label: b.boq_name, value: b.name })) || [], [boqsList]);
-  const taskTypeOptions = [ {label: "Meeting", value: "Meeting"}, {label: "Call", value: "Call"}, {label: "Follow-up", value: "Follow-up"} ];
+  const taskTypeOptions = [ {label: "Meeting", value: "Meeting"}, {label: "Call", value: "Call"},{label: "Virtual", value: "Virtual"}, {label: "Follow-up", value: "Follow-up"} ];
   
   // Effect to pre-fill the form with the correct context
   useEffect(() => {

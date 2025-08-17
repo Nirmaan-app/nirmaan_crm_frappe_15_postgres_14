@@ -16,6 +16,7 @@ body, html {
     font-family:"Inter";
 }
 
+
 @layer base {
     :root {
         --background: 0 0% 100%; /* Light theme main background */
@@ -127,6 +128,24 @@ body, html {
   body {
     @apply bg-background text-foreground;
     }
+}
+
+.rdp-modifier-hasTask button {
+  /* 
+    This applies the underline style from Tailwind CSS.
+    The font-semibold makes it stand out a bit more.
+  */
+  @apply underline underline-offset-4 font-semibold;
+}
+
+
+/* 2. Style for the SELECTED day (makes the background red) */
+.rdp-day_selected,
+.rdp-day_selected:focus-visible,
+.rdp-day_selected:hover {
+  /* This uses the "destructive" color from your theme, which is typically red.
+     It also sets the text color to be readable on a red background. */
+  @apply bg-destructive text-destructive-foreground;
 }
 
 .cardBorder {

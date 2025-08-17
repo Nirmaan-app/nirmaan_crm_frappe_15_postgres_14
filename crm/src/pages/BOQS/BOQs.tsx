@@ -15,17 +15,7 @@ const BoqListItem = ({ boq, companyName }: { boq: CRMBOQ, companyName: string })
     const navigate = useNavigate();
     const { openNewTaskDialog, openEditBoqDialog } = useDialogStore(); // Assuming you add editBoq to store
 const getBoqStatusClass=useStatusStyles("boq")
-    const getStatusClass = (status: string) => {
-        switch (status?.toLowerCase()) {
-            case 'won': return 'text-green-600 bg-green-50 border border-green-300';
-            case 'lost': return 'text-red-600 bg-red-50 border border-red-300';
-            case 'new': return 'text-yellow-600 bg-yellow-50 border border-yellow-300';
-            case 'negotiation': return 'text-emerald-600 bg-emerald-50 border border-emerald-300';
-            case 'revision submitted': return 'text-blue-600 bg-blue-50 border border-blue-300';
-            case 'revision pending': return 'text-amber-600 bg-amber-50 border border-amber-300';
-            default: return 'text-gray-600 bg-gray-100 border border-gray-300';
-        }
-    };
+   
 
     return (
         <div className="py-4">

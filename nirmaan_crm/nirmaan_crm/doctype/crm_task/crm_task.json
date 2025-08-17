@@ -48,7 +48,7 @@
    "options": "CRM Contacts"
   },
   {
-   "default": "New",
+   "default": "Scheduled",
    "fieldname": "status",
    "fieldtype": "Data",
    "label": "Status"
@@ -99,7 +99,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-14 12:38:35.930416",
+ "modified": "2025-08-15 00:11:45.910028",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Task",

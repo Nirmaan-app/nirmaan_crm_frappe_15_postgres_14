@@ -385,10 +385,10 @@ function Nav({
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
-      <Button onClick={toggleTaskDialog} className="absolute right-0 h-7 px-2">
+      {/* <Button onClick={toggleTaskDialog} className="absolute right-0 h-7 px-2">
         <PlusIcon className="h-4 w-4" />
         Task
-      </Button>
+      </Button> */}
     </nav>
   )
 }
