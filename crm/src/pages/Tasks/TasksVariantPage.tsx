@@ -1,29 +1,22 @@
+// src/pages/Tasks/TasksVariantPage.tsx
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { EnrichedCRMTask } from "./Tasks"; // Import the enriched type from Tasks.tsx
+import { EnrichedCRMTask } from "./Tasks";
 import { formatDate } from "@/utils/FormatDate";
 import { useFrappeGetDocList } from "frappe-react-sdk";
-import { ChevronRight, ListFilter, Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { format, subDays } from "date-fns";
+import { FilterControls } from "@/components/ui/FilterControls";
+import { useStatusStyles } from "@/hooks/useStatusStyles";
 
-// Define a type for the variant prop for better type safety
 type TaskVariant = 'all' | 'pending' | 'upcoming' | 'history';
 
-// A reusable status pill component
 const StatusPill = ({ status }: { status: string }) => {
-    const getStatusClass = (status: string) => {
-        switch (status?.toLowerCase()) {
-            case 'completed': return 'bg-green-100 text-green-800 border-green-300';
-            case 'scheduled': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-            case 'incomplete': return 'bg-red-100 text-red-800 border-red-300';
-            case 'pending': return 'bg-amber-100 text-amber-800 border-amber-300';
-            default: return 'bg-gray-100 text-gray-800 border-gray-300';
-        }
-    };
+    const getStatusClass = useStatusStyles("task");
     return (
         <span className={`text-xs font-semibold px-2 py-1 rounded-full border w-fit ${getStatusClass(status)}`}>
             {status}
@@ -32,60 +25,94 @@ const StatusPill = ({ status }: { status: string }) => {
 };
 
 export const TasksVariantPage = ({ variant }: { variant: TaskVariant }) => {
-    const navigate = useNavigate(); // Initialize navigate hook
+    const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [dateRange, setDateRange] = useState({
+        from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
+        to: format(new Date(), 'yyyy-MM-dd'),
+    });
 
-    // --- DATA FETCHING ---
-    // More efficient query that gets linked fields directly
+    // --- DYNAMIC FILTERS FOR DATA FETCHING ---
+    const filters = useMemo(() => {
+        const today = new Date().toISOString().slice(0, 10);
+        let statusFilter;
+
+        switch (variant) {
+            // --- THE FIX IS HERE ---
+            // The logic for 'pending' is now much simpler and more accurate.
+            case 'pending':
+                statusFilter = ['!=', 'Completed'];
+                break;
+            case 'upcoming':
+                return [
+                    ['status', '=', 'Scheduled'],
+                    ['start_date', '>=', today]
+                ];
+            case 'history':
+                return [
+                    ['start_date', '<', today]
+                ];
+            case 'all':
+            default:
+                statusFilter = ['!=', '']; // A way to get all statuses
+                break;
+        }
+        
+        return [
+            ['status', statusFilter[0], statusFilter[1]],
+            ['modified', 'between', [dateRange.from, dateRange.to]]
+        ];
+
+    }, [variant, dateRange]);
+
     const { data: tasksData, isLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-        fields: ["name", "status", "type", "modified", "contact.first_name", "contact.last_name"],
-        // You can add more complex filters based on the variant
-        filters: variant === 'pending' ? [['status', 'in', ['Pending', 'Incomplete']]] : {},
-        limit: 100,
+        fields: ["name", "status", "type", "modified","company", "contact.first_name", "contact.last_name", "company.company_name"],
+        filters: filters,
+        limit: 1000,
         orderBy: { field: "modified", order: "desc" }
     });
 
-    // --- DERIVED STATE ---
-    const enrichedTasks = useMemo(() => {
-        return tasksData?.map(task => ({
+    // --- CLIENT-SIDE SEARCH FILTERING ---
+    const filteredTasks = useMemo(() => {
+        const enriched = tasksData?.map(task => ({
             ...task,
-            contact_name: `${task["contact.first_name"] || ''} ${task["contact.last_name"] || ''}`.trim() || 'N/A',
+            contact_name: `${task.first_name || ''} ${task.last_name || ''}`.trim() || 'N/A',
+            company_name: task.company || 'N/A'
         })) || [];
-    }, [tasksData]);
-    
-    // Dynamically generate the title based on the variant
-    const title = `${variant.charAt(0).toUpperCase() + variant.slice(1)} Tasks - ${enrichedTasks.length}`;
+        
+        const lowercasedQuery = searchQuery.toLowerCase().trim();
+        if (!lowercasedQuery) return enriched;
 
-    if (isLoading) {
-        return <div>Loading tasks...</div>;
-    }
+        return enriched.filter(task => 
+            task.contact_name.toLowerCase().includes(lowercasedQuery) ||
+            task.company_name.toLowerCase().includes(lowercasedQuery) ||
+            task.type.toLowerCase().includes(lowercasedQuery)
+        );
+    }, [tasksData, searchQuery]);
+    
+    const title = `${variant.charAt(0).toUpperCase() + variant.slice(1)} Tasks - ${filteredTasks.length}`;
+
+    if (isLoading) { return <div>Loading tasks...</div>; }
 
     return (
         <div className="space-y-4">
             <h1 className="text-xl font-bold">{title}</h1>
             
-            {/* Filter and Search UI */}
-            <div className="flex gap-2">
-                <Input placeholder="By Company" /> {/* Needs ReactSelect for functionality */}
+            {/* <div className="flex gap-2">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search" className="pl-9" />
+                    <Input placeholder="Search Contact, Company or Type..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                 </div>
-            </div>
-            <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Filter by:</p>
-                <div className="flex items-center border rounded-md">
-                    <Button variant="ghost" className="bg-slate-700 text-white rounded-r-none h-8">Last 30 Days</Button>
-                    <Button variant="ghost" className="text-muted-foreground rounded-l-none h-8">Select Date Range</Button>
-                </div>
-            </div>
+            </div> */}
+            {/* <FilterControls onDateRangeChange={setDateRange} /> */}
 
-            {/* Task List Table */}
-            <Card className="mt-4 p-0 cardBorder">
+            <Card className="mt-4 p-0">
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Contact</TableHead>
+                                <TableHead>Company</TableHead>
                                 <TableHead>Task Type</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Update Date</TableHead>
@@ -93,27 +120,20 @@ export const TasksVariantPage = ({ variant }: { variant: TaskVariant }) => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {enrichedTasks.length > 0 ? (
-                                enrichedTasks.map((task) => (
-                                    // *** THIS IS THE FIX ***
-                                    // Add onClick handler to the TableRow
-                                    <TableRow 
-                                        key={task.name} 
-                                        onClick={() => navigate(`/tasks/task?id=${task.name}`)}
-                                        className="cursor-pointer"
-                                    >
-                                        <TableCell className="font-medium">{task.first_name}</TableCell>
+                            {filteredTasks.length > 0 ? (
+                                filteredTasks.map((task) => (
+                                    <TableRow key={task.name} onClick={() => navigate(`/tasks/task?id=${task.name}`)} className="cursor-pointer">
+                                        <TableCell className="font-medium">{task.contact_name}</TableCell>
+                                        <TableCell>{task.company_name}</TableCell>
                                         <TableCell>{task.type}</TableCell>
                                         <TableCell><StatusPill status={task.status} /></TableCell>
                                         <TableCell className="text-right">{formatDate(task.modified)}</TableCell>
-                                        <TableCell>
-                                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                                        </TableCell>
+                                        <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24">No tasks found.</TableCell>
+                                    <TableCell colSpan={6} className="text-center h-24">No tasks found.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
@@ -123,6 +143,132 @@ export const TasksVariantPage = ({ variant }: { variant: TaskVariant }) => {
         </div>
     );
 };
+
+// import { Card, CardContent } from "@/components/ui/card";
+// import { Input } from "@/components/ui/input";
+// import { Separator } from "@/components/ui/separator";
+// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+// import { EnrichedCRMTask } from "./Tasks"; // Import the enriched type from Tasks.tsx
+// import { formatDate } from "@/utils/FormatDate";
+// import { useFrappeGetDocList } from "frappe-react-sdk";
+// import { ChevronRight, ListFilter, Search } from "lucide-react";
+// import { useMemo, useState } from "react";
+// import { useNavigate } from "react-router-dom"; // Import useNavigate
+// import { Button } from "@/components/ui/button";
+
+// // Define a type for the variant prop for better type safety
+// type TaskVariant = 'all' | 'pending' | 'upcoming' | 'history';
+
+// // A reusable status pill component
+// const StatusPill = ({ status }: { status: string }) => {
+//     const getStatusClass = (status: string) => {
+//         switch (status?.toLowerCase()) {
+//             case 'completed': return 'bg-green-100 text-green-800 border-green-300';
+//             case 'scheduled': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+//             case 'incomplete': return 'bg-red-100 text-red-800 border-red-300';
+//             case 'pending': return 'bg-amber-100 text-amber-800 border-amber-300';
+//             default: return 'bg-gray-100 text-gray-800 border-gray-300';
+//         }
+//     };
+//     return (
+//         <span className={`text-xs font-semibold px-2 py-1 rounded-full border w-fit ${getStatusClass(status)}`}>
+//             {status}
+//         </span>
+//     );
+// };
+
+// export const TasksVariantPage = ({ variant }: { variant: TaskVariant }) => {
+//     const navigate = useNavigate(); // Initialize navigate hook
+
+//     // --- DATA FETCHING ---
+//     // More efficient query that gets linked fields directly
+//     const { data: tasksData, isLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
+//         fields: ["name", "status", "type", "modified", "contact.first_name", "contact.last_name"],
+//         // You can add more complex filters based on the variant
+//         filters: variant === 'pending' ? [['status', 'in', ['Pending', 'Incomplete',"Scheduled"]]] :variant === 'upcoming'?[['status', 'in',["Scheduled"]]]: {},
+//         limit: 100,
+//         orderBy: { field: "modified", order: "desc" }
+//     });
+
+//     // --- DERIVED STATE ---
+//     const enrichedTasks = useMemo(() => {
+//         return tasksData?.map(task => ({
+//             ...task,
+//             contact_name: `${task["contact.first_name"] || ''} ${task["contact.last_name"] || ''}`.trim() || 'N/A',
+//         })) || [];
+//     }, [tasksData]);
+    
+//     // Dynamically generate the title based on the variant
+//     const title = `${variant.charAt(0).toUpperCase() + variant.slice(1)} Tasks - ${enrichedTasks.length}`;
+
+//     if (isLoading) {
+//         return <div>Loading tasks...</div>;
+//     }
+
+//     return (
+//         <div className="space-y-4">
+//             <h1 className="text-xl font-bold">{title}</h1>
+            
+//             {/* Filter and Search UI */}
+//             <div className="flex gap-2">
+//                 <Input placeholder="By Company" /> {/* Needs ReactSelect for functionality */}
+//                 <div className="relative flex-1">
+//                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+//                     <Input placeholder="Search" className="pl-9" />
+//                 </div>
+//             </div>
+//             <div className="flex items-center justify-between">
+//                 <p className="text-sm text-muted-foreground">Filter by:</p>
+//                 <div className="flex items-center border rounded-md">
+//                     <Button variant="ghost" className="bg-slate-700 text-white rounded-r-none h-8">Last 30 Days</Button>
+//                     <Button variant="ghost" className="text-muted-foreground rounded-l-none h-8">Select Date Range</Button>
+//                 </div>
+//             </div>
+
+//             {/* Task List Table */}
+//             <Card className="mt-4 p-0 cardBorder">
+//                 <CardContent className="p-0">
+//                     <Table>
+//                         <TableHeader>
+//                             <TableRow>
+//                                 <TableHead>Contact</TableHead>
+//                                 <TableHead>Task Type</TableHead>
+//                                 <TableHead>Status</TableHead>
+//                                 <TableHead className="text-right">Update Date</TableHead>
+//                                 <TableHead className="w-[5%]"></TableHead>
+//                             </TableRow>
+//                         </TableHeader>
+//                         <TableBody>
+//                             {enrichedTasks.length > 0 ? (
+//                                 enrichedTasks.map((task) => (
+//                                     // *** THIS IS THE FIX ***
+//                                     // Add onClick handler to the TableRow
+//                                     <TableRow 
+//                                         key={task.name} 
+//                                         onClick={() => navigate(`/tasks/task?id=${task.name}`)}
+//                                         className="cursor-pointer"
+//                                     >
+//                                         <TableCell className="font-medium">{task.first_name}</TableCell>
+//                                         <TableCell>{task.type}</TableCell>
+//                                         <TableCell><StatusPill status={task.status} /></TableCell>
+//                                         <TableCell className="text-right">{formatDate(task.modified)}</TableCell>
+//                                         <TableCell>
+//                                             <ChevronRight className="w-4 h-4 text-muted-foreground" />
+//                                         </TableCell>
+//                                     </TableRow>
+//                                 ))
+//                             ) : (
+//                                 <TableRow>
+//                                     <TableCell colSpan={5} className="text-center h-24">No tasks found.</TableCell>
+//                                 </TableRow>
+//                             )}
+//                         </TableBody>
+//                     </Table>
+//                 </CardContent>
+//             </Card>
+//         </div>
+//     );
+// };
 
 // import { Card, CardContent } from "@/components/ui/card";
 // import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";

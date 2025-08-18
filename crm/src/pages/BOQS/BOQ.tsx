@@ -185,12 +185,29 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                     <DetailItem label="Company Name" value={company?.company_name || 'n/a'} href={`/companies/company?id=${company?.name}`} />
                     <DetailItem label="Location" value={company?.company_city || 'n/a'} />
                 </div>
-                <div className="border-t pt-4 space-y-2">
+                {/* <div className="border-t pt-4 space-y-2">
                     <DetailItem label="BOQ" value={boq?.boq_link ? "View Link" : "n/a"} href={boq?.boq_link} />
                     <DetailItem label="Additional Attachments" value="n/a" />
-                    <Button variant="outline" size="sm" className="border-destructive text-destructive w-full justify-start mt-2">
+                    <Button variant="outline" size="sm" className="border-destructive text-destructive w-full justify-end mt-2">
                          <Plus className="w-4 h-4 mr-2" />ADD ATTACHMENTS
                     </Button>
+                </div> */}
+                  <Separator className="my-4 border-dashed" />
+
+                {/* Attachments section with right-aligned buttons */}
+                <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                        <DetailItem label="BOQ" value={boq?.boq_link ? "View Link" : "n/a"} href={boq?.boq_link} />
+                        <Button variant="outline" size="sm" className="border-destructive text-destructive">
+                            <Plus className="w-4 h-4 mr-2" />ADD BOQ
+                        </Button>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <DetailItem label="Additional Attachments" value="n/a" />
+                        <Button variant="outline" size="sm" className="border-destructive text-destructive">
+                             <Plus className="w-4 h-4 mr-2" />ADD ATTACHMENTS
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
