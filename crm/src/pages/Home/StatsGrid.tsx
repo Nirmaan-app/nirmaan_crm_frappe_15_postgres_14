@@ -5,6 +5,8 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 import React, { useState, useMemo } from "react";
 import { subDays, format } from 'date-fns';
 import { StatItem } from "@/store/dialogStore";
+import { FilterControls } from "@/components/ui/FilterControls";
+
 
 // StatCard component (no changes needed here)
 interface StatCardProps {
@@ -119,17 +121,6 @@ export const StatsGrid = () => {
 
     }, [allTasks, allBoqs]);
 
-    const handleSelectRange = () => {
-        openDateRangePickerDialog({
-            onConfirm: (range) => {
-                setDateRange({
-                    from: format(range.from, 'yyyy-MM-dd'),
-                    to: format(range.to, 'yyyy-MM-dd'),
-                });
-            }
-        });
-    };
-
     const isLoading = tasksLoading || boqsLoading;
 
     const statCards = [
@@ -144,7 +135,8 @@ export const StatsGrid = () => {
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center justify-between">
+               <FilterControls onDateRangeChange={setDateRange} dateRange={dateRange}/>
+            {/* <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">Date filter:</p>
                 <div className="flex items-center border rounded-md overflow-hidden">
                     <Button variant="ghost" className="bg-gray-800 text-white rounded-none h-8 text-xs">
@@ -158,7 +150,7 @@ export const StatsGrid = () => {
                         Select range
                     </Button>
                 </div>
-            </div>
+            </div> */}
             <div className="grid grid-cols-2 gap-3">
                 {statCards.map(card => (
                     <StatCard

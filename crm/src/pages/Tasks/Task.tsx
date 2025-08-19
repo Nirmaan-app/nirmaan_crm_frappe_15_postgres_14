@@ -109,7 +109,7 @@ const UpdateTaskButtons = ({ task }: { task: CRMTask }) => {
     const { openEditTaskDialog } = useDialogStore();
     return (
         <div className="fixed bottom-16 left-0 right-0 p-4 bg-background border-t shadow-[0_-2px_5px_rgba(0,0,0,0.05)]">
-            <Button className="w-full bg-destructive" onClick={() => openEditTaskDialog({ taskData: task, mode: 'updateStatus' })}>
+            <Button className=" bg-destructive" onClick={() => openEditTaskDialog({ taskData: task, mode: 'updateStatus' })}>
                 Update Task
             </Button>
         </div>
@@ -123,7 +123,9 @@ export const Task = () => {
 
     // Fetch the main task and all its related documents
     const { data: taskData, isLoading: taskLoading,mutate:taskMutate } = useFrappeGetDoc<CRMTask>("CRM Task", id);
+
     const { data: contactData, isLoading: contactLoading,mutate:contactMutate } = useFrappeGetDoc<CRMContacts>("CRM Contacts", taskData?.contact, { enabled: !!taskData?.contact });
+    
     const { data: companyData, isLoading: companyLoading,mutate:companyMutate } = useFrappeGetDoc<CRMCompany>("CRM Company", taskData?.company, { enabled: !!taskData?.company });
     const { data: boqData, isLoading: boqLoading } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", taskData?.boq, { enabled: !!taskData?.boq });
 
@@ -145,7 +147,7 @@ export const Task = () => {
     if (!taskData) {
         return <div>Task not found.</div>
     }
-    console.log("tasks",taskData)
+    // console.log("tasks",taskData)
 
     return (
         <div className="space-y-6 pb-24"> {/* Padding bottom to prevent overlap with fixed button */}
