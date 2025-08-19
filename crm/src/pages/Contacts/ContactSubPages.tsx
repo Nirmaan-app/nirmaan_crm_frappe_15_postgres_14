@@ -5,8 +5,8 @@ import { CRMBOQ } from "@/types/NirmaanCRM/CRMBOQ";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { formatDate } from "@/utils/FormatDate";
 import { ChevronRight, Search } from "lucide-react";
-import React from "react";
 import { useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
 
 interface ContactSubPagesProps {
     boqs: CRMBOQ[];
@@ -50,6 +50,32 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
     const navigate = useNavigate();
    const getBoqStatusClass = useStatusStyles('boq'); 
 
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // --- ADD THE FOLLOWING TWO BLOCKS OF CODE ---
+
+    // 1. Memoized filtering for BOQs
+    const filteredBoqs = useMemo(() => {
+        const lowercasedQuery = searchQuery.toLowerCase().trim();
+        if (!lowercasedQuery) return boqs; // If search is empty, return all
+
+        return boqs.filter(boq => 
+            boq.boq_name?.toLowerCase().includes(lowercasedQuery) ||
+            boq.boq_status?.toLowerCase().includes(lowercasedQuery)
+        );
+    }, [boqs, searchQuery]); // Dependencies: re-run only when these change
+
+    // 2. Memoized filtering for Tasks
+    const filteredTasks = useMemo(() => {
+        const lowercasedQuery = searchQuery.toLowerCase().trim();
+        if (!lowercasedQuery) return tasks;
+
+        return tasks.filter(task => 
+            task.type?.toLowerCase().includes(lowercasedQuery) ||
+            task.status?.toLowerCase().includes(lowercasedQuery)
+        );
+    }, [tasks, searchQuery]);
+
     return (
         <div>
             <h2 className="text-lg font-semibold mb-2">Other Details</h2>
@@ -61,7 +87,12 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
 
                 <div className="relative my-4">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input placeholder="Search Projects" className="pl-10" />
+                     <Input 
+        placeholder="Search..." 
+        className="pl-10"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+    />
                 </div>
 
                 <TabsContent value="boqs">
@@ -71,7 +102,7 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
                             <span>Status</span>
                             <span className="text-right">Date</span>
                         </div>
-                        {boqs.map((boq, index) => (
+                        {filteredBoqs?.map((boq, index) => (
                             <React.Fragment key={boq.name}>
                                 <div onClick={() => navigate(`/boqs/boq?id=${boq.name}`)} className="grid grid-cols-[1fr,1fr,1fr] items-center px-2 py-3 cursor-pointer">
                                     <span className="font-medium">{boq.boq_name}</span>
@@ -90,8 +121,8 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
                 </TabsContent>
 
                 <TabsContent value="tasks">
-                    {tasks && tasks.length > 0 ? (
-                        <TaskList tasks={tasks} />
+                    {filteredTasks && filteredTasks.length > 0 ? (
+                        <TaskList tasks={filteredTasks} />
                     ) : (
                         <p className="text-center text-muted-foreground py-8">No tasks found for this contact.</p>
                     )}

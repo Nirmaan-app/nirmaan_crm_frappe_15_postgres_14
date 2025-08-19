@@ -8,8 +8,12 @@ import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask"; // Import the Task type
 import { formatDate } from "@/utils/FormatDate";
 import { ChevronRight, Search } from "lucide-react";
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useStatusStyles } from "@/hooks/useStatusStyles";
+
+
+
 
 interface CompanySubPagesProps {
     boqs: CRMBOQ[];
@@ -20,18 +24,11 @@ interface CompanySubPagesProps {
 // --- Sub-component for rendering the BOQ list ---
 const BoqList = ({ boqs }: { boqs: CRMBOQ[] }) => {
     const navigate = useNavigate();
+           const getBoqStatusClass = useStatusStyles('boq'); 
+        
+    
      // This is the updated function from Step 1
-    const getStatusClass = (status: string) => {
-        switch (status?.toLowerCase()) {
-            case 'won': return 'text-green-600 bg-green-50 border border-green-300';
-            case 'lost': return 'text-red-600 bg-red-50 border border-red-300';
-            case 'new': return 'text-yellow-600 bg-yellow-50 border border-yellow-300';
-            case 'negotiation': return 'text-emerald-600 bg-emerald-50 border border-emerald-300';
-            case 'revision submitted': return 'text-blue-600 bg-blue-50 border border-blue-300';
-            case 'revision pending': return 'text-amber-600 bg-amber-50 border border-amber-300';
-            default: return 'text-gray-600 bg-gray-100 border border-gray-300';
-        }
-    };
+    
 
     return (
         <div className="space-y-2">
@@ -44,7 +41,7 @@ const BoqList = ({ boqs }: { boqs: CRMBOQ[] }) => {
                 <React.Fragment key={boq.name}>
                     <div onClick={() => navigate(`/boqs/boq?id=${boq.name}`)} className="grid grid-cols-[1fr,1fr,1fr] items-center px-2 py-3 cursor-pointer hover:bg-secondary rounded-md">
                         <span className="font-medium truncate pr-2">{boq.boq_name}</span>
-                        <span className={`text-xs text-center font-semibold px-2 py-1 rounded-full whitespace-nowrap ${getStatusClass(boq.boq_status)}`}>
+                        <span className={`text-xs text-center font-semibold px-2 py-1 rounded-full whitespace-nowrap ${getBoqStatusClass(boq.boq_status)}`}>
                             {boq.boq_status || 'N/A'}
                         </span>
                         <div className="flex items-center justify-end gap-2 text-sm text- -foreground">
@@ -62,6 +59,7 @@ const BoqList = ({ boqs }: { boqs: CRMBOQ[] }) => {
 // --- Sub-component for rendering the Contact list ---
 const ContactList = ({ contacts }: { contacts: CRMContacts[] }) => {
     const navigate = useNavigate();
+
     return (
          <div className="space-y-2">
             <div className="grid grid-cols-[1fr,auto] text-sm font-semibold px-2">
@@ -116,6 +114,48 @@ const TaskList = ({ tasks, contacts }: { tasks: CRMTask[], contacts: CRMContacts
 
 // --- Main Component ---
 export const CompanySubPages = ({ boqs, contacts, tasks }: CompanySubPagesProps) => {
+     const [searchQuery, setSearchQuery] = useState("");
+     const filteredBoqs = useMemo(() => {
+        const lowercasedQuery = searchQuery.toLowerCase().trim();
+        if (!lowercasedQuery) return boqs; // Return all if search is empty
+
+        return boqs.filter(boq => 
+            boq.boq_name?.toLowerCase().includes(lowercasedQuery) ||
+            boq.boq_status?.toLowerCase().includes(lowercasedQuery)
+        );
+    }, [boqs, searchQuery]); // Dependencies: re-run when these change
+
+    // 2. Memoized filtering for Contacts
+    const filteredContacts = useMemo(() => {
+        const lowercasedQuery = searchQuery.toLowerCase().trim();
+        if (!lowercasedQuery) return contacts;
+
+        return contacts.filter(contact => {
+            const fullName = `${contact.first_name} ${contact.last_name}`.toLowerCase();
+            return (
+                fullName.includes(lowercasedQuery) ||
+                contact.designation?.toLowerCase().includes(lowercasedQuery)
+            );
+        });
+    }, [contacts, searchQuery]);
+
+    // 3. Memoized filtering for Tasks
+    const filteredTasks = useMemo(() => {
+        const lowercasedQuery = searchQuery.toLowerCase().trim();
+        if (!lowercasedQuery) return tasks;
+        
+        const contactMap = new Map(contacts.map(c => [c.name, `${c.first_name} ${c.last_name}`]));
+
+        return tasks.filter(task => {
+            const contactName = contactMap.get(task.contact)?.toLowerCase() || '';
+            return (
+                task.type?.toLowerCase().includes(lowercasedQuery) ||
+                contactName.includes(lowercasedQuery)
+            );
+        });
+    }, [tasks, contacts, searchQuery]);
+
+
     return (
         <Tabs defaultValue="boqs" className="w-full">
             <TabsList className="grid w-full grid-cols-3 bg-transparent p-0">
@@ -126,26 +166,31 @@ export const CompanySubPages = ({ boqs, contacts, tasks }: CompanySubPagesProps)
 
             <div className="relative my-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input placeholder="Search..." className="pl-10" />
+                 <Input 
+        placeholder="Search..." 
+        className="pl-10"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+    />
             </div>
 
             <TabsContent value="boqs">
-                {boqs?.length > 0 
-                    ? <BoqList boqs={boqs} /> 
+                {filteredBoqs?.length > 0 
+                    ? <BoqList boqs={filteredBoqs} /> 
                     : <p className="text-center text-muted-foreground py-8">No BOQs found for this company.</p>
                 }
             </TabsContent>
 
             <TabsContent value="contacts">
-                 {contacts?.length > 0 
-                    ? <ContactList contacts={contacts} /> 
+                 {filteredContacts?.length > 0 
+                    ? <ContactList contacts={filteredContacts} /> 
                     : <p className="text-center text-muted-foreground py-8">No contacts found for this company.</p>
                 }
             </TabsContent>
 
             <TabsContent value="tasks">
-                {tasks?.length > 0 
-                    ? <TaskList tasks={tasks} contacts={contacts} /> 
+                {filteredTasks?.length > 0 
+                    ? <TaskList tasks={filteredTasks} contacts={contacts} /> 
                     : <p className="text-center text-muted-foreground py-8">No tasks found for this company.</p>
                 }
             </TabsContent>
