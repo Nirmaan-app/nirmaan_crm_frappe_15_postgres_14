@@ -9,28 +9,29 @@ import { useState, useEffect } from "react";
 interface FilterControlsProps {
     // A function to call whenever the date range is updated
     onDateRangeChange: (newRange: { from: string; to: string; }) => void;
+     dateRange: { from: string; to: string; }; // Expect `dateRange`
 }
 
-export const FilterControls = ({ onDateRangeChange }: FilterControlsProps) => {
+export const FilterControls = ({ onDateRangeChange,dateRange }: FilterControlsProps) => {
     const { openDateRangePickerDialog } = useDialogStore();
 
-    // Internal state to track the selected dates
-    const [dateRange, setDateRange] = useState({
-        from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-        to: format(new Date(), 'yyyy-MM-dd'),
-    });
+    // // Internal state to track the selected dates
+    // const [dateRange, setDateRange] = useState({
+    //     from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
+    //     to: format(new Date(), 'yyyy-MM-dd'),
+    // });
 
-    // When the internal dateRange state changes, call the prop function to notify the parent
-    useEffect(() => {
-        onDateRangeChange(dateRange);
-    }, [dateRange, onDateRangeChange]);
+    // // When the internal dateRange state changes, call the prop function to notify the parent
+    // useEffect(() => {
+    //     onDateRangeChange(dateRange);
+    // }, [dateRange, onDateRangeChange]);
 
     // This is the logic to open the date picker dialog
     const handleSelectRange = () => {
         openDateRangePickerDialog({
             onConfirm: (range) => {
                 // When the user confirms, update the internal state
-                setDateRange({
+                onDateRangeChange({
                     from: format(range.from, 'yyyy-MM-dd'),
                     to: format(range.to, 'yyyy-MM-dd'),
                 });
@@ -40,7 +41,7 @@ export const FilterControls = ({ onDateRangeChange }: FilterControlsProps) => {
 
     // This is the logic to reset the filter to the last 30 days
     const resetToLast30Days = () => {
-        setDateRange({
+        onDateRangeChange({
             from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
             to: format(new Date(), 'yyyy-MM-dd'),
         });

@@ -13,6 +13,7 @@ interface BoqListHeaderProps {
     filterType: string;
     setFilterType: (value: string) => void;
     onDateRangeChange: (range: { from: string; to: string }) => void;
+    dateRange: { from: string; to: string };
     isMobile: boolean; // To handle slight layout differences
 }
 
@@ -24,6 +25,7 @@ export const BoqListHeader = ({
     filterType,
     setFilterType,
     onDateRangeChange,
+   dateRange, // Receive as `dateRange`
     isMobile
 }: BoqListHeaderProps) => {
     
@@ -46,7 +48,7 @@ export const BoqListHeader = ({
                         <Input placeholder="Search..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                     </div>
                 </div>
-                <FilterControls onDateRangeChange={onDateRangeChange} />
+               <FilterControls onDateRangeChange={onDateRangeChange} dateRange={dateRange} />
             </div>
         );
     

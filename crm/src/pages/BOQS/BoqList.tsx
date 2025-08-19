@@ -101,6 +101,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         filterType,
         setFilterType,
         onDateRangeChange: setDateRange,
+         dateRange: dateRange, // Use camelCase `dateRange`
         isMobile,
     };
 

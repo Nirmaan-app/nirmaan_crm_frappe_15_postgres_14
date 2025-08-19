@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 // Import the new child components
 import { CompanyDetailsCard } from "./CompanyDetailsCard";
-import { CompanyStats } from "./CompanyStats";
+import { DynamicCompanyStats } from "./DynamicCompanyStats";
 import { CompanySubPages } from "./CompanySubPages";
 // Assume you have an EditCompanyForm component for the dialog
 // import { EditCompanyForm } from "./EditCompanyForm"; 
@@ -83,7 +83,8 @@ export const Company = () => {
                 totalContacts={contactsList?.length || 0}
             />
 
-            <CompanyStats />
+                  
+            {id && <DynamicCompanyStats companyId={id} />}
 
                <CompanySubPages
                 boqs={boqsList || []}

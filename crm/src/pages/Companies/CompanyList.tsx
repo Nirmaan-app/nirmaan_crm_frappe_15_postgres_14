@@ -5,7 +5,7 @@ import { useDialogStore } from "@/store/dialogStore";
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, Plus, Search } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo,useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface CompanyListProps {
@@ -33,11 +33,27 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
     const navigate = useNavigate();
     const { openNewCompanyDialog } = useDialogStore();
 
+        // --- STEP 1: ADD STATE FOR SEARCH QUERY ---
+    const [searchQuery, setSearchQuery] = useState("");
+
+
     const { data: companiesList, isLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", {
         fields: ["name", "company_name"],
         limit: 1000,
         orderBy: { field: "modified", order: "desc" }
     });
+
+     // --- STEP 2: IMPLEMENT CLIENT-SIDE FILTERING ---
+    const filteredCompanies = useMemo(() => {
+        if (!companiesList) return [];
+        const lowercasedQuery = searchQuery.toLowerCase().trim();
+        if (!lowercasedQuery) return companiesList;
+
+        return companiesList.filter(company =>
+            company.company_name?.toLowerCase().includes(lowercasedQuery)
+        );
+    }, [companiesList, searchQuery]);
+
 
     const handleSelect = (id: string) => {
         // If the onCompanySelect prop is provided (on desktop), use it.
@@ -51,17 +67,17 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
 
     // Memoize the list to prevent re-renders
     const companyItems = useMemo(() =>
-        companiesList?.map((company, index) => (
+        filteredCompanies?.map((company, index) => (
             <div key={company.name}>
                 <CompanyListItem
                     company={company}
                     onSelect={() => handleSelect(company.name)}
                     isActive={company.name === activeCompanyId}
                 />
-                {index < companiesList.length - 1 && <Separator />}
+                {index < filteredCompanies.length - 1 && <Separator />}
             </div>
         )),
-        [companiesList, activeCompanyId]
+        [filteredCompanies, activeCompanyId]
     );
 
     if (isLoading) {
@@ -72,7 +88,12 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
         <div className="flex flex-col h-full">
             <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search Company..." className="pl-9" />
+                <Input
+                    placeholder="Search Company..."
+                    className="pl-9"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
             </div>
             <div className="flex-1 overflow-y-auto">
                 {companyItems}

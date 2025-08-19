@@ -46,17 +46,18 @@ const TaskDashboardRow = ({ task, context,onTaskSelect }: { task: EnrichedCRMTas
         buttonLabel = "Edit Task";
         buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'edit' });
     }
-    // For 'today', the default action is 'Update', so no 'if' statement is needed.
-     // --- NEW RESPONSIVE CLICK HANDLER ---
-    const handleSelect = (task_id) => {
-        if (!isMobile) {
-            // If the onTaskSelect function is provided (desktop mode), use it.
-            onTaskSelect(task.name);
-        } else {
-            // Otherwise (mobile mode), navigate.
-            navigate(`/task?id=${task_id}`);
-        }
-    };
+    
+    // // For 'today', the default action is 'Update', so no 'if' statement is needed.
+    //  // --- NEW RESPONSIVE CLICK HANDLER ---
+    // const handleSelect = (task_id) => {
+    //     if (!isMobile) {
+    //         // If the onTaskSelect function is provided (desktop mode), use it.
+    //         onTaskSelect(task.name);
+    //     } else {
+    //         // Otherwise (mobile mode), navigate.
+    //         navigate(`/task?id=${task_id}`);
+    //     }
+    // };
 
     return (
         <div className="flex items-center justify-between py-3 px-2 border-b last:border-b-0">
@@ -87,7 +88,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         orderBy: { field: "creation", order: "asc" }
     });
 
-    console.log("TTASKS",tasks)
+    // console.log("TTASKS",tasks)
 
     const { allTasks, pendingTasks, scheduledTasks, todayTasks, tomorrowTasks, createdTodayTasks } = useMemo(() => {
         const today = new Date().toISOString().slice(0, 10);
@@ -127,7 +128,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
     
         return (
             <div className="space-y-4">
-                <FilterControls onDateRangeChange={setDateRange} />
+                <FilterControls onDateRangeChange={setDateRange} dateRange={dateRange}/>
             {/* Header cards */}
             <div className="grid grid-cols-3 gap-3">
                 <div onClick={() => handleTaskClick('all')} className="bg-destructive text-white p-3 rounded-lg text-center cursor-pointer">
