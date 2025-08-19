@@ -60,8 +60,8 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
         const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In Progress"].includes(b.boq_status));
         const hotDeals = allBoqs.filter(b => ["Revision Submitted", "Negotiation"].includes(b.boq_status));
         const wonDeals = allBoqs.filter(b => ["Won"].includes(b.boq_status));
-        const allMeetings = allTasks.filter(t => ["Follow-Up", "In-Person", "Call", "Virtual"].includes(t.type));
-         const followUpMeetings = allTasks.filter(t => t.type==="Follow-Up");
+        const allMeetings = allTasks.filter(t => ["Follow-up", "In-Person", "Call", "Virtual"].includes(t.type));
+         const followUpMeetings = allTasks.filter(t => t.type==="Follow-up");
         
         
 
@@ -70,6 +70,7 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
           wonDeals: { count: wonDeals.length, items: formatItems(wonDeals, boqNameFormatter, 'BOQ') },
           pendingBoq: { count: pendingBoq.length, items: formatItems(pendingBoq, taskNameFormatter, 'BOQ') },
           totalMeetings: { count: allMeetings.length, items: formatItems(allMeetings, taskNameFormatter, 'Task') },
+
           followUpMeetings: { count: followUpMeetings.length, items: formatItems(followUpMeetings, taskNameFormatter, 'Task') },
 
           boqReceived: { count: boqReceived.length, items: formatItems(boqReceived, boqNameFormatter, 'BOQ') },

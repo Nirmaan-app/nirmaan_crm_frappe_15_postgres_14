@@ -4,6 +4,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { useDialogStore } from "@/store/dialogStore";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
+import React, { useEffect } from "react";
+
 
 export const DateRangePickerDialog = () => {
     // Get the context and the close action from the Zustand store
@@ -23,13 +25,25 @@ export const DateRangePickerDialog = () => {
     };
 
     return (
-        <div className="flex flex-col items-center">
-            <Calendar
+        <div className="flex flex-col">
+            {/* <Calendar
                 mode="range" // Set the calendar to range selection mode
+            
                 selected={date}
                 onSelect={setDate}
                 className="rounded-md p-0"
-            />
+                
+            /> */}
+
+           <Calendar
+        mode="range"
+        // defaultMonth={date}
+        selected={date}
+        onSelect={setDate}
+          className="min-w-full"
+        // captionLayout={dropdown}
+        // className="rounded-lg"
+      />
             <div className="flex gap-2 justify-center w-full mt-4 pt-4 border-t">
                 <Button variant="outline" className="flex-1 border-destructive text-destructive" onClick={closeDateRangePickerDialog}>
                     Cancel

@@ -5,7 +5,7 @@ import { useDialogStore } from "@/store/dialogStore";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, Plus, Search } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo,useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface ContactListProps {
@@ -35,6 +35,9 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
     const navigate = useNavigate();
     const { openNewContactDialog } = useDialogStore();
 
+        const [searchQuery, setSearchQuery] = useState("");
+    
+
     const { data: contacts, isLoading } = useFrappeGetDocList<EnrichedContact>("CRM Contacts", {
         fields: ["name", "first_name", "last_name", "company"],
         limit: 1000,
@@ -46,9 +49,23 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
             ...c,
             full_name: `${c.first_name || ''} ${c.last_name || ''}`.trim(),
             company_name: c.company || 'N/A'
-        })),
+        }))||[],
         [contacts]
     );
+
+     // --- STEP 2: IMPLEMENT CLIENT-SIDE FILTERING ---
+    const filteredContacts = useMemo(() => {
+        const lowercasedQuery = searchQuery.toLowerCase().trim();
+        if (!lowercasedQuery) {
+            return enrichedContacts;
+        }
+
+        return enrichedContacts.filter(contact => 
+            contact.full_name.toLowerCase().includes(lowercasedQuery) ||
+            contact.company_name.toLowerCase().includes(lowercasedQuery)
+        );
+    }, [enrichedContacts, searchQuery]);
+
 
     const handleSelect = (id: string) => {
         if (onContactSelect) {
@@ -66,10 +83,15 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
         <div className="flex flex-col h-full">
             <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search Contact..." className="pl-9" />
+            <Input
+                    placeholder="Search Contact or Company..."
+                    className="pl-9"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
             </div>
             <div className="flex-1 overflow-y-auto">
-                {enrichedContacts?.map((contact, index) => (
+                {filteredContacts?.map((contact, index) => (
                     <div key={contact.name}>
                         <ContactListItem
                             contact={contact}
