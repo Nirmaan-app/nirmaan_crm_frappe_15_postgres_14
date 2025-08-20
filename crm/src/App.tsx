@@ -7,6 +7,7 @@ import {
 import { RenderRoutes } from "./components/helpers/RenderRoutes";
 import { ThemeProvider } from "./components/ui/ThemeProvider";
 import { ApplicationProvider } from "./contexts/ApplicationContext";
+import { AuthProvider } from "./auth/AuthProvider";
 
 const router = createBrowserRouter([
   {
@@ -34,11 +35,13 @@ const App: FC = () => {
       }
       siteName={getSiteName()}
     >
-      <ApplicationProvider>
+      <AuthProvider>
+        <ApplicationProvider>
           <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
             <RouterProvider router={router} />
           </ThemeProvider>
-      </ApplicationProvider>
+        </ApplicationProvider>
+      </AuthProvider>
     </FrappeProvider>
   );
 };

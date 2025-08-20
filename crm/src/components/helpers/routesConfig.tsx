@@ -12,9 +12,20 @@ import { BOQ } from "@/pages/BOQS/BOQ";
 import { Tasks } from "@/pages/Tasks/Tasks";
 import { Task } from "@/pages/Tasks/Task";
 import { TasksVariantPage } from "@/pages/Tasks/TasksVariantPage";
+import path from "path";
+import { LoginPage } from "@/pages/Login";
+import { ProtectedRoute } from "@/auth/ProtectedRoute";
 
 export const appRoutes = [
   {
+    path: "/login",
+    element: <LoginPage />, // Placeholder for login page
+  },
+  {
+    path: "/",
+    element: <ProtectedRoute />, // Authentication Wrapper
+    children: [
+        {
     path: "/",
     element: <AppLayout />, // The single, stable layout for all routes
     children: [
@@ -54,6 +65,9 @@ export const appRoutes = [
       },
     ],
   },
+    ]
+  },
+  
 ];
 
 
