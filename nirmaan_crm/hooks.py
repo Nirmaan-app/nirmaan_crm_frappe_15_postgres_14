@@ -227,5 +227,9 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+fixtures = [
+    {"dt": "Role", "filters": [["role_name", "like", "Nirmaan %"]]},
+]
+
 
 website_route_rules = [{'from_route': '/crm/<path:app_path>', 'to_route': 'crm'},]

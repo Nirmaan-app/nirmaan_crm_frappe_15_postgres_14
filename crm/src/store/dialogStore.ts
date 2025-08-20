@@ -5,7 +5,7 @@ import { CRMCompany } from '@/types/NirmaanCRM/CRMCompany'; // Make sure this
 // import exists
 import { CRMContacts } from '@/types/NirmaanCRM/CRMContacts';
 import { CRMPBOQ } from '@/types/NirmaanCRM/CRMBOQ';
-import {CRMTask} from '@types/NirmaanCRM/CRMTask'
+import {CRMTask} from '@/types/NirmaanCRM/CRMTask';
 import { create } from 'zustand';
 
 // Context types define what data each dialog can receive
@@ -16,7 +16,7 @@ type NewTaskContext = { companyId?: string; contactId?: string; boqId?: string }
 type EditCompanyContext = { companyData: CRMCompany | null }; 
 type EditContactContext = { contactData: CRMContacts | null };
 type EditBoqContext = { 
-  boqData: CRMBOQ | null;
+  boqData: CRMPBOQ | null;
   mode: 'details' | 'status' | 'remark' | 'attachment'; 
 
 };
@@ -45,6 +45,7 @@ type DialogState = {
 
    dateRangePicker: { isOpen: boolean; context: DateRangeContext };
   statsDetail: { isOpen: boolean; context: StatsDetailContext };
+  userProfile: { isOpen: boolean }; // <-- ADD THIS
 };
 
 // The actions are now explicit open/close functions
@@ -77,7 +78,8 @@ type DialogActions = {
   openStatsDetailDialog: (context: StatsDetailContext) => void;
   closeStatsDetailDialog: () => void;
   
-
+  openUserProfileDialog: () => void; // <-- ADD THIS
+  closeUserProfileDialog: () => void; // <-- ADD THIS
 };
 
 const initialState: DialogState = {
@@ -93,6 +95,8 @@ const initialState: DialogState = {
 
    dateRangePicker: { isOpen: false, context: { onConfirm: () => {} } },
   statsDetail: { isOpen: false, context: { title: '', items: [] } },
+
+  userProfile: { isOpen: false }, // <-- ADD THIS
 };
 
 export const useDialogStore = create<DialogState & DialogActions>((set) => ({
@@ -140,6 +144,10 @@ export const useDialogStore = create<DialogState & DialogActions>((set) => ({
   closeDateRangePickerDialog: () => set((state) => ({ dateRangePicker: { ...state.dateRangePicker, isOpen: false } })),
   openStatsDetailDialog: (context) => set({ statsDetail: { isOpen: true, context } }),
   closeStatsDetailDialog: () => set((state) => ({ statsDetail: { ...state.statsDetail, isOpen: false } })),
+
+  // --- User Profile Dialog ---  // <-- ADD THIS SECTION
+  openUserProfileDialog: () => set({ userProfile: { isOpen: true } }),
+  closeUserProfileDialog: () => set({ userProfile: { isOpen: false } }),
 
 }));
 
