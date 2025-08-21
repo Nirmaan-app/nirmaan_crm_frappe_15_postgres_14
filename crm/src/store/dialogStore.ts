@@ -46,6 +46,8 @@ type DialogState = {
    dateRangePicker: { isOpen: boolean; context: DateRangeContext };
   statsDetail: { isOpen: boolean; context: StatsDetailContext };
   userProfile: { isOpen: boolean }; // <-- ADD THIS
+
+  newUser: { isOpen: boolean };
 };
 
 // The actions are now explicit open/close functions
@@ -80,6 +82,9 @@ type DialogActions = {
   
   openUserProfileDialog: () => void; // <-- ADD THIS
   closeUserProfileDialog: () => void; // <-- ADD THIS
+
+  openNewUserDialog: () => void;
+closeNewUserDialog: () => void;
 };
 
 const initialState: DialogState = {
@@ -97,6 +102,9 @@ const initialState: DialogState = {
   statsDetail: { isOpen: false, context: { title: '', items: [] } },
 
   userProfile: { isOpen: false }, // <-- ADD THIS
+
+  newUser: { isOpen: false },
+
 };
 
 export const useDialogStore = create<DialogState & DialogActions>((set) => ({
@@ -148,6 +156,10 @@ export const useDialogStore = create<DialogState & DialogActions>((set) => ({
   // --- User Profile Dialog ---  // <-- ADD THIS SECTION
   openUserProfileDialog: () => set({ userProfile: { isOpen: true } }),
   closeUserProfileDialog: () => set({ userProfile: { isOpen: false } }),
+
+  openNewUserDialog: () => set({ newUser: { isOpen: true } }),
+closeNewUserDialog: () => set({ newUser: { isOpen: false } }),
+
 
 }));
 

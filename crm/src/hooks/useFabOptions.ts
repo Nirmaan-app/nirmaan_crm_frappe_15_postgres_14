@@ -10,12 +10,14 @@ export interface FabOption {
 
 export const useFabOptions = () => {
     const location = useLocation();
+
     const [options, setOptions] = useState<FabOption[]>([]);
     const {
         openNewCompanyDialog,
         openNewContactDialog,
         openNewBoqDialog,
-        openNewTaskDialog
+        openNewTaskDialog,
+        openNewUserDialog
     } = useDialogStore();
 
     useEffect(() => {
@@ -47,6 +49,8 @@ export const useFabOptions = () => {
             newOptions = [{ label: "Add New BOQ", action: openNewBoqDialog }];
         } else if (pathname.startsWith('/tasks')) {
             newOptions = [{ label: "Add New Task", action: openNewTaskDialog }];
+        } else if (pathname.startsWith('/team')) {
+            newOptions = [{ label: "Add New CRM User", action: openNewUserDialog }];
         } else if (pathname === '/') {
             newOptions = [
                 { label: "Add New Company", action: openNewCompanyDialog },

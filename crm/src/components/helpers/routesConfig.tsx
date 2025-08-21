@@ -15,6 +15,9 @@ import { TasksVariantPage } from "@/pages/Tasks/TasksVariantPage";
 import path from "path";
 import { LoginPage } from "@/pages/Login";
 import { ProtectedRoute } from "@/auth/ProtectedRoute";
+import { MyTeamPage } from "@/pages/MyTeam/MyTeamPage";
+import { MemberDetails } from "@/pages/MyTeam/MemberDetails";
+import {MobileMemberDetailsPage} from "@/pages/MyTeam/MobileMemberDetailsPage"
 
 export const appRoutes = [
   {
@@ -63,6 +66,15 @@ export const appRoutes = [
           { path: "upcoming", element: <TasksVariantPage variant="upcoming" /> },
         ],
       },
+      {
+        path: "team",
+        children: [
+          { index: true, element: <MyTeamPage /> },
+          //  { path: "details", element: <MemberDetails /> },
+           { path: "details", element: <MobileMemberDetailsPage /> },
+        ],
+      },
+     
     ],
   },
     ]

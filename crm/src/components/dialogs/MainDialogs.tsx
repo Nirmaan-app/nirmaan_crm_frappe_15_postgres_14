@@ -7,7 +7,7 @@ import { EditBoqForm } from "@/pages/BOQS/EditBoqForm"
 import { NewTaskForm } from "@/pages/Tasks/NewTaskForm";
 import { NewContactForm } from "@/pages/Contacts/NewContactForm";
 import { EditTaskForm } from "@/pages/Tasks/EditTaskForm";
-
+import { NewUserForm } from "@/pages/MyTeam/NewUserForm";
 // --- NEW DIALOG IMPORTS ---
 import { DateRangePickerDialog } from "./DateRangePickerDialog";
 import { StatsDetailDialog } from "./StatsDetailDialog";
@@ -27,6 +27,10 @@ export const MainDialogs = () => {
 
         dateRangePicker, closeDateRangePickerDialog,
         statsDetail, closeStatsDetailDialog,
+        userProfile,closeUserProfileDialog,
+
+        newUser, closeNewUserDialog
+
     } = useDialogStore();
 
     // Helper to generate a dynamic title
@@ -145,8 +149,27 @@ export const MainDialogs = () => {
                 title="" // The title is handled inside the component itself
             >
                 <StatsDetailDialog />
-                <UserProfileDialog />
             </ReusableFormDialog>
+
+            <ReusableFormDialog
+                isOpen={userProfile.isOpen}
+                onClose={closeUserProfileDialog}
+                title="User Profile" // The title is handled inside the component itself
+            >
+            <UserProfileDialog />
+
+            </ReusableFormDialog>
+
+            <ReusableFormDialog
+                isOpen={newUser.isOpen}
+                onClose={closeNewUserDialog}
+                title="Create New CRM User"
+            >
+                <NewUserForm onSuccess={closeNewUserDialog} />
+            </ReusableFormDialog>
+
+
+
         </>
     );
 };

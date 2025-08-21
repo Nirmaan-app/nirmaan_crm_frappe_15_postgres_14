@@ -86,7 +86,7 @@
 import { useViewport } from "@/hooks/useViewPort";
 import { TaskList } from "./TaskList";
 import { Task } from "./Task";
-import { format, subDays } from "date-fns";
+import { format, subDays,addDays } from "date-fns";
 import { useStatesSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useDialogStore } from "@/store/dialogStore";
 import { Plus } from "lucide-react";
@@ -109,7 +109,7 @@ export const Tasks = () => {
    const [params, setParams] = useStatesSyncedWithParams([
            { key: 'id', defaultValue: '' }, // Default to no selection
            { key: 'from', defaultValue: format(subDays(new Date(), 30), 'yyyy-MM-dd') },
-           { key: 'to', defaultValue: format(new Date(), 'yyyy-MM-dd') },
+           { key: 'to', defaultValue: format(addDays(new Date(), 1), 'yyyy-MM-dd') },
        ]);
        const { id, from, to } = params;
        console.log("params",params)

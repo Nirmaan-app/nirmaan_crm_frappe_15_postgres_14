@@ -1,11 +1,13 @@
 import { items } from "@/constants/navItems";
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useCurrentUser } from "@/hooks/useCurrentUser"; 
+import { Skeleton } from "@/components/ui/skeleton"; 
 
 export const SidebarDesktop = () => {
 
   const location = useLocation()
-
+const { role, isLoading } = useCurrentUser();
 	const [activeTab, setActiveTab] = useState("Home")
 
 	useEffect(() => {
@@ -15,14 +17,53 @@ export const SidebarDesktop = () => {
 			setActiveTab(items.slice(1).find(i => location.pathname.includes(i.path))?.label)
 		}
 	}, [location.pathname])
+
+  // useEffect(() => {
+  //   if (location.pathname === "/") {
+  //     setActiveTab("Home");
+  //   } else {
+  //     const currentItem = items.slice(1).find(i => location.pathname.startsWith(i.path));
+  //     if (currentItem) {
+  //       setActiveTab(currentItem.label);
+  //     }
+  //   }
+  // }, [location.pathname]);
+
+ if (isLoading) {
+    return (
+      <nav className="flex flex-col gap-8" aria-label="Loading navigation">
+        {/* We'll render a few placeholders to mimic the real nav items */}
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="flex flex-col items-center gap-2">
+            {/* Skeleton for the icon */}
+            <Skeleton className="h-[34px] w-[34px] rounded-full" />
+            {/* Skeleton for the label */}
+            <Skeleton className="h-2 w-12 rounded-md" />
+          </div>
+        ))}
+      </nav>
+    );
+  }
+
   return (
-    <nav className="flex flex-col gap-8">
-      {items.map(item => (
-        <NavLink to={item.path} key={item.label} className={`flex flex-col items-center ${activeTab === item.label ? "text-primary" : ""}`}>
-          <item.icon className="h-[34px] w-[34px]" />
-          <span className="text-xs font-semibold">{item.label}</span>
-        </NavLink>
-      ))}
+     <nav className="flex flex-col gap-8">
+      {items.map(item => {
+        // <-- 3. Add the conditional rendering logic
+        if (item.adminOnly && role !== 'Nirmaan Admin User Profile') {
+            return null; // Don't render the item if it's admin-only and user is not an admin
+        }
+
+        return (
+          <NavLink 
+            to={item.path} 
+            key={item.label} 
+            className={`flex flex-col items-center ${activeTab === item.label ? "text-primary" : ""}`}
+          >
+            <item.icon className="h-[34px] w-[34px]" />
+            <span className="text-xs font-semibold">{item.label}</span>
+          </NavLink>
+        );
+      })}
     </nav>
   );
 };

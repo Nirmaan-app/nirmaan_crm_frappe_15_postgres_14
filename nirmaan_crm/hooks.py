@@ -130,6 +130,26 @@ app_license = "mit"
 # 	}
 # }
 
+doc_events={
+  "User": {
+        "after_insert": "nirmaan_crm.nirmaan_crm.doctype.crm_users.crm_users.create_user_profile",
+		"on_update": "nirmaan_crm.nirmaan_crm.doctype.crm_users.crm_users.on_user_update",
+  },
+  "CRM Users": {
+        "on_trash": [
+            "nirmaan_crm.integrations.controllers.crm_users.on_trash",
+            # "nirmaan_crm.integrations.controllers.delete_doc_versions.generate_versions",
+        ],
+    },
+    "User Permission": {
+        "after_insert": [
+            "nirmaan_crm.integrations.controllers.user_permission.after_insert",
+            # "nirmaan_crm.integrations.controllers.user_permission.add_crm_user_permissions"
+        ],
+        # "on_trash": "nirmaan_crm.integrations.controllers.user_permission.on_trash"
+    },
+}
+
 # Scheduled Tasks
 # ---------------
 

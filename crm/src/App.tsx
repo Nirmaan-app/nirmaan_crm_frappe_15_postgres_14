@@ -24,7 +24,7 @@ const App: FC = () => {
       : import.meta.env.VITE_SITE_NAME;
   };
 
-
+console.log("window.frappe?.boot?.sitename",window.frappe?.boot?.sitename,import.meta.env.VITE_SITE_NAM)
   return (
     <FrappeProvider
       url={import.meta.env.VITE_FRAPPE_PATH ?? ""}
