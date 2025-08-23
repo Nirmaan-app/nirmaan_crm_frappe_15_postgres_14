@@ -20,15 +20,15 @@ def after_insert(doc, method):
         nuser.has_company = "true"
         nuser.save(ignore_permissions=True)
 
-def add_crm_user_permissions(doc, medthod):
-    """
-    Added mirrored nirmaan user permissions for frontend use
-    """
-    nup = frappe.new_doc("CRM User Permissions")
-    nup.user = doc.user
-    nup.allow = doc.allow
-    nup.for_value = doc.for_value
-    nup.insert(ignore_permissions=True)
+# def add_crm_user_permissions(doc, medthod):
+#     """
+#     Added mirrored nirmaan user permissions for frontend use
+#     """
+#     nup = frappe.new_doc("CRM User Permissions")
+#     nup.user = doc.user
+#     nup.allow = doc.allow
+#     nup.for_value = doc.for_value
+#     nup.insert(ignore_permissions=True)
 
 def on_trash(doc, method):
     """

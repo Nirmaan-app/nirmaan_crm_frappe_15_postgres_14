@@ -38,7 +38,7 @@ export const StatsGrid = () => {
     });
 
     const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
-        fields: ["name", "type", "start_date", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
+        fields: ["name", "type", "start_date", "status", "contact", "company","boq", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
         filters: [
             ["start_date", "between", [dateRange.from, dateRange.to]]
         ],
@@ -67,7 +67,7 @@ export const StatsGrid = () => {
         };
 
         const pendingTasks = allTasks.filter(t => t.status === "Scheduled")     
-        const boqReceived = allBoqs.filter(b => b.boq_status === "New");
+        const boqReceived = allBoqs
         const boqSent = allBoqs.filter(b => ["Submitted", "Revision Submitted"].includes(b.boq_status));
         const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In Progress"].includes(b.boq_status));
         const hotDeals = allBoqs.filter(b => ["Revision Submitted", "Negotiation"].includes(b.boq_status));
@@ -76,7 +76,7 @@ export const StatsGrid = () => {
         // CORRECTED: Use the unique link fields `contact` and `company` for a reliable identifier
         const uniqueMeetingIdentifiers = new Set();
         const uniqueMeetings = allMeetings.filter(t => {
-            const identifier = `${t.contact}-${t.company}`; // e.g., "CNT-0001-CMP-0002"
+            const identifier = `${t.company}`; // e.g., "CNT-0001-CMP-0002"
             if (!uniqueMeetingIdentifiers.has(identifier)) {
                 uniqueMeetingIdentifiers.add(identifier);
                 return true;
@@ -84,6 +84,7 @@ export const StatsGrid = () => {
             return false;
         });
         
+        console.log("uniqueMeetingIdentifiers",uniqueMeetingIdentifiers)
         // CORRECTED: Access linked fields using bracket notation, e.g., item['contact.first_name']
         const taskNameFormatter = (item) => `Meeting with ${item.first_name || ''} from ${item.company_name || ''} on ${format(new Date(item.start_date), 'dd-MMM-yyyy')}`;
         const boqNameFormatter = (item) => `Project Name - ${item.name || item.name}`;

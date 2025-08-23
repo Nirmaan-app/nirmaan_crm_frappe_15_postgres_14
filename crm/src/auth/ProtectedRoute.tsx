@@ -3,7 +3,7 @@ import { useAuth } from './AuthProvider';
 import { Loader2 } from 'lucide-react'; // Assuming you use lucide-react with shadcn
 
 export const ProtectedRoute = () => {
-    const { currentUser, isLoading } = useAuth();
+    const { currentUser,crmUser, isLoading } = useAuth();
 
     if (isLoading) {
         // A full-page spinner provides better UX than a simple text message.
@@ -14,7 +14,9 @@ export const ProtectedRoute = () => {
         );
     }
 
-    if (!currentUser || currentUser === 'Guest') {
+    // if (!currentUser || currentUser === 'Guest') {
+    if (crmUser||!currentUser) {
+
         // The `replace` prop is important to prevent breaking the browser's back button.
         return <Navigate to="/login" replace />;
     }

@@ -42,12 +42,12 @@ export const useStateSyncedWithParams = <T extends string = string>(
     } else if (currentValue === null && state !== defaultValue) {
         setState(defaultValue);
     }
-  }, [searchParams, paramKey, getParam, state, defaultValue]);
+  }, [searchParams, paramKey, getParam, defaultValue]);
 
   const setSyncedState = useCallback(
     (value: T | "", removeParams: string[] = []) => {
       setState(value);
-      updateParams({ [paramKey]: value }, removeParams);
+      updateParams({ [paramKey]: value ||null}, removeParams);
     },
     [updateParams, paramKey]
   );

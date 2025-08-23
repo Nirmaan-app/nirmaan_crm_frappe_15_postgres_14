@@ -109,7 +109,7 @@ export const Tasks = () => {
    const [params, setParams] = useStatesSyncedWithParams([
            { key: 'id', defaultValue: '' }, // Default to no selection
            { key: 'from', defaultValue: format(subDays(new Date(), 30), 'yyyy-MM-dd') },
-           { key: 'to', defaultValue: format(addDays(new Date(), 1), 'yyyy-MM-dd') },
+           { key: 'to', defaultValue: format(new Date(), 'yyyy-MM-dd') },
        ]);
        const { id, from, to } = params;
        console.log("params",params)

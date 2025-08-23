@@ -32,6 +32,13 @@ export const useFabOptions = () => {
                 { label: "Add New Contact", action: () => openNewContactDialog({ companyId: id }) },
                 { label: "Add New Task", action: () => openNewTaskDialog({ companyId: id }) }
             ];
+        }
+         if (pathname.startsWith('/companies') && id) {
+            newOptions = [
+                { label: "Add New BOQ", action: () => openNewBoqDialog({ companyId: id }) },
+                { label: "Add New Contact", action: () => openNewContactDialog({ companyId: id }) },
+                { label: "Add New Task", action: () => openNewTaskDialog({ companyId: id }) }
+            ];
         } else if (pathname.startsWith('/contacts/contact') && id) {
             newOptions = [
                 { label: "Add New Task", action: () => openNewTaskDialog({ contactId: id }) },
