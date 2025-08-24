@@ -1,4 +1,3 @@
-// src/components/helpers/routesConfig.tsx
 
 import { AppLayout } from "@/pages/Layout/AppLayout";
 import { HomePage } from "@/pages/Layout/HomePage";

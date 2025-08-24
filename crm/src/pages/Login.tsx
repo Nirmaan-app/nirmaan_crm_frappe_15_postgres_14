@@ -1,5 +1,5 @@
 import { useAuth } from '@/auth/AuthProvider';
-// import { useFrappeAuth } from 'frappe-react-sdk'; // <-- ADD THIS
+import { useFrappeAuth } from 'frappe-react-sdk'; // <-- ADD THIS
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,8 +22,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginPage = () => {
-    const { login, currentUser,isAuthLoading } = useAuth();
-    // const { login, currentUser, isLoading: isAuthLoading } = useFrappeAuth();
+    // const { login, currentUser,isAuthLoading } = useAuth();
+    const { login, currentUser, isLoading: isAuthLoading } = useFrappeAuth();
     // const navigate = useNavigate();
 
     // 2. Set up the form with react-hook-form and Zod resolver
