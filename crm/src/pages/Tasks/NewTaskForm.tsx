@@ -59,7 +59,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
   // Note: contactDocFromContext is reused for the contact's disabled input display.
   
   // Step 4: Fetch lists for populating dropdowns, only if needed.
-  const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", { fields: ["name", "company_name"], enabled: !companyId });
+  const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", { fields: ["name", "company_name"], enabled: !companyIdFromContext });
   const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: { company: selectedCompanyByUser || companyId }, fields: ["name", "first_name", "last_name"], enabled: !!(selectedCompanyByUser || companyId) && !contactIdFromContext });
   const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: selectedContactByUser || contactIdFromContext }, fields: ["name", "boq_name"], enabled: !!(selectedContactByUser || contactIdFromContext) });
 

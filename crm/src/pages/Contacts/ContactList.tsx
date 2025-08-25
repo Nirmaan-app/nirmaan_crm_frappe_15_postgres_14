@@ -40,7 +40,7 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
 
     const { data: contacts, isLoading } = useFrappeGetDocList<EnrichedContact>("CRM Contacts", {
         fields: ["name", "first_name", "last_name", "company"],
-        limit: 1000,
+        limit: 10000,
         orderBy: { field: "modified", order: "desc" }
     });
 

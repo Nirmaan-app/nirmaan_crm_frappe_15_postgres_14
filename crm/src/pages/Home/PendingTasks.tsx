@@ -18,17 +18,17 @@ type FilterOption = 'last 7 days' | 'Today' | 'All';
 const PendingTaskRow = ({ task }: { task: EnrichedCRMTask }) => {
     const { openEditTaskDialog } = useDialogStore();
     return (
-        <>
-            <div className="flex items-center justify-between py-4">
+        <div className="px-1"> {/* Add slight horizontal padding for better spacing */}
+            <div className="flex items-center justify-between py-3">
                 <div className="flex flex-col">
-                    <span className="font-medium">Call {task.contact_name} from {task.company_name}</span>
+                    <span className="font-medium text-sm">Call {task.contact_name} from {task.company_name}</span>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => openEditTaskDialog({ taskData: task, mode: 'updateStatus' })}>
                     Update
                 </Button>
             </div>
             <Separator className="last:hidden" />
-        </>
+        </div>
     );
 };
 
@@ -88,7 +88,8 @@ export const PendingTasks = ({ tasks, isLoading }: { tasks: EnrichedCRMTask[], i
                     </DropdownMenuContent>
                 </DropdownMenu>
                  {/* --- END OF UPDATED SECTION --- */}
-            </div>
+            </div >
+              <div className={"transition-all duration-300  max-h-[400px] overflow-y-auto"}>
              {isLoading && <p className="text-center text-sm text-muted-foreground py-4">Loading tasks...</p>}
             
             {!isLoading && filteredTasks.length > 0 && filteredTasks.map(task => 
@@ -100,6 +101,7 @@ export const PendingTasks = ({ tasks, isLoading }: { tasks: EnrichedCRMTask[], i
                     No pending tasks found for this period.
                 </p>
             }
+             </div>
         </div>
     );
 };
