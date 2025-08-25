@@ -70,9 +70,9 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     const { data: boqs, isLoading } = useFrappeGetDocList<EnrichedBoq>("CRM BOQ", {
         fields: ["name", "boq_name", "boq_status", "boq_type", "company", "contact", "company.company_name", "contact.first_name", "contact.last_name", "modified"],
         filters: [["modified", "between", [dateRange.from, dateRange.to]]],
-        limit: 1000,
+       limit: 0,
         orderBy: { field: "modified", order: "desc" }
-    });
+    },"All BOQ");
     
     const filteredBoqs = useMemo(() => {
         if (!boqs) return [];

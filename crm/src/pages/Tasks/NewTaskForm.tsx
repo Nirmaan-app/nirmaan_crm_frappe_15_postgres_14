@@ -14,6 +14,8 @@ import * as z from "zod";
 import ReactSelect from 'react-select';
 import { useMemo, useEffect } from "react";
 
+import { taskTypeOptions } from "@/constants/dropdownData";
+
 const taskFormSchema = z.object({
   type: z.string().min(1, "Task type is required"),
   start_date: z.string().min(1, "Date is required"),
@@ -22,7 +24,20 @@ const taskFormSchema = z.object({
   contact: z.string().min(1, "Contact is required"),
   boq: z.string().optional(),
   remarks: z.string().optional(),
-});
+}).refine(
+    (data) => {
+        // Use the new, more descriptive task type values
+        if (data.type === "Submit BOQ" || data.type === "Follow-up BOQ") {
+            // The validation logic remains the same: the 'boq' field must have a value.
+            return !!data.boq; 
+        }
+        return true;
+    },
+    {
+        message: "BOQ is required for this task type.",
+        path: ["boq"], // Attach the error to the 'boq' field
+    }
+);
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;
 
@@ -67,7 +82,8 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
   const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_name, value: c.name })) || [], [allCompanies]);
   const contactOptions = useMemo(() => contactsList?.map(c => ({ label: `${c.first_name} ${c.last_name}`, value: c.name })) || [], [contactsList]);
   const boqOptions = useMemo(() => boqsList?.map(b => ({ label: b.boq_name, value: b.name })) || [], [boqsList]);
-  const taskTypeOptions = [ {label: "Meeting", value: "Meeting"}, {label: "Call", value: "Call"},{label: "Virtual", value: "Virtual"}, {label: "Follow-up", value: "Follow-up"} ];
+  
+  // const taskTypeOptions = [ {label: "Meeting", value: "Meeting"}, {label: "Call", value: "Call"},{label: "Virtual", value: "Virtual"}, {label: "Follow-up", value: "Follow-up"} ];
   
   // Effect to pre-fill the form with the correct context
   useEffect(() => {
@@ -82,7 +98,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
   const onSubmit = async (values: TaskFormValues) => {
     try {
       const res = await createDoc("CRM Task", values);
-      await mutate("CRM Task");
+      await mutate("All Tasks");
       toast({ title: "Success!", description: "Task created." });
       onSuccess?.();
     } catch (error) {
@@ -120,7 +136,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
             )}
         </FormControl><FormMessage /></FormItem> )} />
         
-        <FormField name="boq" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Project (BOQ)</FormLabel><FormControl>
+        <FormField name="boq" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ</FormLabel><FormControl>
             <ReactSelect options={boqOptions} isLoading={boqsLoading} value={boqOptions.find(b => b.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select BOQ (Optional)" isClearable isDisabled={!(selectedContactByUser || contactIdFromContext)} />
         </FormControl><FormMessage /></FormItem> )} />
 

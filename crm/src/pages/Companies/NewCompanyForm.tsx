@@ -95,14 +95,14 @@ const onSubmit = async (values: CompanyFormValues) => {
       if (isEditMode) {
         // --- UPDATE LOGIC ---
         await updateDoc("CRM Company", initialData.name, values);
-        await mutate(`CRM Company/${initialData.name}`); // Mutate specific doc
+        await mutate(`Company/${initialData.name}`); // Mutate specific doc
         toast({ title: "Success!", description: "Company updated." });
       } else {
         // --- CREATE LOGIC ---
         const res = await createDoc("CRM Company", values);
         toast({ title: "Success!", description: `Company "${res.company_name}" created.` });
       }
-      await mutate("CRM Company"); // Mutate the list
+      await mutate("All Companies"); // Mutate the list
       onSuccess?.();
     } catch (error) {
       toast({ title: "Error", description: (error as Error).message, variant: "destructive" });

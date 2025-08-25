@@ -108,11 +108,13 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       // Refresh the data for the list and detail pages
       await mutate("CRM Task"); 
       if (mode !== 'scheduleNext') { // Don't mutate the old task if we just created a new one
-          await mutate(`CRM Task/${taskData.name}`);
+          await mutate(`Task/${taskData.name}`);
       }
       
       // Only call onSuccess (which closes the dialog) if we are not rescheduling
       if (shouldCloseDialog && onSuccess) {
+        await mutate("All Tasks")
+
         onSuccess();
       }
 

@@ -18,9 +18,11 @@ const AuthContext = createContext<AuthContextType>(null!);
 
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     // The core frappe-react-sdk hook
-    const { login: sdkLogin, logout: sdkLogout, currentUser, isLoading, updateCurrentUser } = useFrappeAuth();
+    const { login: sdkLogin, logout: sdkLogout, currentUser, isLoading, updateCurrentUser,getUserCookie } = useFrappeAuth();
     // const navigate = useNavigate();
 
+
+    // console.log("getUserCookie",getUserCookie())
     /**
      * Handles the login process.
      * 1. Calls the SDK's login function.

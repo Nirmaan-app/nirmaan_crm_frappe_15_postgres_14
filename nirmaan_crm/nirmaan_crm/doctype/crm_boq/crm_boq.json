@@ -19,7 +19,8 @@
   "boq_link",
   "city",
   "remarks",
-  "boq_status"
+  "boq_status",
+  "boq_sub_status"
  ],
  "fields": [
   {
@@ -91,13 +92,18 @@
    "fieldtype": "Data",
    "label": "BOQ Status",
    "options": "Won\nLost\nHold\nRevision Pending\nNegotiation\nRevision Submitted"
+  },
+  {
+   "fieldname": "boq_sub_status",
+   "fieldtype": "Data",
+   "label": "BOQ Sub Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-20 15:05:47.111417",
- "modified_by": "Administrator",
+ "modified": "2025-08-25 18:34:17.026152",
+ "modified_by": "sales3@gmail.com",
  "module": "Nirmaan CRM",
  "name": "CRM BOQ",
  "naming_rule": "By fieldname",

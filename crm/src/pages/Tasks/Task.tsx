@@ -122,7 +122,7 @@ export const Task = () => {
     const [id] = useStateSyncedWithParams("id","");
 
     // Fetch the main task and all its related documents
-    const { data: taskData, isLoading: taskLoading,mutate:taskMutate } = useFrappeGetDoc<CRMTask>("CRM Task", id);
+    const { data: taskData, isLoading: taskLoading,mutate:taskMutate } = useFrappeGetDoc<CRMTask>("CRM Task", id,`Task/${id}`);
 
     const { data: contactData, isLoading: contactLoading,mutate:contactMutate } = useFrappeGetDoc<CRMContacts>("CRM Contacts", taskData?.contact, { enabled: !!taskData?.contact });
     
