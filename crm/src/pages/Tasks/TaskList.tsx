@@ -10,7 +10,7 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 import { useMemo, useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FilterControls } from "@/components/ui/FilterControls";
-import { format, subDays } from "date-fns";
+import { format, subDays ,addDays} from "date-fns";
 import { useViewport } from "@/hooks/useViewPort";
 import {useTaskData} from "@/hooks/useTaskData"
 import { Separator } from "@/components/ui/separator";
@@ -106,7 +106,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         createdTodayTasks
     } = useTaskData();
 
-    const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });
+    const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(addDays(new Date(), 1), 'yyyy-MM-dd') });
      // --- USE OBJECT DESTRUCTURING ---
    
 
@@ -117,7 +117,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         orderBy: { field: "creation", order: "asc" }
     });
 
-    // console.log("TTASKS",tasks)
+    console.log("TTASKS",tasks)
 
     const { allTasks, pendingTasks, scheduledTasks } = useMemo(() => {
         const today = new Date().toISOString().slice(0, 10);
@@ -149,7 +149,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
 
     if (taskisLoading) { return <div className="text-center p-4">Loading Tasks...</div>; }
 
-    // console.log("ALL DATA",allTasks, pendingTasks, scheduledTasks, todayTasks, tomorrowTasks, createdTodayTasks)
+    console.log("ALL DATA",allTasks, pendingTasks, scheduledTasks)
 
 
     const handleTaskClick=(path:string)=>{

@@ -13,6 +13,7 @@ const getPageTitle = (pathname: string): string => {
     if (pathname.startsWith('/tasks')) return 'Tasks';
     if (pathname.startsWith('/calendar')) return 'Calendar';
     if (pathname.startsWith('/settings')) return 'Settings';
+     if (pathname.startsWith('/team')) return 'Team';
     return 'Home';
 };
 
@@ -24,7 +25,7 @@ export const usePageHeader = () => {
     useEffect(() => {
         const { pathname } = location;
         setTitle(getPageTitle(pathname));
-        const mainRoutes = ['/', '/companies', '/contacts', '/boqs', '/tasks', '/calendar', '/settings'];
+        const mainRoutes = ['/', '/companies', '/contacts', '/boqs', '/tasks', '/settings','/team'];
         setShowBackButton(!mainRoutes.includes(pathname));
     }, [location]);
 

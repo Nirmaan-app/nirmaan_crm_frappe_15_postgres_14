@@ -1,5 +1,5 @@
 import { useAuth } from '@/auth/AuthProvider';
-// import { useFrappeAuth } from 'frappe-react-sdk'; // <-- ADD THIS
+import { useFrappeAuth } from 'frappe-react-sdk'; // <-- ADD THIS
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Loader2 } from 'lucide-react';
 
+
 // 1. Define the validation schema with Zod
 const loginSchema = z.object({
     email: z.string(),//.email({ message: "Please enter a valid email address." }),
@@ -21,8 +22,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginPage = () => {
-    const { login, currentUser, isLoading: isAuthLoading } = useAuth();
-    // const { login, currentUser, isLoading: isAuthLoading } = useFrappeAuth();
+    // const { login, currentUser,isAuthLoading } = useAuth();
+    const { login, currentUser, isLoading: isAuthLoading } = useFrappeAuth();
     // const navigate = useNavigate();
 
     // 2. Set up the form with react-hook-form and Zod resolver
@@ -71,7 +72,6 @@ export const LoginPage = () => {
         );
     }
 
-    // 5. If the user is already logged in, redirect them to the homepage.
     if (currentUser && currentUser !== 'Guest') {
         return <Navigate to="/" replace />;
     }

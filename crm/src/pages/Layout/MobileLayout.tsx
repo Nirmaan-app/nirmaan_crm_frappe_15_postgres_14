@@ -91,6 +91,9 @@ export const MobileLayout = () => {
     else if (pathname.startsWith('/tasks')) {
         // CORRECTED: from 'path' to 'action'
         newOptions = [{ label: "Add New Task", action: openNewTaskDialog }];
+    }else if (pathname.startsWith('/team')) {
+        // CORRECTED: from 'path' to 'action'
+        newOptions = [{ label: "Add New Task", action: openNewTaskDialog }];
     }
     
     setOptions(newOptions);

@@ -8,6 +8,7 @@ import { RenderRoutes } from "./components/helpers/RenderRoutes";
 import { ThemeProvider } from "./components/ui/ThemeProvider";
 import { ApplicationProvider } from "./contexts/ApplicationContext";
 import { AuthProvider } from "./auth/AuthProvider";
+import { RealTimeProvider } from "./auth/RealTimeProvider";
 
 const router = createBrowserRouter([
   {
@@ -24,7 +25,7 @@ const App: FC = () => {
       : import.meta.env.VITE_SITE_NAME;
   };
 
-
+console.log("window.frappe?.boot?.sitename",window.frappe?.boot?.sitename,import.meta.env.VITE_SITE_NAM)
   return (
     <FrappeProvider
       url={import.meta.env.VITE_FRAPPE_PATH ?? ""}
@@ -36,11 +37,13 @@ const App: FC = () => {
       siteName={getSiteName()}
     >
       <AuthProvider>
+        <RealTimeProvider>
         <ApplicationProvider>
           <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
             <RouterProvider router={router} />
           </ThemeProvider>
         </ApplicationProvider>
+        </RealTimeProvider>
       </AuthProvider>
     </FrappeProvider>
   );

@@ -86,7 +86,7 @@
 import { useViewport } from "@/hooks/useViewPort";
 import { TaskList } from "./TaskList";
 import { Task } from "./Task";
-import { format, subDays } from "date-fns";
+import { format, subDays,addDays } from "date-fns";
 import { useStatesSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useDialogStore } from "@/store/dialogStore";
 import { Plus } from "lucide-react";

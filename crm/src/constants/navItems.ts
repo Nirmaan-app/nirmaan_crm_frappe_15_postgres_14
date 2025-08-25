@@ -4,7 +4,8 @@ import {
     ClipboardList, 
     House, 
     Building2,  // New icon for Company
-    User,        // New icon for Contact
+    User,
+    Users,        // New icon for Contact
     GanttChartSquare // New icon for BOQs
 } from "lucide-react"
 
@@ -12,6 +13,7 @@ interface NavItem {
   label : string
   path : string
   icon : any
+    adminOnly?: boolean
 }
 
 // The new navigation structure
@@ -20,6 +22,12 @@ export const items : NavItem[] = [
     label : "Home",
     path: "/",
     icon : House
+  },
+  {
+    label: "My Team",
+    path: "/team",
+    icon: Users,
+    adminOnly: true // This is our flag for role-based rendering
   },
   {
     label : "Company", // NEW

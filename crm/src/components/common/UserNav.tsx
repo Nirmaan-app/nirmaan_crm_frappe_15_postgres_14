@@ -26,7 +26,10 @@ const generateFallback = (fullName: string = "") => {
 export function UserNav() {
     const { logout } = useAuth();
     const { openUserProfileDialog } = useDialogStore();
-    const { user, fullName, userImage, isLoading } = useCurrentUser();
+    const { user,role,user_id,  full_name,
+            user_image, isLoading,has_company } = useCurrentUser();
+
+    console.log("useCurrentUser ",user)
 
     if (isLoading) {
         return <Skeleton className="h-8 w-8 rounded-full" />;
@@ -37,17 +40,17 @@ export function UserNav() {
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={userImage} alt={fullName} />
-                        <AvatarFallback>{generateFallback(fullName)}</AvatarFallback>
+                        <AvatarImage src={user_image} alt={full_name} />
+                        <AvatarFallback>{generateFallback(full_name)}</AvatarFallback>
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{fullName}</p>
+                        <p className="text-sm font-medium leading-none">{full_name}</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                            {user?.email}
+                            {user_id||""}
                         </p>
                     </div>
                 </DropdownMenuLabel>

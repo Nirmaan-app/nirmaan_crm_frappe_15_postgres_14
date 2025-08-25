@@ -12,6 +12,9 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from "react-select";
 import { useEffect } from "react";
+import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
+import { Calendar, Clock } from "lucide-react"; // Import icons for a nicer UI
+
 
 // A flexible schema for all modes
 const editTaskSchema = z.object({
@@ -125,6 +128,28 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         {/* --- RENDER FOR 'edit' or 'scheduleNext' MODE --- */}
         {(mode === 'edit' || mode === 'scheduleNext') && (
             <>
+             <div className="flex justify-between items-start text-sm mb-4 border-b pb-4">
+                    {/* Main Task Info */}
+                    <div className="flex flex-col gap-2">
+                        <p className="font-semibold">Task: {taskData?.type} for {contactDoc?.first_name}</p>
+                        
+                        {/* --- START: 2. ADDED UI ELEMENTS FOR DATE AND TIME --- */}
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span>{formatDate(taskData?.start_date)}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>{formatTime12Hour(taskData?.time)}</span>
+                            </div>
+                        </div>
+                        {/* --- END: 2. ADDED UI ELEMENTS FOR DATE AND TIME --- */}
+                    </div>
+                    
+                    {/* Status Pill */}
+                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
+                </div>
               <FormField name="type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Task Type</FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)}/></FormControl><FormMessage /></FormItem> )} />
               <FormField name="start_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
               <FormField name="time" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Time</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem> )} />
@@ -134,10 +159,33 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         {/* --- RENDER FOR 'updateStatus' MODE --- */}
         {mode === 'updateStatus' && (
             <>
-                <div className="flex justify-between items-center text-sm mb-4">
+                {/* <div className="flex justify-between items-center text-sm mb-4">
                     <span>Task: {taskData?.type} for {contactDoc?.first_name}</span>
                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">{taskData?.status}</span>
+                </div> */}
+                                <div className="flex justify-between items-start text-sm mb-4 border-b pb-4">
+                    {/* Main Task Info */}
+                    <div className="flex flex-col gap-2">
+                        <p className="font-semibold">Task: {taskData?.type} for {contactDoc?.first_name}</p>
+                        
+                        {/* --- START: 2. ADDED UI ELEMENTS FOR DATE AND TIME --- */}
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span>{formatDate(taskData?.start_date)}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>{formatTime12Hour(taskData?.time)}</span>
+                            </div>
+                        </div>
+                        {/* --- END: 2. ADDED UI ELEMENTS FOR DATE AND TIME --- */}
+                    </div>
+                    
+                    {/* Status Pill */}
+                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
                 </div>
+
                 <FormField name="status" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Update Status To</FormLabel><FormControl><ReactSelect options={statusOptions} onChange={val => field.onChange(val?.value)}/></FormControl><FormMessage /></FormItem> )} />
                
                                 {selectedStatus === 'Incomplete' && (
