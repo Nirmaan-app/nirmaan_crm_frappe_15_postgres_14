@@ -249,6 +249,7 @@ doc_events={
 
 fixtures = [
     {"dt": "Role", "filters": [["role_name", "like", "Nirmaan %"]]},
+    {"dt": "Role Profile", "filters": [["role_profile", "like", "Nirmaan %"]]},
 ]
 
 
