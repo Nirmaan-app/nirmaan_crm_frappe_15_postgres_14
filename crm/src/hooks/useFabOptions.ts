@@ -10,7 +10,8 @@ export interface FabOption {
 
 export const useFabOptions = () => {
     const location = useLocation();
-
+    const role = localStorage.getItem('role');
+ 
     const [options, setOptions] = useState<FabOption[]>([]);
     const {
         openNewCompanyDialog,
@@ -58,6 +59,8 @@ export const useFabOptions = () => {
             newOptions = [{ label: "Add New Task", action: openNewTaskDialog }];
         } else if (pathname.startsWith('/team')) {
             newOptions = [{ label: "Add New CRM User", action: openNewUserDialog }];
+        }else if(role==="Nirmaan Estimations User Profile" && pathname === '/'){
+             newOptions = [{ label: "Add New BOQ", action: openNewBoqDialog }];
         } else if (pathname === '/') {
             newOptions = [
                 { label: "Add New Company", action: openNewCompanyDialog },
@@ -66,9 +69,8 @@ export const useFabOptions = () => {
                 { label: "Add New Task", action: openNewTaskDialog },
             ];
         }
-
         setOptions(newOptions);
-    }, [location, openNewCompanyDialog, openNewContactDialog, openNewBoqDialog, openNewTaskDialog]);
+    }, [location, openNewCompanyDialog, openNewContactDialog, openNewBoqDialog, openNewTaskDialog,role]);
 
     return options;
 };

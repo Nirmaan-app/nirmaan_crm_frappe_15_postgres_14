@@ -7,7 +7,7 @@ import { EnrichedCRMTask } from "../Tasks/Tasks"; // Reusing this type
 import { HomeHeader } from "../Home/HomeHeader";
 import { PendingTasks } from "../Home/PendingTasks";
 import { StatsGrid } from "../Home/StatsGrid";
-
+import { EstimationsHomePage } from "../Home/EstimationsHomePage";
 export const HomePage = () => {
     // Fetch pending tasks for the top card
     const { data: tasksData, isLoading: tasksLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
@@ -20,6 +20,8 @@ export const HomePage = () => {
     }
     });
     // Process the fetched data to create computed names
+    const role = localStorage.getItem('role');
+    
     const enrichedTasks = useMemo(() => {
         return tasksData?.map(task => ({
             ...task,
@@ -30,11 +32,17 @@ export const HomePage = () => {
     
     console.log("enrichedTasks",enrichedTasks)
     return (
-        <div className="space-y-6">
+
+        role!=="Nirmaan Estimations User Profile" ?(
+<div className="space-y-6">
             <HomeHeader />
             <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
             <StatsGrid />
         </div>
+        ):(
+<EstimationsHomePage/>
+        )
+        
     );
 };
 
