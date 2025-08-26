@@ -35,7 +35,7 @@ export const useTaskData = (): UseTaskDataReturn => {
         ],
         limit: 0,
         orderBy: { field: "creation", order: "asc" }
-    });
+    },"All Tasks");
 
     // 2. Memoize the task calculations
     const dailyCategorizedTasks = useMemo(() => {

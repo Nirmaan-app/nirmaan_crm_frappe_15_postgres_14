@@ -39,9 +39,9 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
 
     const { data: companiesList, isLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", {
         fields: ["name", "company_name"],
-        limit: 1000,
+      limit: 0,
         orderBy: { field: "modified", order: "desc" }
-    });
+    },"All Companies");
 
      // --- STEP 2: IMPLEMENT CLIENT-SIDE FILTERING ---
     const filteredCompanies = useMemo(() => {

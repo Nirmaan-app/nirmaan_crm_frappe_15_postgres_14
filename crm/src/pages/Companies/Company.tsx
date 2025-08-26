@@ -27,7 +27,7 @@ export const Company = () => {
     const toggleDeleteDialog = useCallback(() => setDeleteDialog(p => !p), []);
 
     // --- Data Fetching ---
-    const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc("CRM Company", id);
+    const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc("CRM Company", id,`Company/${id}`);
 
        // CORRECTED: Pass doctype as the first argument, and options object as the second.
     const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>(
@@ -35,7 +35,7 @@ export const Company = () => {
         {               // 2. Options object
             filters: { company: id },
             fields: ["*"]
-        }
+        },"All Contacts"
     );
 
     // CORRECTED: Use the correct field name 'boq_company' for filtering.
@@ -44,7 +44,7 @@ export const Company = () => {
         {               // 2. Options object
             filters: { company: id }, // Use the correct field name from the BOQ doctype
             fields: ["*"]
-        }
+        },"All BOQ"
     );
 
 
@@ -53,7 +53,7 @@ export const Company = () => {
         {
             filters: { company: id }, // Directly filter tasks by the company ID
             fields: ["*"]
-        }
+        },"All Tasks"
     );
 
     const { deleteDoc } = useFrappeDeleteDoc();

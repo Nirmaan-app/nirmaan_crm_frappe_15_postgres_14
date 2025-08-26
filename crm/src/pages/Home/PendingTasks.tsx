@@ -89,7 +89,7 @@ export const PendingTasks = ({ tasks, isLoading }: { tasks: EnrichedCRMTask[], i
                 </DropdownMenu>
                  {/* --- END OF UPDATED SECTION --- */}
             </div >
-              <div className={"transition-all duration-300  max-h-[400px] overflow-y-auto"}>
+              <div className={"transition-all duration-300  max-h-[270px] overflow-y-auto"}>
              {isLoading && <p className="text-center text-sm text-muted-foreground py-4">Loading tasks...</p>}
             
             {!isLoading && filteredTasks.length > 0 && filteredTasks.map(task => 

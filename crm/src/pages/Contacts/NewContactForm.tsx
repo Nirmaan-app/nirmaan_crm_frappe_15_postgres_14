@@ -6,14 +6,16 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappeCreateDoc, useFrappeGetDoc, useSWRConfig,useFrappeGetDocList,FrappeFileUpload,useFrappeUpdateDoc } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDoc, useSWRConfig,useFrappeGetDocList,useFrappeFileUpload,useFrappeUpdateDoc } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from 'react-select';
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useRef,useMemo,useEffect } from "react"; // Import useState and useRef
+import { useState, useRef,useMemo,useEffect,useCallback } from "react"; // Import useState and useRef
 import { Upload } from "lucide-react";
-import {CRMContacts} from "@types/NirmaanCRM/CRMContacts"
+import {CRMContacts} from "@/types/NirmaanCRM/CRMContacts"
+import {CustomAttachment} from "@/components/helpers/CustomAttachment"
+
 
 const contactFormSchema = z.object({
   first_name: z.string().min(1, "Name is required"),
@@ -24,6 +26,9 @@ const contactFormSchema = z.object({
   department: z.string().optional(),
   designation: z.string().optional(),
   visiting_card: z.any().optional(),
+    // Add a new field for the "Other" department input
+  other_department: z.string().optional(), 
+
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -40,7 +45,7 @@ export const NewContactForm = ({ onSuccess, isEditMode = false, initialData = nu
   const { createDoc, loading :createLoading} = useFrappeCreateDoc();
     const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc(); 
   const { mutate } = useSWRConfig();
-  
+  const { upload: uploadFile, loading: isUploading } = useFrappeFileUpload()
 
   // CORRECTED: State and ref for file handling
   const [visitingCard, setVisitingCard] = useState<File | null>(null);
@@ -91,20 +96,28 @@ const allCompanies = allCompaniesData || [];
       email: "",
       department: "",
       designation: "",
+      other_department: "",
     },
   });
+   // --- 2. WATCH THE DEPARTMENT FIELD ---
+  const watchedDepartment = form.watch("department");
 
   // --- CHANGE 3: useEffect to pre-fill form for both create and edit ---
   useEffect(() => {
     if (isEditMode && initialData) {
       // Pre-fill form with existing data for editing
+       const standardDepartments = departmentOptions.map(opt => opt.value);
+      const initialDept = initialData.department || "";
+      const isOther = initialDept && !standardDepartments.includes(initialDept);
+
       form.reset({
         first_name: initialData.first_name || "",
         last_name: initialData.last_name || "",
         mobile: initialData.mobile || "",
         email: initialData.email || "",
         company: initialData.company || "",
-        department: initialData.department || "",
+       department: isOther ? "Others" : initialDept,
+        other_department: isOther ? initialDept : "",
         designation: initialData.designation || "",
       });
     } else {
@@ -123,37 +136,61 @@ const allCompanies = allCompaniesData || [];
 
 
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      setVisitingCard(event.target.files[0]);
-    }
-  };
 
-// --- CHANGE 4: Unified onSubmit handler ---
+const uploadVisitingCard = useCallback(async (contactName: string, file: File) => {
+    if (!file) return null;
+
+    try {
+        const result = await uploadFile(file, {
+            doctype: "CRM Contacts",
+            docname: contactName,
+            fieldname: "visiting_card", // Ensure this fieldname matches your DocType
+            isPrivate: true // Good practice for personal info
+        });
+        console.log("Visiting card upload successful:", result);
+        return result.file_url; // Return the URL
+    } catch (error) {
+        console.error("Upload Error:", error);
+        toast({
+            title: "Upload Failed",
+            description: `Failed to upload visiting card: ${error instanceof Error ? error.message : String(error)}`,
+            variant: "destructive"
+        });
+        throw error; // Stop the form submission if upload fails
+    }
+}, [uploadFile]); 
+
+
   const onSubmit = async (values: ContactFormValues) => {
     try {
-      // File upload logic can be shared
-      // ... (file upload logic here) ...
+   const visitingCardFile = values.visiting_card; 
+const dataToSave={
+  ...values,
+    department: values.department === 'Others' ? values.other_department : values.department,
 
+}
       if (isEditMode) {
         // UPDATE logic
-        await updateDoc("CRM Contacts", initialData.name, values);
-        mutate('CRM Contacts');
+        let fileUrl = initialData.visiting_card || null; // Start with the existing URL
+
+            // If a *new* file has been selected, upload it
+            if (visitingCardFile && typeof visitingCardFile !== 'string') {
+                fileUrl = await uploadVisitingCard(initialData.name, visitingCardFile);
+            }
+
+        await updateDoc("CRM Contacts", initialData.name,{...dataToSave,visiting_card: fileUrl} );
+        mutate(`Contact/${initialData.name}`);
         toast({ title: "Success!", description: "Contact updated." });
       } else {
         // CREATE logic
-        const res = await createDoc("CRM Contacts", values);
+             
+          const fileUrl = await uploadVisitingCard(newContactDoc.name, visitingCardFile);
+
+        const res = await createDoc("CRM Contacts", {...dataToSave,visiting_card: fileUrl});
         toast({ title: "Success!", description: `Contact "${res.first_name}" created.` });
       }
       
-      console.log("muatate")
-      mutate("CRM Contacts"); // Mutate the list for both cases
-       mutate(
-            (key) => Array.isArray(key) && key[0] === 'CRM Contacts',
-            undefined,
-            { revalidate: true }
-        );
-      
+      mutate("All Contacts"); // Mutate the list for both case
       onSuccess?.();
     } catch (error) {
       toast({ title: "Error", description: (error as Error).message, variant: "destructive" });
@@ -207,7 +244,7 @@ const allCompanies = allCompaniesData || [];
           name="company"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company</FormLabel>
+              <FormLabel>Company*</FormLabel>
               <FormControl>
                 {companyIdFromContext ? (
                   // If context exists, show a disabled input with the company name.
@@ -247,6 +284,21 @@ const allCompanies = allCompaniesData || [];
             </FormItem>
           )}
         />
+         {watchedDepartment === 'Others' && (
+          <FormField
+            control={form.control}
+            name="other_department"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Please specify department</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter department name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
@@ -259,43 +311,28 @@ const allCompanies = allCompaniesData || [];
             </FormItem>
           )}
         />
-        {/* *** THIS IS THE CORRECTED FILE UPLOAD FIELD *** */}
-        <FormField
-          control={form.control}
-          name="visiting_card"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Visiting Card</FormLabel>
-              <FormControl>
-                <>
-                  {/* This hidden input is what react-hook-form actually tracks */}
-                  <Input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      // This updates the form's internal state with the file object
-                      field.onChange(file);
-                    }}
-                  />
-                  {/* This is the visible button that the user clicks */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full justify-start text-muted-foreground font-normal"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    {/* Display the name of the selected file */}
-                    {field.value?.name ? field.value.name : 'Upload Document'}
-                  </Button>
-                </>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+         <FormField
+  control={form.control}
+  name="visiting_card"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Visiting Card</FormLabel>
+      <FormControl>
+       
+        <CustomAttachment
+          maxFileSize={20 * 1024 * 1024} // 20MB
+          selectedFile={field.value} // Use the value from the form field
+          onFileSelect={field.onChange} // Use the onChange from the form field
+          label="Attach Visiting Card"
+          className="w-full"
+          disabled={loading} // Use the combined loading state
         />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
 
 
         <div className="flex gap-2 justify-end pt-4">

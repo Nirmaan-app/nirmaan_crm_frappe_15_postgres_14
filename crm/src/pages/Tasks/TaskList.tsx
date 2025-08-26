@@ -106,7 +106,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         createdTodayTasks
     } = useTaskData();
 
-    const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(addDays(new Date(), 1), 'yyyy-MM-dd') });
+    const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd')  });
      // --- USE OBJECT DESTRUCTURING ---
    
 
@@ -115,7 +115,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         filters: [["start_date", "between", [dateRange.from, dateRange.to]]],
         limit: 0,
         orderBy: { field: "creation", order: "asc" }
-    });
+    },"All Tasks");
 
     console.log("TTASKS",tasks)
 

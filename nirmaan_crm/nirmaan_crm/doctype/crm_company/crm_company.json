@@ -43,7 +43,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-20 15:06:22.795903",
+ "modified": "2025-08-25 11:12:44.676962",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Company",
@@ -102,5 +102,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

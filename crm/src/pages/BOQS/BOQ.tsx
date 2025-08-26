@@ -87,10 +87,15 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                     <span>Due Date</span>
                     <span className="text-center">Status</span>
                 </div>
+                 <div className="max-h-[275px] overflow-y-auto pr-2 -mr-2"> {/* Negative margin to compensate for padding */}
                 {tasks.length > 0 ? (
                     tasks.map((task, index) => (
+                        // React.Fragment does not need a key or className here
                         <React.Fragment key={task.name}>
-                            <div onClick={() => navigate(`/tasks/task?id=${task.name}`)} className="grid grid-cols-3 items-center px-2 py-3 cursor-pointer hover:bg-secondary rounded-md">
+                            <div 
+                                onClick={() => navigate(`/tasks/task?id=${task.name}`)} 
+                                className="grid grid-cols-3 items-center px-2 py-3 cursor-pointer hover:bg-secondary rounded-md"
+                            >
                                 <span className="font-medium truncate pr-2">{task.type}</span>
                                 <span className="text-sm text-muted-foreground">{formatDate(task.start_date)}</span>
                                 <div className="flex items-center justify-end gap-2">
@@ -106,6 +111,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                 ) : (
                     <p className="text-center text-sm text-muted-foreground py-4">No tasks found for this BOQ.</p>
                 )}
+            </div>
             </div>
         </div>
     );
@@ -219,14 +225,14 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 export const BOQ = () => {
     const [id] = useStateSyncedWithParams<string>("id", "");
 
-    const { data: boqData, isLoading: boqLoading } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", id);
+    const { data: boqData, isLoading: boqLoading } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", id,`BOQ/${id}`);
     const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", boqData?.company, { enabled: !!boqData?.company });
 
      const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", boqData?.contact);
     
     
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "type", "start_date", "status"] });
-    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "content", "creation"], orderBy: { field: "creation", order: "desc" } });
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "type", "start_date", "status"],orderBy: { field: "creation", order: "desc" },limit: 0, });
+    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "content", "creation"], orderBy: { field: "creation", order: "desc" },limit: 0, });
 
 
     if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
