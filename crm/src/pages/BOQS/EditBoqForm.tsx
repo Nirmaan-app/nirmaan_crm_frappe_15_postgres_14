@@ -28,9 +28,11 @@ const editBoqSchema = z.object({
   
   // Add the new sub_status field
   boq_sub_status: z.string().optional(),
-
-
+ boq_link:z.string().optional(),
+remarks:z.string().optional(),
   // Field for 'remark' mode
+  title:z.string().optional(),
+  content:z.string().optional(),
   remark_content: z.string().optional(),
 });
 
@@ -82,10 +84,13 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             boq_size: boqData.boq_size || "",
             boq_status: boqData.boq_status || "",
             boq_sub_status: boqData.boq_sub_status || "",
+            boq_link:boqData.boq_link ||"",
             company: boqData.company || "",
             contact: boqData.contact || "",
-            remark_content: "",
+            remarks: boqData.remarks||"",
             boq_submission_date: boqData.boq_submission_date||"",
+            title:"",
+            content:"",
             
         });
     }
@@ -109,19 +114,26 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
      await updateDoc("CRM BOQ", boqData.name, { 
             boq_status: dataToSave.boq_status, 
             boq_sub_status: dataToSave.boq_sub_status,
+            boq_link:dataToSave.boq_link,
             boq_submission_date: dataToSave.boq_submission_date,
+            remarks:dataToSave.remarks
         });
 
         toast({ title: "Success", description: "Status updated." });
 
       }else if (mode === 'remark') {
-        if (!values.remark_content?.trim()) return toast({ title: "Error", description: "Remark cannot be empty.", variant: "destructive" });
-        await createDoc("CRM Note", { reference_doctype: "CRM BOQ", reference_docname: boqData.name, content: values.remark_content });
-        await mutate("CRM Note");
+        console.log(values)
+        if (!values.title?.trim()) return toast({ title: "Error", description: "Title cannot be empty.", variant: "destructive" });
+        await createDoc("CRM Note", { reference_doctype: "CRM BOQ", reference_docname: boqData.name, content: values.content,title:values.title });
+        await mutate("All Note");
         toast({ title: "Success", description: "Remark added." });
       }
       
       await mutate(`BOQ/${boqData.name}`);
+      await mutate("BOQ Version")
+      // await mutate("AllBOQsList")
+      await mutate("PendingBOQsList")
+
       if (onSuccess) {
         onSuccess();
       }
@@ -208,29 +220,43 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
        
                 {/* Status-only mode is also correct */}
         {(mode === 'status' || mode ==="details") && (
-            <FormField name="boq_status" control={form.control} render={({ field }) => (
+          <>
+          <FormField name="boq_status" control={form.control} render={({ field }) => (
                 <FormItem><FormLabel>Update Status</FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'}/></FormControl></FormItem>
             )}/>
+
+                {['In-Progress', 'Revision Pending'].includes(watchedBoqStatus) && (
+                <FormField
+                  name="boq_sub_status"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sub Status</FormLabel>
+                      <FormControl>
+                        <ReactSelect
+                          options={BOQsubStatusOptions}
+                          value={BOQsubStatusOptions.find(s => s.value === field.value)}
+                          onChange={val => field.onChange(val?.value)}
+                          placeholder="Select Sub Status"
+                          menuPosition={'auto'}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            )}
+ <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+
+  <FormField name="boq_link" control={form.control} render={({ field }) => (
+ <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
+
+ <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>remarks</FormLabel><FormControl><Input type="text" {...field} /></FormControl><FormMessage /></FormItem>)} />
+
+          </>
+            
         )}
-         {/* <FormField
-              name="boq_status"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <FormControl>
-                    <ReactSelect
-                      options={BOQmainStatusOptions}
-                      value={BOQmainStatusOptions.find(s => s.value === field.value)}
-                      onChange={val => field.onChange(val?.value)}
-                      placeholder="Select a status"
-                      menuPosition={'auto'}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
+{/*        
         {['In-Progress', 'Revision Pending'].includes(watchedBoqStatus) && (
                 <FormField
                   name="boq_sub_status"
@@ -253,12 +279,43 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 />
             )}
  <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            {/* Remark mode is separate */}
-        {(mode === 'remark' ||mode ==="details" ||mode === 'status' ) && (
-          <FormField name="remark_content" control={form.control} render={({ field }) => (
-            <FormItem><FormLabel>New Remark</FormLabel><FormControl><Textarea placeholder="Type your remark here..." {...field} /></FormControl><FormMessage /></FormItem>
-          )}/>
-        )} 
+
+  <FormField name="boq_link" control={form.control} render={({ field }) => (
+ <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
+
+ <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>remarks</FormLabel><FormControl><Input type="text" {...field} /></FormControl><FormMessage /></FormItem>)} /> */}
+
+                {/* --- STEP 2: UPDATE THE JSX FOR REMARK MODE --- */}
+        {(mode === 'remark') && (
+          <>
+            <FormField
+              name="title"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter a title for the remark (optional)" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="content"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Content</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Type your remark here..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
 
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="outline" className="border-destructive text-destructive" onClick={closeEditBoqDialog}>Cancel</Button>

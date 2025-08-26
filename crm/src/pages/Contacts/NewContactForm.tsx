@@ -164,6 +164,7 @@ const uploadVisitingCard = useCallback(async (contactName: string, file: File) =
   const onSubmit = async (values: ContactFormValues) => {
     try {
    const visitingCardFile = values.visiting_card; 
+
 const dataToSave={
   ...values,
     department: values.department === 'Others' ? values.other_department : values.department,
@@ -182,14 +183,24 @@ const dataToSave={
         mutate(`Contact/${initialData.name}`);
         toast({ title: "Success!", description: "Contact updated." });
       } else {
-        // CREATE logic
-             
-          const fileUrl = await uploadVisitingCard(newContactDoc.name, visitingCardFile);
+            // --- CREATE LOGIC (CORRECTED) ---
+            
+            // Step 1: Create the contact document WITHOUT the file URL first.
+            const newContactDoc = await createDoc("CRM Contacts", {...dataToSave,visiting_card:""});
+            toast({ title: "Success!", description: `Contact "${newContactDoc.first_name}" created.` });
 
-        const res = await createDoc("CRM Contacts", {...dataToSave,visiting_card: fileUrl});
-        toast({ title: "Success!", description: `Contact "${res.first_name}" created.` });
-      }
+            // Step 2: If a visiting card file exists, upload it and update the document.
+            if (visitingCardFile) {
+                toast({ title: "Uploading File...", description: "Please wait." });
+                // Use the name from the newly created document
+                const fileUrl = await uploadVisitingCard(newContactDoc.name, visitingCardFile);
+
+                // Step 3: Update the new contact with the file's URL.
+                await updateDoc("CRM Contacts", newContactDoc.name, { visiting_card: fileUrl });
+            }
+        }
       
+       
       mutate("All Contacts"); // Mutate the list for both case
       onSuccess?.();
     } catch (error) {

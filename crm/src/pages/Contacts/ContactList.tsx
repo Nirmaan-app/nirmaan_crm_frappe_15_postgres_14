@@ -90,7 +90,7 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
                 {filteredContacts?.map((contact, index) => (
                     <div key={contact.name}>
                         <ContactListItem

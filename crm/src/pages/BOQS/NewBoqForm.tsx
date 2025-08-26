@@ -84,6 +84,9 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
     try {
       const res = await createDoc("CRM BOQ", values);
       await mutate("All BOQ");
+      await mutate("AllBOQsList")
+      await mutate("PendingBOQsList")
+
       toast({ title: "Success!", description: `BOQ "${res.boq_name}" created.` });
       onSuccess?.();
     } catch (error) {

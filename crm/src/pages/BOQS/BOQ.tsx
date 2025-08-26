@@ -10,51 +10,70 @@ import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { formatDate } from "@/utils/FormatDate";
 import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronDown, ChevronRight, Plus, SquarePen } from "lucide-react";
-import React from "react";
+import React ,{useMemo}from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 // --- SUB-COMPONENT 1: Header ---
 // Inside src/pages/BOQs/BOQ.tsx
 
 // Make sure useStatusStyles is imported at the top of the file
 
-// --- SUB-COMPONENT 1: Header (CORRECTED) ---
+// --- THIS IS THE UPDATED HEADER COMPONENT ---
 const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
     const { openEditBoqDialog } = useDialogStore();
-    // Get the styling function from our custom hook
     const getBoqStatusClass = useStatusStyles("boq");
 
     return (
-        <div className="bg-background p-4 rounded-lg border shadow-sm flex justify-between items-start">
-            <div>
-                <p className="text-xs text-muted-foreground">BOQ Name</p>
-                <h1 className="text-xl font-bold">{boq?.boq_name}</h1>
-            </div>
-            
-            {/* The entire right-side block is the clickable trigger */}
-            <div 
-                onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })} 
-                className="cursor-pointer"
-            >
-                <p className="text-xs text-muted-foreground mb-1 text-right">Current Status</p>
-                
-                {/* *** THE FIX IS HERE *** */}
-                {/* Use a flex container to place the pill and icon next to each other */}
-                <div className="flex items-center justify-end gap-2 hover:opacity-80 transition-opacity">
-                    
-                    {/* The Status Pill */}
-                    <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
-                        {boq.boq_status || 'N/A'} 
-                    </span>
-
-                    {/* The Chevron Icon */}
-                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+        <div className="bg-background p-6 rounded-lg border shadow-sm flex justify-between items-start">
+            {/* Left Section */}
+            <div className="space-y-4">
+                <div>
+                    <p className="text-sm text-muted-foreground">BOQ Name</p>
+                    <h1 className="text-2xl font-bold">{boq?.boq_name || 'N/A'}</h1>
                 </div>
+                <div>
+                    <p className="text-sm text-muted-foreground">BOQ</p>
+                    {/* Display a link if it exists, otherwise 'n/a' */}
+                    {boq?.boq_link ? (
+                         <a href={boq.boq_link} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
+                            View BOQ
+                         </a>
+                    ) : (
+                        <p className="font-semibold">N/A</p>
+                    )}
+                </div>
+            </div>
+
+            {/* Right Section */}
+            <div className="flex flex-col items-end space-y-2">
+                <div>
+                    <p className="text-sm text-muted-foreground text-right mb-1">Status</p>
+                    <span className={`text-sm font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(boq.boq_status)}`}>
+                        {boq.boq_status || 'N/A'}
+                    </span>
+                </div>
+                
+                {/* Conditionally render the sub-status only if it has a value */}
+                {boq.boq_sub_status ? (
+                    <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+                        {boq.boq_sub_status}
+                    </span>
+                ):<span className="px-2 py-1">{" "}</span>}
+
+                <Button
+                    onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })}
+                    className="bg-destructive hover:bg-destructive/90 mt-2" // Added margin for spacing
+                >
+                    Update BOQ Status
+                </Button>
             </div>
         </div>
     );
 };
+
 
 
 // --- SUB-COMPONENT 2: Task List (Now with rendering logic) ---
@@ -171,50 +190,154 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
     const DetailItem = ({ label, value, href }: { label: string; value: string; href?: string }) => (
         <div>
             <p className="text-xs text-muted-foreground">{label}</p>
-            {href ? <Link to={href} className="font-semibold text-blue-600 underline">{value}</Link> : <p className="font-semibold">{value}</p>}
+            {href ? <a href={href} className="font-semibold text-blue-600 underline">{value}</a>  : <p className="font-semibold">{value}</p>}
         </div>
     );
     return (
-        <div>
+<div className="bg-background p-6 rounded-lg border shadow-sm space-y-6">
+
             <div className="flex justify-between items-center mb-2">
-                <h2 className="text-lg font-semibold">Other BOQ Details</h2>
+                <h2 className="text-lg font-semibold">BOQ Details</h2>
                 <Button variant="outline" size="sm" className="border-destructive text-destructive" onClick={() => openEditBoqDialog({ boqData: boq, mode: 'details' })}>
                     <SquarePen className="w-4 h-4 mr-2" />Edit
                 </Button>
             </div>
-            <div className="bg-background p-4 rounded-lg border shadow-sm space-y-4">
-                <div className="grid grid-cols-2 gap-y-4 gap-x-2">
-                    <DetailItem label="Size" value={boq?.boq_size || 'n/a'} />
-                    <DetailItem label="Package" value={boq?.boq_type || 'n/a'} />
-                    <DetailItem label="Contact Name" value={contact ? `${contact.first_name} ${contact.last_name}` : 'n/a'} href={`/contacts/contact?id=${contact?.name}`} />
-                    <DetailItem label="Designation" value={contact?.designation || 'n/a'} />
-                    <DetailItem label="Company Name" value={company?.company_name || 'n/a'} href={`/companies/company?id=${company?.name}`} />
-                    <DetailItem label="Location" value={company?.company_city || 'n/a'} />
-                </div>
-                {/* <div className="border-t pt-4 space-y-2">
-                    <DetailItem label="BOQ" value={boq?.boq_link ? "View Link" : "n/a"} href={boq?.boq_link} />
-                    <DetailItem label="Additional Attachments" value="n/a" />
-                    <Button variant="outline" size="sm" className="border-destructive text-destructive w-full justify-end mt-2">
-                         <Plus className="w-4 h-4 mr-2" />ADD ATTACHMENTS
-                    </Button>
-                </div> */}
-                  <Separator className="my-4 border-dashed" />
+                {/* Top Details Section */}
+            <div className="grid grid-cols-2 gap-y-5">
+                <DetailItem label="Size" value={boq?.boq_size || 'n/a'} />
+                <DetailItem label="Package" value={boq?.boq_type || 'n/a'} />
+                <DetailItem label="Date Created" value={formatDate(boq?.creation)} />
+                <DetailItem label="Location" value={boq?.city || 'n/a'} />
+                <DetailItem label="Created by" value={boq?.owner.split('@')[0]} isLink href={`/team?memberId=${boq.owner}`} />
+            </div>
 
-                {/* Attachments section with right-aligned buttons */}
-                <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                        <DetailItem label="BOQ" value={boq?.boq_link ? "View Link" : "n/a"} href={boq?.boq_link} />
-                        <Button variant="outline" size="sm" className="border-destructive text-destructive">
-                            <Plus className="w-4 h-4 mr-2" />ADD BOQ
-                        </Button>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <DetailItem label="Additional Attachments" value="n/a" />
-                        <Button variant="outline" size="sm" className="border-destructive text-destructive">
-                             <Plus className="w-4 h-4 mr-2" />ADD ATTACHMENTS
-                        </Button>
-                    </div>
-                </div>
+            <Separator />
+
+            {/* Contact & Company Details Section */}
+            <div className="grid grid-cols-2 gap-y-5">
+                <DetailItem label="Contact Name" value={contact ? `${contact.first_name} ${contact.last_name}` : 'n/a'} isLink href={`/contacts/contact?id=${contact?.name}`} />
+                <DetailItem label="Designation" value={contact?.designation || 'n/a'} />
+                <DetailItem label="Company Name" value={contact?.company || 'n/a'} isLink href={`/companies/company?id=${company?.name}`} />
+                <DetailItem label="Location" value={boq?.city || 'n/a'} />
+            </div>
+
+            <Separator />
+
+            {/* Attachments Section */}
+            <div className="flex justify-between items-center">
+                <DetailItem label="Additional Attachments" value="n/a" />
+                <Button variant="outline" size="sm" className="text-destructive border-destructive">
+                    <Plus className="w-4 h-4 mr-2" />ADD ATTACHMENTS
+                </Button>
+            </div>
+        </div>
+    );
+};
+
+
+// --- UPDATED SUBMISSION HISTORY COMPONENT ---
+const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
+    const getBoqStatusClass = useStatusStyles("boq");
+
+    // This memoized function transforms the raw version data into the format needed for the UI table.
+    const transformedHistory = useMemo((): TransformedHistoryItem[] => {
+        if (!versions || versions.length === 0) return [];
+
+        let lastKnownStatus = '';
+
+        // We process in reverse to establish the correct status at each point in time.
+        return versions.slice().reverse().map(version => {
+            try {
+                const parsedData = JSON.parse(version.data);
+                const changes = parsedData.changed || [];
+
+                const statusChange = changes.find(c => c[0] === 'boq_status');
+                const subStatusChange = changes.find(c => c[0] === 'boq_sub_status');
+                const boqLinkChange = changes.find(c => c[0] === 'boq_link');
+                const remarksChange = changes.find(c => c[0] === 'remarks'); // New
+                const dateChange = changes.find(c => c[0] === 'boq_submission_date'); // New
+
+                // If this version changed the status, update our tracker.
+                if (statusChange) {
+                    lastKnownStatus = statusChange[2]; // [2] is the new value
+                }
+
+                // We create a history item if any of the fields we care about were changed.
+                if (!statusChange && !subStatusChange && !boqLinkChange && !remarksChange && !dateChange) {
+                    return null;
+                }
+
+                // Build a descriptive remark based on what changed in this version.
+                let remarkText = '';
+                if (remarksChange) {
+                    remarkText = `Remarks updated: "${remarksChange[2]}"`;
+                }
+                else if (subStatusChange && subStatusChange[2]) {
+                    remarkText = subStatusChange[2]; // e.g., "Awaiting clarification from Client"
+                }   else if (dateChange) {
+                    remarkText = `Submission date changed to ${dateChange[2]}`;
+                } else if (statusChange) {
+                    remarkText = `Status updated`; // Default if only status changed
+                }
+
+                return {
+                    status: lastKnownStatus,
+                    remark: remarkText,
+                    date: formatDate(version.creation),
+                    link: boqLinkChange ? boqLinkChange[2] : undefined
+                };
+            } catch (e) {
+                console.error("Failed to parse version data:", e);
+                return null;
+            }
+        })
+        .filter((item): item is TransformedHistoryItem => item !== null) // Remove nulls and add type guard
+        .reverse(); // Reverse again to show most recent first
+
+    }, [versions]);
+
+    return (
+        <div className="bg-background p-4 rounded-lg border shadow-sm">
+            <h2 className="font-semibold mb-4">BOQ Submission History</h2>
+            <div className="max-h-[275px] overflow-y-auto pr-2">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>BOQs Status</TableHead>
+                        <TableHead>Remarks</TableHead>
+                        <TableHead>Date Updated</TableHead>
+                        <TableHead>BOQs Link</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {transformedHistory.length > 0 ? (
+                        transformedHistory.map((item, index) => (
+                            <TableRow key={index}>
+                                <TableCell>
+                                    <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(item.status)}`}>
+                                        {item.status}
+                                    </span>
+                                </TableCell>
+                                <TableCell>{item.remark || '--'}</TableCell>
+                                <TableCell>{item.date}</TableCell>
+                                <TableCell>
+                                    {item.link ? (
+                                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">
+                                            View Link
+                                        </a>
+                                    ) : (
+                                        '--'
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={4} className="text-center h-24">No submission history found.</TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
             </div>
         </div>
     );
@@ -224,6 +347,8 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 // --- MAIN ORCHESTRATOR COMPONENT ---
 export const BOQ = () => {
     const [id] = useStateSyncedWithParams<string>("id", "");
+    const role = localStorage.getItem('role');
+
 
     const { data: boqData, isLoading: boqLoading } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", id,`BOQ/${id}`);
     const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", boqData?.company, { enabled: !!boqData?.company });
@@ -232,8 +357,17 @@ export const BOQ = () => {
     
     
     const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "type", "start_date", "status"],orderBy: { field: "creation", order: "desc" },limit: 0, });
-    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "content", "creation"], orderBy: { field: "creation", order: "desc" },limit: 0, });
 
+    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "content", "creation"], orderBy: { field: "creation", order: "desc" },limit: 0, },"All Note");
+
+
+  const { data: versionsList, isLoading: versionsLoading } = useFrappeGetDocList<DocVersion>("Version", {
+        filters: { ref_doctype: "CRM BOQ", docname: id },
+        fields: ["name", "owner", "creation", "data"],
+        orderBy: { field: "creation", order: "desc" },
+        limit: 20,
+        enabled: role !== 'Nirmaan Sales User Profile' //
+    },"BOQ Version");
 
     if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
         return <div>Loading BOQ Details...</div>;
@@ -250,18 +384,26 @@ export const BOQ = () => {
                 companyId={boqData.company}
                 contactId={boqData.contact}
             />
-            <BoqRemarks 
-                remarks={remarksList || []} 
-                boqId={boqData.name}
-            />
+           
             <OtherBoqDetails 
                 boq={boqData} 
                 contact={contactData} 
                 company={companyData}
             />
+            {role!=="Nirmaan Sales User Profile"&&(
+             <BoqSubmissionHistory versions={versionsList || []} boqData={boqData} />
+
+            )}
+
+             <BoqRemarks 
+                remarks={remarksList || []} 
+                boqId={boqData.name}
+            />
+
         </div>
     );
 };
+
 // import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 // import { Button } from "@/components/ui/button";
 // import { Separator } from "@/components/ui/separator";
