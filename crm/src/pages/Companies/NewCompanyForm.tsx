@@ -102,7 +102,7 @@ const onSubmit = async (values: CompanyFormValues) => {
         const res = await createDoc("CRM Company", values);
         toast({ title: "Success!", description: `Company "${res.company_name}" created.` });
       }
-      await mutate("All Companies"); // Mutate the list
+      await mutate( key => typeof key === 'string' && key.startsWith('all-companies-')); // Mutate the list
       onSuccess?.();
     } catch (error) {
       toast({ title: "Error", description: (error as Error).message, variant: "destructive" });

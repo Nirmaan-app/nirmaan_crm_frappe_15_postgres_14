@@ -107,8 +107,8 @@ app_license = "mit"
 # }
 #
 permission_query_conditions = {
-    "CRM Company": "nirmaan_crm.nirmaan_crm.permissions.get_company_permission_query_conditions",
-    "CRM Contacts": "nirmaan_crm.nirmaan_crm.permissions.get_contact_permission_query_conditions",
+    # "CRM Company": "nirmaan_crm.nirmaan_crm.permissions.get_company_permission_query_conditions",
+    # "CRM Contacts": "nirmaan_crm.nirmaan_crm.permissions.get_contact_permission_query_conditions",
     "CRM Task": "nirmaan_crm.nirmaan_crm.permissions.get_task_permission_query_conditions",
     "CRM BOQ": "nirmaan_crm.nirmaan_crm.permissions.get_boq_permission_query_conditions",
 }

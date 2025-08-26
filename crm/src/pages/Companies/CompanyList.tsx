@@ -1,11 +1,13 @@
 // src/pages/Companies/CompanyList.tsx
+import { AssignmentFilterControls } from "@/components/ui/AssignmentFilterControls";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useDialogStore } from "@/store/dialogStore";
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, Plus, Search } from "lucide-react";
-import { useMemo,useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface CompanyListProps {
@@ -22,7 +24,7 @@ const CompanyListItem = ({ company, onSelect, isActive }: { company: CRMCompany,
         className={`flex items-center justify-between p-4 cursor-pointer transition-colors rounded-lg ${isActive ? "bg-primary/10" : "hover:bg-secondary"}`}
     >
         <strong className="text-black dark:text-muted-foreground">{company.company_name}</strong>
-        
+
         {/* This chevron is only for visual indication on mobile */}
         <ChevronRight className="md:hidden" />
 
@@ -30,20 +32,28 @@ const CompanyListItem = ({ company, onSelect, isActive }: { company: CRMCompany,
 );
 
 export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListProps) => {
+    const { role } = useCurrentUser();
     const navigate = useNavigate();
     const { openNewCompanyDialog } = useDialogStore();
 
-        // --- STEP 1: ADD STATE FOR SEARCH QUERY ---
+    // --- STEP 1: ADD STATE FOR SEARCH QUERY ---
     const [searchQuery, setSearchQuery] = useState("");
+
+    // NEW: State to hold the filters from our new component
+    const [assignmentFilters, setAssignmentFilters] = useState([]);
+
+    const swrKey = `all-companies-${JSON.stringify(assignmentFilters)}`;
+
 
 
     const { data: companiesList, isLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", {
         fields: ["name", "company_name"],
-      limit: 0,
+        filters: assignmentFilters, // Use the state variable here
+        limit: 0,
         orderBy: { field: "modified", order: "desc" }
-    },"All Companies");
+    }, swrKey);
 
-     // --- STEP 2: IMPLEMENT CLIENT-SIDE FILTERING ---
+    // --- STEP 2: IMPLEMENT CLIENT-SIDE FILTERING ---
     const filteredCompanies = useMemo(() => {
         if (!companiesList) return [];
         const lowercasedQuery = searchQuery.toLowerCase().trim();
@@ -86,6 +96,7 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
 
     return (
         <div className="flex flex-col h-full">
+
             <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -94,6 +105,12 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
+            </div>
+            <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                    {role === "Nirmaan Sales User Profile" && <span className="text-xs font-light">List Companies:</span>}
+                    <AssignmentFilterControls onFilterChange={setAssignmentFilters} />
+                </div>
             </div>
             <div className="flex-1 overflow-y-auto">
                 {companyItems}
