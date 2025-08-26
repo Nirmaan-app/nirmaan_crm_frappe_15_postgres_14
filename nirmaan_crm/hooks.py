@@ -106,6 +106,12 @@ app_license = "mit"
 # 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
 #
+permission_query_conditions = {
+    "CRM Company": "nirmaan_crm.nirmaan_crm.permissions.get_company_permission_query_conditions",
+    "CRM Contacts": "nirmaan_crm.nirmaan_crm.permissions.get_contact_permission_query_conditions",
+    "CRM Task": "nirmaan_crm.nirmaan_crm.permissions.get_task_permission_query_conditions",
+    "CRM BOQ": "nirmaan_crm.nirmaan_crm.permissions.get_boq_permission_query_conditions",
+}
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
