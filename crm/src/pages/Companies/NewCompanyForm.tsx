@@ -10,6 +10,8 @@ import * as z from "zod";
 import ReactSelect from 'react-select';
 import { useMemo,useEffect } from "react";
 import { CRMCompanyType } from "@/types/NirmaanCRM/CRMCompanyType";
+//Getting Role For Assigned
+import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 
 // Zod Schema based on your Frappe Doctype and UI Mockup
 const companyFormSchema = z.object({
@@ -17,6 +19,7 @@ const companyFormSchema = z.object({
   company_city: z.string().min(1, "Location is required"),
   company_type: z.string().min(1, "Company type is required"),
   company_website: z.string().optional(), // Now optional
+  assigned_sales: z.string().optional()
 });
 
 type CompanyFormValues = z.infer<typeof companyFormSchema>;
@@ -33,18 +36,26 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
   const { mutate } = useSWRConfig();
   
+//Hooks get Sales UserList
+  const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
+
+  const role=localStorage.getItem("role")
+  
   const { data: companyTypes } = useFrappeGetDocList<CRMCompanyType>("CRM Company Type", { fields: ["name"] });
   const companyTypeOptions = useMemo(() => 
     companyTypes?.map(ct => ({ label: ct.name, value: ct.name })) || [], 
     [companyTypes]
   );
- // CORRECTED: Static list for Company Type as requested
-//   const companyTypeOptions = [
-//     { label: "Type 1", value: "Type 1" },
-//     { label: "Type 2", value: "Type 2" },
-//     { label: "Type 3", value: "Type 3" },
-//     { label: "Type 4", value: "Type 4" },
-//   ];
+
+
+  //  // Your static options are perfectly fine
+  //   const companyTypeOptions = [
+  //       { label: "Architect", value: "Architect" },
+  //       { label: "Client", value: "Client" },
+  //       { label: "Contractor", value: "Contractor" },
+  //       { label: "PMC", value: "PMC" },
+  //   ];
+
   // CORRECTED: Added location options as requested
   
   const companyLocationOptions = useMemo(() => [
@@ -62,7 +73,8 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
       company_name: "",
       company_city: "",
       company_type: "",
-       company_website: "",
+      company_website: "",
+      assigned_sales: "",
     },
   });
 
@@ -74,6 +86,7 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
         company_city: initialData.company_city || "",
         company_type: initialData.company_type || "",
         company_website: initialData.company_website || "",
+        assigned_sales: initialData.assigned_sales || "",
       });
     }
   }, [isEditMode, initialData, form]);
@@ -127,13 +140,31 @@ const onSubmit = async (values: CompanyFormValues) => {
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="company_city"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Location</FormLabel>
               <FormControl><Input placeholder="e.g. Bengaluru" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        /> */}
+         <FormField
+          control={form.control}
+          name="company_city"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <ReactSelect
+                  options={companyLocationOptions}
+                  value={companyLocationOptions.find(c => c.value === field.value)}
+                  onChange={val => field.onChange(val?.value)}
+                  placeholder="Select Type"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -156,6 +187,30 @@ const onSubmit = async (values: CompanyFormValues) => {
             </FormItem>
           )}
         />
+
+         {role==="Nirmaan Admin User Profile" &&(
+         <FormField
+                    control={form.control}
+                    name="assigned_sales"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Assigned Salesperson</FormLabel>
+                            <FormControl>
+                                <ReactSelect
+                                    options={salesUserOptions}
+                                    value={salesUserOptions.find(u => u.value === field.value)}
+                                    onChange={val => field.onChange(val?.value)}
+                                    placeholder="Select a salesperson..."
+                                    isLoading={usersLoading}
+                                    className="text-sm"
+                                    menuPosition={'auto'}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+        )}
         {/* Website is no longer required but still here */}
         <FormField
           control={form.control}
@@ -168,6 +223,8 @@ const onSubmit = async (values: CompanyFormValues) => {
             </FormItem>
           )}
         />
+       
+         
 
        <div className="flex gap-2 justify-end pt-4">
           <Button type="button" variant="outline" onClick={handleCancel}>Cancel</Button>
