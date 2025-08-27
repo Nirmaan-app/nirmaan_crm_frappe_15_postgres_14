@@ -38,9 +38,9 @@ export const PendingTasks = ({ tasks, isLoading }: { tasks: EnrichedCRMTask[], i
           // ADD THIS MEMOIZED FILTERING LOGIC
     const filteredTasks = useMemo(() => {
         const now = new Date();
-        const today = new Date(now.setHours(0, 0, 0, 0)); // Start of today
-        const sevenDaysAgo = subDays(today, 6); // Include today in the 7-day range
-
+        //const today = new Date(now.setHours(0, 0, 0, 0)); // Start of today
+        const sevenDaysAgo = subDays(now, 6); // Include today in the 7-day range
+ console.log(now, sevenDaysAgo)
         switch (selectedFilter) {
             case 'Today':
                 return tasks.filter(task => task.start_date && isToday(new Date(task.start_date)));

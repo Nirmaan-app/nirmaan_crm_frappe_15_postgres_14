@@ -25,6 +25,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
     const { openEditBoqDialog } = useDialogStore();
     const getBoqStatusClass = useStatusStyles("boq");
+    const role = localStorage.getItem('role');
+
 
     return (
         <div className="bg-background p-6 rounded-lg border shadow-sm flex justify-between items-start">
@@ -32,7 +34,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
             <div className="space-y-4">
                 <div>
                     <p className="text-sm text-muted-foreground">BOQ Name</p>
-                    <h1 className="text-2xl font-bold">{boq?.boq_name || 'N/A'}</h1>
+                    <h1 className="text-lg font-bold">{boq?.boq_name || 'N/A'}</h1>
                 </div>
                 <div>
                     <p className="text-sm text-muted-foreground">BOQ</p>
@@ -44,6 +46,14 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                     ) : (
                         <p className="font-semibold">N/A</p>
                     )}
+                </div>
+                <div>
+                    <p className="text-sm text-muted-foreground">Assigned Sales</p>
+                    <h1 className="text-sm font-bold">{boq?.assigned_sales || 'N/A'}</h1>
+                </div>
+                <div>
+                    <p className="text-sm text-muted-foreground">Assigned Estimates</p>
+                    <h1 className="text-sm font-bold">{boq?.assigned_estimations || 'N/A'}</h1>
                 </div>
             </div>
 
@@ -69,6 +79,16 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                 >
                     Update BOQ Status
                 </Button>
+                {role=="Nirmaan Admin User Profile"&&(
+ <Button
+                    onClick={() => openEditBoqDialog({ boqData: boq, mode: 'assigned' })}
+                    className="bg-destructive hover:bg-destructive/90 mt-4" // Added margin for spacing
+                >
+                    Edit Assigned
+                </Button>
+                )}
+               
+                
             </div>
         </div>
     );
@@ -83,14 +103,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
     const getTaskStatusClass=useStatusStyles("task")
 
     const { openNewTaskDialog } = useDialogStore();
-    const getStatusClass = (status: string) => {
-        switch (status?.toLowerCase()) {
-            case 'completed': return 'bg-green-100 text-green-800';
-            case 'scheduled': return 'bg-yellow-100 text-yellow-800';
-            case 'incomplete': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    }
+   
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
             <div className="flex justify-between items-center mb-4">
@@ -137,7 +150,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
 };
 
 // --- SUB-COMPONENT 3: Remarks ---
-const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: string }) => {
+const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) => {
     const { openEditBoqDialog } = useDialogStore();
 
     return (
@@ -149,7 +162,7 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: string }) =
                     size="sm" 
                     className="border-destructive text-destructive" 
                     // This is a partial BOQ object, which is okay for this specific mode
-                    onClick={() => openEditBoqDialog({ boqData: { name: boqId } as CRMBOQ, mode: 'remark' })}
+                    onClick={() => openEditBoqDialog({ boqData:boqId as CRMBOQ, mode: 'remark' })}
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Remarks
@@ -203,7 +216,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 </Button>
             </div>
                 {/* Top Details Section */}
-            <div className="grid grid-cols-2 gap-y-5">
+            <div className="grid grid-cols-2 gap-y-5 gap-x-20">
                 <DetailItem label="Size" value={boq?.boq_size || 'n/a'} />
                 <DetailItem label="Package" value={boq?.boq_type || 'n/a'} />
                 <DetailItem label="Date Created" value={formatDate(boq?.creation)} />
@@ -214,7 +227,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
             <Separator />
 
             {/* Contact & Company Details Section */}
-            <div className="grid grid-cols-2 gap-y-5">
+            <div className="grid grid-cols-2 gap-y-5 gap-x-20">
                 <DetailItem label="Contact Name" value={contact ? `${contact.first_name} ${contact.last_name}` : 'n/a'} isLink href={`/contacts/contact?id=${contact?.name}`} />
                 <DetailItem label="Designation" value={contact?.designation || 'n/a'} />
                 <DetailItem label="Company Name" value={contact?.company || 'n/a'} isLink href={`/companies/company?id=${company?.name}`} />
@@ -356,9 +369,9 @@ export const BOQ = () => {
      const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", boqData?.contact);
     
     
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "type", "start_date", "status"],orderBy: { field: "creation", order: "desc" },limit: 0, });
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "type", "start_date", "status"],orderBy: { field: "creation", order: "desc" },limit: 0, },`all-tasks-filterbyBoq-id${id}`);
 
-    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "content", "creation"], orderBy: { field: "creation", order: "desc" },limit: 0, },"All Note");
+    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "content", "creation"], orderBy: { field: "creation", order: "desc" },limit: 0, },`all-notes-filterbyBoq-id${id}`);
 
 
   const { data: versionsList, isLoading: versionsLoading } = useFrappeGetDocList<DocVersion>("Version", {
@@ -367,7 +380,7 @@ export const BOQ = () => {
         orderBy: { field: "creation", order: "desc" },
         limit: 20,
         enabled: role !== 'Nirmaan Sales User Profile' //
-    },"BOQ Version");
+    },`all-version-filterbyBoq-id${id}`);
 
     if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
         return <div>Loading BOQ Details...</div>;
@@ -378,12 +391,15 @@ export const BOQ = () => {
     return (
         <div className="space-y-6">
             <BoqDetailsHeader boq={boqData} />
-            <BoqTaskDetails 
+            {role!=="Nirmaan Estimations User Profile"&&(
+<BoqTaskDetails 
                 tasks={tasksList || []}
                 boqId={boqData.name}
                 companyId={boqData.company}
                 contactId={boqData.contact}
             />
+            )}
+            
            
             <OtherBoqDetails 
                 boq={boqData} 
@@ -397,7 +413,7 @@ export const BOQ = () => {
 
              <BoqRemarks 
                 remarks={remarksList || []} 
-                boqId={boqData.name}
+                boqId={boqData}
             />
 
         </div>

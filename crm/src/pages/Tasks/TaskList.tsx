@@ -84,7 +84,9 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
             <div className="flex flex-col cursor-pointer">
                 {/* <div className="flex flex-col cursor-pointer" onClick={() => handleSelect(task.name)}> */}
                 <span className="font-medium">{task.type} {task.first_name} from {task.company}</span>
-                <span className="text-sm text-muted-foreground">at {formatTime12Hour(task.time)}</span>
+                <span className="text-sm text-muted-foreground">at {formatTime12Hour(task.time)} on {task.start_date}</span>
+               
+
             </div>
             <Button variant="outline" size="sm" onClick={buttonAction}>
                 {buttonLabel}
@@ -97,8 +99,15 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
 export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
     const navigate = useNavigate();
     const { isMobile } = useViewport();
-    const { role, isLoading: isUserLoading } = useCurrentUser();
+    // const { role, isLoading: isUserLoading } = useCurrentUser();
+    const role = localStorage.getItem("role")
+    const user_id = localStorage.getItem("userId")
     // const [id, setId] = useStateSyncedWithParams<string>("id", "");
+    const [assignmentFilters, setAssignmentFilters] = useState([]);
+
+     const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });
+
+
 
     const {
         isLoading,
@@ -106,27 +115,48 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         todayTasks,
         tomorrowTasks,
         createdTodayTasks
-    } = useTaskData();
+    } = useTaskData(assignmentFilters);
 
-    const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });
-
-    const [assignmentFilters, setAssignmentFilters] = useState([]);
+   
+    // const allFilters = useMemo(() => {
+    //     // REMOVED: No default filters for Sales User. Backend handles it.
+    //     const dateFilters = [['start_date', 'between', [dateRange.from, dateRange.to]]];
+    //     console.log("assignmentFilters",assignmentFilters)
+    //     // console.log([...dateFilters, ...assignmentFilters])
+    //     return [...dateFilters, ...assignmentFilters||[]];
+    // }, [dateRange, assignmentFilters]);
 
     const allFilters = useMemo(() => {
-        // REMOVED: No default filters for Sales User. Backend handles it.
-        const dateFilters = [['start_date', 'between', [dateRange.from, dateRange.to]]];
-        return [...dateFilters, ...assignmentFilters];
-    }, [dateRange, assignmentFilters]);
+    // Always start with the base date filters.
+    const baseFilters = [
+        ['start_date', 'between', [dateRange.from, dateRange.to]]
+    ];
 
+    // Check if the assignmentFilters array has any actual filters in it.
+    // The .length > 0 check is crucial here.
+    console.log("assignmentFilters",assignmentFilters)
+    if (assignmentFilters && assignmentFilters.length > 0) {
+        // If there are assignment filters, combine them with the base filters.
+        return [...baseFilters, ...assignmentFilters];
+    }
+
+    // If assignmentFilters is empty, return ONLY the base filters.
+    return baseFilters;
+
+}, [dateRange, assignmentFilters]);
+
+
+    console.log("allFilters",allFilters)
+ const swrkey=`all-tasks-${allFilters}`
 
     const { data: tasks, taskisLoading } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
-        fields: ["name", "type", "start_date", "time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation"],
+        fields: ["name", "type", "start_date", "time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation","assigned_sales"],
         filters: allFilters,
         limit: 0,
         orderBy: { field: "creation", order: "asc" }
-    }, "All Tasks");
+    });
 
-    console.log("TTASKS", tasks)
+    // console.log("TTASKS", tasks)
 
     const { allTasks, pendingTasks, scheduledTasks } = useMemo(() => {
         const today = new Date().toISOString().slice(0, 10);
@@ -142,12 +172,12 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         return {
             allTasks: enriched,
             pendingTasks: enriched.filter(t => t.status !== 'Completed'),
-            scheduledTasks: enriched.filter(t => t.status === 'Scheduled'),
+            scheduledTasks: enriched.filter(t => t.status === 'Completed'),
             //      todayTasks: enriched.filter(t => t.start_date?.slice(0, 10) == today),
             // tomorrowTasks: enriched.filter(t => t.start_date?.slice(0, 10) == tomorrow),
             // createdTodayTasks: enriched.filter(t => t.creation?.slice(0, 10) == today),
         };
-    }, [tasks]);
+    }, [tasks,assignmentFilters]);
 
 
     console.log(dateRange.from, dateRange.to)
@@ -156,20 +186,50 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         onTaskSelect({ from: dateRange.from, to: dateRange.to });
     }, [dateRange])
 
-    if (taskisLoading) { return <div className="text-center p-4">Loading Tasks...</div>; }
+    // if (taskisLoading) { return <div className="text-center p-4">Loading Tasks...</div>; }
 
-    console.log("ALL DATA", allTasks, pendingTasks, scheduledTasks)
+    // console.log("ALL DATA", allTasks, pendingTasks, scheduledTasks)
 
 
-    const handleTaskClick = (path: string) => {
-        if (isMobile) {
-            //  navigate(`/tasks/${path}`)
-            navigate(`/tasks/${path}?from=${dateRange.from}&to=${dateRange.to}`);
+    // const handleTaskClick = (path: string) => {
+    //     if (isMobile) {
+    //         //  navigate(`/tasks/${path}`)
+    //         navigate(`/tasks/${path}?from=${dateRange.from}&to=${dateRange.to}`);
 
-        } else {
-            onTaskSelect({ id: path, from: dateRange.from, to: dateRange.to });
+    //     } else {
+    //         onTaskSelect({ id: path, from: dateRange.from, to: dateRange.to });
+    //     }
+    // }
+      const handleTaskClick = (path: 'all' | 'pending' | 'completed') => {
+        // 1. Start with the base query parameters (date range)
+        const params = new URLSearchParams({
+            from: dateRange.from,
+            to: dateRange.to,
+        });
+
+        // 2. Check if there are active assignment filters
+        // The filter structure is [['assigned_sales', 'in', ['user1@email.com', 'user2@email.com']]]
+        if (assignmentFilters && assignmentFilters.length > 0) {
+            // Extract the user emails/IDs from the filter
+            const assignedUsers = assignmentFilters[0][2]; // This gets the array ['user1@email.com', ...]
+            
+            // 3. Add the users to the query string.
+            // We'll join them into a comma-separated string, which is a common and clean way to pass arrays.
+            if (assignedUsers && assignedUsers.length > 0) {
+                params.set('assigned_to', assignedUsers?.join(','));
+            }
         }
-    }
+
+        const queryString = params.toString();
+
+        if (isMobile) {
+            navigate(`/tasks/${path}?${queryString}`);
+        } else {
+            // For desktop, we also need to pass the query string along.
+            onTaskSelect({ id: path, from: dateRange.from, to: dateRange.to, assigned_to: params.get('assigned_to') });
+        }
+    };
+
 
     return (
         <div className="space-y-4">
@@ -199,13 +259,13 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                     <p className="text-2xl font-bold">{pendingTasks.length}</p>
                     <p className="text-sm">Pending</p>
                 </div>
-                <div onClick={() => handleTaskClick('upcoming')} className={`p-3 rounded-lg text-center cursor-pointer transition-colors ${activeTaskId === 'upcoming'
+                <div onClick={() => handleTaskClick('completed')} className={`p-3 rounded-lg text-center cursor-pointer transition-colors ${activeTaskId === 'completed'
                     ? 'bg-red-700 ring-2 ring-offset-1 ring-red-700' // Active state: darker red + ring
                     : 'bg-destructive text-white' // Default state
                     }`}
                 >
                     <p className="text-2xl font-bold">{scheduledTasks.length}</p>
-                    <p className="text-sm">Scheduled</p>
+                    <p className="text-sm">Completed</p>
                 </div>
             </div>
 

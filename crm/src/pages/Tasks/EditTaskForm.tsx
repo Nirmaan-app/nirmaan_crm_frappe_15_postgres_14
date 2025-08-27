@@ -14,6 +14,8 @@ import ReactSelect from "react-select";
 import { useEffect } from "react";
 import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
 import { Calendar, Clock } from "lucide-react"; // Import icons for a nicer UI
+import { taskTypeOptions } from "@/constants/dropdownData";
+import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 
 
 // A flexible schema for all modes
@@ -27,11 +29,14 @@ const editTaskSchema = z.object({
   reason: z.string().optional(),
   remarks: z.string().optional(),
   reschedule: z.boolean().optional(),
+    assigned_sales: z.string().optional(),
+  
 });
 type EditTaskFormValues = z.infer<typeof editTaskSchema>;
 
 // Options for dropdowns
-const taskTypeOptions = [ {label: "Call", value: "Call"}, {label: "In Person", value: "In Person"}, {label: "Virtual", value: "Virtual"},{label: "Follow-up", value: "Follow-up"} ];
+// const taskTypeOptions = [ {label: "Call", value: "Call"}, {label: "In Person", value: "In Person"}, {label: "Virtual", value: "Virtual"},{label: "Follow-up", value: "Follow-up"} ];
+
 const statusOptions = [{label: "Completed", value: "Completed"}, {label: "Incomplete", value: "Incomplete"} ];
 
 // {label: "Scheduled", value: "Scheduled"}
@@ -40,6 +45,8 @@ const reasonOptions = [{label: "Can't be reached", value: "Can't be reached"}, {
 export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { editTask, closeEditTaskDialog, openEditTaskDialog } = useDialogStore();
   const { taskData, mode } = editTask.context;
+   const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
+  const role=localStorage.getItem("role")
 
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
   const { createDoc, loading: createLoading } = useFrappeCreateDoc();
@@ -62,6 +69,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         type: taskData.type || "",
         start_date: taskData.start_date?.split(" ")[0] || "",
         time: taskData.time || "",
+        assigned_sales:taskData.assigned_sales||"",
         status: "",
         reschedule: false,
         reason: "",
@@ -79,10 +87,10 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       let shouldCloseDialog = true; // Assume we will close the dialog by default
 
       if (mode === 'edit') {
-        await updateDoc("CRM Task", taskData.name, { type: values.type, start_date: `${values.start_date} ${values.time}`, time: values.time });
+        await updateDoc("CRM Task", taskData.name, { type: values.type, start_date: `${values.start_date} ${values.time}`, time: values.time ,assigned_sales:values.assigned_sales});
         toast({ title: "Success", description: "Task rescheduled." });
       } else if (mode === 'updateStatus') {
-        await updateDoc("CRM Task", taskData.name, { status: values.status, description: `${values.reason || ''}\n${values.remarks || ''}`.trim() });
+        await updateDoc("CRM Task", taskData.name, { status: values.status,assigned_sales:values.assigned_sales, description: `${values.reason || ''}\n${values.remarks || ''}`.trim() });
         toast({ title: "Success", description: "Task status updated." });
         
         // --- THIS IS THE KEY LOGIC CHANGE ---
@@ -100,6 +108,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             status: 'Scheduled',
             contact: taskData.contact,
             company: taskData.company,
+            assigned_sales:taskData.assigned_sales,
             boq: taskData.boq,
         });
         toast({ title: "Success", description: "New task scheduled." });
@@ -153,6 +162,29 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
                 </div>
               <FormField name="type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Task Type</FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)}/></FormControl><FormMessage /></FormItem> )} />
+               {role!=="Nirmaan Estimations User Profile" &&(
+                                       <FormField
+                                                  control={form.control}
+                                                  name="assigned_sales"
+                                                  render={({ field }) => (
+                                                      <FormItem>
+                                                          <FormLabel>Assigned Salesperson For Task</FormLabel>
+                                                          <FormControl>
+                                                              <ReactSelect
+                                                                  options={salesUserOptions}
+                                                                  value={salesUserOptions.find(u => u.value === field.value)}
+                                                                  onChange={val => field.onChange(val?.value)}
+                                                                  placeholder="Select a salesperson..."
+                                                                  isLoading={usersLoading}
+                                                                  className="text-sm"
+                                                                  menuPosition={'auto'}
+                                                              />
+                                                          </FormControl>
+                                                          <FormMessage />
+                                                      </FormItem>
+                                                  )}
+                                              />
+                                      )}
               <FormField name="start_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
               <FormField name="time" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Time</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem> )} />
             </>

@@ -13,6 +13,8 @@ import ReactSelect from "react-select";
 import { useEffect, useMemo } from "react";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { BOQmainStatusOptions,BOQsubStatusOptions } from "@/constants/dropdownData";
+import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+
 // --- STEP 1: EXPAND THE SCHEMA ---
 // Matches the Frappe Doctype and the UI Mockup
 const editBoqSchema = z.object({
@@ -34,6 +36,10 @@ remarks:z.string().optional(),
   title:z.string().optional(),
   content:z.string().optional(),
   remark_content: z.string().optional(),
+
+  //Assigned values 
+  assigned_sales: z.string().optional(),
+    assigned_estimations:z.string().optional()
 });
 
 type EditBoqFormValues = z.infer<typeof editBoqSchema>;
@@ -44,7 +50,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   const { editBoq, closeEditBoqDialog } = useDialogStore();
   const { boqData, mode } = editBoq.context;
    const getBoqStatusClass = useStatusStyles('boq');
-
+ const { salesUserOptions,estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
   
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
   const { createDoc, loading: createLoading } = useFrappeCreateDoc();
@@ -89,6 +95,8 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             contact: boqData.contact || "",
             remarks: boqData.remarks||"",
             boq_submission_date: boqData.boq_submission_date||"",
+            assigned_sales:boqData.assigned_sales||"",
+              assigned_estimations:boqData.assigned_estimations||"",
             title:"",
             content:"",
             
@@ -125,14 +133,23 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         console.log(values)
         if (!values.title?.trim()) return toast({ title: "Error", description: "Title cannot be empty.", variant: "destructive" });
         await createDoc("CRM Note", { reference_doctype: "CRM BOQ", reference_docname: boqData.name, content: values.content,title:values.title });
-        await mutate("All Note");
+        // await mutate("All Note");
         toast({ title: "Success", description: "Remark added." });
+      }else if (mode === 'assigned') {
+        // Handle only the status update
+     await updateDoc("CRM BOQ", boqData.name, { 
+              assigned_sales:dataToSave.assigned_sales,
+              assigned_estimations:dataToSave.assigned_sales,
+        });
+
+        toast({ title: "Success", description: "Assigned Person updated." });
       }
       
-      await mutate(`BOQ/${boqData.name}`);
-      await mutate("BOQ Version")
-      // await mutate("AllBOQsList")
-      await mutate("PendingBOQsList")
+      await mutate(`BOQ/${boqData.name}`);//update specific boq
+    
+      await mutate(key => typeof key === 'string' && key.startsWith('all-notes-'));
+      await mutate(key => typeof key === 'string' && key.startsWith('all-version-'));
+      await mutate(key => typeof key === 'string' && key.startsWith('all-boqs-'));
 
       if (onSuccess) {
         onSuccess();
@@ -161,6 +178,53 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                       </span>
                   </div>
               </div>
+
+              {mode==="assigned"&&(
+                <>
+                <FormField
+                                            control={form.control}
+                                            name="assigned_sales"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Assigned Salesperson For BOQ</FormLabel>
+                                                    <FormControl>
+                                                        <ReactSelect
+                                                            options={salesUserOptions}
+                                                            value={salesUserOptions.find(u => u.value === field.value)}
+                                                            onChange={val => field.onChange(val?.value)}
+                                                            placeholder="Select a salesperson..."
+                                                            isLoading={usersLoading}
+                                                            className="text-sm"
+                                                            menuPosition={'auto'}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                         <FormField
+                                                 control={form.control}
+                                                                    name="assigned_estimations"
+                                                                    render={({ field }) => (
+                                                                        <FormItem>
+                                                                            <FormLabel>Assigned Estimateperson For BOQ</FormLabel>
+                                                                            <FormControl>
+                                                                                <ReactSelect
+                                                                                    options={estimationUserOptions}
+                                                                                    value={estimationUserOptions.find(u => u.value === field.value)}
+                                                                                    onChange={val => field.onChange(val?.value)}
+                                                                                    placeholder="Select a salesperson..."
+                                                                                    isLoading={usersLoading}
+                                                                                    className="text-sm"
+                                                                                    menuPosition={'auto'}
+                                                                                />
+                                                                            </FormControl>
+                                                                            <FormMessage />
+                                                                        </FormItem>
+                                                                    )}
+                                                                />
+                </>
+              )}
         {mode === 'details' && (
            <>
             <FormField name="boq_name" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
