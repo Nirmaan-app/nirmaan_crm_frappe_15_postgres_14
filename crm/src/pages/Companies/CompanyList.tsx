@@ -95,7 +95,7 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
     // }
 
 
-    
+
     return (
         <div className="flex flex-col h-full">
 
@@ -111,7 +111,7 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
             <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                     {role === "Nirmaan Sales User Profile" && <span className="text-xs font-light">List Companies:</span>}
-                    <AssignmentFilterControls onFilterChange={setAssignmentFilters} />
+                    <AssignmentFilterControls onFilterChange={setAssignmentFilters} filterType="company" />
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto">

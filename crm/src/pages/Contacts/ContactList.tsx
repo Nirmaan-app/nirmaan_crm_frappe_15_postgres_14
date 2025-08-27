@@ -7,7 +7,7 @@ import { useDialogStore } from "@/store/dialogStore";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, Plus, Search } from "lucide-react";
-import { useMemo,useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface ContactListProps {
@@ -36,41 +36,41 @@ type EnrichedContact = CRMContacts & { full_name: string; company_name: string; 
 export const ContactList = ({ onContactSelect, activeContactId }: ContactListProps) => {
     const navigate = useNavigate();
     const { openNewContactDialog } = useDialogStore();
-        const role=localStorage.getItem("role")
-    
+    const role = localStorage.getItem("role")
+
 
     const [searchQuery, setSearchQuery] = useState("");
 
-     // NEW: State to hold the filters from our new component
+    // NEW: State to hold the filters from our new component
     const [assignmentFilters, setAssignmentFilters] = useState([]);
-    
-        const swrKey = `all-contacts-${JSON.stringify(assignmentFilters)}`;
-    
+
+    const swrKey = `all-contacts-${JSON.stringify(assignmentFilters)}`;
+
 
     const { data: contacts, isLoading } = useFrappeGetDocList<EnrichedContact>("CRM Contacts", {
         fields: ["name", "first_name", "last_name", "company","email"],
         filters: assignmentFilters, // Use the state variable here
         limit: 0,
         orderBy: { field: "modified", order: "desc" }
-    },swrKey);
+    }, swrKey);
 
     const enrichedContacts = useMemo(() =>
         contacts?.map(c => ({
             ...c,
             full_name: `${c.first_name || ''} ${c.last_name || ''}`.trim(),
             company_name: c.company || 'N/A'
-        }))||[],
+        })) || [],
         [contacts]
     );
 
-     // --- STEP 2: IMPLEMENT CLIENT-SIDE FILTERING ---
+    // --- STEP 2: IMPLEMENT CLIENT-SIDE FILTERING ---
     const filteredContacts = useMemo(() => {
         const lowercasedQuery = searchQuery.toLowerCase().trim();
         if (!lowercasedQuery) {
             return enrichedContacts;
         }
 
-        return enrichedContacts.filter(contact => 
+        return enrichedContacts.filter(contact =>
             contact.full_name.toLowerCase().includes(lowercasedQuery) ||
             contact.company_name.toLowerCase().includes(lowercasedQuery)
         );
@@ -93,7 +93,7 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
         <div className="flex flex-col h-full">
             <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
+                <Input
                     placeholder="Search Contact or Company..."
                     className="pl-9"
                     value={searchQuery}
@@ -101,11 +101,11 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
                 />
             </div>
             <div className="mb-4">
-                            <div className="flex items-center justify-between mb-2">
-                                {role === "Nirmaan Sales User Profile" && <span className="text-xs font-light">List Contacts:</span>}
-                                <AssignmentFilterControls onFilterChange={setAssignmentFilters} />
-                            </div>
-                        </div>
+                <div className="flex items-center justify-between mb-2">
+                    {role === "Nirmaan Sales User Profile" && <span className="text-xs font-light">List Contacts:</span>}
+                    <AssignmentFilterControls onFilterChange={setAssignmentFilters} filterType="contact" />
+                </div>
+            </div>
             <div className="flex-1 overflow-y-auto pr-2 -mr-2">
                 {filteredContacts?.map((contact, index) => (
                     <div key={contact.name}>

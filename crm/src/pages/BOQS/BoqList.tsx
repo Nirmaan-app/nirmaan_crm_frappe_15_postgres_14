@@ -14,6 +14,8 @@ import { MoreVertical, Plus, SquarePen } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useViewport } from "@/hooks/useViewPort";
 import { BoqListHeader } from "./BoqListHeader"; // Import the new header component
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { AssignmentFilterControls } from "@/components/ui/AssignmentFilterControls";
 
 type EnrichedBoq = CRMBOQ & { "company.company_name"?: string; "contact.first_name"?: string; "contact.last_name"?: string; };
 interface BoqListProps { onBoqSelect?: (id: string) => void; activeBoqId?: string | null; }
@@ -63,16 +65,26 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
 
 export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     const { isMobile } = useViewport();
+    const { role, isLoading: isUserLoading } = useCurrentUser();
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState("By Company");
     const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });
+    const [assignmentFilters, setAssignmentFilters] = useState([]);
+
+    const allFilters = useMemo(() => {
+        // REMOVED: No more default filters for Sales User. Backend handles it.
+        const dateFilters = [['modified', 'between', [dateRange.from, dateRange.to]]];
+        return [...dateFilters, ...assignmentFilters];
+    }, [dateRange, assignmentFilters]);
+
+    const swrKey = `all-boqs-${JSON.stringify(allFilters)}`;
 
     const { data: boqs, isLoading } = useFrappeGetDocList<EnrichedBoq>("CRM BOQ", {
         fields: ["name", "boq_name", "boq_status", "boq_type", "company", "contact", "company.company_name", "contact.first_name", "contact.last_name", "modified"],
-        filters: [["modified", "between", [dateRange.from, dateRange.to]]],
+        filters: allFilters,
        limit: 0,
         orderBy: { field: "modified", order: "desc" }
-    },"All BOQ");
+    },swrKey);
     
     const filteredBoqs = useMemo(() => {
         if (!boqs) return [];
@@ -92,7 +104,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         });
     }, [boqs, searchQuery, filterType]);
 
-    if (isLoading) { return <div className="p-4 text-center">Loading BOQs...</div>; }
+    // if (isLoading) { return <div className="p-4 text-center">Loading BOQs...</div>; }
     
     // Pass all necessary state and functions to the new header component
     const headerProps = {
@@ -108,6 +120,11 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     return (
         <div className="flex flex-col h-full">
             <BoqListHeader {...headerProps} />
+            {role !== 'Nirmaan Sales User Profile' && (
+                <div className="mt-4">
+                    <AssignmentFilterControls onFilterChange={setAssignmentFilters} filterType="boq" />
+                </div>
+            )}
             <div className="flex-1 overflow-y-auto mt-4">
                 {isMobile ? (
                     // MOBILE LIST RENDER

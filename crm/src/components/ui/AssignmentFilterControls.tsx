@@ -10,123 +10,140 @@ import { CRMUsers } from '@/types/NirmaanCRM/CRMUsers';
 
 type FrappeFilter = [string, string, string | string[]];
 
+// MODIFIED: Added 'task' to the filter types
 interface AssignmentFilterControlsProps {
     onFilterChange: (filters: FrappeFilter[]) => void;
+    filterType: 'boq' | 'company' | 'contact' | 'task';
 }
 
-// NEW: Define a constant for our special "Unassigned" option.
-// The value is a unique string that won't conflict with a real user ID.
 const UNASSIGNED_OPTION = { label: "Unassigned", value: "__UNASSIGNED__" };
 
-export const AssignmentFilterControls = ({ onFilterChange }: AssignmentFilterControlsProps) => {
+export const AssignmentFilterControls = ({ onFilterChange, filterType }: AssignmentFilterControlsProps) => {
     const { role, user_id, isLoading: isUserLoading } = useCurrentUser();
-
-    // State for the Sales User's active tab
-    const [activeTab, setActiveTab] = useState<'me' | 'all'>('me');
-
-    // State for the Admin/Estimations selected users
-    const [selectedUsers, setSelectedUsers] = useState<{ label: string; value: string }[]>([]);
-
-    // NEW: Ref to store the stringified version of the last applied filters
     const lastFiltersRef = useRef<string | null>(null);
 
-    // Fetch all users with the "Sales User" profile for the multi-select dropdown
-    const { data: salesUsers, isLoading: areSalesUsersLoading } = useFrappeGetDocList<CRMUsers>(
-        "CRM Users",
-        {
-            fields: ["name", "full_name"],
-            filters: { nirmaan_role_name: "Nirmaan Sales User Profile" },
-            limit: 0,
-        },
-        "sales-users-list" // Unique SWR key
-    );
+    const [activeTab, setActiveTab] = useState<'me' | 'all'>('me');
+    const [selectedSalesUsers, setSelectedSalesUsers] = useState<{ label: string; value: string }[]>([]);
+    const [selectedEstimationUsers, setSelectedEstimationUsers] = useState<{ label: string; value: string }[]>([]);
 
-    // MODIFIED: Prepend our special "Unassigned" option to the list of real users.
+    const { data: salesUsers, isLoading: salesLoading } = useFrappeGetDocList<CRMUsers>("CRM Users", {
+        fields: ["name", "full_name"],
+        filters: { nirmaan_role_name: "Nirmaan Sales User Profile" },
+        limit: 0,
+    }, "sales-users-list");
+
+    const { data: estimationUsers, isLoading: estimationLoading } = useFrappeGetDocList<CRMUsers>("CRM Users", {
+        fields: ["name", "full_name"],
+        filters: { nirmaan_role_name: "Nirmaan Estimations User Profile" },
+        limit: 0,
+    }, "estimation-users-list");
+
     const salesUserOptions = useMemo(() => {
         const users = salesUsers?.map(user => ({ label: user.full_name, value: user.name })) || [];
         return [UNASSIGNED_OPTION, ...users];
     }, [salesUsers]);
 
-    // This effect listens to changes in the filter controls and calls the parent component
+    const estimationUserOptions = useMemo(() => {
+        const users = estimationUsers?.map(user => ({ label: user.full_name, value: user.name })) || [];
+        return [UNASSIGNED_OPTION, ...users];
+    }, [estimationUsers]);
+
     useEffect(() => {
         if (isUserLoading) return;
 
         let newFilters: FrappeFilter[] = [];
 
+        const buildFilterBlock = (selected: { label: string; value: string }[], fieldName: string): FrappeFilter[] => {
+            const isUnassigned = selected.some(u => u.value === UNASSIGNED_OPTION.value);
+            const userIds = selected.filter(u => u.value !== UNASSIGNED_OPTION.value).map(u => u.value);
+            if (isUnassigned && userIds.length > 0) return [[fieldName, 'is', 'not set'], [fieldName, 'in', userIds]];
+            if (isUnassigned) return [[fieldName, 'is', 'not set']];
+            if (userIds.length > 0) return [[fieldName, 'in', userIds]];
+            return [];
+        };
+
         if (role === 'Nirmaan Sales User Profile') {
-            if (activeTab === 'me') {
-                newFilters.push(['assigned_sales', '=', user_id]);
+            if (filterType === 'company' || filterType === 'contact') {
+                if (activeTab === 'me') newFilters.push(['assigned_sales', '=', user_id]);
             }
-        } else {
-            const isUnassignedSelected = selectedUsers.some(u => u.value === UNASSIGNED_OPTION.value);
-            const regularUserIds = selectedUsers
-                .filter(u => u.value !== UNASSIGNED_OPTION.value)
-                .map(u => u.value);
-
-            // Case 1: Both "Unassigned" and regular users are selected.
-            // We build an array of filter arrays, which Frappe interprets as an OR condition.
-            if (isUnassignedSelected && regularUserIds.length > 0) {
-                newFilters = [
-                    ['assigned_sales', 'is', 'not set'], // Frappe ORM for NULL/empty
-                    ['assigned_sales', 'in', regularUserIds]
-                ];
+        } else if (role === 'Nirmaan Estimations User Profile') {
+            if (filterType === 'boq' && activeTab === 'me') {
+                newFilters.push(['assigned_estimations', '=', user_id]);
             }
-            // Case 2: Only "Unassigned" is selected.
-            else if (isUnassignedSelected) {
-                newFilters.push(['assigned_sales', 'is', 'not set']);
+        } else if (role === 'Nirmaan Admin User Profile') {
+            const salesFilters = buildFilterBlock(selectedSalesUsers, 'assigned_sales');
+            newFilters.push(...salesFilters);
+            if (filterType === 'boq') {
+                const estimationFilters = buildFilterBlock(selectedEstimationUsers, 'assigned_estimations');
+                newFilters.push(...estimationFilters);
             }
-            // Case 3: Only regular users are selected.
-            else if (regularUserIds.length > 0) {
-                newFilters.push(['assigned_sales', 'in', regularUserIds]);
-            }
-            // Case 4: Nothing is selected (show all). newFilters remains empty.
-
         }
 
-        // --- CORE FIX: Compare current filters with the last applied ones ---
         const newFiltersString = JSON.stringify(newFilters);
         if (newFiltersString !== lastFiltersRef.current) {
             onFilterChange(newFilters);
-            // Update the ref to the new filters
             lastFiltersRef.current = newFiltersString;
         }
-    }, [role, activeTab, selectedUsers, user_id, onFilterChange, isUserLoading]);
+    }, [role, activeTab, selectedSalesUsers, selectedEstimationUsers, user_id, onFilterChange, isUserLoading, filterType]);
 
     if (isUserLoading) {
         return <Skeleton className="h-10 w-full" />;
     }
 
-    // --- Conditional UI Rendering ---
+    // --- Role-Based UI Rendering ---
 
     if (role === 'Nirmaan Sales User Profile') {
-        return (
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'me' | 'all')}>
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="me">Assigned to Me</TabsTrigger>
-                    <TabsTrigger value="all">All</TabsTrigger>
-                </TabsList>
-            </Tabs>
-        );
+        // Show tabs for Company/Contact list, but hide for BOQ and Task lists.
+        if (filterType === 'company' || filterType === 'contact') {
+            return (
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'me' | 'all')}>
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="me">Assigned to Me</TabsTrigger>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            );
+        }
+        return null;
     }
 
-    if (role === 'Nirmaan Admin User Profile' || role === 'Nirmaan Estimations User Profile') {
-        return (
+    if (role === 'Nirmaan Estimations User Profile') {
+        // Show tabs ONLY for the BOQ list.
+        if (filterType === 'boq') {
+            return (
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'me' | 'all')}>
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="me">Assigned to Me</TabsTrigger>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            );
+        }
+        return null;
+    }
+
+    if (role === 'Nirmaan Admin User Profile') {
+        const salesFilterDropdown = (
             <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">Filter by Sales User</label>
-                <ReactSelect
-                    isMulti
-                    options={salesUserOptions}
-                    isLoading={areSalesUsersLoading}
-                    value={selectedUsers}
-                    onChange={setSelectedUsers}
-                    placeholder="All Sales Users"
-                    className="text-sm"
-                    menuPosition={'auto'}
-                />
+                <ReactSelect isMulti options={salesUserOptions} isLoading={salesLoading} value={selectedSalesUsers} onChange={setSelectedSalesUsers} placeholder="All Sales Users" className="text-sm" menuPosition={'auto'} />
             </div>
         );
+        // For BOQs, show both dropdowns.
+        if (filterType === 'boq') {
+            return (
+                <div className="space-y-4">
+                    {salesFilterDropdown}
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-muted-foreground">Filter by Estimation User</label>
+                        <ReactSelect isMulti options={estimationUserOptions} isLoading={estimationLoading} value={selectedEstimationUsers} onChange={setSelectedEstimationUsers} placeholder="All Estimation Users" className="text-sm" menuPosition={'auto'} />
+                    </div>
+                </div>
+            );
+        }
+        // For Company, Contact, AND Task lists, show only the Sales dropdown.
+        return salesFilterDropdown;
     }
 
-    // Render nothing if the role doesn't match any of the above
     return null;
 };
