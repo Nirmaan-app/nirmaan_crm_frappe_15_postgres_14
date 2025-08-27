@@ -90,10 +90,12 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
         [filteredCompanies, activeCompanyId]
     );
 
-    if (isLoading) {
-        return <div>Loading Companies...</div>;
-    }
+    // if (isLoading) {
+    //     return <div>Loading Companies...</div>;
+    // }
 
+
+    
     return (
         <div className="flex flex-col h-full">
 

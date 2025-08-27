@@ -1,4 +1,6 @@
 // src/pages/Contacts/ContactList.tsx
+import { AssignmentFilterControls } from "@/components/ui/AssignmentFilterControls";
+
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useDialogStore } from "@/store/dialogStore";
@@ -34,15 +36,23 @@ type EnrichedContact = CRMContacts & { full_name: string; company_name: string; 
 export const ContactList = ({ onContactSelect, activeContactId }: ContactListProps) => {
     const navigate = useNavigate();
     const { openNewContactDialog } = useDialogStore();
+        const role=localStorage.getItem("role")
+    
 
-        const [searchQuery, setSearchQuery] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+
+     // NEW: State to hold the filters from our new component
+    const [assignmentFilters, setAssignmentFilters] = useState([]);
+    
+        const swrKey = `all-contacts-${JSON.stringify(assignmentFilters)}`;
     
 
     const { data: contacts, isLoading } = useFrappeGetDocList<EnrichedContact>("CRM Contacts", {
         fields: ["name", "first_name", "last_name", "company"],
+        filters: assignmentFilters, // Use the state variable here
         limit: 0,
         orderBy: { field: "modified", order: "desc" }
-    },"All Contacts");
+    },swrKey);
 
     const enrichedContacts = useMemo(() =>
         contacts?.map(c => ({
@@ -75,9 +85,9 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
         }
     };
 
-    if (isLoading) {
-        return <div>Loading Contacts...</div>;
-    }
+    // if (isLoading) {
+    //     return <div>Loading Contacts...</div>;
+    // }
 
     return (
         <div className="flex flex-col h-full">
@@ -90,6 +100,12 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
+            <div className="mb-4">
+                            <div className="flex items-center justify-between mb-2">
+                                {role === "Nirmaan Sales User Profile" && <span className="text-xs font-light">List Contacts:</span>}
+                                <AssignmentFilterControls onFilterChange={setAssignmentFilters} />
+                            </div>
+                        </div>
             <div className="flex-1 overflow-y-auto pr-2 -mr-2">
                 {filteredContacts?.map((contact, index) => (
                     <div key={contact.name}>

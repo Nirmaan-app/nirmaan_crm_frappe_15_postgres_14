@@ -201,7 +201,7 @@ const dataToSave={
         }
       
        
-      mutate("All Contacts"); // Mutate the list for both case
+     await mutate( key => typeof key === 'string' && key.startsWith('all-contacts-')); // Mutate the list
       onSuccess?.();
     } catch (error) {
       toast({ title: "Error", description: (error as Error).message, variant: "destructive" });
