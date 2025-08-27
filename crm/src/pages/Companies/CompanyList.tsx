@@ -32,7 +32,7 @@ const CompanyListItem = ({ company, onSelect, isActive }: { company: CRMCompany,
 );
 
 export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListProps) => {
-    const { role } = useCurrentUser();
+    const role=localStorage.getItem("role")   
     const navigate = useNavigate();
     const { openNewCompanyDialog } = useDialogStore();
 

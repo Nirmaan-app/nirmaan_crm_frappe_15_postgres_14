@@ -48,7 +48,7 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
     
 
     const { data: contacts, isLoading } = useFrappeGetDocList<EnrichedContact>("CRM Contacts", {
-        fields: ["name", "first_name", "last_name", "company"],
+        fields: ["name", "first_name", "last_name", "company","email"],
         filters: assignmentFilters, // Use the state variable here
         limit: 0,
         orderBy: { field: "modified", order: "desc" }
