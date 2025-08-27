@@ -56,6 +56,10 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts }: Co
                         <p className="text-xs text-muted-foreground">Total Contacts</p>
                         <p className="font-bold text-lg">{String(totalContacts).padStart(2, '0')}</p>
                     </div>
+                           <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Assigned Sales</p>
+                        <p className="font-bold text-sm">{company.assigned_sales}</p>
+                    </div>
                 </div>
             </div>
         </div>

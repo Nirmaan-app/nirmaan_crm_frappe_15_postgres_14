@@ -27,8 +27,8 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
             ['company', '=', companyId], // The crucial filter
             ["start_date", "between", [dateRange.from, dateRange.to]]
         ],
-        limit: 1000
-    });
+        limit: 0
+    },"all-tasks-dynamicstats-company-id");
 
     const { data: allBoqs, isLoading: boqsLoading } = useFrappeGetDocList("CRM BOQ", {
         fields: ["name", "boq_name", "boq_status", "company", "creation", "modified"],
@@ -36,8 +36,8 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
             ['company', '=', companyId], // The crucial filter
             ["creation", "between", [dateRange.from, dateRange.to]]
         ],
-        limit: 1000
-    });
+        limit: 0
+    },"all-boqs-dynamicstats-company-id");
 
     // --- STATS CALCULATION (Same logic as StatsGrid) ---
     const statsData = useMemo(() => {
@@ -56,11 +56,11 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
 
         // const pendingTasks = allTasks.filter(t => t.status === "Scheduled");
         const boqReceived = allBoqs.filter(b => b.boq_status === "New");
-        const boqSent = allBoqs.filter(b => ["Submitted", "Revision Submitted"].includes(b.boq_status));
-        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In Progress"].includes(b.boq_status));
+        const boqSent = allBoqs.filter(b => ["BOQ Submitted", "Revision Submitted"].includes(b.boq_status));
+        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In-Progress"].includes(b.boq_status));
         const hotDeals = allBoqs.filter(b => ["Revision Submitted", "Negotiation"].includes(b.boq_status));
         const wonDeals = allBoqs.filter(b => ["Won"].includes(b.boq_status));
-        const allMeetings = allTasks.filter(t => ["Follow-up", "In-Person", "Call", "Virtual"].includes(t.type));
+        const allMeetings = allTasks
          const followUpMeetings = allTasks.filter(t => t.type==="Follow-up");
         
         

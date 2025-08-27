@@ -70,7 +70,7 @@ export const appRoutes = [
                   { path: "task", element: <Task /> },
                   { path: "all", element: <TasksVariantPage variant="all" /> },
                   { path: "pending", element: <TasksVariantPage variant="pending" /> },
-                  { path: "upcoming", element: <TasksVariantPage variant="upcoming" /> },
+                  { path: "completed", element: <TasksVariantPage variant="completed" /> },
                 ],
               },
               {

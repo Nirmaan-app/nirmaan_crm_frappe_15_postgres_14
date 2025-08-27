@@ -36,22 +36,24 @@ export const StatsGrid = () => {
         from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
         to: format(new Date(), 'yyyy-MM-dd'),
     });
+    const homeStatsGridFilter= [
+            ["start_date", "between", [dateRange.from, dateRange.to]]
+        ]
+    const homeStatsGrid=`all-tasks-hsgf${JSON.stringify(homeStatsGridFilter)}`
 
     const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
         fields: ["name", "type", "start_date", "status", "contact", "company","boq", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
-        filters: [
-            ["start_date", "between", [dateRange.from, dateRange.to]]
-        ],
-        limit: 1000
-    });
+        filters: homeStatsGridFilter,
+        limit: 0
+    },homeStatsGrid);
 
     const { data: allBoqs, isLoading: boqsLoading } = useFrappeGetDocList("CRM BOQ", {
         fields: ["name", "boq_status", "company", "creation", "modified"],
         filters: [
             ["creation", "between", [dateRange.from, dateRange.to]]
         ],
-        limit: 1000
-    });
+        limit: 0
+    },"all-boqs-hsgf");
 
     const statsData = useMemo(() => {
         if (!allTasks || !allBoqs) return null;
@@ -68,11 +70,10 @@ export const StatsGrid = () => {
 
         const pendingTasks = allTasks.filter(t => t.status === "Scheduled")     
         const boqReceived = allBoqs
-        const boqSent = allBoqs.filter(b => ["Submitted", "Revision Submitted"].includes(b.boq_status));
-        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In Progress"].includes(b.boq_status));
+        const boqSent = allBoqs.filter(b => ["BOQ Submitted", "Revision Submitted"].includes(b.boq_status));
+        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In-Progress"].includes(b.boq_status));
         const hotDeals = allBoqs.filter(b => ["Revision Submitted", "Negotiation"].includes(b.boq_status));
-        const allMeetings = allTasks.filter(t => ["Follow-Up", "In-Person", "Call", "Virtual"].includes(t.type));
-
+        const allMeetings = allTasks
         // CORRECTED: Use the unique link fields `contact` and `company` for a reliable identifier
         const uniqueMeetingIdentifiers = new Set();
         const uniqueMeetings = allMeetings.filter(t => {

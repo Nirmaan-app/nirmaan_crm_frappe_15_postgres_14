@@ -12,6 +12,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from 'react-select';
 import { useMemo, useEffect } from "react";
+import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+
 
 // Schema based on your Frappe Doctype and UI Mockup
 const boqFormSchema = z.object({
@@ -25,6 +27,10 @@ const boqFormSchema = z.object({
   company: z.string().min(1, "Company is required"),
   contact: z.string().min(1, "Contact is required"),
   remarks: z.string().optional(),
+  assigned_sales: z.string().optional(),
+  assigned_estimations:z.string().optional()
+  
+
 });
 
 type BoqFormValues = z.infer<typeof boqFormSchema>;
@@ -37,6 +43,9 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   const { newBoq, closeNewBoqDialog } = useDialogStore();
   const { createDoc, loading } = useFrappeCreateDoc();
   const { mutate } = useSWRConfig();
+  const role=localStorage.getItem("role")
+    const { salesUserOptions,estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
+  
   
   const { companyId: companyIdFromContext, contactId: contactIdFromContext } = newBoq.context;
 
@@ -76,16 +85,17 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       company: companyId || "",
       contact: contactIdFromContext || "",
       boq_name: "", boq_size: "", boq_type: "", boq_value: "",
-      boq_submission_date: "", boq_link: "", city: "", remarks: ""
+      boq_submission_date: "", boq_link: "", city: "", remarks: "", assigned_sales: "",assigned_estimations:""
     });
   }, [companyId, contactIdFromContext, form]);
 
   const onSubmit = async (values: BoqFormValues) => {
     try {
       const res = await createDoc("CRM BOQ", values);
-      await mutate("All BOQ");
-      await mutate("AllBOQsList")
-      await mutate("PendingBOQsList")
+      // await mutate("All BOQ");
+      // await mutate("AllBOQsList")
+      // await mutate("PendingBOQsList")
+      await mutate(key => typeof key === 'string' && key.startsWith('all-boqs-'));
 
       toast({ title: "Success!", description: `BOQ "${res.boq_name}" created.` });
       onSuccess?.();
@@ -98,6 +108,53 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField name="boq_name" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Name</FormLabel><FormControl><Input placeholder="e.g. Zepto P1" {...field} /></FormControl><FormMessage /></FormItem> )} />
+        assigned_estimations
+                 {role==="Nirmaan Admin User Profile" &&(
+                 <FormField
+                            control={form.control}
+                            name="assigned_sales"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Assigned Salesperson For BOQ</FormLabel>
+                                    <FormControl>
+                                        <ReactSelect
+                                            options={salesUserOptions}
+                                            value={salesUserOptions.find(u => u.value === field.value)}
+                                            onChange={val => field.onChange(val?.value)}
+                                            placeholder="Select a salesperson..."
+                                            isLoading={usersLoading}
+                                            className="text-sm"
+                                            menuPosition={'auto'}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                )}
+                {role==="Nirmaan Admin User Profile" &&(
+                 <FormField
+                            control={form.control}
+                            name="assigned_estimations"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Assigned Estimateperson For BOQ</FormLabel>
+                                    <FormControl>
+                                        <ReactSelect
+                                            options={estimationUserOptions}
+                                            value={estimationUserOptions.find(u => u.value === field.value)}
+                                            onChange={val => field.onChange(val?.value)}
+                                            placeholder="Select a salesperson..."
+                                            isLoading={usersLoading}
+                                            className="text-sm"
+                                            menuPosition={'auto'}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                )}
         <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Size</FormLabel><FormControl><Input placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
         <FormField name="boq_type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Type</FormLabel><FormControl><Input placeholder="e.g. Interior Fitout" {...field} /></FormControl><FormMessage /></FormItem> )} />
         <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value</FormLabel><FormControl><Input placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem> )} />

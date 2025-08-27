@@ -30,13 +30,14 @@ export const Contact = () => {
 
     const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", contactData?.company, { enabled: !!contactData?.company });
 
-    const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: id }, fields: ["*"] },"All BOQ");
+    const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: id }, fields: ["*"] },`all-boqs-filterbyContact-id${id}`);
 
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { contact: id }, fields: ["*"] },"All Tasks");
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { contact: id }, fields: ["*"] },`all-tasks-filterbyContact-id${id}`);
 
     // console.log("tasksList",tasksList)
 
     const { deleteDoc } = useFrappeDeleteDoc();
+
 
     const handleConfirmDelete = async () => {
         try {

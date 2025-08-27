@@ -36,7 +36,7 @@ const PendingBOQs = () => {
         filters: [["boq_status", "in", ["New", "Revision Pending", "In-Progress"]]],
         limit: 0,
         orderBy: { field: 'modified', order: 'desc' }
-    }, "PendingBOQsList"); // <-- UNIQUE KEY
+    }, "all-boqs-estimate-pending"); // <-- UNIQUE KEY
 
     if (error) return <div className="text-red-500">Error loading pending BOQs.</div>;
 
@@ -102,7 +102,7 @@ const AllBOQs = () => {
     const { data: allBoqs, isLoading, error } = useFrappeGetDocList<BOQ>('CRM BOQ', {
         fields: ["name", "boq_name", "company", "company.company_name", "boq_status", "boq_sub_status", "modified", "owner"],
         limit: 0
-    }, "AllBOQsList"); // <-- UNIQUE KEY
+    }, "all-boqs-estimate-all"); // <-- UNIQUE KEY
 
     // Options for the new status filter
     const statusOptions = ['New', 'Revision Pending', 'In-Progress', 'Revision Submitted', 'Negotiation', 'Won', 'Lost', 'Hold'];
@@ -206,6 +206,7 @@ const AllBOQs = () => {
 // Main component that assembles the page
 export const EstimationsHomePage = () => {
     const { openNewBoqDialog } = useDialogStore();
+    
   
     return (
         <div className="space-y-6">

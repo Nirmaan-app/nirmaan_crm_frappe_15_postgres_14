@@ -13,6 +13,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from 'react-select';
 import { useMemo, useEffect } from "react";
+import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+
 
 import { taskTypeOptions } from "@/constants/dropdownData";
 
@@ -23,6 +25,7 @@ const taskFormSchema = z.object({
   company: z.string().min(1, "Company is required"),
   contact: z.string().min(1, "Contact is required"),
   boq: z.string().optional(),
+   assigned_sales: z.string().optional(),
   remarks: z.string().optional(),
 }).refine(
     (data) => {
@@ -49,7 +52,10 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
   const { newTask, closeNewTaskDialog } = useDialogStore();
   const { createDoc, loading } = useFrappeCreateDoc();
   const { mutate } = useSWRConfig();
-  
+  const role=localStorage.getItem("role")
+
+  const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
+    
   const { companyId: companyIdFromContext, contactId: contactIdFromContext, boqId: boqIdFromContext } = newTask.context;
 
   const form = useForm<TaskFormValues>({
@@ -91,14 +97,14 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
       company: companyId || "",
       contact: contactIdFromContext || "",
       boq: boqIdFromContext || "",status:"Scheduled",
-      type: "", start_date: "", time: "", remarks: ""
+      type: "", start_date: "", time: "", remarks: "",assigned_sales: "",
     });
   }, [companyId, contactIdFromContext, boqIdFromContext, form]);
 
   const onSubmit = async (values: TaskFormValues) => {
     try {
       const res = await createDoc("CRM Task", values);
-      await mutate("All Tasks");
+      await mutate(key => typeof key === 'string' && key.startsWith('all-tasks-'));
       toast({ title: "Success!", description: "Task created." });
       onSuccess?.();
     } catch (error) {
@@ -124,6 +130,30 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
                 <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("contact", ""); form.setValue("boq", ""); }} placeholder="Select Company" menuPosition={'auto'}/>
             )}
         </FormControl><FormMessage /></FormItem> )} />
+         {role!=="Nirmaan Estimations User Profile" &&(
+                         <FormField
+                                    control={form.control}
+                                    name="assigned_sales"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Assigned Salesperson For Task</FormLabel>
+                                            <FormControl>
+                                                <ReactSelect
+                                                    options={salesUserOptions}
+                                                    value={salesUserOptions.find(u => u.value === field.value)}
+                                                    onChange={val => field.onChange(val?.value)}
+                                                    placeholder="Select a salesperson..."
+                                                    isLoading={usersLoading}
+                                                    className="text-sm"
+                                                    menuPosition={'auto'}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                        )}
+                        
 
         {/* --- DYNAMIC CONTACT FIELD --- */}
         <FormField name="contact" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Contact</FormLabel><FormControl>

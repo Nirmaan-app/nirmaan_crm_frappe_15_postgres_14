@@ -29,7 +29,7 @@ export const TaskCalendar = () => {
       fields: ["*"],
       limit: 100000,
     },
-    "CRM Task"
+    "all-tasks-calender"
   );
 
   const { data: contactsList, isLoading: contactsListLoading } =
@@ -39,7 +39,7 @@ export const TaskCalendar = () => {
         fields: ["*"],
         limit: 10000,
       },
-      "CRM Contacts"
+      "all-contacts-calender"
     );
 
   const { data: companiesList, isLoading: companiesListLoading } =
@@ -49,7 +49,7 @@ export const TaskCalendar = () => {
         fields: ["name", "company_name"],
         limit: 1000,
       },
-      "CRM Company"
+      "all-companies-calender"
     );
 
   useEffect(() => {

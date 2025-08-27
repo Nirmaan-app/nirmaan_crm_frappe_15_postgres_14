@@ -19,7 +19,11 @@ interface AssignmentFilterControlsProps {
 const UNASSIGNED_OPTION = { label: "Unassigned", value: "__UNASSIGNED__" };
 
 export const AssignmentFilterControls = ({ onFilterChange, filterType }: AssignmentFilterControlsProps) => {
-    const { role, user_id, isLoading: isUserLoading } = useCurrentUser();
+    // const { role, user_id, isLoading: user_id } = useCurrentUser();
+    const role = localStorage.getItem("role")
+    const user_id = localStorage.getItem("userId")
+
+
     const lastFiltersRef = useRef<string | null>(null);
 
     const [activeTab, setActiveTab] = useState<'me' | 'all'>('me');
@@ -49,7 +53,7 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
     }, [estimationUsers]);
 
     useEffect(() => {
-        if (isUserLoading) return;
+        if (!user_id) return;
 
         let newFilters: FrappeFilter[] = [];
 
@@ -84,9 +88,9 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
             onFilterChange(newFilters);
             lastFiltersRef.current = newFiltersString;
         }
-    }, [role, activeTab, selectedSalesUsers, selectedEstimationUsers, user_id, onFilterChange, isUserLoading, filterType]);
+    }, [role, activeTab, selectedSalesUsers, selectedEstimationUsers, user_id, onFilterChange, user_id, filterType]);
 
-    if (isUserLoading) {
+    if (!user_id) {
         return <Skeleton className="h-10 w-full" />;
     }
 

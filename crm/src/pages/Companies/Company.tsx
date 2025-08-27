@@ -35,7 +35,7 @@ export const Company = () => {
         {               // 2. Options object
             filters: { company: id },
             fields: ["*"]
-        },"All Contacts"
+        },`all-contacts-filterbyCompany-id${id}`
     );
 
     // CORRECTED: Use the correct field name 'boq_company' for filtering.
@@ -44,7 +44,7 @@ export const Company = () => {
         {               // 2. Options object
             filters: { company: id }, // Use the correct field name from the BOQ doctype
             fields: ["*"]
-        },"All BOQ"
+        },`all-boqs-filterbyCompany-id${id}`
     );
 
 
@@ -53,7 +53,7 @@ export const Company = () => {
         {
             filters: { company: id }, // Directly filter tasks by the company ID
             fields: ["*"]
-        },"All Tasks"
+        },`all-tasks-filterbyCompany-id${id}`
     );
 
     const { deleteDoc } = useFrappeDeleteDoc();

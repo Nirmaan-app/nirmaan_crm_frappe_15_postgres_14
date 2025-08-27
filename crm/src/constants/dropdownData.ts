@@ -17,5 +17,5 @@ export const BOQmainStatusOptions = [
   { label: "Won", value: "Won" },
   { label: "Lost", value: "Lost" },
   { label: "Dropped", value: "Dropped" },
-  { label: "Hold", value: "Hold" }
+  { label: "Hold", value: "Hold" },
 ];
