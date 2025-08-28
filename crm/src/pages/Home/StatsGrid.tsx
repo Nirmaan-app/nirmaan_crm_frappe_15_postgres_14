@@ -36,24 +36,26 @@ export const StatsGrid = () => {
         from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
         to: format(new Date(), 'yyyy-MM-dd'),
     });
-    const homeStatsGridFilter= [
+    const homeStatsGridFilterTasks= [
             ["start_date", "between", [dateRange.from, dateRange.to]]
         ]
-    const homeStatsGrid=`all-tasks-hsgf${JSON.stringify(homeStatsGridFilter)}`
+    const homeStatsGridFilterBOQS= [
+            ["creation", "between", [dateRange.from, dateRange.to]]
+        ]
+    const homeStatsGridTask=`all-tasks-hsgf${JSON.stringify(homeStatsGridFilterTasks)}`
+    const homeStatsGridBOQ=`all-boqs-hsgf${JSON.stringify(homeStatsGridFilterBOQS)}`
 
     const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
         fields: ["name", "type", "start_date", "status", "contact", "company","boq", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
-        filters: homeStatsGridFilter,
+        filters: homeStatsGridFilterTasks,
         limit: 0
-    },homeStatsGrid);
+    },homeStatsGridTask);
 
     const { data: allBoqs, isLoading: boqsLoading } = useFrappeGetDocList("CRM BOQ", {
         fields: ["name", "boq_status", "company", "creation", "modified"],
-        filters: [
-            ["creation", "between", [dateRange.from, dateRange.to]]
-        ],
+        filters: homeStatsGridFilterBOQS,
         limit: 0
-    },"all-boqs-hsgf");
+    },homeStatsGridBOQ);
 
     const statsData = useMemo(() => {
         if (!allTasks || !allBoqs) return null;
@@ -90,6 +92,7 @@ export const StatsGrid = () => {
         const taskNameFormatter = (item) => `Meeting with ${item.first_name || ''} from ${item.company_name || ''} on ${format(new Date(item.start_date), 'dd-MMM-yyyy')}`;
         const boqNameFormatter = (item) => `Project Name - ${item.name || item.name}`;
 
+        
         return {
             pendingTasks: {
                 count: pendingTasks.length,
