@@ -24,7 +24,7 @@ export const MyTeamPage = () => {
     const { data: members, isLoading: membersLoading } = useFrappeGetDocList("CRM Users", {
         fields: ["*"],
         limit: 200
-    });
+    },"all-members-MyTeamPage");
 
     // 2. Get a list of all member emails to use in the next query.
     const memberEmails = useMemo(() => members?.map(m => m.email) || [], [members]);
@@ -36,21 +36,21 @@ export const MyTeamPage = () => {
         filters: [['owner', 'in', memberEmails]],
         limit: 0,
         enabled: memberEmails.length > 0
-    });
+    },`all-tasks-membermails`);
 
     const { data: allContacts, isLoading: contactsLoading } = useFrappeGetDocList("CRM Contacts", {
         fields: ["*"],
         filters: [['owner', 'in', memberEmails]],
         limit: 0,
         enabled: memberEmails.length > 0
-    });
+    },`all-contacts-membermails`);
 
     const { data: allBoqs, isLoading: boqsLoading } = useFrappeGetDocList("CRM BOQ", {
         fields: ["*"],
         filters: [['owner', 'in', memberEmails]],
         limit: 0,
         enabled: memberEmails.length > 0
-    });
+    },`all-boqs-membermails`);
 
     // 4. Group the fetched data by owner for quick lookup. This is extremely fast.
     const dataByUser = useMemo(() => {

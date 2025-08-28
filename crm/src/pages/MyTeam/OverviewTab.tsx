@@ -10,11 +10,11 @@ export const OverviewTab = ({ member, performanceData }) => {
                 <div className="grid grid-cols-2 gap-y-6 items-center">
                     <div>
                         <p className="text-sm text-muted-foreground">User Name</p>
-                        <p className="text-xl font-bold text-destructive">{member?.full_name}</p>
+                        <p className="text-md font-bold text-destructive">{member?.full_name}</p>
                     </div>
                     <div className="text-right">
                         <p className="text-sm text-muted-foreground">Designation</p>
-                        <p className="text-lg font-semibold text-destructive">{member?.nirmaan_role_name || 'N/A'}</p>
+                        <p className="text-md font-semibold text-destructive">{member?.nirmaan_role_name || 'N/A'}</p>
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Email</p>

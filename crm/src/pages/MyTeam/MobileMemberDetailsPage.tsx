@@ -23,21 +23,21 @@ export const MobileMemberDetailsPage = () => {
         filters: { owner: ownerEmail },
         limit: 0,
         enabled: !!ownerEmail
-    });
+    },`all-tasks-ownerEmail`);
 
     const { data: contacts, isLoading: contactsLoading } = useFrappeGetDocList("CRM Contacts", {
         fields: ["*"],
         filters: { owner: ownerEmail },
         limit: 0,
         enabled: !!ownerEmail
-    });
+    },`all-contacts-ownerEmail`);
 
     const { data: boqs, isLoading: boqsLoading } = useFrappeGetDocList("CRM BOQ", {
         fields: ["*"],
         filters: { owner: ownerEmail },
         limit: 0,
         enabled: !!ownerEmail
-    });
+    },`all-boqs-ownerEmail`);
 
     // 4. Show a loading state while any of the data is being fetched.
     const isLoading = memberLoading || tasksLoading || contactsLoading || boqsLoading;

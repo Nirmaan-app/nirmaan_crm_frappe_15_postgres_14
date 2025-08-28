@@ -121,6 +121,9 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       }
       
       // Only call onSuccess (which closes the dialog) if we are not rescheduling
+
+      await mutate(`Task/${taskData.name}`);
+
       if (shouldCloseDialog && onSuccess) {
         await mutate("All Tasks")
 
@@ -162,7 +165,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
                 </div>
               <FormField name="type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Task Type</FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)}/></FormControl><FormMessage /></FormItem> )} />
-               {role!=="Nirmaan Estimations User Profile" &&(
+               {role==="Nirmaan Admin User Profile" &&(
                                        <FormField
                                                   control={form.control}
                                                   name="assigned_sales"
