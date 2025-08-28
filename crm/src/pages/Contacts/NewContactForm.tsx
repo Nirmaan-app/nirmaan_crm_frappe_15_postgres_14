@@ -281,6 +281,8 @@ const dataToSave={
                     onChange={val => field.onChange(val?.value)}
                     placeholder="Search and select a company"
                     isLoading={!allCompanies} // Show loading indicator while fetching
+                    menuPosition="auto"
+                    isOptionDisabled={(option) => option.value === field.value}
                   />
                 )}
               </FormControl>
@@ -305,6 +307,7 @@ const dataToSave={
                                             isLoading={usersLoading}
                                             className="text-sm"
                                             menuPosition={'auto'}
+                                            isOptionDisabled={(option) => option.value === field.value}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -326,6 +329,7 @@ const dataToSave={
                   // When an option is selected, update the form state with just the value
                   onChange={option => field.onChange(option?.value)}
                   placeholder="Select Department"
+                  isOptionDisabled={(option) => option.value === field.value}
                 />
               </FormControl>
               <FormMessage />

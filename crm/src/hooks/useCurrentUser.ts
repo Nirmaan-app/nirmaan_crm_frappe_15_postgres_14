@@ -23,6 +23,8 @@ export const useCurrentUser = () => {
             localStorage.setItem('userId', crmUserDoc.name || '');
             localStorage.setItem('role', crmUserDoc.nirmaan_role_name || '');
             localStorage.setItem('has_company', String(crmUserDoc.has_company ?? "false"));
+            localStorage.setItem('fullName', crmUserDoc.full_name || '');
+
         }
     }, [crmUserDoc]); // The dependency array ensures this runs only when crmUserDoc changes.
 
@@ -42,9 +44,11 @@ export const useCurrentUser = () => {
     if (!currentUser) {
         // --- 3. ADD CLEANUP LOGIC FOR LOGOUT ---
         // When the user logs out, clear the stored details.
-        localStorage.removeItem('userId');
-        localStorage.removeItem('role');
-        localStorage.removeItem('has_company');
+        // localStorage.removeItem('userId');
+        // localStorage.removeItem('role');
+        // localStorage.removeItem('has_company');
+        localStorage.setItem('fullName', crmUserDoc.full_name || '');
+
 
         return {
             user: null, user_id: 'Guest', full_name: 'Guest', user_image: undefined,
@@ -57,6 +61,8 @@ export const useCurrentUser = () => {
         localStorage.setItem('userId', 'Administrator');
         localStorage.setItem('role', 'Nirmaan Admin User Profile');
         localStorage.setItem('has_company', 'true');
+        localStorage.setItem('fullName', "Administrator");
+
 
         const adminUser = window.frappe?.boot?.user;
         return {

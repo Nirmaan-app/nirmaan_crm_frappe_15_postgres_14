@@ -1,8 +1,7 @@
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import { items } from "@/constants/navItems";
-import { useAuth } from "@/auth/AuthProvider"; // <-- 1. IMPORT useAuth
+import { useAuth } from "@/auth/AuthProvider";
 
-// The NavItem interface remains the same
 interface NavItem {
   label: string;
   path: string;
@@ -10,70 +9,150 @@ interface NavItem {
   adminOnly?: boolean;
 }
 
-/**
- * A pure function to filter navigation items based on the user's role.
- * It is defined outside the hook for clarity and testability.
- * @param role The user's role profile name from localStorage.
- * @returns A filtered array of NavItem objects.
- */
 const getFilteredNavItems = (role: string | null): NavItem[] => {
-  // If we don't have a role (e.g., user is logged out), return an empty array.
-  // if (!role) {
-  //   return [];
-  // }
-
-if (role === 'Nirmaan Sales User Profile') {
-    return items.filter(item => 
-      item.label !== 'My Team'
-    );
+  if (!role) {
+    return [];
   }
-
-  // Rule 1: Handle specific permissions for the Estimation User
+  // ... (Your filtering logic remains the same)
+  if (role === 'Nirmaan Sales User Profile') {
+    return items.filter(item => item.label !== 'My Team');
+  }
   if (role === 'Nirmaan Estimations User Profile') {
-    // This user can only see 'Home' and 'BOQs'
     return items.filter(item => ['Home', 'BOQs'].includes(item.label));
   }
-  
-  // Rule 2: Handle the Admin User
   if (role === 'Nirmaan Admin User Profile') {
-    // Admins can see all items, so we return the original, unfiltered list.
     return items;
   }
-  
-  // Rule 3: Default for all other users (like Sales User)
-  // This will filter out any item marked with `adminOnly: true`.
   return items.filter(item => !item.adminOnly);
 };
 
-
 export const useNavItems = () => {
-  // 2. Use the lighter useAuth hook to know when authentication is complete.
   const { isLoading: isAuthLoading, currentUser } = useAuth();
-    const role = localStorage.getItem('role');
+  const [navItems, setNavItems] = useState<NavItem[]>([]);
 
-  // The isLoading state is now ONLY dependent on the initial authentication check.
-  const isLoading = isAuthLoading;
-
-  // 3. useMemo will calculate the nav items instantly after authentication is done.
-  // It re-runs only when the user's login status changes.
-  const navItems = useMemo(() => {
-    // If authentication is still loading or if there's no user, we can't show any items.
-    if (isAuthLoading || !currentUser) {
-      return [];
+  useEffect(() => {
+    // If there's no user, we clear the items and stop.
+    if (!currentUser) {
+      setNavItems([]);
+      return;
     }
 
-    // --- CORE CHANGE: Read directly from localStorage ---
-    // This is synchronous and happens instantly.
-    const role = localStorage.getItem('role');
-    
-    // Pass the retrieved role to our pure filtering function.
-    return getFilteredNavItems(role);
+    // --- NEW RETRY LOGIC ---
+    let attempts = 0;
+    const maxAttempts = 5; // Try a maximum of 5 times
+    const retryInterval = 1000; // Wait 100ms between attempts
 
-  }, [currentUser, role]); // Dependency array: Re-run when login/logout happens.
+    const tryGetRole = () => {
+      const role = localStorage.getItem('role');
+      
+      if (role) {
+        
+        console.log(`Success: Found role '${role}' on attempt ${attempts + 1}.`);
+        const filteredItems = getFilteredNavItems(role);
+        setNavItems(filteredItems);
+      } else {
+        // FAILURE: Role not found yet.
+        attempts++;
+        if (attempts < maxAttempts) {
+          // If we haven't reached max attempts, schedule another try.
+          console.warn(`Attempt ${attempts}: Role not found in localStorage. Retrying in ${retryInterval}ms...`);
+          setTimeout(tryGetRole, retryInterval);
+        } else {
+          // If we've reached max attempts, give up.
+          console.error(`Failed to get role from localStorage after ${maxAttempts} attempts.`);
+          setNavItems([]); // Set to empty as a fallback
+        }
+      }
+    };
 
-  // The hook returns the memoized items and the lean loading state.
+    // Start the first attempt to get the role.
+    tryGetRole();
+
+  }, [currentUser]); // This effect still only runs when the user's login status changes.
+
+  const isLoading = isAuthLoading;
+
   return { navItems, isLoading };
 };
+
+
+// import { useMemo ,useCallback} from "react";
+// import { items } from "@/constants/navItems";
+// import { useAuth } from "@/auth/AuthProvider"; // <-- 1. IMPORT useAuth
+
+// // The NavItem interface remains the same
+// interface NavItem {
+//   label: string;
+//   path: string;
+//   icon: any;
+//   adminOnly?: boolean;
+// }
+
+// /**
+//  * A pure function to filter navigation items based on the user's role.
+//  * It is defined outside the hook for clarity and testability.
+//  * @param role The user's role profile name from localStorage.
+//  * @returns A filtered array of NavItem objects.
+//  */
+// const getFilteredNavItems = (role: string | null): NavItem[] => {
+//   // If we don't have a role (e.g., user is logged out), return an empty array.
+//   if (!role) {
+//     return [];
+//   }
+
+// if (role === 'Nirmaan Sales User Profile') {
+//     return items.filter(item => 
+//       item.label !== 'My Team'
+//     );
+//   }
+
+//   // Rule 1: Handle specific permissions for the Estimation User
+//   if (role === 'Nirmaan Estimations User Profile') {
+//     // This user can only see 'Home' and 'BOQs'
+//     return items.filter(item => ['Home', 'BOQs'].includes(item.label));
+//   }
+  
+//   // Rule 2: Handle the Admin User
+//   if (role === 'Nirmaan Admin User Profile') {
+//     // Admins can see all items, so we return the original, unfiltered list.
+//     return items;
+//   }
+  
+//   // Rule 3: Default for all other users (like Sales User)
+//   // This will filter out any item marked with `adminOnly: true`.
+//   return items
+// };
+
+
+// export const useNavItems = () => {
+//   // 2. Use the lighter useAuth hook to know when authentication is complete.
+//   const { isLoading: isAuthLoading, currentUser } = useAuth();
+
+//     const role = localStorage.getItem('role');
+
+//   // The isLoading state is now ONLY dependent on the initial authentication check.
+//   const isLoading = isAuthLoading;
+
+//   // 3. useMemo will calculate the nav items instantly after authentication is done.
+//   // It re-runs only when the user's login status changes.
+//   const navItems = useMemo(() => {
+//     // If authentication is still loading or if there's no user, we can't show any items.
+//     if (isAuthLoading || !currentUser) {
+//       return [];
+//     }
+
+//     // --- CORE CHANGE: Read directly from localStorage ---
+//     // This is synchronous and happens instantly.
+//     const role = localStorage.getItem('role');
+    
+//     // Pass the retrieved role to our pure filtering function.
+//     return getFilteredNavItems(role);
+
+//   }, [currentUser, isAuthLoading]); // Dependency array: Re-run when login/logout happens.
+
+//   // The hook returns the memoized items and the lean loading state.
+//   return { navItems, isLoading };
+// };
 
 
 

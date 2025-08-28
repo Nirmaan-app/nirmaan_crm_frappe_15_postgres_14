@@ -1,6 +1,7 @@
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatTime12Hour } from "@/utils/FormatDate";
+import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
+
 import { format } from "date-fns";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import React, { useEffect } from "react";
@@ -122,11 +123,13 @@ export const TaskCalendar = () => {
             "border-b border-[#000399] dark:border-primary dark:text-primary text-[#000399]",
         }}
       />
-      <Card className="bg-[#0003CB1A] dark:bg-background text-[#000399] dark:text-primary dark:border-foreground">
-        <CardHeader>
-          <CardTitle>Tasks</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm font-medium">
+       <div className="flex-1 flex flex-col mt-4">
+      <Card className="h-full flex flex-col bg-[#0003CB1A] dark:bg-background text-[#000399] dark:text-primary dark:border-foreground">
+          <CardHeader className="py-4">
+            <CardTitle className="text-lg text-center border-bottom">Tasks for {selectedDate ? format(new Date(selectedDate), 'MMM dd') : '...'} -<span className="bg-red border-rounded">{ filteredTasks.length}</span></CardTitle>
+          </CardHeader>
+          
+           <CardContent className="flex-1 overflow-y-auto text-sm font-medium p-2">
           {selectedDate && tasksDatesSet?.has(selectedDate) ? (
             <div className="flex flex-col gap-2">
               {filteredTasks.map((task, index) => (
@@ -139,8 +142,12 @@ export const TaskCalendar = () => {
                       {task?.type} {task?.contact?.first_name}{" "}
                       {task?.contact?.last_name} from {task?.company?.company_name}
                     </span>
+                    <p className="text-xs inline-block text-muted-foreground p-0 m-0">
+                        {formatTime12Hour(task.time)}
+                    </p>
                     <ChevronRight className="h-5 w-5" />
                   </div>
+                    
                   {index < filteredTasks.length - 1 &&  <Separator className="bg-black dark:bg-white" />}
                 </React.Fragment>
               ))}
@@ -150,9 +157,17 @@ export const TaskCalendar = () => {
           ) : (
             <span>Select a Date to display tasks</span>
           )}
-        </CardContent>
-      </Card>
-      <div className="sticky bottom-0 py-4 bg-background mt-auto">
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* <Card className="flex-1 flex flex-col mt-4 bg-[#0003CB1A] dark:bg-background text-[#000399] dark:text-primary dark:border-foreground">
+        <CardHeader>
+          <CardTitle>Tasks</CardTitle>
+        </CardHeader>
+       
+      </Card> */}
+      <div className="py-4 bg-background border-t ">
         <Button
           className="w-full bg-destructive"
           onClick={() => openNewTaskDialog({})}

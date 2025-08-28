@@ -103,6 +103,7 @@ export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
                   onChange={val => field.onChange(val?.value)}
                   placeholder="Select a role profile..."
                    className="text-sm"
+                   isOptionDisabled={(option) => option.value === field.value}
                                                                       menuPosition={'auto'}
                 />
               </FormControl>

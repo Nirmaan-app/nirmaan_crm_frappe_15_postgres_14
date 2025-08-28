@@ -156,7 +156,7 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="font-semibold">Remarks</h2>
+                <h2 className="font-semibold">Additional Remarks</h2>
                 <Button 
                     variant="outline" 
                     size="sm" 
@@ -222,6 +222,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 <DetailItem label="Date Created" value={formatDate(boq?.creation)} />
                 <DetailItem label="Location" value={boq?.city || 'n/a'} />
                 <DetailItem label="Created by" value={boq?.owner.split('@')[0]} isLink href={`/team?memberId=${boq.owner}`} />
+                   <DetailItem label="Remarks" value={boq?.remarks || 'n/a'} />
             </div>
 
             <Separator />
@@ -283,15 +284,17 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 // Build a descriptive remark based on what changed in this version.
                 let remarkText = '';
                 if (remarksChange) {
-                    remarkText = `Remarks updated: "${remarksChange[2]}"`;
+                    remarkText = `${remarksChange[2]}"`;
+                }else{
+                    remarkText='--'
                 }
-                else if (subStatusChange && subStatusChange[2]) {
-                    remarkText = subStatusChange[2]; // e.g., "Awaiting clarification from Client"
-                }   else if (dateChange) {
-                    remarkText = `Submission date changed to ${dateChange[2]}`;
-                } else if (statusChange) {
-                    remarkText = `Status updated`; // Default if only status changed
-                }
+                // else if (subStatusChange && subStatusChange[2]) {
+                //     remarkText = subStatusChange[2]; // e.g., "Awaiting clarification from Client"
+                // }   else if (dateChange) {
+                //     remarkText = `Submission date changed to ${dateChange[2]}`;
+                // } else if (statusChange) {
+                //     remarkText = `Status updated`; // Default if only status changed
+                // }
 
                 return {
                     status: lastKnownStatus,
@@ -391,7 +394,7 @@ export const BOQ = () => {
     return (
         <div className="space-y-6">
             <BoqDetailsHeader boq={boqData} />
-            {role!=="Nirmaan Estimations User Profile"&&(
+            {role!="Nirmaan Estimations User Profile"&&(
 <BoqTaskDetails 
                 tasks={tasksList || []}
                 boqId={boqData.name}
@@ -406,7 +409,7 @@ export const BOQ = () => {
                 contact={contactData} 
                 company={companyData}
             />
-            {role!=="Nirmaan Sales User Profile"&&(
+            {role=="Nirmaan Admin User Profile"&&(
              <BoqSubmissionHistory versions={versionsList || []} boqData={boqData} />
 
             )}

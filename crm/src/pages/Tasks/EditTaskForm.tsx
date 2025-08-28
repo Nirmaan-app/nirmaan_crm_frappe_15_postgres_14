@@ -164,7 +164,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     {/* Status Pill */}
                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
                 </div>
-              <FormField name="type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Task Type</FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)}/></FormControl><FormMessage /></FormItem> )} />
+              <FormField name="type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Task Type</FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)} isOptionDisabled={(option) => option.value === field.value}/></FormControl><FormMessage /></FormItem> )} />
                {role==="Nirmaan Admin User Profile" &&(
                                        <FormField
                                                   control={form.control}
@@ -181,6 +181,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                                                                   isLoading={usersLoading}
                                                                   className="text-sm"
                                                                   menuPosition={'auto'}
+                                                                  isOptionDisabled={(option) => option.value === field.value}
                                                               />
                                                           </FormControl>
                                                           <FormMessage />
@@ -223,7 +224,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
                 </div>
 
-                <FormField name="status" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Update Status To</FormLabel><FormControl><ReactSelect options={statusOptions} onChange={val => field.onChange(val?.value)}/></FormControl><FormMessage /></FormItem> )} />
+                <FormField name="status" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Update Status To</FormLabel><FormControl><ReactSelect options={statusOptions} onChange={val => field.onChange(val?.value)} isOptionDisabled={(option) => option.value === field.value}/></FormControl><FormMessage /></FormItem> )} />
                
                                 {selectedStatus === 'Incomplete' && (
                     <FormField
@@ -239,6 +240,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                               onChange={val => field.onChange(val?.value)}
                               isClearable
                               menuPosition={'auto'}
+                              isOptionDisabled={(option) => option.value === field.value}
                             />
                           </FormControl>
                           <FormMessage />

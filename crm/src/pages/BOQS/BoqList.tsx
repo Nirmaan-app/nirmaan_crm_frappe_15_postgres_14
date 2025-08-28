@@ -65,7 +65,9 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
 
 export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     const { isMobile } = useViewport();
-    const { role, isLoading: isUserLoading } = useCurrentUser();
+    // const { role, isLoading: isUserLoading } = useCurrentUser();
+          const role = localStorage.getItem('role');
+    
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState("By Company");
     const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });

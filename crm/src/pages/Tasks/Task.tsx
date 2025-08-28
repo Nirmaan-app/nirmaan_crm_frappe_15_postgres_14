@@ -82,8 +82,8 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                     <p className="text-xs text-muted-foreground">Current Status</p>
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${getStatusClass(task.status)}`}>{task.status}</span>
                 </div>
-                <DetailItem label="Date" value={formatDate(task?.start_date)} />
-                <DetailItem label="Time" value={formatTime12Hour(task?.time)} />
+                <DetailItem label="Date" className="text-sm" value={`${formatDate(task?.start_date)} - ${formatTime12Hour(task?.time)}`} />
+                <DetailItem label="Remarks" className="text-sm" value={task?.remarks||"--"} />
             </div>
         </div>
     );
@@ -155,7 +155,7 @@ export const Task = () => {
         "CRM Task", 
         { 
             filters: { contact: taskData?.contact, name: ['!=', id] }, 
-            limit: 5, 
+            limit: 0, 
             enabled: !!taskData?.contact,
             fields: ["*"] // Specify required fields here
         }
