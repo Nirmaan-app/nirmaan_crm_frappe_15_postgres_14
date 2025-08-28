@@ -164,7 +164,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     {/* Status Pill */}
                     <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
                 </div>
-              <FormField name="type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Task Type</FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)} isOptionDisabled={(option) => option.value === field.value}/></FormControl><FormMessage /></FormItem> )} />
+              <FormField name="type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Task Type<sup>*</sup></FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)} isOptionDisabled={(option) => option.value === field.value}/></FormControl><FormMessage /></FormItem> )} />
                {role==="Nirmaan Admin User Profile" &&(
                                        <FormField
                                                   control={form.control}
@@ -189,8 +189,8 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                                                   )}
                                               />
                                       )}
-              <FormField name="start_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
-              <FormField name="time" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Time</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem> )} />
+              <FormField name="start_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Date<sup>*</sup></FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
+              <FormField name="time" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Time<sup>*</sup></FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem> )} />
             </>
         )}
         

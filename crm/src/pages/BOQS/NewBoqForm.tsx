@@ -18,9 +18,9 @@ import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 // Schema based on your Frappe Doctype and UI Mockup
 const boqFormSchema = z.object({
   boq_name: z.string().min(1, "BOQ name is required"),
-  boq_size: z.string().optional(),
+  boq_size: z.number().optional(),
   boq_type: z.string().optional(),
-  boq_value: z.string().optional(),
+  boq_value: z.number().optional(),
   boq_submission_date: z.string().min(1, "Submission date is required"),
   boq_link: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal('')),
   city: z.string().optional(),
@@ -107,8 +107,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField name="boq_name" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Name</FormLabel><FormControl><Input placeholder="e.g. Zepto P1" {...field} /></FormControl><FormMessage /></FormItem> )} />
-        assigned_estimations
+        <FormField name="boq_name" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Name<sup>*</sup></FormLabel><FormControl><Input placeholder="e.g. Zepto P1" {...field} /></FormControl><FormMessage /></FormItem> )} />
                  {(role==="Nirmaan Admin User Profile"||role==="Nirmaan Estimations User Profile") &&(
                  <FormField
                             control={form.control}
@@ -155,14 +154,17 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                             )}
                         />
                 )}
-        <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Size</FormLabel><FormControl><Input placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
-        <FormField name="boq_type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Type</FormLabel><FormControl><Input placeholder="e.g. Interior Fitout" {...field} /></FormControl><FormMessage /></FormItem> )} />
-        <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value</FormLabel><FormControl><Input placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem> )} />
-        <FormField name="boq_submission_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Submission Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Size (Sqft)<sup>*</sup></FormLabel><FormControl><Input type="number" placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
+
+        <FormField name="boq_type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Package</FormLabel><FormControl><Input placeholder="e.g. Interior Fitout" {...field} /></FormControl><FormMessage /></FormItem> )} />
+        
+        <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value<sup>*</sup></FormLabel><FormControl><Input type="number" placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem> )} />
+
+        <FormField name="boq_submission_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Submission Date<sup>*</sup></FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
         <FormField name="boq_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
         <FormField name="city" control={form.control} render={({ field }) => ( <FormItem><FormLabel>City</FormLabel><FormControl><Input placeholder="e.g. Mumbai" {...field} /></FormControl><FormMessage /></FormItem> )} />
         
-        <FormField name="company" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Company</FormLabel><FormControl>
+        <FormField name="company" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Company<sup>*</sup></FormLabel><FormControl>
             {contactIdFromContext ? (
                 <Input value={contactDoc?.company || "Loading..."} disabled />
             ) : (
@@ -170,7 +172,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
             )}
         </FormControl><FormMessage /></FormItem> )} />
         
-        <FormField name="contact" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Contact</FormLabel><FormControl>
+        <FormField name="contact" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Contact<sup>*</sup></FormLabel><FormControl>
             {contactIdFromContext ? (
                 <Input value={contactDoc ? `${contactDoc.first_name} ${contactDoc.last_name}` : "Loading..."} disabled />
             ) : (
@@ -178,7 +180,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
             )}
         </FormControl><FormMessage /></FormItem> )} />
 
-        <FormField name="remarks" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Remarks</FormLabel><FormControl><Textarea placeholder="e.g. Only use Schneider products in this project." {...field} /></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="remarks" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Remarks</FormLabel><FormControl><Textarea placeholder="e.g. Only use  products in this project." {...field} /></FormControl><FormMessage /></FormItem> )} />
 
         <div className="flex gap-2 justify-end pt-4">
           <Button type="button" variant="outline" onClick={closeNewBoqDialog}>Cancel</Button>
