@@ -14,7 +14,6 @@ import { MoreVertical, Plus, SquarePen } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useViewport } from "@/hooks/useViewPort";
 import { BoqListHeader } from "./BoqListHeader"; // Import the new header component
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { AssignmentFilterControls } from "@/components/ui/AssignmentFilterControls";
 
 type EnrichedBoq = CRMBOQ & { "company.company_name"?: string; "contact.first_name"?: string; "contact.last_name"?: string; };

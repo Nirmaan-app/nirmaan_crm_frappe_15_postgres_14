@@ -385,16 +385,16 @@ export const BOQ = () => {
         enabled: role !== 'Nirmaan Sales User Profile' //
     },`all-version-filterbyBoq-id${id}`);
 
-    if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
-        return <div>Loading BOQ Details...</div>;
-    }
+    // if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
+    //     return <div>Loading BOQ Details...</div>;
+    // }
     if (!boqData) {
         return <div>BOQ not found.</div>;
     }
     return (
         <div className="space-y-6">
             <BoqDetailsHeader boq={boqData} />
-            {role!="Nirmaan Estimations User Profile"&&(
+            {(role!="Nirmaan Estimations User Profile")&&(
 <BoqTaskDetails 
                 tasks={tasksList || []}
                 boqId={boqData.name}

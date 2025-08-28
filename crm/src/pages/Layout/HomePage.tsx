@@ -9,7 +9,9 @@ import { PendingTasks } from "../Home/PendingTasks";
 import { StatsGrid } from "../Home/StatsGrid";
 import { EstimationsHomePage } from "../Home/EstimationsHomePage";
 export const HomePage = () => {
-    // Fetch pending tasks for the top card
+    // Fetch pending tasks for the top card]
+    const role = localStorage.getItem('role');
+
     const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]]
     const homePageTaskSWR =  `all-tasks-${JSON.stringify(homePageTaskFilter)}`;
     const { data: tasksData, isLoading: tasksLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
@@ -22,7 +24,6 @@ export const HomePage = () => {
     }
     }, homePageTaskSWR);
     // Process the fetched data to create computed names
-    const role = localStorage.getItem('role');
     
     const enrichedTasks = useMemo(() => {
         return tasksData?.map(task => ({
