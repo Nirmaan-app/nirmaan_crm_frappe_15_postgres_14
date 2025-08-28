@@ -217,12 +217,15 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
             </div>
                 {/* Top Details Section */}
             <div className="grid grid-cols-2 gap-y-5 gap-x-20">
-                <DetailItem label="Size" value={boq?.boq_size || 'n/a'} />
+                <DetailItem label="Size (Sqft)" value={boq?.boq_size || 'n/a'} />
+                <DetailItem label="BOQ Value" value={`₹ ${boq?.boq_value}` || 'n/a'} />
+                  
                 <DetailItem label="Package" value={boq?.boq_type || 'n/a'} />
                 <DetailItem label="Date Created" value={formatDate(boq?.creation)} />
-                <DetailItem label="Location" value={boq?.city || 'n/a'} />
-                <DetailItem label="Created by" value={boq?.owner.split('@')[0]} isLink href={`/team?memberId=${boq.owner}`} />
-                   <DetailItem label="Remarks" value={boq?.remarks || 'n/a'} />
+                <DetailItem label="City" value={boq?.city || 'n/a'} />
+                <DetailItem label="Created by" value={boq?.owner.split('@')[0]}/>
+                
+                <DetailItem label="Remarks" value={boq?.remarks || 'n/a'} />
             </div>
 
             <Separator />
@@ -385,9 +388,9 @@ export const BOQ = () => {
         enabled: role !== 'Nirmaan Sales User Profile' //
     },`all-version-filterbyBoq-id${id}`);
 
-    // if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
-    //     return <div>Loading BOQ Details...</div>;
-    // }
+    if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
+        return <div>Loading BOQ Details...</div>;
+    }
     if (!boqData) {
         return <div>BOQ not found.</div>;
     }
@@ -409,7 +412,7 @@ export const BOQ = () => {
                 contact={contactData} 
                 company={companyData}
             />
-            {role=="Nirmaan Admin User Profile"&&(
+            {role!=="Nirmaan Sales User Profile"&&(
              <BoqSubmissionHistory versions={versionsList || []} boqData={boqData} />
 
             )}

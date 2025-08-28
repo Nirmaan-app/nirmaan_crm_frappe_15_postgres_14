@@ -22,11 +22,28 @@ const editBoqSchema = z.object({
   boq_name: z.string().optional(),
   city: z.string().optional(), // 'Location' in UI
   boq_type: z.string().optional(), // 'Package' in UI
-  boq_size: z.string().optional(),
   boq_status: z.string().optional(), // 'Status' in UI (different from status-only mode)
+ boq_size: z.coerce
+    .number({
+        // This message will be shown if the input cannot be converted to a number (e.g., "abc").
+        invalid_type_error: "Please enter a valid number for size.",
+    })
+    .positive({ message: "Size must be a positive number." })
+    // Use .nullable().optional() to correctly handle an empty field
+    .nullable()
+    .optional(),
+
+  boq_value: z.coerce
+    .number({
+        // A specific, user-friendly message for the value field.
+        invalid_type_error: "Please enter a valid number for value.",
+    })
+    .positive({ message: "Value must be a positive number." })
+    .nullable()
+    .optional(),
   company: z.string().optional(),
   contact: z.string().optional(),
-    boq_submission_date: z.string().optional(), // Add this if it's part of the form
+  boq_submission_date: z.string().optional(), // Add this if it's part of the form
   
   // Add the new sub_status field
   boq_sub_status: z.string().optional(),
@@ -87,7 +104,8 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             boq_name: boqData.boq_name || "",
             city: boqData.city || "",
             boq_type: boqData.boq_type || "",
-            boq_size: boqData.boq_size || "",
+            boq_value:Number(boqData.boq_value)||0,
+            boq_size:Number(boqData.boq_size)|| 0,
             boq_status: boqData.boq_status || "",
             boq_sub_status: boqData.boq_sub_status || "",
             boq_link:boqData.boq_link ||"",
@@ -96,7 +114,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             remarks: "",
             boq_submission_date: boqData.boq_submission_date||"",
             assigned_sales:boqData.assigned_sales||"",
-              assigned_estimations:boqData.assigned_estimations||"",
+            assigned_estimations:boqData.assigned_estimations||"",
             title:"",
             content:"",
             
@@ -229,10 +247,14 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
               )}
         {mode === 'details' && (
            <>
-            <FormField name="boq_name" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField name="city" control={form.control} render={({ field }) => (<FormItem><FormLabel>Location</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="boq_name" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Name<sup>*</sup></FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="city" control={form.control} render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
             <FormField name="boq_type" control={form.control} render={({ field }) => (<FormItem><FormLabel>Package</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField name="boq_size" control={form.control} render={({ field }) => (<FormItem><FormLabel>Size</FormLabel><FormControl><div className="relative"><Input {...field} /><span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Sq.ft.</span></div></FormControl><FormMessage /></FormItem>)} />
+
+                <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value<sup>*</sup></FormLabel><FormControl><Input type="number" placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem> )} />
+
+            <FormField name="boq_size" control={form.control} render={({ field }) => (<FormItem><FormLabel>Size(Sqft)<sup>*</sup></FormLabel><FormControl><div className="relative"><Input type="number"  {...field}  /><span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Sq.ft.</span></div></FormControl><FormMessage /></FormItem>)} />
+
 
            
             {/* {['In-Progress', 'Revision Pending'].includes(watchedBoqStatus) && (
@@ -261,7 +283,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Company</FormLabel>
+                  <FormLabel>Company<sup>*</sup></FormLabel>
                   <FormControl>
                     <ReactSelect 
                       options={companyOptions} 
@@ -280,7 +302,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 </FormItem>
               )}
             />
-            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact Name</FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact <sup>*</sup></FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl><FormMessage /></FormItem>)} />
            </>
         )}
         
@@ -314,12 +336,12 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                   )}
                 />
             )}
- <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Date</FormLabel><FormControl><Input type="date"  {...field} /></FormControl><FormMessage /></FormItem>)} />
+ <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Date<sup>*</sup></FormLabel><FormControl><Input type="date"  {...field} /></FormControl><FormMessage /></FormItem>)} />
 
   <FormField name="boq_link" control={form.control} render={({ field }) => (
  <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
 
- <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>remarks</FormLabel><FormControl><Input type="text" {...field} /></FormControl><FormMessage /></FormItem>)} />
+ <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks</FormLabel><FormControl><Input type="text" {...field} /></FormControl><FormMessage /></FormItem>)} />
 
           </>
             
