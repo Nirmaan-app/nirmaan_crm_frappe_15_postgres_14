@@ -1,4 +1,4 @@
-import { useFrappeGetDoc } from "frappe-react-sdk"; // Import the other hook
+import { useFrappeGetDoc,useSWRConfig } from "frappe-react-sdk"; // Import the other hook
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 

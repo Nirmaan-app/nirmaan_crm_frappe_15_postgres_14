@@ -130,7 +130,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
                 <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("contact", ""); form.setValue("boq", ""); }} placeholder="Select Company" menuPosition={'auto'}/>
             )}
         </FormControl><FormMessage /></FormItem> )} />
-         {role!=="Nirmaan Estimations User Profile" &&(
+         {role==="Nirmaan Admin User Profile" &&(
                          <FormField
                                     control={form.control}
                                     name="assigned_sales"
