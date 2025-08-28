@@ -181,6 +181,7 @@ const onSubmit = async (values: CompanyFormValues) => {
                   value={companyTypeOptions.find(c => c.value === field.value)}
                   onChange={val => field.onChange(val?.value)}
                   placeholder="Select Type"
+                  isOptionDisabled={(option) => option.value === field.value}
                 />
               </FormControl>
               <FormMessage />
@@ -204,6 +205,7 @@ const onSubmit = async (values: CompanyFormValues) => {
                                     isLoading={usersLoading}
                                     className="text-sm"
                                     menuPosition={'auto'}
+                                    isOptionDisabled={(option) => option.value === field.value}
                                 />
                             </FormControl>
                             <FormMessage />

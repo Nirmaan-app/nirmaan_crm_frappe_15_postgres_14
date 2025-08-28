@@ -68,7 +68,7 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
         return {
           hotDeals: { count: hotDeals.length, items: formatItems(hotDeals, boqNameFormatter, 'BOQ') },
           wonDeals: { count: wonDeals.length, items: formatItems(wonDeals, boqNameFormatter, 'BOQ') },
-          pendingBoq: { count: pendingBoq.length, items: formatItems(pendingBoq, taskNameFormatter, 'BOQ') },
+          pendingBoq: { count: pendingBoq.length, items: formatItems(pendingBoq, boqNameFormatter, 'BOQ') },
           totalMeetings: { count: allMeetings.length, items: formatItems(allMeetings, taskNameFormatter, 'Task') },
 
           followUpMeetings: { count: followUpMeetings.length, items: formatItems(followUpMeetings, taskNameFormatter, 'Task') },

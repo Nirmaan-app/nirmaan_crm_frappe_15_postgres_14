@@ -93,7 +93,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             boq_link:boqData.boq_link ||"",
             company: boqData.company || "",
             contact: boqData.contact || "",
-            remarks: boqData.remarks||"",
+            remarks: "",
             boq_submission_date: boqData.boq_submission_date||"",
             assigned_sales:boqData.assigned_sales||"",
               assigned_estimations:boqData.assigned_estimations||"",
@@ -115,7 +115,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       }
       if (mode === 'details') {
          // --- STEP 4: UPDATE ALL FIELDS ON SUBMIT ---
-         await updateDoc("CRM BOQ", boqData.name,dataToSave);
+         await updateDoc("CRM BOQ", boqData.name,{...dataToSave,remarks:dataToSave?.remarks||boqData.remarks});
          toast({ title: "Success", description: "BOQ details updated." });
       } else if (mode === 'status') {
         // Handle only the status update
@@ -124,7 +124,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             boq_sub_status: dataToSave.boq_sub_status,
             boq_link:dataToSave.boq_link,
             boq_submission_date: dataToSave.boq_submission_date,
-            remarks:dataToSave.remarks
+            remarks:dataToSave?.remarks||boqData.remarks
         });
 
         toast({ title: "Success", description: "Status updated." });
@@ -139,7 +139,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         // Handle only the status update
      await updateDoc("CRM BOQ", boqData.name, { 
               assigned_sales:dataToSave.assigned_sales,
-              assigned_estimations:dataToSave.assigned_sales,
+              assigned_estimations:dataToSave.assigned_estimations,
         });
 
         toast({ title: "Success", description: "Assigned Person updated." });
@@ -196,6 +196,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                                                             isLoading={usersLoading}
                                                             className="text-sm"
                                                             menuPosition={'auto'}
+                                                            isOptionDisabled={(option) => option.value === field.value}
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -217,6 +218,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                                                                                     isLoading={usersLoading}
                                                                                     className="text-sm"
                                                                                     menuPosition={'auto'}
+                                                                                    isOptionDisabled={(option) => option.value === field.value}
                                                                                 />
                                                                             </FormControl>
                                                                             <FormMessage />
@@ -271,13 +273,14 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                           form.setValue("contact", "");
                       }} 
                       menuPosition={'auto'}
+                      isOptionDisabled={(option) => option.value === field.value}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact Name</FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'}/></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact Name</FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl><FormMessage /></FormItem>)} />
            </>
         )}
         
@@ -286,7 +289,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         {(mode === 'status' || mode ==="details") && (
           <>
           <FormField name="boq_status" control={form.control} render={({ field }) => (
-                <FormItem><FormLabel>Update Status</FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'}/></FormControl></FormItem>
+                <FormItem><FormLabel>Update Status</FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl></FormItem>
             )}/>
 
                 {['In-Progress', 'Revision Pending'].includes(watchedBoqStatus) && (
@@ -303,6 +306,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                           onChange={val => field.onChange(val?.value)}
                           placeholder="Select Sub Status"
                           menuPosition={'auto'}
+                          isOptionDisabled={(option) => option.value === field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -310,7 +314,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                   )}
                 />
             )}
- <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+ <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Date</FormLabel><FormControl><Input type="date"  {...field} /></FormControl><FormMessage /></FormItem>)} />
 
   <FormField name="boq_link" control={form.control} render={({ field }) => (
  <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />

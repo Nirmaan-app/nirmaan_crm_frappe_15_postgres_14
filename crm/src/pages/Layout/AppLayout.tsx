@@ -12,12 +12,14 @@ import { FloatingActionButton } from "@/components/ui/FloatingActionButton";
 import { NavBarDesktop } from "../Desktop/NavBar-Desktop";
 import { SidebarDesktop } from "../Desktop/Sidebar-Desktop";
 import { NotificationsDesktop } from "../Desktop/Notifications-Desktop";
-import { AddNewButton } from "@/components/ui/AddNewButton";
 import { MainDialogs } from "@/components/dialogs/MainDialogs";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export const AppLayout = () => {
 	const { isMobile } = useViewport();
 	const location = useLocation();
+  const { user,isLoading } = useCurrentUser();
+	
 	const { overlayOpen, handleClose } = useApplicationContext();
 	const { title, showBackButton } = usePageHeader();
 	const actionOptions = useFabOptions();
@@ -30,7 +32,7 @@ export const AppLayout = () => {
 				<main className="mt-14 mb-20 flex-1 overflow-y-auto px-3 py-4">
 					<Outlet />
 				</main>
-				<BottomBar />
+				<BottomBar/>
 				<FloatingActionButton options={actionOptions} />
 				<MainDialogs />
 				{overlayOpen && (<div id="overlay" className="fixed z-20 inset-0 bg-black bg-opacity-20 backdrop-blur-[1px]" onClick={handleClose} />)}

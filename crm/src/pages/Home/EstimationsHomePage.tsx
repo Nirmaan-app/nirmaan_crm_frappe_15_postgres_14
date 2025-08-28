@@ -205,13 +205,13 @@ const AllBOQs = () => {
 
 // Main component that assembles the page
 export const EstimationsHomePage = () => {
-    const { openNewBoqDialog } = useDialogStore();
+     const fullName = localStorage.getItem('fullName');
     
   
     return (
         <div className="space-y-6">
             <div className="flex flex-wrap gap-4 justify-between items-center">
-                <h1 className="text-2xl font-bold">Welcome, Abhinav!</h1>
+                <h1 className="text-2xl font-bold">Welcome, {fullName}!</h1>
                 {/* <Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => openNewBoqDialog()}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add New BOQ

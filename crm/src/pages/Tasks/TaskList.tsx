@@ -84,7 +84,7 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
             <div className="flex flex-col cursor-pointer">
                 {/* <div className="flex flex-col cursor-pointer" onClick={() => handleSelect(task.name)}> */}
                 <span className="font-medium">{task.type} {task.first_name} from {task.company}</span>
-                <span className="text-sm text-muted-foreground">at {formatTime12Hour(task.time)} on {task.start_date}</span>
+                <span className="text-sm text-muted-foreground">at {formatTime12Hour(task.time)} {context==="createdtoday"&&(`on ${task.start_date}`) }</span>
                
 
             </div>
@@ -321,6 +321,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                 />
                 <DesktopTaskCategoryRow
                     title="Tasks Created Today"
+                    count={createdTodayTasks.length}
                     // No count is passed, so it won't be rendered
                     isActive={activeTaskId === 'createdtoday'}
                     onClick={() => onTaskSelect({ id: 'createdtoday' })}

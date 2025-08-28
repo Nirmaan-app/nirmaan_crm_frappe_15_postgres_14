@@ -109,7 +109,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField name="boq_name" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Name</FormLabel><FormControl><Input placeholder="e.g. Zepto P1" {...field} /></FormControl><FormMessage /></FormItem> )} />
         assigned_estimations
-                 {role==="Nirmaan Admin User Profile" &&(
+                 {(role==="Nirmaan Admin User Profile"||role==="Nirmaan Estimations User Profile") &&(
                  <FormField
                             control={form.control}
                             name="assigned_sales"
