@@ -1,6 +1,8 @@
 import { useFrappeGetDoc,useSWRConfig } from "frappe-react-sdk"; // Import the other hook
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChevronRight, Plus, Search } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 type CrmUserStub = {
     name: string;
@@ -22,27 +24,61 @@ const generateFallback = (fullName: string = "") => {
         : `${names[0][0]}`.toUpperCase();
 };
 
+  export const formatRoleName = (fullRoleName: string | null | undefined): string => {
+    if (!fullRoleName) {
+        return 'No Role'; // A fallback for missing roles
+    }
+
+    if (fullRoleName.includes('Sales')) {
+        return 'Sales User';
+    }
+    if (fullRoleName.includes('Estimations')) {
+        return 'Estimate User';
+    }
+    if (fullRoleName.includes('Admin')) {
+        return 'Admin User';
+    }
+
+    // A default fallback if none of the keywords match
+    return 'User';
+};
+
 // --- NEW: Component for a single list item ---
 const MemberListItem = ({ member, onMemberSelect, activeMemberId }) => {
     // This item now fetches its own complete document to get the user_image.
     // This is very fast because it's a direct key lookup and runs for each item.
-    const { data: fullMemberDoc } = useFrappeGetDoc("CRM Users", member.name);
+ const isActive = activeMemberId === member.name;
+
 
     return (
-        <div
+        <Card
             role="button"
             onClick={() => onMemberSelect(member.name)}
-            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                activeMemberId === member.name ? "bg-muted" : "hover:bg-muted/50"
+            className={`mb-2 p-3 cursor-pointer transition-colors ${
+                isActive ? "bg-mute ring-0 ring-blue" : "hover:bg-muted/50"
             }`}
         >
-            <Avatar className="h-10 w-10">
-                {/* Use the user_image from the full document */}
-                <AvatarImage src={fullMemberDoc?.user_image} alt={member.full_name} />
-                <AvatarFallback>{generateFallback(member.full_name)}</AvatarFallback>
-            </Avatar>
-            <span className="font-medium">{member.full_name}</span>
-        </div>
+            <div className="flex items-center justify-between">
+                
+                {/* Left Group */}
+                <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={member.user_image} alt={member.full_name} />
+                        <AvatarFallback>{generateFallback(member.full_name)}</AvatarFallback>
+                    </Avatar>
+                    
+                    <div>
+                        <p className="font-semibold">{member.full_name}</p>
+                        <p className="text-xs text-muted-foreground"> {formatRoleName(member.nirmaan_role_name)}</p>
+                    </div>
+                </div>
+
+                {/* Right Group (Chevron) */}
+                <div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </div>
+            </div>
+        </Card>
     );
 };
 

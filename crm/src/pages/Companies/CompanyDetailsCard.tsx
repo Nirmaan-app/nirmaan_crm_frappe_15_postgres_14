@@ -4,14 +4,16 @@ import { Button } from "@/components/ui/button";
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { SquarePen } from "lucide-react";
 import { useDialogStore } from "@/store/dialogStore"; 
+import { formatDate, formatTime12Hour,formatDateWithOrdinal } from "@/utils/FormatDate";
 
 interface CompanyDetailsCardProps {
     company: CRMCompany;
     totalProjects: number;
     totalContacts: number;
+    activeProjects:number
 }
 
-export const CompanyDetailsCard = ({ company, totalProjects, totalContacts }: CompanyDetailsCardProps) => {
+export const CompanyDetailsCard = ({ company, totalProjects, totalContacts,activeProjects }: CompanyDetailsCardProps) => {
   const { openEditCompanyDialog } = useDialogStore();
    if (!company) {
         return null; // Or a loading skeleton
@@ -42,7 +44,7 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts }: Co
                     </div>
                     <div className="text-right">
                         <p className="text-xs text-muted-foreground">Active Projects</p>
-                        <p className="font-bold text-lg">01</p> {/* This is static for now */}
+                        <p className="font-bold text-lg">{activeProjects}</p> {/* This is static for now */}
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Total Projects</p>
@@ -50,7 +52,7 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts }: Co
                     </div>
                      <div className="text-right">
                         <p className="text-xs text-muted-foreground">Last Meeting Date</p>
-                        <p className="font-bold text-lg">01</p> {/* This is static for now */}
+                        <p className="font-bold text-md">{formatDateWithOrdinal(company.last_meeting)}</p> {/* This is static for now */}
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Total Contacts</p>
@@ -58,7 +60,7 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts }: Co
                     </div>
                            <div className="text-right">
                         <p className="text-xs text-muted-foreground">Assigned Sales</p>
-                        <p className="font-bold text-sm">{company.assigned_sales}</p>
+                        <p className="font-bold text-sm">{company?.assigned_sales ||"N/A"}</p>
                     </div>
                 </div>
             </div>

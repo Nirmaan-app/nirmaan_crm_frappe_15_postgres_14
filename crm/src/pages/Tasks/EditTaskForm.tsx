@@ -145,7 +145,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
              <div className="flex justify-between items-start text-sm mb-4 border-b pb-4">
                     {/* Main Task Info */}
                     <div className="flex flex-col gap-2">
-                        <p className="font-semibold">Task: {taskData?.type} for {contactDoc?.first_name}</p>
+                        <p className="font-semibold">{taskData?.type} for {contactDoc?.first_name}</p>
                         
                         {/* --- START: 2. ADDED UI ELEMENTS FOR DATE AND TIME --- */}
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -204,7 +204,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                                 <div className="flex justify-between items-start text-sm mb-4 border-b pb-4">
                     {/* Main Task Info */}
                     <div className="flex flex-col gap-2">
-                        <p className="font-semibold">Task: {taskData?.type} for {contactDoc?.first_name}</p>
+                        <p className="font-semibold">{taskData?.type} for {contactDoc?.first_name}</p>
                         
                         {/* --- START: 2. ADDED UI ELEMENTS FOR DATE AND TIME --- */}
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">

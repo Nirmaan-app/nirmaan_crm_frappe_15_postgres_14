@@ -18,6 +18,9 @@ interface StatCardProps {
     onClick: () => void;
 }
 
+ const getBoqStatusClass = useStatusStyles("boq");
+        const getTaskStatusClass=useStatusStyles("task")
+        
 export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardProps) => {
     return (
         <div
@@ -31,6 +34,39 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
         </div>
     );
 };
+   //BOQ Dialog Card 
+           export const boqNameFormatter = (item) => (
+        <Card className="w-full"> {/* Removed hover effects as it will be in a dialog */}
+          <CardHeader className="p-3 pb-2">
+            <CardTitle className="text-base font-bold text-primary truncate" title={item.name}>
+              {item.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2 pt-0 flex justify-between items-center text-xs">
+            <div>
+              <span className={`font-semibold px-2 py-1 rounded-full border ${getBoqStatusClass(item.boq_status)}`}>
+                {item.boq_status || 'No Status'}
+              </span>
+            </div>
+            <div className="text-muted-foreground font-medium border p-2">
+             <span>Received on</span><br></br>
+              {formatDate(item.creation)}
+            </div>
+          </CardContent>
+        </Card>
+    );
+
+          export   const taskNameFormatter = (item) => `Meeting with ${item.first_name || ''} from ${item.company_name || ''} on ${format(new Date(item.start_date), 'dd-MMM-yyyy')}`;
+
+          export  const formatItems = (data: any[], nameFormatter: (item: any) => string, type: 'Task' | 'BOQ'): StatItem[] => {
+            return data.map(item => ({
+                name: nameFormatter(item), // The display name for the list
+                id: item.name,             // The unique document ID for navigation
+                type: type,                // The document type ('Task' or 'BOQ')
+                data: item                 // The full original object
+            }));
+        };
+
 
 export const StatsGrid = () => {
         const getBoqStatusClass = useStatusStyles("boq");
@@ -66,15 +102,7 @@ export const StatsGrid = () => {
         if (!allTasks || !allBoqs) return null;
 
         // UPDATED: formatItems now accepts a `type` and adds it to the returned object
-        const formatItems = (data: any[], nameFormatter: (item: any) => string, type: 'Task' | 'BOQ'): StatItem[] => {
-            return data.map(item => ({
-                name: nameFormatter(item), // The display name for the list
-                id: item.name,             // The unique document ID for navigation
-                type: type,                // The document type ('Task' or 'BOQ')
-                data: item                 // The full original object
-            }));
-        };
-
+      
         const pendingTasks = allTasks.filter(t => t.status === "Scheduled")     
         const boqReceived = allBoqs
         const boqSent = allBoqs.filter(b => ["BOQ Submitted", "Revision Submitted"].includes(b.boq_status));
@@ -94,51 +122,31 @@ export const StatsGrid = () => {
         
         console.log("uniqueMeetingIdentifiers",uniqueMeetingIdentifiers)
         // CORRECTED: Access linked fields using bracket notation, e.g., item['contact.first_name']
-        // const taskNameFormatter = (item) => `Meeting with ${item.first_name || ''} from ${item.company_name || ''} on ${format(new Date(item.start_date), 'dd-MMM-yyyy')}`;
-          const taskNameFormatter = (item) => (
-        <Card className="w-full"> {/* Removed hover effects as it will be in a dialog */}
-          <CardHeader className="p-3 pb-2">
-            <CardTitle className="text-base font-bold text-primary truncate" title={item.first_name}>
-              {item.first_name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-2 pt-0 flex justify-between items-center text-xs">
-            <div>
-              <span className={`font-semibold px-2 py-1 rounded-full border ${getBoqStatusClass(item.type)}`}>
-                {item.type || 'No Status'}
-              </span>
-            </div>
-            <div className="text-muted-foreground font-medium">
-              {`${formatDate(item.start_date)} - ${formatTime12Hour(item.time)}`}
-            </div>
-          </CardContent>
-        </Card>
-    );
+
+    //       const taskNameFormatter = (item) => (
+    //     <Card className="w-full"> {/* Removed hover effects as it will be in a dialog */}
+    //       <CardHeader className="p-3 pb-2">
+    //         <CardTitle className="text-base font-bold text-primary truncate" title={item.first_name}>
+    //           {item.first_name}
+    //         </CardTitle>
+    //       </CardHeader>
+    //       <CardContent className="p-2 pt-0 flex justify-between items-center text-xs">
+    //         <div>
+    //           <span className={`font-semibold px-2 py-1 rounded-full border ${getBoqStatusClass(item.type)}`}>
+    //             {item.type || 'No Status'}
+    //           </span>
+    //         </div>
+    //         {/* <div className="text-muted-foreground font-medium">
+    //           {`${formatDate(item.start_date)} - ${formatTime12Hour(item.time)}`}
+    //         </div> */}
+    //       </CardContent>
+    //     </Card>
+    // );
 
         
 
          
-        //BOQ Dialog Card 
-           const boqNameFormatter = (item) => (
-        <Card className="w-full"> {/* Removed hover effects as it will be in a dialog */}
-          <CardHeader className="p-3 pb-2">
-            <CardTitle className="text-base font-bold text-primary truncate" title={item.name}>
-              {item.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 pt-0 flex justify-between items-center text-xs">
-            <div>
-              <span className={`font-semibold px-2 py-1 rounded-full border ${getBoqStatusClass(item.boq_status)}`}>
-                {item.boq_status || 'No Status'}
-              </span>
-            </div>
-            <div className="text-muted-foreground font-medium">
-              {formatDate(item.creation)}
-            </div>
-          </CardContent>
-        </Card>
-    );
-
+     
         
         return {
             pendingTasks: {

@@ -17,7 +17,7 @@ type EditCompanyContext = { companyData: CRMCompany | null };
 type EditContactContext = { contactData: CRMContacts | null };
 type EditBoqContext = { 
   boqData: CRMPBOQ | null;
-  mode: 'details' | 'status' | 'remark' | 'attachment'|'assigned'; 
+  mode: 'details' | 'status' | 'remark' | 'attachment'|'assigned'|"assigned-esitmate"; 
 
 };
 type EditTaskContext = { 

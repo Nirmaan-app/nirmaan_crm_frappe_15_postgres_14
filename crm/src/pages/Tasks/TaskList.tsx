@@ -154,7 +154,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         filters: allFilters,
         limit: 0,
         orderBy: { field: "creation", order: "asc" }
-    });
+    },swrkey);
 
     // console.log("TTASKS", tasks)
 

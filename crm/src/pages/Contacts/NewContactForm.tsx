@@ -50,6 +50,10 @@ export const NewContactForm = ({ onSuccess, isEditMode = false, initialData = nu
   const { createDoc, loading :createLoading} = useFrappeCreateDoc();
     const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc(); 
 
+const { data: allContacts } = useFrappeGetDocList("CRM Contacts", {
+        fields: ["name", "email"]
+    },"all-contacts-existornot");
+
 //Hooks get Sales UserList
   const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
     
@@ -175,6 +179,25 @@ const uploadVisitingCard = useCallback(async (contactName: string, file: File) =
 
   const onSubmit = async (values: ContactFormValues) => {
     try {
+
+              if (!isEditMode) {
+            const trimmedEmail = values.email.trim().toLowerCase();
+            const existingContact = allContacts?.find(
+                c => c.email.trim().toLowerCase() === trimmedEmail
+            );
+
+            if (existingContact) {
+                toast({
+                    title: "Duplicate Contact",
+                    description: `A contact with the email "${values.email}" already exists.`,
+                    variant: "destructive"
+                });
+                return; // Stop the submission
+            }
+        }
+        
+
+        
    const visitingCardFile = values.visiting_card; 
 
 const dataToSave={
@@ -258,7 +281,7 @@ const dataToSave={
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email*</FormLabel>
-              <FormControl><Input type="email" placeholder="e.g. john.doe@example.com" {...field} /></FormControl>
+              <FormControl><Input type="email" placeholder="e.g. john.doe@example.com" {...field} disabled={isEditMode} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
