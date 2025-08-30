@@ -1,4 +1,4 @@
-import { RenderDesktopMiniMobileScreen } from "@/components/helpers/RenderDesktopMiniMobile";
+import { RenderDesktopMiniMobileScreen } from "@/components/helpers/RETIREDRenderDesktopMiniMobile";
 import { AddNewButton } from "@/components/ui/AddNewButton"; // Import the AddNewButton
 import { useApplicationContext } from "@/contexts/ApplicationContext";
 import { useEffect, useState } from "react"; // Import hooks

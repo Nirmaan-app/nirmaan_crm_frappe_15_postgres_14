@@ -20,13 +20,13 @@ export const MemberDetails = ({ memberId }) => {
 
     // Fetch TASKS assigned to this member.
     const { data: tasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
-        fields: ["*"], // TODO: Specify fields like ["name", "status", "type", ...] in production
+       fields: ["name", "type", "start_date", "time", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name","creation","modified"], // TODO: Specify fields like ["name", "status", "type", ...] in production
         filters: [['assigned_sales', '=', memberEmail]],
         limit: 0,
         // Only fetch tasks if the user is a Sales user.
         orderBy: { field: "modified", order: "desc" },
-        enabled: !!memberEmail && memberRole === 'Nirmaan Sales User Profile'
-    }, `tasks-for-member-${memberEmail}`);
+        // enabled: !!memberEmail && memberRole === 'Nirmaan Sales User Profile'
+    }, `all-tasks-for-member-${memberEmail}`);
 
     // Fetch CONTACTS assigned to this member.
     const { data: contacts, isLoading: contactsLoading } = useFrappeGetDocList("CRM Contacts", {
@@ -35,8 +35,8 @@ export const MemberDetails = ({ memberId }) => {
         limit: 0,
         // Only fetch contacts if the user is a Sales user.
         orderBy: { field: "modified", order: "desc" },
-        enabled: !!memberEmail && memberRole === 'Nirmaan Sales User Profile'
-    }, `contacts-for-member-${memberEmail}`);
+        // enabled: !!memberEmail && memberRole === 'Nirmaan Sales User Profile'
+    }, `all-contacts-for-member-${memberEmail}`);
 
     // Fetch BOQs based on the user's role.
     const { data: boqs, isLoading: boqsLoading } = useFrappeGetDocList("CRM BOQ", {
@@ -47,8 +47,7 @@ export const MemberDetails = ({ memberId }) => {
         limit: 0,
         orderBy: { field: "modified", order: "desc" },
         // This hook should run as long as we have an email and the user is NOT an Admin.
-        enabled: !!memberEmail && memberRole !== 'Nirmaan Admin User Profile'
-    }, `boqs-for-member-${memberEmail}`);
+    }, `all-boqs-for-member-${memberEmail}`);
 
     const isLoading = memberLoading || tasksLoading || contactsLoading || boqsLoading;
     

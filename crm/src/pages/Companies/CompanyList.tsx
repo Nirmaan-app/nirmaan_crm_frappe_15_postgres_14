@@ -122,7 +122,7 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
 
 
     return (
-        <div className="flex flex-col h-full">
+        <div>
 
             <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -133,13 +133,14 @@ export const CompanyList = ({ onCompanySelect, activeCompanyId }: CompanyListPro
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
+            
             <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
+                {/* <div className="flex items-center justify-between mb-2"> */}
                     {role === "Nirmaan Sales User Profile" && <span className="text-xs font-light">List Companies:</span>}
                     <AssignmentFilterControls onFilterChange={setAssignmentFilters} filterType="company" />
-                </div>
+                {/* </div> */}
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div >
                 {companyItems}
             </div>
             {/* On desktop, this button will be inside a specific layout panel */}

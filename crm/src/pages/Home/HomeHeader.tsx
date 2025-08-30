@@ -11,7 +11,7 @@ export const HomeHeader = () => {
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Welcome, {fullName}!</h1>
+                <h1 className="text-xl md:text-2xl font-bold">Welcome, {fullName}!</h1>
                 <Button 
                     variant="outline" 
                     className="border-destructive text-destructive hover:bg-destructive/5 hover:text-destructive" 

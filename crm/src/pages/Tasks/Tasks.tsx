@@ -1,5 +1,105 @@
 
-// // src/pages/Tasks/Tasks.tsx
+// import { useViewport } from "@/hooks/useViewPort";
+// import { TaskList, DesktopTaskDetailView } from "./TaskList"; // 1. IMPORT DesktopTaskDetailView
+// import { Task } from "./Task";
+// import { format, subDays } from "date-fns";
+// import { useStatesSyncedWithParams } from "@/hooks/useSearchParamsManager";
+// import { useDialogStore } from "@/store/dialogStore";
+// import { Plus } from "lucide-react";
+// import { FloatingActionButton } from "@/components/ui/FloatingActionButton";
+// import { TasksVariantPage } from "./TasksVariantPage";
+// import { useState } from "react"; // 2. Import useState for desktop selection
+
+// const DesktopPlaceholder = () => (
+//     <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed bg-secondary">
+//         <span className="text-muted-foreground">Please select a category from the list</span>
+//     </div>
+// );
+
+// export const Tasks = () => {
+//     const { isMobile } = useViewport();
+//     const { openNewTaskDialog } = useDialogStore();
+    
+//     // URL params for filtering, but we need local state for the desktop's rich selection object
+//     const [params, setParams] = useStatesSyncedWithParams([
+//         { key: 'id', defaultValue: '' },
+//         { key: 'from', defaultValue: format(subDays(new Date(), 30), 'yyyy-MM-dd') },
+//         { key: 'to', defaultValue: format(new Date(), 'yyyy-MM-dd') },
+//         { key: 'assigned_to', defaultValue: '' },
+//     ]);
+//     const { id, from, to } = params;
+
+//     // 3. LOCAL STATE for the rich desktop selection object
+    
+//     const [desktopSelection, setDesktopSelection] = useState(null);
+
+//     const handleDesktopSelect = (selection) => {
+//         // When a category is clicked, update both the URL param (for highlighting) and local state (for data)
+//         setParams({ id: selection.id }); 
+//         setDesktopSelection(selection);
+//     };
+
+//     if (isMobile) {
+//         // Mobile view is correct and remains the same
+//         return (
+//             <div className="space-y-4">
+//                 <TaskList onTaskSelect={(p) => setParams({id: p.id, from: p.from, to: p.to, assigned_to: p.assigned_to})} />
+//                 <FloatingActionButton options={[{ label: 'Add New Task', action: openNewTaskDialog }]} />
+//             </div>
+//         );
+//     }
+
+//     // --- 4. REVISED RENDER LOGIC FOR DESKTOP DETAIL PANEL ---
+//     const renderDetailPanel = () => {
+//         if (!id) {
+//             return <DesktopPlaceholder />;
+//         }
+        
+//         // Priority 1: Check if there's a rich selection object in our local state
+//         // This will be true when "Today", "Tomorrow", etc. is clicked.
+//         if (desktopSelection && desktopSelection.id === id) {
+//             return (
+//                 <DesktopTaskDetailView
+//                     title={desktopSelection.title}
+//                     taskGroup={desktopSelection.data}
+//                     context={desktopSelection.context}
+//                 />
+//             );
+//         }
+
+//         // Priority 2: Check for summary categories like "all", "pending", etc.
+//         if (['all', 'pending', 'completed'].includes(id.toLowerCase())) {
+//             return <TasksVariantPage variant={id.toLowerCase()} from={from} to={to} />;
+//         }
+       
+//         // Priority 3: If it's not a category, assume it's a specific task ID
+//         // (This part of your logic might need a component that fetches a single task by ID)
+//         return <Task />; 
+//     };
+
+//     return (
+//         <div className="grid grid-cols-[400px,1fr] gap-6 h-[calc(100vh-var(--navbar-height)-80px)]">
+//             {/* Master Panel (Left) */}
+//             <div className="bg-background rounded-lg border p-4 flex flex-col">
+//                 <TaskList
+//                     onTaskSelect={handleDesktopSelect} // 5. Use the new handler
+//                     activeTaskId={id}
+//                 />
+//                 <div className="mt-4 pt-4 border-t">
+//                     <button onClick={openNewTaskDialog} className="w-full h-12 bg-destructive text-white rounded-lg flex items-center justify-center gap-2">
+//                         <Plus size={20} /> Add New Task
+//                     </button>
+//                 </div>
+//             </div>
+
+//             {/* Detail Panel (Right) */}
+//             <div className="overflow-y-auto -mr-4 pr-4 h-full">
+//                {renderDetailPanel()}
+//             </div>
+//         </div>
+//     );
+// };
+
 
 // import { useViewport } from "@/hooks/useViewPort";
 // import { TaskList } from "./TaskList";

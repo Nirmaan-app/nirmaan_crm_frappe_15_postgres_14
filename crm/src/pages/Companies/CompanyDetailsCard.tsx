@@ -43,16 +43,16 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts,activ
                         <p className="font-semibold">{company?.company_type || 'N/A'}</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Active Projects</p>
-                        <p className="font-bold text-lg">{activeProjects}</p> {/* This is static for now */}
+                        <p className="text-xs text-muted-foreground">Last Meeting Date</p>
+                        <p className="font-bold text-sm">{formatDateWithOrdinal(company.last_meeting)}</p> {/* This is static for now */}
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Total Projects</p>
                         <p className="font-bold text-lg">{String(totalProjects).padStart(2, '0')}</p>
                     </div>
-                     <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Last Meeting Date</p>
-                        <p className="font-bold text-md">{formatDateWithOrdinal(company.last_meeting)}</p> {/* This is static for now */}
+                    <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Active Projects</p>
+                        <p className="font-bold text-lg">{activeProjects}</p> {/* This is static for now */}
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">Total Contacts</p>

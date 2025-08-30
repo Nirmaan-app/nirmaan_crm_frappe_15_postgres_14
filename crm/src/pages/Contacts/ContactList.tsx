@@ -116,7 +116,7 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
     // }
 
     return (
-        <div className="flex flex-col h-full">
+        <div>
             <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -127,12 +127,12 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
                 />
             </div>
             <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
+                {/* <div className="flex items-center justify-between mb-2"> */}
                     {role === "Nirmaan Sales User Profile" && <span className="text-xs font-light">List Contacts:</span>}
                     <AssignmentFilterControls onFilterChange={setAssignmentFilters} filterType="contact" />
-                </div>
+                {/* </div> */}
             </div>
-            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+            <div>
                 {filteredContacts?.map((contact, index) => (
                     <div key={contact.name}>
                         <ContactListItem
@@ -153,5 +153,6 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
                 </button>
             </div> */}
         </div>
+        
     );
 };

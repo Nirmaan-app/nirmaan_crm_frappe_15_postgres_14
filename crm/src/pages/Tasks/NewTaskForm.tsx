@@ -116,27 +116,13 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* Task Type, Date, Time are always selectable */}
-        <FormField name="type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Task Type<sup>*</sup></FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)} placeholder="Select Type"/></FormControl><FormMessage /></FormItem> )} />
-        <FormField name="start_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Date<sup>*</sup></FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
-        <FormField name="time" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Time<sup>*</sup></FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem> )} />
-        
-        {/* --- DYNAMIC COMPANY FIELD --- */}
-        <FormField name="company" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Company<sup>*</sup></FormLabel><FormControl>
-            {contactIdFromContext ? (
-                // If a companyId was derived, show the disabled input with the fetched company name.
-                <Input value={contactDocFromContext?.company || (companyDocLoading ? "Loading..." : "")} disabled />
-            ) : (
-                // Only if no context was provided at all, show the searchable dropdown.
-                <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("contact", ""); form.setValue("boq", ""); }} placeholder="Select Company" menuPosition={'auto'}/>
-            )}
-        </FormControl><FormMessage /></FormItem> )} />
-         {role==="Nirmaan Admin User Profile" &&(
+        {role==="Nirmaan Admin User Profile" &&(
                          <FormField
                                     control={form.control}
                                     name="assigned_sales"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Assigned Salesperson For Task</FormLabel>
+                                            <FormLabel>Sales Person:</FormLabel>
                                             <FormControl>
                                                 <ReactSelect
                                                     options={salesUserOptions}
@@ -153,6 +139,20 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
                                     )}
                                 />
                         )}
+        <FormField name="type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Task Type<sup>*</sup></FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)} placeholder="Select Type"/></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="start_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Date<sup>*</sup></FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="time" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Time<sup>*</sup></FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem> )} />
+        
+        {/* --- DYNAMIC COMPANY FIELD --- */}
+        <FormField name="company" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Company<sup>*</sup></FormLabel><FormControl>
+            {contactIdFromContext ? (
+                // If a companyId was derived, show the disabled input with the fetched company name.
+                <Input value={contactDocFromContext?.company || (companyDocLoading ? "Loading..." : "")} disabled />
+            ) : (
+                // Only if no context was provided at all, show the searchable dropdown.
+                <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("contact", ""); form.setValue("boq", ""); }} placeholder="Select Company" menuPosition={'auto'}/>
+            )}
+        </FormControl><FormMessage /></FormItem> )} />
                         
 
         {/* --- DYNAMIC CONTACT FIELD --- */}

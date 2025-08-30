@@ -34,7 +34,7 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
 
 
     const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
-        fields: ["name", "type", "start_date", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
+        fields: ["name", "type", "start_date","time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
         filters:companyStatsGridFilterTasks ,
         limit: 0
     },companyStatsGridTask);
@@ -61,13 +61,13 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
         // const boqNameFormatter = (item) => `${item.boq_name || item.name}`;
 
         // const pendingTasks = allTasks.filter(t => t.status === "Scheduled");
-        const boqReceived = allBoqs.filter(b => b.boq_status === "New");
+        const boqReceived = allBoqs;
         const boqSent = allBoqs.filter(b => ["BOQ Submitted", "Revision Submitted"].includes(b.boq_status));
-        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In-Progress"].includes(b.boq_status));
+        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In-Progress", "Partial BOQ Submitted"].includes(b.boq_status));
         const hotDeals = allBoqs.filter(b => ["Revision Submitted", "Negotiation"].includes(b.boq_status));
         const wonDeals = allBoqs.filter(b => ["Won"].includes(b.boq_status));
         const allMeetings = allTasks
-         const followUpMeetings = allTasks.filter(t => t.type==="Follow-up");
+         const followUpMeetings = allTasks.filter(t => ["Follow-up", "Follow-up BOQ"].includes(t.type));
         
         
 
@@ -94,7 +94,7 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
         { title: "Hot Deals", data: statsData?.hotDeals },
         { title: "Deals Won", data: statsData?.wonDeals },
         { title: "Pending Deals", data: statsData?.pendingBoq },
-        { title: "Total Meetings Done", data: statsData?.totalMeetings },
+        { title: "Total Meetings", data: statsData?.totalMeetings },
         { title: "Follow Up Meetings", data: statsData?.followUpMeetings },
 
         // { title: "Pending Tasks", data: statsData?.pendingTasks },
@@ -105,7 +105,7 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
     return (
         <div className="space-y-3">
             <FilterControls onDateRangeChange={setDateRange} dateRange={dateRange} />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {statCards.map(card => (
                     <StatCard
                         key={card.title}

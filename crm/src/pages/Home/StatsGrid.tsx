@@ -8,8 +8,9 @@ import { StatItem } from "@/store/dialogStore";
 import { FilterControls } from "@/components/ui/FilterControls";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
-import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
-
+import { formatDate, formatTime12Hour,formatDateWithOrdinal,formatCasualDate } from "@/utils/FormatDate";
+import { TaskStatusIcon } from "@/components/ui/TaskStatusIcon";
+import { ChevronRight } from "lucide-react";
 // StatCard component (no changes needed here)
 interface StatCardProps {
     title: string;
@@ -25,12 +26,12 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
     return (
         <div
             onClick={onClick}
-            className="bg-destructive text-white p-3 rounded-lg text-center cursor-pointer transition-transform hover:scale-105"
+            className="bg-destructive text-white p-2 rounded-lg text-center cursor-pointer transition-transform hover:scale-105"
         >
-            <p className="text-2xl font-bold">
+            <p className="text-xl md:text-2xl font-bold">
                 {isLoading ? "..." : String(value).padStart(2, '0')}
             </p>
-            <p className="text-sm">{title}</p>
+            <p className="text-xs md:text-base">{title}</p>
         </div>
     );
 };
@@ -56,7 +57,10 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
         </Card>
     );
 
-          export   const taskNameFormatter = (item) => `Meeting with ${item.first_name || ''} from ${item.company_name || ''} on ${format(new Date(item.start_date), 'dd-MMM-yyyy')}`;
+          export   const taskNameFormatter = (item) =>    <div className="flex p-1"><TaskStatusIcon status={item.status} className="mr-1 flex-shrink-0" /> <div>{item.type} with {item.first_name || ''} from {item.company_name || ''}{" "}
+          <p className="text-xs inline-block text-muted-foreground p-0 m-0">
+                                         {formatCasualDate(item.start_date)} at {formatTime12Hour(item.time)}
+                                      </p></div> <ChevronRight className="w-4 h-4 text-muted-foreground" /></div>;
 
           export  const formatItems = (data: any[], nameFormatter: (item: any) => string, type: 'Task' | 'BOQ'): StatItem[] => {
             return data.map(item => ({
@@ -89,12 +93,14 @@ export const StatsGrid = () => {
     const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
         fields: ["name", "type", "start_date", "time" ,"status", "contact", "company","boq", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
         filters: homeStatsGridFilterTasks,
+        orderBy: { field: "start_date DESC, time", order: "desc"},
         limit: 0
     },homeStatsGridTask);
 
     const { data: allBoqs, isLoading: boqsLoading } = useFrappeGetDocList("CRM BOQ", {
         fields: ["name", "boq_status", "company", "creation", "modified"],
         filters: homeStatsGridFilterBOQS,
+        orderBy :{field: "modified", order: "desc"},
         limit: 0
     },homeStatsGridBOQ);
 
@@ -106,7 +112,7 @@ export const StatsGrid = () => {
         const pendingTasks = allTasks.filter(t => t.status === "Scheduled")     
         const boqReceived = allBoqs
         const boqSent = allBoqs.filter(b => ["BOQ Submitted", "Revision Submitted"].includes(b.boq_status));
-        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In-Progress"].includes(b.boq_status));
+        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In-Progress","Partial BOQ Submitted"].includes(b.boq_status));
         const hotDeals = allBoqs.filter(b => ["Revision Submitted", "Negotiation"].includes(b.boq_status));
         const allMeetings = allTasks
         // CORRECTED: Use the unique link fields `contact` and `company` for a reliable identifier
@@ -184,19 +190,20 @@ export const StatsGrid = () => {
     const isLoading = tasksLoading || boqsLoading;
 
     const statCards = [
+        { title: "Total Meetings", data: statsData?.totalMeetings },
+        { title: "Unique Meetings", data: statsData?.uniqueMeetings },
         { title: "Pending Task", data: statsData?.pendingTasks },
+        { title: "Pending BOQ", data: statsData?.pendingBoq },
         { title: "BOQ Received", data: statsData?.boqReceived },
         { title: "BOQ Sent", data: statsData?.boqSent },
-        { title: "Unique Meetings", data: statsData?.uniqueMeetings },
-        { title: "Total Meetings", data: statsData?.totalMeetings },
-        { title: "Pending BOQ", data: statsData?.pendingBoq },
         { title: "Hot Deals", data: statsData?.hotDeals },
     ];
 
     return (
         <div className="space-y-3">
                <FilterControls onDateRangeChange={setDateRange} dateRange={dateRange}/>         
-            <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+
                 {statCards.map(card => (
                     <StatCard
                         key={card.title}
