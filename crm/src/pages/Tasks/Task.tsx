@@ -9,6 +9,8 @@ import { ChevronRight, SquarePen } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
+import { useStatusStyles } from "@/hooks/useStatusStyles";
+
 import * as z from "zod";
 
 
@@ -30,18 +32,34 @@ export type TaskFormValues = z.infer<typeof taskFormSchema>;
 // --- SUB-COMPONENT: Task Details Card ---
 const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, contact?: CRMContacts, company?: CRMCompany, boq?: CRMBOQ }) => {
     const { openEditTaskDialog } = useDialogStore();
-    const getStatusClass = (status: string) => {
-        // ... (same status class function for 'Incomplete', etc.)
-        return 'bg-red-100 text-red-800'; // Example
-    };
+    const getTaskStatusClass=useStatusStyles("task")
+   
 
-    const DetailItem = ({ label, value, href }) => (
+const DetailItem = ({ label, value, href }: { label: string, value?: string | number | null, href?: string }) => {
+    // Determine if the value is present and not an empty string
+    const hasValue = value !== null && value !== undefined && value !== '';
+
+    return (
         <div>
             <p className="text-xs text-muted-foreground">{label}</p>
-            {href ? <Link to={href} className="font-semibold text-blue-600 underline">{value}</Link> : <p className="font-semibold">{value}</p>}
+            {href ? (
+                // If a link URL is provided...
+                hasValue ? (
+                    <Link to={href} className="font-semibold text-blue-600 hover:underline">
+                        {value}
+                    </Link>
+                ) : (
+                    <p className="font-semibold text-muted-foreground">N/A</p>
+                )
+            ) : (
+                // If no link URL is provided...
+                <p className="font-semibold">
+                    {hasValue ? value : <span className="text-muted-foreground">N/A</span>}
+                </p>
+            )}
         </div>
     );
-
+};
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
             <div className="flex justify-between items-center mb-4">
@@ -77,10 +95,10 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                 <DetailItem label="Company" value={task?.company} href={`/companies/company?id=${task?.company}`} />
                 <DetailItem label="Mobile Number" value={contact?.mobile} href={`tel:${contact?.mobile}`} />
                 <DetailItem label="Type" value={task?.type} />
-                <DetailItem label="Project" value={task.boq || 'N/A'} href={`/boqs/boq?id=${task.boq}`} />
+                <DetailItem label="Project" value={task.boq} href={`/boqs/boq?id=${task.boq}`} />
                 <div className="flex flex-col">
                     <p className="text-xs text-muted-foreground">Current Status</p>
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${getStatusClass(task.status)}`}>{task.status}</span>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${getTaskStatusClass(task.status)}`}>{task.status}</span>
                 </div>
                 <DetailItem label="Date" className="text-sm" value={`${formatDate(task?.start_date)} - ${formatTime12Hour(task?.time)}`} />
                 <DetailItem label="Remarks" className="text-sm" value={task?.remarks||"--"} />

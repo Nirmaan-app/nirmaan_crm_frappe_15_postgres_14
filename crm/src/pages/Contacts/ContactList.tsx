@@ -1,6 +1,6 @@
 // src/pages/Contacts/ContactList.tsx
 import { AssignmentFilterControls } from "@/components/ui/AssignmentFilterControls";
-
+import { format } from 'date-fns';
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useDialogStore } from "@/store/dialogStore";
@@ -9,6 +9,8 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatDate, formatTime12Hour,formatDateWithOrdinal } from "@/utils/FormatDate";
+
 
 interface ContactListProps {
     onContactSelect?: (id: string) => void;
@@ -16,18 +18,42 @@ interface ContactListProps {
 }
 
 const ContactListItem = ({ contact, onSelect, isActive }: { contact: EnrichedContact, onSelect: () => void, isActive: boolean }) => (
-    <div
-        role="button"
-        aria-label={contact.full_name}
-        onClick={onSelect}
-        className={`flex items-center justify-between p-4 cursor-pointer transition-colors rounded-lg ${isActive ? "bg-primary/10" : "hover:bg-secondary"}`}
-    >
-        <div>
-            <strong className="text-black dark:text-muted-foreground">{contact.full_name}</strong>
-            <p className="text-sm text-muted-foreground">{contact.company_name}</p>
-        </div>
+   <div
+    role="button"
+    aria-label={contact.full_name}
+    onClick={onSelect}
+    // `justify-between` will push the left and right groups apart
+    className={`flex items-center justify-between p-4 cursor-pointer transition-colors rounded-lg ${isActive ? "bg-primary/10" : "hover:bg-secondary"}`}
+>
+    {/* --- Left Group --- */}
+    {/* This is the first flex item and will stay on the left. */}
+    <div>
+        <strong className="text-black text-md dark:text-muted-foreground">{contact.full_name}</strong>
+        <p className="text-sm text-muted-foreground">{contact.company_name}</p>
+    </div>
+
+    {/* --- Right Group --- */}
+    {/* 1. This new div wraps both the badge and the chevron.
+           It becomes the second flex item and will be pushed to the right. */}
+    <div className="flex items-center gap-4">
+        
+        {/* The "Last Meeting" badge */}
+        {contact.last_meeting && (
+            <div className="border p-2 rounded-md text-center">
+                <p className="text-[8px] text-muted-foreground">
+                    Last meeting was on
+                </p>
+                {/* 2. Style Correction: Make the date bolder and slightly larger */}
+                <p className="text-[10px] font-semibold text-muted-foreground">
+                    {formatDateWithOrdinal(contact.last_meeting)}
+                </p>
+            </div>
+        )}
+
+        {/* The Chevron Icon */}
         <ChevronRight className="md:hidden" />
     </div>
+</div>
 );
 
 // Define an enriched type to include company_name
@@ -48,7 +74,7 @@ export const ContactList = ({ onContactSelect, activeContactId }: ContactListPro
 
 
     const { data: contacts, isLoading } = useFrappeGetDocList<EnrichedContact>("CRM Contacts", {
-        fields: ["name", "first_name", "last_name", "company","email"],
+        fields: ["name", "first_name", "last_name", "company","email","last_meeting"],
         filters: assignmentFilters, // Use the state variable here
         limit: 0,
         orderBy: { field: "modified", order: "desc" }

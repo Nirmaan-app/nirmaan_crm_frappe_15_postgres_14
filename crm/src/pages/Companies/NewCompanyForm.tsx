@@ -8,17 +8,25 @@ import { useFrappeCreateDoc,useFrappeUpdateDoc, useFrappeGetDocList, useSWRConfi
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from 'react-select';
-import { useMemo,useEffect } from "react";
+import { useMemo,useEffect,useState ,useCallback} from "react";
 import { CRMCompanyType } from "@/types/NirmaanCRM/CRMCompanyType";
 //Getting Role For Assigned
 import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+import { NewCompanyTypeForm } from "./NewCompanyTypeForm";
+import { CustomSelect } from "@/components/ui/custom-select";
+
+import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
+
 
 // Zod Schema based on your Frappe Doctype and UI Mockup
 const companyFormSchema = z.object({
-  company_name: z.string().min(1, "Company name is required"),
+company_name: z.string()
+    .min(1, "Company name is required")
+    .regex(/^[a-zA-Z0-9\s-]/, "Only letters, numbers, spaces, and hyphens are allowed."),
+
   company_city: z.string().min(1, "Location is required"),
   company_type: z.string().min(1, "Company type is required"),
-  company_website: z.string().optional(), // Now optional
+   company_website: z.string().url("Please enter a valid URL").optional().or(z.literal('')),
   assigned_sales: z.string().optional()
 });
 
@@ -35,13 +43,23 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
   const { createDoc, loading:createLoading } = useFrappeCreateDoc();
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
   const { mutate } = useSWRConfig();
-  
+
+ const [isCompanyTypeDialogOpen, setCompanyTypeDialogOpen] = useState(false);
+
+    const toggleCompanyTypeDialog = useCallback(() => {
+        setCompanyTypeDialogOpen((prevState) => !prevState);
+    }, [isCompanyTypeDialogOpen]);
+
+// Add this hook to get all company names for validation
+const { data: allCompanies } = useFrappeGetDocList("CRM Company", {
+    fields: ["name", "company_name"]},"all-companies-existornot");
 //Hooks get Sales UserList
   const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
 
   const role=localStorage.getItem("role")
   
-  const { data: companyTypes } = useFrappeGetDocList<CRMCompanyType>("CRM Company Type", { fields: ["name"] });
+  const { data: companyTypes } = useFrappeGetDocList<CRMCompanyType>("CRM Company Type", { fields: ["name"] },"CRM Company Type");
+  
   const companyTypeOptions = useMemo(() => 
     companyTypes?.map(ct => ({ label: ct.name, value: ct.name })) || [], 
     [companyTypes]
@@ -105,6 +123,21 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
 
 const onSubmit = async (values: CompanyFormValues) => {
     try {
+        const trimmedNewName = values.company_name.trim();
+      
+      const existingCompany = allCompanies?.find(
+        c => c.company_name.toLowerCase() === trimmedNewName.toLowerCase()
+      );
+
+      if (existingCompany && (!isEditMode || (isEditMode && existingCompany.name !== initialData?.name))) {
+          toast({
+              title: "Duplicate Name",
+              description: `A company named "${trimmedNewName}" already exists.`,
+              variant: "destructive"
+          });
+          return; // Stop the submission
+      }
+
       if (isEditMode) {
         // --- UPDATE LOGIC ---
         await updateDoc("CRM Company", initialData.name, values);
@@ -127,6 +160,7 @@ const onSubmit = async (values: CompanyFormValues) => {
 
 
   return (
+    <>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
@@ -134,8 +168,9 @@ const onSubmit = async (values: CompanyFormValues) => {
           name="company_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company Name</FormLabel>
-              <FormControl><Input placeholder="e.g. Zepto" {...field} /></FormControl>
+              <FormLabel>Company Name<sup>*</sup></FormLabel>
+              <FormControl><Input placeholder="e.g. Zepto" {...field} disabled={isEditMode} 
+ /></FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -156,7 +191,7 @@ const onSubmit = async (values: CompanyFormValues) => {
           name="company_city"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Location</FormLabel>
+              <FormLabel>Location<sup>*</sup></FormLabel>
               <FormControl>
                 <ReactSelect
                   options={companyLocationOptions}
@@ -169,12 +204,13 @@ const onSubmit = async (values: CompanyFormValues) => {
             </FormItem>
           )}
         />
-        <FormField
+
+        {/* <FormField
           control={form.control}
           name="company_type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company Type</FormLabel>
+              <FormLabel>Company Type<sup>*</sup></FormLabel>
               <FormControl>
                 <ReactSelect
                   options={companyTypeOptions}
@@ -187,7 +223,29 @@ const onSubmit = async (values: CompanyFormValues) => {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
+         <FormField
+            control={form.control}
+            name="company_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Company Type<sup>*</sup></FormLabel>
+                <FormControl>
+                  <CustomSelect
+                    options={companyTypeOptions}
+                    value={companyTypeOptions.find(c => c.value === field.value)}
+                    onChange={val => field.onChange(val?.value)}
+                    placeholder="Select Type"
+                    isOptionDisabled={(option) => option.value === field.value}
+                    // Props for the "Add New" button
+                    onAddItemClick={toggleCompanyTypeDialog}
+                    addButtonLabel="Add New Company Type"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
          {role==="Nirmaan Admin User Profile" &&(
          <FormField
@@ -236,6 +294,19 @@ const onSubmit = async (values: CompanyFormValues) => {
         </div>
       </form>
     </Form>
+    <ReusableAlertDialog
+        open={isCompanyTypeDialogOpen}
+        onOpenChange={toggleCompanyTypeDialog}
+        title="Add New Company Type"
+        // We pass the NewCompanyTypeForm as a child
+        
+      >
+        <NewCompanyTypeForm 
+            onSuccess={toggleCompanyTypeDialog} 
+        />
+      </ReusableAlertDialog>
+
+    </>
   );
 };
 

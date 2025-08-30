@@ -154,6 +154,9 @@ doc_events={
         ],
         # "on_trash": "nirmaan_crm.integrations.controllers.user_permission.on_trash"
     },
+    "CRM Task": {
+		"on_update": "nirmaan_crm.integrations.controllers.last_meeting_on.on_meeting_update",
+  }
 }
 
 # Scheduled Tasks

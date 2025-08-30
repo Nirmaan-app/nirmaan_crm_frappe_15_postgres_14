@@ -25,7 +25,7 @@ export const TasksTab = ({ tasks }) => {
                         <TableRow key={task.name}>
                             <TableCell>
                                 <Link to={`/contacts/contact?id=${task.contact}`} className="text-red-600 underline font-medium">
-                                    {task.first_name} {task.last_name}
+                                    {task.contact} 
                                 </Link>
                             </TableCell>
                             <TableCell>

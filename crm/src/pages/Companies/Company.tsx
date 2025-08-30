@@ -21,7 +21,6 @@ export const Company = () => {
     const [id] = useStateSyncedWithParams<string>("id", "");
     
     // --- State for Dialogs ---
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
    
     const [deleteDialog, setDeleteDialog] = useState(false);
     const toggleDeleteDialog = useCallback(() => setDeleteDialog(p => !p), []);
@@ -74,6 +73,21 @@ export const Company = () => {
     if (companyLoading || contactsLoading || boqsLoading) {
         return <div>Loading...</div>;
     }
+    const INACTIVE_STATUSES = ['Won', 'Lost',"Dropped"];
+
+    const activeProjectsfilter =() => {
+    // If there's no list, return an empty array.
+    if (!boqsList) {
+        return [];
+    }
+
+    // 3. Use .filter() to create a new list.
+    // An item is included only if its status is NOT in our INACTIVE_STATUSES list.
+    return boqsList.filter(item => 
+        !INACTIVE_STATUSES.includes(item.boq_status)
+    );
+
+}; 
 
     return (
         <div className="space-y-6">
@@ -81,6 +95,7 @@ export const Company = () => {
                 company={companyData}
                 totalProjects={boqsList?.length || 0}
                 totalContacts={contactsList?.length || 0}
+                activeProjects={activeProjectsfilter?.length||0}
             />
 
                   

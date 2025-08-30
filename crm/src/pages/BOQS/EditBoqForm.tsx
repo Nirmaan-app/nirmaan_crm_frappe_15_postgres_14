@@ -1,3 +1,5 @@
+
+
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -14,52 +16,54 @@ import { useEffect, useMemo } from "react";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { BOQmainStatusOptions,BOQsubStatusOptions } from "@/constants/dropdownData";
 import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+import {boqFormSchema} from "@/constants/boqZodValidation"
 
-// --- STEP 1: EXPAND THE SCHEMA ---
-// Matches the Frappe Doctype and the UI Mockup
-const editBoqSchema = z.object({
-  // Fields for 'details' mode
-  boq_name: z.string().optional(),
-  city: z.string().optional(), // 'Location' in UI
-  boq_type: z.string().optional(), // 'Package' in UI
-  boq_status: z.string().optional(), // 'Status' in UI (different from status-only mode)
- boq_size: z.coerce
-    .number({
-        // This message will be shown if the input cannot be converted to a number (e.g., "abc").
-        invalid_type_error: "Please enter a valid number for size.",
-    })
-    .positive({ message: "Size must be a positive number." })
-    // Use .nullable().optional() to correctly handle an empty field
-    .nullable()
-    .optional(),
+// const editBoqSchema = z.object({
+//   // Fields for 'details' mode
+//   boq_name: z.string().optional(),
+//   city: z.string().optional(), // 'Location' in UI
+//   boq_type: z.string().optional(), // 'Package' in UI
+//   boq_status: z.string().optional(), // 'Status' in UI (different from status-only mode)
+//  boq_size: z.coerce
+//     .number({
+//         // This message will be shown if the input cannot be converted to a number (e.g., "abc").
+//         invalid_type_error: "Please enter a valid number for size.",
+//     })
+//     .positive({ message: "Size must be a positive number." })
+//     // Use .nullable().optional() to correctly handle an empty field
+//     .nullable()
+//     .optional(),
 
-  boq_value: z.coerce
-    .number({
-        // A specific, user-friendly message for the value field.
-        invalid_type_error: "Please enter a valid number for value.",
-    })
-    .positive({ message: "Value must be a positive number." })
-    .nullable()
-    .optional(),
-  company: z.string().optional(),
-  contact: z.string().optional(),
-  boq_submission_date: z.string().optional(), // Add this if it's part of the form
+//   boq_value: z.coerce
+//     .number({
+//         // A specific, user-friendly message for the value field.
+//         invalid_type_error: "Please enter a valid number for value.",
+//     })
+//     .positive({ message: "Value must be a positive number." })
+//     .nullable()
+//     .optional(),
+//   company: z.string().optional(),
+//   contact: z.string().optional(),
+//   boq_submission_date: z.string().optional(), // Add this if it's part of the form
   
-  // Add the new sub_status field
-  boq_sub_status: z.string().optional(),
- boq_link:z.string().optional(),
-remarks:z.string().optional(),
-  // Field for 'remark' mode
-  title:z.string().optional(),
-  content:z.string().optional(),
-  remark_content: z.string().optional(),
+//   // Add the new sub_status field
+//   boq_sub_status: z.string().optional(),
+//  boq_link:z.string().optional(),
+// remarks:z.string().optional(),
+//   // Field for 'remark' mode
+//   title:z.string().optional(),
+//   content:z.string().optional(),
+//   remark_content: z.string().optional(),
 
-  //Assigned values 
-  assigned_sales: z.string().optional(),
-    assigned_estimations:z.string().optional()
-});
+//   //Assigned values 
+//   assigned_sales: z.string().optional(),
+//     assigned_estimations:z.string().optional()
+// });
 
-type EditBoqFormValues = z.infer<typeof editBoqSchema>;
+
+
+
+type EditBoqFormValues = z.infer<typeof boqFormSchema>;
 
 interface EditBoqFormProps { onSuccess?: () => void; }
 
@@ -91,11 +95,12 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_name, value: c.name })) || [], [allCompanies]);
 
   const form = useForm<EditBoqFormValues>({
-    resolver: zodResolver(editBoqSchema),
+    resolver: zodResolver(boqFormSchema),
     defaultValues: {},
   });
   
     const watchedBoqStatus = form.watch("boq_status");
+
 
   // --- STEP 2: PRE-FILL ALL FIELDS ---
   useEffect(() => {
@@ -247,7 +252,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
               )}
         {mode === 'details' && (
            <>
-            <FormField name="boq_name" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Name<sup>*</sup></FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="boq_name" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Name<sup>*</sup></FormLabel><FormControl><Input {...field} disabled={boqData}/></FormControl><FormMessage /></FormItem>)} />
             <FormField name="city" control={form.control} render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
             <FormField name="boq_type" control={form.control} render={({ field }) => (<FormItem><FormLabel>Package</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
 
@@ -336,7 +341,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                   )}
                 />
             )}
- <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Date<sup>*</sup></FormLabel><FormControl><Input type="date"  {...field} /></FormControl><FormMessage /></FormItem>)} />
+ <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Deadline<sup>*</sup></FormLabel><FormControl><Input type="date"  {...field} /></FormControl><FormMessage /></FormItem>)} />
 
   <FormField name="boq_link" control={form.control} render={({ field }) => (
  <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />

@@ -1,5 +1,5 @@
 // src/pages/Companies/DynamicCompanyStats.tsx
-
+import { formatItems,boqNameFormatter,taskNameFormatter  } from "@/pages/Home/StatsGrid";
 import { StatCard } from "@/pages/Home/StatsGrid"; // Reuse the StatCard component
 import { FilterControls } from "@/components/ui/FilterControls";
 import { useDialogStore } from "@/store/dialogStore";
@@ -20,39 +20,45 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
         to: format(new Date(), 'yyyy-MM-dd'),
     });
 
-    // --- DATA FETCHING (FILTERED BY COMPANY ID) ---
-    const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
-        fields: ["name", "type", "start_date", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
-        filters: [
+    const companyStatsGridFilterTasks= [
             ['company', '=', companyId], // The crucial filter
             ["start_date", "between", [dateRange.from, dateRange.to]]
-        ],
+        ]
+    const companyStatsGridFilterBOQS=  [
+            ['company', '=', companyId], // The crucial filter
+            ["creation", "between", [dateRange.from, dateRange.to]]
+        ]
+    const companyStatsGridTask=`all-tasks-hsgf${JSON.stringify(companyStatsGridFilterTasks)}`
+    const companyStatsGridBOQ=`all-boqs-hsgf${JSON.stringify(companyStatsGridFilterBOQS)}`
+ 
+
+
+    const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
+        fields: ["name", "type", "start_date", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
+        filters:companyStatsGridFilterTasks ,
         limit: 0
-    },"all-tasks-dynamicstats-company-id");
+    },companyStatsGridTask);
 
     const { data: allBoqs, isLoading: boqsLoading } = useFrappeGetDocList("CRM BOQ", {
         fields: ["name", "boq_name", "boq_status", "company", "creation", "modified"],
-        filters: [
-            ['company', '=', companyId], // The crucial filter
-            ["creation", "between", [dateRange.from, dateRange.to]]
-        ],
+        filters:companyStatsGridFilterBOQS,
         limit: 0
-    },"all-boqs-dynamicstats-company-id");
+    },companyStatsGridBOQ);
 
     // --- STATS CALCULATION (Same logic as StatsGrid) ---
     const statsData = useMemo(() => {
         if (!allTasks || !allBoqs) return null;
 
-        const formatItems = (data: any[], nameFormatter: (item: any) => string, type: 'Task' | 'BOQ'): StatItem[] => {
-            return data.map(item => ({ name: nameFormatter(item), id: item.name, type: type, data: item }));
-        };
+        // const formatItems = (data: any[], nameFormatter: (item: any) => string, type: 'Task' | 'BOQ'): StatItem[] => {
+        //     return data.map(item => ({ name: nameFormatter(item), id: item.name, type: type, data: item }));
+        // };
         
-         const taskNameFormatter = (item) => {
-            const datePart = item.start_date ? ` on ${format(new Date(item.start_date), 'dd-MMM-yyyy')}` : ' (date not set)';
-            return `Meeting with ${item.first_name || ''}${datePart}`;
-        };
+        //  const taskNameFormatter = (item) => {
+        //     const datePart = item.start_date ? ` on ${format(new Date(item.start_date), 'dd-MMM-yyyy')}` : ' (date not set)';
+        //     return `Meeting with ${item.first_name || ''}${datePart}`;
+        // };
         
-        const boqNameFormatter = (item) => `${item.boq_name || item.name}`;
+        // const boqNameFormatter = (item) => `${item.boq_name || item.name}`;
 
         // const pendingTasks = allTasks.filter(t => t.status === "Scheduled");
         const boqReceived = allBoqs.filter(b => b.boq_status === "New");
