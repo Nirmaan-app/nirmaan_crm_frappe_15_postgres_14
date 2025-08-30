@@ -5,14 +5,18 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Edit } from "lucide-react";
 import { formatDate } from "@/utils/FormatDate";
 import { Link } from "react-router-dom";
+import { contactClick,companyClick ,boqClick} from "@/utils/LinkNavigate";
+import { useStatusStyles } from "@/hooks/useStatusStyles";
+
 
 export const ProjectsTab = ({ boqs }) => {
+    const getBoqStatusClass=useStatusStyles("boq")
     return (
         <div className="bg-background rounded-lg border">
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Project Name</TableHead>
+                        <TableHead>BOQ Name</TableHead>
                         <TableHead>Company Name</TableHead>
                         <TableHead>BOQ Link</TableHead>
                         <TableHead>Status</TableHead>
@@ -23,26 +27,27 @@ export const ProjectsTab = ({ boqs }) => {
                     {boqs.length > 0 ? boqs.map(boq => (
                         <TableRow key={boq.name}>
                             <TableCell>
-                                <Link to={`/boqs/boq?id=${boq.name}`} className="text-red-600 underline font-medium">
+                                <Link to={boqClick(boq.name)} className="text-red-600 underline font-medium">
                                     {boq.boq_name || boq.name}
                                 </Link>
                             </TableCell>
                             <TableCell>
-                                <Link to={`/companies/company?id=${boq.company}`} className="text-red-600 underline">
+                                <Link to={companyClick(boq.company)} className="text-red-600 underline">
                                     {boq["company.company_name"] || boq.company}
                                 </Link>
                             </TableCell>
                             <TableCell>
-                                <a href={boq.boq_link} target="_blank" rel="noopener noreferrer" className="text-red-600 underline">
-                                    {boq.boq_link ? 'View BOQ' : 'N/A'}
+                                {boq.boq_link?(
+<a href={boq.boq_link} target="_blank" rel="noopener noreferrer" className="text-red-600 underline">
+                                    {boq.boq_link && 'View BOQ'}
                                 </a>
+                                ):"N/A"}
+                                
                             </TableCell>
                             <TableCell>
-                                <Button variant="outline" size="sm" className="border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700">
-                                    <Edit className="w-3 h-3 mr-2" />
-                                    {/* Mocked as per UI */}
-                                    Project Live
-                                </Button>
+                               <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
+                                        {boq.boq_status}
+                                    </span>
                             </TableCell>
                             <TableCell>{formatDate(boq.creation)}</TableCell>
                         </TableRow>

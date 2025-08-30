@@ -438,9 +438,9 @@ export const BOQ = () => {
         filters: { ref_doctype: "CRM BOQ", docname: id },
         fields: ["name", "owner", "creation", "data"],
         orderBy: { field: "creation", order: "desc" },
-        limit: 20,
-        enabled: role !== 'Nirmaan Sales User Profile' //
-    },`all-boqs-filterbyBoq-id${id}`);
+        limit: 0,
+        // enabled: role != 'Nirmaan Sales User Profile' //
+    },role != 'Nirmaan Sales User Profile'?`all-boqs-filterbyBoq-id${id}`:null);
 
     if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
         return <div>Loading BOQ Details...</div>;

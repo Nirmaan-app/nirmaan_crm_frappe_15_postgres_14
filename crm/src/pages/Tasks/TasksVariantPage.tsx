@@ -9,6 +9,10 @@ import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { formatDate } from "@/utils/FormatDate";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, Search } from "lucide-react";
+
+import { TaskListHeader } from "./TaskListHeader"; // 1. IMPORT THE NEW HEADER
+import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon'; // Import the status icon
+
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
@@ -29,7 +33,7 @@ interface TasksVariantPageProps {
     to: string;
 }
 
-const StatusPill = ({ status }: { status: string }) => {
+export const StatusPill = ({ status }: { status: string }) => {
     const getStatusClass = useStatusStyles("task");
     return (
         <span className={`text-xs font-semibold px-2 py-1 rounded-full border w-fit ${getStatusClass(status)}`}>
@@ -73,11 +77,14 @@ const AssignedUsersDisplay = ({ assignedUsersString }: { assignedUsersString: st
 
 export const TasksVariantPage = ({ variant, from: fromProp, to: toProp }: TasksVariantPageProps) => {
     const navigate = useNavigate();
+    
+    const { isMobile } = useViewport();
+
     const [searchQuery, setSearchQuery] = useState("");
-     const { isMobile } = useViewport();
+    const [filterType, setFilterType] = useState("By Contact"); // Default filter type
     
  // This hook will read `from` and `to` from the URL query string.
-       const [params] = useStatesSyncedWithParams([
+       const [params, setParams] = useStatesSyncedWithParams([
         { key: 'from', defaultValue: format(subDays(new Date(), 30), 'yyyy-MM-dd') },
         { key: 'to', defaultValue: format(new Date(), 'yyyy-MM-dd') },
         { key: 'assigned_to', defaultValue: '' },
@@ -98,6 +105,11 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
     //     return [['status', statusFilter[0], statusFilter[1]], ['start_date', 'between', [finalFrom, finalTo]]];
     // }, [variant, finalFrom, finalTo]);
     // 2. UPDATE THE FILTERS useMemo hook to include the assignment filter.
+
+    const handleDateRangeChange = (range: { from: string, to: string }) => {
+        setParams({ from: range.from, to: range.to });
+    };
+
     const filters = useMemo(() => {
         const today = new Date().toISOString().slice(0, 10);
         let statusFilter;
@@ -147,12 +159,18 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
         const lowercasedQuery = searchQuery.toLowerCase().trim();
         if (!lowercasedQuery) return enriched;
 
-        return enriched.filter(task => 
-            task.contact_name.toLowerCase().includes(lowercasedQuery) ||
-            task.company_name.toLowerCase().includes(lowercasedQuery) ||
-            task.type.toLowerCase().includes(lowercasedQuery)
-        );
-    }, [tasksData, searchQuery]);
+        // This switch statement makes the search targeted
+        switch (filterType) {
+            case "By Contact":
+                return enriched.filter(task => task.contact_name.toLowerCase().includes(lowercasedQuery));
+            case "By Company":
+                return enriched.filter(task => task.company_name.toLowerCase().includes(lowercasedQuery));
+            case "By Type":
+                return enriched.filter(task => task.type.toLowerCase().includes(lowercasedQuery));
+            default:
+                return enriched;
+        }
+    }, [tasksData, searchQuery, filterType]); // Add filterType as a dependency
     
     const title = `${variant.charAt(0).toUpperCase() + variant.slice(1)} Tasks - ${filteredTasks.length}`;
 
@@ -170,33 +188,59 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
                 <AssignedUsersDisplay assignedUsersString={assignedToFilter} />
             </div>
             
-            <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search Contact, Company or Type..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-            </div>
+            <TaskListHeader 
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                filterType={filterType}
+                setFilterType={setFilterType}
+                onDateRangeChange={handleDateRangeChange}
+                dateRange={{ from: finalFrom, to: finalTo }}
+            />
             
+            {/* 5. RESPONSIVE TABLE DESIGN */}
             <Card className="mt-4 p-0">
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Contact</TableHead>
-                                <TableHead>Company</TableHead>
-                                <TableHead>Task Type</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Update Date</TableHead>
-                                <TableHead className="w-[5%]"></TableHead>
+                                {/* This column is visible on all screen sizes */}
+                                <TableHead>Task Details</TableHead>
+                                
+                                {/* These columns will ONLY appear on desktop (md screens and up) */}
+                                <TableHead className="hidden md:table-cell">Company</TableHead>
+                                <TableHead className="hidden md:table-cell">Status</TableHead>
+                                 <TableHead className="hidden md:table-cell text-right">Task Date</TableHead>
+                                <TableHead className="hidden md:table-cell text-right">Last Updated</TableHead>
+                                
+                                {/* Chevron column */}
+                                <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {filteredTasks.length > 0 ? (
                                 filteredTasks.map((task) => (
                                     <TableRow key={task.name} onClick={() => isMobile?navigate(`/tasks/task?id=${task.name}`):navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
-                                        <TableCell className="font-medium">{task.contact_name}</TableCell>
-                                        <TableCell>{task.company_name}</TableCell>
-                                        <TableCell>{task.type}</TableCell>
-                                        <TableCell><StatusPill status={task.status} /></TableCell>
-                                        <TableCell className="text-right">{formatDate(task.modified)}</TableCell>
+                                        
+                                        {/* --- MOBILE & DESKTOP: Combined Cell --- */}
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{`${task.type} with ${task.contact_name}`}</span>
+                                                    {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                    <span className="text-xs text-muted-foreground md:hidden">
+                                                        Updated: {formatDate(task.modified)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+
+                                        {/* --- DESKTOP ONLY Cells --- */}
+                                        <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
+                                        <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
+                                         <TableCell className="hidden md:table-cell text-right">{formatDate(task.start_date)}</TableCell>
+                                        <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
+
                                         <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
                                     </TableRow>
                                 ))

@@ -47,11 +47,13 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
                     <p className="text-sm text-muted-foreground">{boq.company || 'N/A'}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
                         {boq.boq_status || 'N/A'}
                     </span>
-                    <Button variant="outline" size="sm" className="h-8 border-destructive text-destructive" onClick={(e) => { e.stopPropagation(); openNewTaskDialog({ boqId: boq.name, companyId: boq.company, contactId: boq.contact }); }}>
-                        <Plus className="w-4 h-4 mr-1" /> Add Task
+                    <Button variant="outline" size="sm" className="h-8 w-8 rounded-full border-destructive text-destructive" onClick={(e) => { e.stopPropagation(); openNewTaskDialog({ boqId: boq.name, companyId: boq.company, contactId: boq.contact }); }}>
+                        <Plus className="w-4 h-4 mr-0" /> 
+                        {/* Add Task */}
+
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); openEditBoqDialog({ boqData: boq, mode: 'details' }); }}>
                         <SquarePen className="w-5 h-5" />
@@ -119,14 +121,16 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     };
 
     return (
-        <div className="flex flex-col h-full">
+        <div>
             <BoqListHeader {...headerProps} />
+            
             {role !== 'Nirmaan Sales User Profile' && (
                 <div className="mt-4">
                     <AssignmentFilterControls onFilterChange={setAssignmentFilters} filterType="boq" />
                 </div>
             )}
-            <div className="flex-1 overflow-y-auto mt-4">
+
+            <div>
                 {isMobile ? (
                     // MOBILE LIST RENDER
                     <div className="flex flex-col">

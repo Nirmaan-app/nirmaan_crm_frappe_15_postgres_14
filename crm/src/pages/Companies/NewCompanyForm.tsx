@@ -137,6 +137,7 @@ const onSubmit = async (values: CompanyFormValues) => {
           });
           return; // Stop the submission
       }
+      //  const website: values?.company_website && (!values.company_website.startsWith("https://") ? `https://${values.company_website}` : values.company_website)
 
       if (isEditMode) {
         // --- UPDATE LOGIC ---
@@ -238,8 +239,8 @@ const onSubmit = async (values: CompanyFormValues) => {
                     placeholder="Select Type"
                     isOptionDisabled={(option) => option.value === field.value}
                     // Props for the "Add New" button
-                    onAddItemClick={toggleCompanyTypeDialog}
-                    addButtonLabel="Add New Company Type"
+                    // onAddItemClick={toggleCompanyTypeDialog}
+                    // addButtonLabel="Add New Company Type"
                   />
                 </FormControl>
                 <FormMessage />

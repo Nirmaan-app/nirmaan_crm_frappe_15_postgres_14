@@ -293,11 +293,10 @@ const dataToSave={
             <FormItem>
               <FormLabel>Company*</FormLabel>
               <FormControl>
-                {companyIdFromContext ? (
+                {/* {companyIdFromContext ? (
                   // If context exists, show a disabled input with the company name.
                   <Input value={companyIdFromContext || 'Loading...'} disabled />
-                ) : (
-                  // If no context, show a searchable, enabled dropdown.
+                ) : ( */}
                   <ReactSelect
                     options={companyOptions}
                     value={companyOptions.find(c => c.value === field.value)}
@@ -307,7 +306,7 @@ const dataToSave={
                     menuPosition="auto"
                     isOptionDisabled={(option) => option.value === field.value}
                   />
-                )}
+                {/* )} */}
               </FormControl>
               <FormMessage />
             </FormItem>
