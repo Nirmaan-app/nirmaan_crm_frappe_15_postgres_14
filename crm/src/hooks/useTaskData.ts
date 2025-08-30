@@ -152,14 +152,14 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
     
     // 2. DYNAMIC KEY: Create a dynamic SWR key. This is CRITICAL.
     // It ensures that if the filters change, the hook will re-fetch the data.
-    const swrKey = `all-tasks-${JSON.stringify(assignmentFilters)}`;
+    const swrKey = `all-tasks-fff${JSON.stringify(assignmentFilters)}`;
 
     const { data: tasks, isLoading, error } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
         fields: [
             "name", "type", "start_date", "time", "status", "contact", "company",
             "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales"
         ],
-        filters: assignmentFilters, // Use the combined filters
+        // filters: assignmentFilters, // Use the combined filters
         orderBy: { field: "start_date DESC, time", order: "ASC" },
         limit: 0,
       
@@ -180,9 +180,9 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
         }));
         
         return {
-            todayTasks: enriched.filter(t => t.start_date === today),
-            tomorrowTasks: enriched.filter(t => t.start_date === tomorrow),
-            createdTodayTasks: enriched.filter(t => t.creation === today),
+            todayTasks: enriched.filter(t => t.start_date.slice(0, 10) === today),
+            tomorrowTasks: enriched.filter(t => t.start_date.slice(0, 10) === tomorrow),
+            createdTodayTasks: enriched.filter(t => t.creation.slice(0, 10) === today),
         };
     }, [tasks]);
 
