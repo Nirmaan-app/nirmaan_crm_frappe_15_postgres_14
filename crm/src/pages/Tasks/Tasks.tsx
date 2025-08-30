@@ -19,7 +19,7 @@
 // export const Tasks = () => {
 //     const { isMobile } = useViewport();
 //     const { openNewTaskDialog } = useDialogStore();
-    
+
 //     // URL params for filtering, but we need local state for the desktop's rich selection object
 //     const [params, setParams] = useStatesSyncedWithParams([
 //         { key: 'id', defaultValue: '' },
@@ -30,7 +30,7 @@
 //     const { id, from, to } = params;
 
 //     // 3. LOCAL STATE for the rich desktop selection object
-    
+
 //     const [desktopSelection, setDesktopSelection] = useState(null);
 
 //     const handleDesktopSelect = (selection) => {
@@ -54,7 +54,7 @@
 //         if (!id) {
 //             return <DesktopPlaceholder />;
 //         }
-        
+
 //         // Priority 1: Check if there's a rich selection object in our local state
 //         // This will be true when "Today", "Tomorrow", etc. is clicked.
 //         if (desktopSelection && desktopSelection.id === id) {
@@ -71,7 +71,7 @@
 //         if (['all', 'pending', 'completed'].includes(id.toLowerCase())) {
 //             return <TasksVariantPage variant={id.toLowerCase()} from={from} to={to} />;
 //         }
-       
+
 //         // Priority 3: If it's not a category, assume it's a specific task ID
 //         // (This part of your logic might need a component that fetches a single task by ID)
 //         return <Task />; 
@@ -134,13 +134,13 @@
 //         if (!id) {
 //             return <DesktopPlaceholder />;
 //         }
-        
+
 //         const lowercasedId = id.toLowerCase();
 //         if (['all', 'pending', 'upcoming'].includes(lowercasedId)) {
 //             const variant = lowercasedId as 'all' | 'pending' | 'upcoming';
 //             return <TasksVariantPage variant={variant} from={from} to={to} />;
 //         }
-        
+
 //         // If the ID is not a category, it must be a specific task ID.
 //         // The <Task /> component already uses `useStateSyncedWithParams` internally to read the ID.
 //         return <Task />;
@@ -186,15 +186,15 @@
 import { useViewport } from "@/hooks/useViewPort";
 import { TaskList } from "./TaskList";
 import { Task } from "./Task";
-import { format, subDays,addDays } from "date-fns";
+import { format, subDays, addDays } from "date-fns";
 import { useStatesSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useDialogStore } from "@/store/dialogStore";
 import { Plus } from "lucide-react";
 import { FloatingActionButton } from "@/components/ui/FloatingActionButton";
-import {TasksVariantPage} from "./TasksVariantPage"
+import { TasksVariantPage } from "./TasksVariantPage"
 import { useTaskData } from "@/hooks/useTaskData";
-import { useMemo, useState,useEffect } from "react";
-import {TaskDestopThree} from "./TaskDestopThree"
+import { useMemo, useState, useEffect } from "react";
+import { TaskDestopThree } from "./TaskDestopThree"
 
 
 
@@ -206,17 +206,17 @@ const DesktopPlaceholder = () => (
 
 export const Tasks = () => {
     const { isMobile } = useViewport();
-   const [params, setParams] = useStatesSyncedWithParams([
-           { key: 'id', defaultValue: '' }, // Default to no selection
-           { key: 'from', defaultValue: format(subDays(new Date(), 30), 'yyyy-MM-dd') },
-           { key: 'to', defaultValue: format(new Date(), 'yyyy-MM-dd') },
-       ]);
-       const { id, from, to } = params;
-       console.log("params",params)
+    const [params, setParams] = useStatesSyncedWithParams([
+        { key: 'id', defaultValue: '' }, // Default to no selection
+        { key: 'from', defaultValue: format(subDays(new Date(), 30), 'yyyy-MM-dd') },
+        { key: 'to', defaultValue: format(new Date(), 'yyyy-MM-dd') },
+    ]);
+    const { id, from, to } = params;
+    console.log("params", params)
     const { openNewTaskDialog } = useDialogStore();
 
-  const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks } = useTaskData();
-     // --- THE FIX IS HERE ---
+    const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks } = useTaskData();
+    // --- THE FIX IS HERE ---
     // 2. Create a memoized map that links the ID to its title and data.
     const dailyTaskDetails = useMemo(() => ({
         todays: {
@@ -237,25 +237,25 @@ export const Tasks = () => {
     if (isMobile) {
         const fabOptions = [{ label: 'Add New Task', action: openNewTaskDialog }];
 
-        
+
         return (
             <div className="space-y-4">
-                 {/* <h1 className="text-2xl font-bold text-center">Taskss</h1> */}
-                 <TaskList onTaskSelect={setParams}/>
-              
-                 <FloatingActionButton options={fabOptions} />
+                {/* <h1 className="text-2xl font-bold text-center">Taskss</h1> */}
+                <TaskList onTaskSelect={setParams} />
+
+                <FloatingActionButton options={fabOptions} />
             </div>
         );
     }
-const renderDetailPanel = () => {
+    const renderDetailPanel = () => {
         if (!id) {
             return <DesktopPlaceholder />;
         }
-        
+
         // Check for category-based IDs first
         const lowercasedId = id.toLowerCase();
 
-          // 3. Look up the details for the current ID in our map.
+        // 3. Look up the details for the current ID in our map.
         const detailInfo = dailyTaskDetails[lowercasedId];
 
         // If a match is found, render the component with the correct title and tasks.
@@ -264,14 +264,14 @@ const renderDetailPanel = () => {
         }
 
 
-        if (lowercasedId === 'all' || lowercasedId === 'pending' || lowercasedId === 'upcoming') {
+        if (lowercasedId === 'all' || lowercasedId === 'pending' || lowercasedId === 'completed') {
             // Note: The mobile view navigates to '/tasks/upcoming' but the category is 'Scheduled'.
             // We handle this by using a consistent 'variant' prop.
-            const variant = lowercasedId === 'upcoming' ? 'upcoming' : lowercasedId;
-            return <TasksVariantPage variant={variant}  from={from} to ={to}/>;
+            const variant = lowercasedId === 'completed' ? 'completed' : lowercasedId;
+            return <TasksVariantPage variant={variant} from={from} to={to} />;
         }
-       
-        
+
+
         // If it's not a category, assume it's a specific task ID
         return <Task />;
     };
@@ -296,7 +296,7 @@ const renderDetailPanel = () => {
 
             {/* Detail Panel (Right) */}
             <div className="overflow-y-auto -mr-4 pr-4">
-               {renderDetailPanel()}
+                {renderDetailPanel()}
             </div>
         </div>
     );
