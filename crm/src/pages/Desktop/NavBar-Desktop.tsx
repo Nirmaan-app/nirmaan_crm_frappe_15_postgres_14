@@ -17,10 +17,10 @@ export const NavBarDesktop = () => {
               Nirmaan CRM
             </Link>
           </h2>
-          <Input
+          {/* <Input
             className="w-[50%]"
             placeholder="Search Something..."
-          />
+          /> */}
         </div>
         <div className="pr-10 flex items-center gap-4">
           <UserNav /> {/* <-- REPLACE THE DIV */}

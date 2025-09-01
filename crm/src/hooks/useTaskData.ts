@@ -142,17 +142,17 @@ type AssignmentFilter = ['assigned_sales', 'in' | 'is', any];
 export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskDataReturn => {
     // 1. DYNAMIC FILTERS: Combine the assignment filters with a base filter
     // This ensures we only fetch tasks that are not completed, making the query more efficient.
-    const allFilters = useMemo(() => {
-        const baseFilters = [['status', '!=', 'Completed']];
-        if (assignmentFilters && assignmentFilters.length > 0) {
-            return [...baseFilters, ...assignmentFilters];
-        }
-        return baseFilters;
-    }, [assignmentFilters]);
+    // const allFilters = useMemo(() => {
+    //     const baseFilters = [['status', '!=', 'Completed']];
+    //     if (assignmentFilters && assignmentFilters.length > 0) {
+    //         return [...baseFilters, ...assignmentFilters];
+    //     }
+    //     return baseFilters;
+    // }, [assignmentFilters]);
     
     // 2. DYNAMIC KEY: Create a dynamic SWR key. This is CRITICAL.
     // It ensures that if the filters change, the hook will re-fetch the data.
-    const swrKey = `all-tasks-fff${JSON.stringify(assignmentFilters)}`;
+    const swrKey = `all-tasks-todays${JSON.stringify(assignmentFilters)}`;
 
     const { data: tasks, isLoading, error } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
         fields: [

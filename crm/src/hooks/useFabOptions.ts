@@ -45,7 +45,13 @@ export const useFabOptions = () => {
                 { label: "Add New Task", action: () => openNewTaskDialog({ contactId: id }) },
                 { label: "Add New BOQ", action: () => openNewBoqDialog({ contactId: id }) }
             ];
-        } else if (pathname.startsWith('/boqs/boq') && id) {
+        }else if (pathname.startsWith('/contacts') && id) {
+            newOptions = [
+                { label: "Add New Task", action: () => openNewTaskDialog({ contactId: id }) },
+                { label: "Add New BOQ", action: () => openNewBoqDialog({ contactId: id }) }
+            ];
+        }
+         else if (pathname.startsWith('/boqs/boq') && id) {
             newOptions = [
                 { label: "Add Follow-up Task", action: () => openNewTaskDialog({ boqId: id }) }
             ];
