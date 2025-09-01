@@ -13,22 +13,22 @@ jobs:
     - name: Check out my other private repo
       uses: actions/checkout@v4
       with:
-        repository: Nirmaan-app/frappe_docker
+        repository: frappe/frappe_docker
         # token: ${{ secrets.GH_PAT }}
         
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
-    - name: Authenticate GitHub CLI
-      run: echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
+    #- name: Authenticate GitHub CLI
+    #  run: echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
 
-    - name: Fetch Latest Tag from Stack Repository
-      id: fetch-latest-tag
-      run: |
-        LATEST_TAG=$(gh api repos/Nirmaan-app/nirmaan_stack_frappe15_postgres_14/releases/latest --jq '.tag_name')
-        echo "LATEST_STACK_TAG=${LATEST_TAG}" >> $GITHUB_ENV
-      env:
-        GH_TOKEN: ${{ secrets.GH_PAT }}
+    #- name: Fetch Latest Tag from Stack Repository
+    #  id: fetch-latest-tag
+    #  run: |
+    #    LATEST_TAG=$(gh api repos/Nirmaan-app/nirmaan_stack_frappe15_postgres_14/releases/latest --jq '.tag_name')
+    #    echo "LATEST_STACK_TAG=${LATEST_TAG}" >> $GITHUB_ENV
+    #  env:
+    #    GH_TOKEN: ${{ secrets.GH_PAT }}
 
     - name: Create Apps.json
       run: |
@@ -38,20 +38,11 @@ jobs:
             "branch": "main"
           },
           {
-            "url": "https://${{ secrets.GH_PAT }}@github.com/Nirmaan-app/nirmaan_crm_frappe_15_postgres_14.git",
+            "url": "https://github.com/Nirmaan-app/nirmaan_crm_frappe_15_postgres_14.git",
             "branch": "${{ env.RELEASE_VERSION }}"
-          },
-          # {
-          #   "url": "https://github.com/Nirmaan-app/nirmaan_stack_frappe15_postgres_14.git",
-          #   "branch": "${{ env.LATEST_STACK_TAG }}" 
-          # },
-          {
-            "url": "https://github.com/Nirmaan-app/Frappe-attachments-s3.git",
-            "branch": "master"
           }
         ]'
-        echo "APPS_JSON_BASE64=$(echo ${APPS_JSON} | base64 -w 0)" >> $GITHUB_ENV
-        echo "FCM SECRET: ${{ secrets.FCM_ACCESS }}"
+        echo "APPS_JSON_BASE64=$(echo ${APPS_JSON} | base64 -w 0)" >> $GITHUB_ENV"
         
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
@@ -73,12 +64,8 @@ jobs:
         file: images/custom/Containerfile
         platforms: linux/amd64
         push: true
-        tags: asia-south1-docker.pkg.dev/nirmaan-stack/nirmaan-project-stack/nirmaan-project-stack:${{ env.RELEASE_VERSION }}
-        secrets: |
-          "FCM_ACCESS=${{ secrets.FCM_ACCESS }}"
+        tags: asia-south1-docker.pkg.dev/nirmaan-stack/nirmaan-crm/nirmaan-crm:${{ env.RELEASE_VERSION }}
         build-args: |
           FRAPPE_PATH=https://github.com/frappe/frappe
           FRAPPE_BRANCH=version-15
-          PYTHON_VERSION=3.11.6
-          NODE_VERSION=18.20.5
           APPS_JSON_BASE64=${{ env.APPS_JSON_BASE64 }}
