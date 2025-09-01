@@ -1,14 +1,28 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nirmaan CRM</title>
-  </head>
-  <body>
-    <div id="root"></div>
-		<script>window.csrf_token = '{{ frappe.session.csrf_token }}';</script>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nirmaan CRM</title>
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="Nirmaan CRM" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="msapplication-TileColor" content="#000000">
+  <meta name="theme-color" content="#191919">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>window.csrf_token = '{{ frappe.session.csrf_token }}';</script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
