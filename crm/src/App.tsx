@@ -1,5 +1,5 @@
 import { FrappeProvider } from "frappe-react-sdk";
-import { FC } from "react";
+import { FC ,useEffect} from "react";
 import {
   RouterProvider,
   createBrowserRouter
