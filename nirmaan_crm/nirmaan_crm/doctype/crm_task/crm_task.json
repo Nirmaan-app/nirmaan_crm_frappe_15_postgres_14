@@ -1,110 +1,160 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2025-01-07 21:14:56.700977",
- "doctype": "DocType",
- "engine": "InnoDB",
- "field_order": [
-  "links_section",
-  "reference_doctype",
-  "reference_docname",
-  "task_details_section",
-  "title",
-  "type",
-  "priority",
-  "start_date",
-  "assigned_to",
-  "status",
-  "due_date",
-  "description"
- ],
- "fields": [
-  {
-   "fieldname": "links_section",
-   "fieldtype": "Section Break",
-   "label": "Links"
-  },
-  {
-   "fieldname": "reference_doctype",
-   "fieldtype": "Link",
-   "label": "Reference Doctype",
-   "options": "DocType"
-  },
-  {
-   "fieldname": "reference_docname",
-   "fieldtype": "Dynamic Link",
-   "label": "Reference Docname",
-   "options": "reference_doctype"
-  },
-  {
-   "fieldname": "task_details_section",
-   "fieldtype": "Section Break",
-   "label": "Task Details"
-  },
-  {
-   "fieldname": "title",
-   "fieldtype": "Data",
-   "label": "Title"
-  },
-  {
-   "fieldname": "priority",
-   "fieldtype": "Data",
-   "label": "Priority"
-  },
-  {
-   "fieldname": "start_date",
-   "fieldtype": "Data",
-   "label": "Start Date"
-  },
-  {
-   "fieldname": "assigned_to",
-   "fieldtype": "Link",
-   "label": "Assigned To",
-   "options": "Nirmaan Users"
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Data",
-   "label": "Status"
-  },
-  {
-   "fieldname": "due_date",
-   "fieldtype": "Data",
-   "label": "Due Date"
-  },
-  {
-   "fieldname": "description",
-   "fieldtype": "Data",
-   "label": "Description"
-  },
-  {
-   "fieldname": "type",
-   "fieldtype": "Data",
-   "label": "Type"
-  }
- ],
- "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-01-09 19:33:50.651652",
- "modified_by": "Administrator",
- "module": "Nirmaan CRM",
- "name": "CRM Task",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  }
- ],
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+  "actions": [],
+  "allow_rename": 1,
+  "creation": "2025-01-07 21:14:56.700977",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "links_section",
+    "company",
+    "contact",
+    "boq",
+    "task_details_section",
+    "remarks_column",
+    "title",
+    "type",
+    "start_date",
+    "assigned_sales",
+    "status",
+    "reason",
+    "time",
+    "remarks"
+  ],
+  "fields": [
+    {
+      "fieldname": "links_section",
+      "fieldtype": "Section Break",
+      "label": "Links"
+    },
+    {
+      "fieldname": "task_details_section",
+      "fieldtype": "Section Break",
+      "label": "Task Details"
+    },
+    {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "label": "Title"
+    },
+    {
+      "fieldname": "start_date",
+      "fieldtype": "Date",
+      "label": "Date"
+    },
+    {
+      "default": "Scheduled",
+      "fieldname": "status",
+      "fieldtype": "Data",
+      "label": "Status"
+    },
+    {
+      "fieldname": "type",
+      "fieldtype": "Data",
+      "label": "Type"
+    },
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "CRM Company"
+    },
+    {
+      "fieldname": "contact",
+      "fieldtype": "Link",
+      "label": "Contact",
+      "options": "CRM Contacts"
+    },
+    {
+      "fieldname": "boq",
+      "fieldtype": "Link",
+      "label": "BOQ",
+      "options": "CRM BOQ"
+    },
+    {
+      "fieldname": "remarks_column",
+      "fieldtype": "Column Break",
+      "label": "Remarks"
+    },
+    {
+      "fieldname": "time",
+      "fieldtype": "Time",
+      "label": "Time"
+    },
+    {
+      "fieldname": "remarks",
+      "fieldtype": "Text",
+      "label": "Remarks"
+    },
+    {
+      "fieldname": "reason",
+      "fieldtype": "Data",
+      "label": "Reason"
+    },
+    {
+      "fieldname": "assigned_sales",
+      "fieldtype": "Data",
+      "label": "Assigned Sales"
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2025-08-25 19:44:41.453224",
+  "modified_by": "Administrator",
+  "module": "Nirmaan CRM",
+  "name": "CRM Task",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Nirmaan Sales User",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Nirmaan Estimations User",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Nirmaan Admin User",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "row_format": "Dynamic",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
 }

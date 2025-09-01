@@ -1,5 +1,5 @@
 
-export interface CRMCompany{
+export interface CRMCompany {
 	name: string
 	creation: string
 	modified: string
@@ -24,8 +24,10 @@ export interface CRMCompany{
 	no_of_employees?: string
 	/**	Annual Revenue : Data	*/
 	annual_revenue?: string
-	/**	Industry : Link - CRM Industry	*/
+	/**	Industry : Link - CRM Company Type	*/
 	industry?: string
 	/**	Territory : Link - CRM Territory	*/
 	territory?: string
+	/**	Company Location : Data	*/
+	company_location?: string
 }

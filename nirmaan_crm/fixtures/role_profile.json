@@ -1,0 +1,71 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-08-25 11:12:21.678659",
+  "name": "Nirmaan Estimations User Profile",
+  "role_profile": "Nirmaan Estimations User Profile",
+  "roles": [
+   {
+    "parent": "Nirmaan Estimations User Profile",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Nirmaan Estimations User"
+   },
+   {
+    "parent": "Nirmaan Estimations User Profile",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "System Manager"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-08-25 11:12:49.881225",
+  "name": "Nirmaan Admin User Profile",
+  "role_profile": "Nirmaan Admin User Profile",
+  "roles": [
+   {
+    "parent": "Nirmaan Admin User Profile",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Nirmaan Admin User"
+   },
+   {
+    "parent": "Nirmaan Admin User Profile",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Nirmaan Admin User Profile",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Nirmaan Estimations User"
+   },
+   {
+    "parent": "Nirmaan Admin User Profile",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Nirmaan Sales User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-08-25 14:58:34.779809",
+  "name": "Nirmaan Sales User Profile",
+  "role_profile": "Nirmaan Sales User Profile",
+  "roles": [
+   {
+    "parent": "Nirmaan Sales User Profile",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Nirmaan Sales User"
+   }
+  ]
+ }
+]

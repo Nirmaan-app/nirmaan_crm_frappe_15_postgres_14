@@ -106,6 +106,12 @@ app_license = "mit"
 # 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
 #
+permission_query_conditions = {
+    # "CRM Company": "nirmaan_crm.nirmaan_crm.permissions.get_company_permission_query_conditions",
+    # "CRM Contacts": "nirmaan_crm.nirmaan_crm.permissions.get_contact_permission_query_conditions",
+    "CRM Task": "nirmaan_crm.nirmaan_crm.permissions.get_task_permission_query_conditions",
+    "CRM BOQ": "nirmaan_crm.nirmaan_crm.permissions.get_boq_permission_query_conditions",
+}
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
@@ -129,6 +135,29 @@ app_license = "mit"
 # 		"on_trash": "method"
 # 	}
 # }
+
+doc_events={
+  "User": {
+        "after_insert": "nirmaan_crm.nirmaan_crm.doctype.crm_users.crm_users.create_user_profile",
+		"on_update": "nirmaan_crm.nirmaan_crm.doctype.crm_users.crm_users.on_user_update",
+  },
+  "CRM Users": {
+        "on_trash": [
+            "nirmaan_crm.integrations.controllers.crm_users.on_trash",
+            # "nirmaan_crm.integrations.controllers.delete_doc_versions.generate_versions",
+        ],
+    },
+    "User Permission": {
+        "after_insert": [
+            "nirmaan_crm.integrations.controllers.user_permission.after_insert",
+            # "nirmaan_crm.integrations.controllers.user_permission.add_crm_user_permissions"
+        ],
+        # "on_trash": "nirmaan_crm.integrations.controllers.user_permission.on_trash"
+    },
+    "CRM Task": {
+		"on_update": "nirmaan_crm.integrations.controllers.last_meeting_on.on_meeting_update",
+  }
+}
 
 # Scheduled Tasks
 # ---------------
@@ -226,6 +255,11 @@ app_license = "mit"
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+fixtures = [
+    {"dt": "Role", "filters": [["role_name", "like", "Nirmaan %"]]},
+    {"dt": "Role Profile", "filters": [["role_profile", "like", "Nirmaan %"]]},
+]
 
 
 website_route_rules = [{'from_route': '/crm/<path:app_path>', 'to_route': 'crm'},]

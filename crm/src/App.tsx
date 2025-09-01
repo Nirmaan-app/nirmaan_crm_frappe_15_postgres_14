@@ -1,38 +1,52 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
-import { FrappeProvider } from 'frappe-react-sdk'
-function App() {
-  const [count, setCount] = useState(0)
+import { FrappeProvider } from "frappe-react-sdk";
+import { FC } from "react";
+import {
+  RouterProvider,
+  createBrowserRouter
+} from "react-router-dom";
+import { RenderRoutes } from "./components/helpers/RenderRoutes";
+import { ThemeProvider } from "./components/ui/ThemeProvider";
+import { ApplicationProvider } from "./contexts/ApplicationContext";
+import { AuthProvider } from "./auth/AuthProvider";
+import { RealTimeProvider } from "./auth/RealTimeProvider";
 
+const router = createBrowserRouter([
+  {
+    path: "/*",
+    element: <RenderRoutes />,
+  },
+]);
+
+const App: FC = () => {
+
+  const getSiteName = () => {
+    return window.frappe?.boot?.sitename !== undefined
+      ? window.frappe?.boot?.sitename
+      : import.meta.env.VITE_SITE_NAME;
+  };
+
+console.log("window.frappe?.boot?.sitename",window.frappe?.boot?.sitename,import.meta.env.VITE_SITE_NAM)
   return (
-	<div className="App">
-	  <FrappeProvider>
-		<div>
-	  <div>
-		<a href="https://vitejs.dev" target="_blank">
-		  <img src="/vite.svg" className="logo" alt="Vite logo" />
-		</a>
-		<a href="https://reactjs.org" target="_blank">
-		  <img src={reactLogo} className="logo react" alt="React logo" />
-		</a>
-	  </div>
-	  <h1>Vite + React + Frappe</h1>
-	  <div className="card">
-		<button onClick={() => setCount((count) => count + 1)}>
-		  count is {count}
-		</button>
-		<p>
-		  Edit <code>src/App.jsx</code> and save to test HMR
-		</p>
-	  </div>
-	  <p className="read-the-docs">
-		Click on the Vite and React logos to learn more
-	  </p>
-	  </div>
-	  </FrappeProvider>
-	</div>
-  )
-}
+    <FrappeProvider
+      url={import.meta.env.VITE_FRAPPE_PATH ?? ""}
+      socketPort={
+        import.meta.env.VITE_SOCKET_PORT
+          ? import.meta.env.VITE_SOCKET_PORT
+          : undefined
+      }
+      siteName={getSiteName()}
+    >
+      <AuthProvider>
+        <RealTimeProvider>
+        <ApplicationProvider>
+          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+            <RouterProvider router={router} />
+          </ThemeProvider>
+        </ApplicationProvider>
+        </RealTimeProvider>
+      </AuthProvider>
+    </FrappeProvider>
+  );
+};
 
-export default App
+export default App;

@@ -5,3 +5,8 @@
 tags
 node_modules
 __pycache__
+
+nirmaan_crm/public/crm
+nirmaan_crm/public/node_modules
+nirmaan_crm/www/crm.html
+build

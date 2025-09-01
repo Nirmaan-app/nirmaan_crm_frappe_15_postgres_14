@@ -1,0 +1,29 @@
+
+export interface CRMUsers{
+	name: string
+	creation: string
+	modified: string
+	owner: string
+	modified_by: string
+	docstatus: 0 | 1 | 2
+	parent?: string
+	parentfield?: string
+	parenttype?: string
+	idx?: number
+	/**	First Name : Data	*/
+	first_name: string
+	/**	Last name : Data	*/
+	last_name?: string
+	/**	Full name : Data	*/
+	full_name?: string
+	/**	Has Company : Data	*/
+	has_company?: string
+	/**	Mobile : Data	*/
+	mobile_no?: string
+	/**	Email : Data	*/
+	email: string
+	/**	Nirmaan Role Name : Data	*/
+	nirmaan_role_name?: string
+	/**	FCM Token : Long Text	*/
+	fcm_token?: string
+}
