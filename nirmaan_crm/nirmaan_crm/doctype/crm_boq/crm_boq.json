@@ -1,166 +1,178 @@
 {
- "actions": [],
- "allow_import": 1,
- "allow_rename": 1,
- "autoname": "field:boq_name",
- "creation": "2025-08-11 19:23:10.058720",
- "doctype": "DocType",
- "engine": "InnoDB",
- "field_order": [
-  "links_section",
-  "company",
-  "contact",
-  "details_section",
-  "boq_name",
-  "boq_size",
-  "boq_type",
-  "boq_value",
-  "boq_submission_date",
-  "boq_link",
-  "city",
-  "remarks",
-  "boq_status",
-  "boq_sub_status"
- ],
- "fields": [
-  {
-   "fieldname": "links_section",
-   "fieldtype": "Section Break",
-   "label": "Links"
-  },
-  {
-   "fieldname": "company",
-   "fieldtype": "Link",
-   "label": "Company",
-   "options": "CRM Company"
-  },
-  {
-   "fieldname": "contact",
-   "fieldtype": "Link",
-   "label": "Contact",
-   "options": "CRM Contacts"
-  },
-  {
-   "fieldname": "details_section",
-   "fieldtype": "Section Break",
-   "label": "Details"
-  },
-  {
-   "fieldname": "boq_name",
-   "fieldtype": "Data",
-   "label": "BOQ Name",
-   "unique": 1
-  },
-  {
-   "fieldname": "boq_size",
-   "fieldtype": "Data",
-   "label": "BOQ Size"
-  },
-  {
-   "fieldname": "boq_type",
-   "fieldtype": "Data",
-   "label": "BOQ Type"
-  },
-  {
-   "fieldname": "boq_value",
-   "fieldtype": "Data",
-   "label": "BOQ Value"
-  },
-  {
-   "fieldname": "boq_submission_date",
-   "fieldtype": "Date",
-   "label": "BOQ Submission Date"
-  },
-  {
-   "fieldname": "boq_link",
-   "fieldtype": "Data",
-   "label": "BOQ Link"
-  },
-  {
-   "fieldname": "city",
-   "fieldtype": "Data",
-   "label": "City"
-  },
-  {
-   "fieldname": "remarks",
-   "fieldtype": "Text",
-   "label": "Remarks"
-  },
-  {
-   "default": "New",
-   "fieldname": "boq_status",
-   "fieldtype": "Data",
-   "label": "BOQ Status",
-   "options": "Won\nLost\nHold\nRevision Pending\nNegotiation\nRevision Submitted"
-  },
-  {
-   "fieldname": "boq_sub_status",
-   "fieldtype": "Data",
-   "label": "BOQ Sub Status"
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-08-25 18:34:17.026152",
- "modified_by": "sales3@gmail.com",
- "module": "Nirmaan CRM",
- "name": "CRM BOQ",
- "naming_rule": "By fieldname",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Nirmaan Admin User",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Nirmaan Estimations User",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Nirmaan Sales User",
-   "share": 1,
-   "write": 1
-  }
- ],
- "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
- "track_changes": 1
+  "actions": [],
+  "allow_import": 1,
+  "allow_rename": 1,
+  "autoname": "field:boq_name",
+  "creation": "2025-08-11 19:23:10.058720",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "links_section",
+    "company",
+    "contact",
+    "details_section",
+    "boq_name",
+    "boq_size",
+    "boq_type",
+    "boq_value",
+    "boq_submission_date",
+    "boq_link",
+    "city",
+    "remarks",
+    "boq_status",
+    "boq_sub_status",
+    "assigned_sales",
+    "assigned_estimations"
+  ],
+  "fields": [
+    {
+      "fieldname": "links_section",
+      "fieldtype": "Section Break",
+      "label": "Links"
+    },
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "CRM Company"
+    },
+    {
+      "fieldname": "contact",
+      "fieldtype": "Link",
+      "label": "Contact",
+      "options": "CRM Contacts"
+    },
+    {
+      "fieldname": "details_section",
+      "fieldtype": "Section Break",
+      "label": "Details"
+    },
+    {
+      "fieldname": "boq_name",
+      "fieldtype": "Data",
+      "label": "BOQ Name",
+      "unique": 1
+    },
+    {
+      "fieldname": "boq_size",
+      "fieldtype": "Data",
+      "label": "BOQ Size"
+    },
+    {
+      "fieldname": "boq_type",
+      "fieldtype": "Data",
+      "label": "BOQ Type"
+    },
+    {
+      "fieldname": "boq_value",
+      "fieldtype": "Data",
+      "label": "BOQ Value"
+    },
+    {
+      "fieldname": "boq_submission_date",
+      "fieldtype": "Date",
+      "label": "BOQ Submission Date"
+    },
+    {
+      "fieldname": "boq_link",
+      "fieldtype": "Data",
+      "label": "BOQ Link"
+    },
+    {
+      "fieldname": "city",
+      "fieldtype": "Data",
+      "label": "City"
+    },
+    {
+      "fieldname": "remarks",
+      "fieldtype": "Text",
+      "label": "Remarks"
+    },
+    {
+      "default": "New",
+      "fieldname": "boq_status",
+      "fieldtype": "Data",
+      "label": "BOQ Status",
+      "options": "Won\nLost\nHold\nRevision Pending\nNegotiation\nRevision Submitted"
+    },
+    {
+      "fieldname": "boq_sub_status",
+      "fieldtype": "Data",
+      "label": "BOQ Sub Status"
+    },
+    {
+      "fieldname": "assigned_sales",
+      "fieldtype": "Data",
+      "label": "Assigned Sales"
+    },
+    {
+      "fieldname": "assigned_estimations",
+      "fieldtype": "Data",
+      "label": "Assigned Estimations"
+    }
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2025-08-25 19:33:21.120727",
+  "modified_by": "Administrator",
+  "module": "Nirmaan CRM",
+  "name": "CRM BOQ",
+  "naming_rule": "By fieldname",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Nirmaan Admin User",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Nirmaan Estimations User",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Nirmaan Sales User",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "row_format": "Dynamic",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "track_changes": 1
 }

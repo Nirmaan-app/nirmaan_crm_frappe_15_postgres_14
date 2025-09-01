@@ -603,7 +603,7 @@ function Calendar({
   const columnsDisplayed = navView === "years" ? 1 : numberOfMonths
   const _monthsClassName = cn("relative", props.monthsClassName)
   const _monthCaptionClassName = cn(
-    `relative ${isMobile ? "mx-24" : ""} flex h-7 items-center justify-center border border-gray-300 rounded-md`,
+    `relative ${"mx-24"} flex h-7 items-center justify-center border border-gray-300 rounded-md`,
     props.monthCaptionClassName
   )
   const _weekdaysClassName = cn("flex flex-row border-b border-gray-300", props.weekdaysClassName)
@@ -717,19 +717,17 @@ function Calendar({
           return <Icon className="h-4 w-4" />
         },
         Nav: ({ className }) => (
-          isMobile ? (
-            <Nav
-            className={className}
-            displayYears={displayYears}
-            navView={navView}
-            setDisplayYears={setDisplayYears}
-            startMonth={startMonth}
-            endMonth={endMonth}
-            onPrevClick={onPrevClick}
-          />
-          ) : (
-            <div />
-          )
+           <Nav
+    className={className}
+    displayYears={displayYears}
+    navView={navView}
+    setDisplayYears={setDisplayYears}
+    startMonth={startMonth}
+    endMonth={endMonth}
+    onPrevClick={onPrevClick}
+    onNextClick={onNextClick} // Make sure to pass onNextClick as well
+  />
+
         ),
         CaptionLabel: (props) => (
           <CaptionLabel

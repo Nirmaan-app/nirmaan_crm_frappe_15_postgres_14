@@ -16,7 +16,7 @@ export const BottomBar = () => {
       setActiveTab("Home");
     } else {
       // --- 3. IMPORTANT: Use the filtered `navItems` list to find the active tab ---
-      const currentItem = navItems.find(item => item.path !== '/' && location.pathname.includes(item.path));
+      const currentItem = navItems?.find(item => item.path !== '/' && location.pathname.includes(item.path));
       if (currentItem) {
         setActiveTab(currentItem.label);
       }
@@ -28,7 +28,7 @@ export const BottomBar = () => {
     // Loading state remains the same
     return (
       <nav className="fixed bottom-0 left-0 w-full bg-bottombarbackground shadow-black shadow-md p-2 flex justify-between items-center z-10">
-        {Array.from({ length: 4 }).map((_, index) => (
+        {Array.from({ length: 4 })?.map((_, index) => (
           <div key={index} className="p-2 flex flex-col items-center justify-center">
             <Skeleton className="w-8 h-8 rounded-full" />
             <Skeleton className="h-2 w-10 rounded-md mt-1" />

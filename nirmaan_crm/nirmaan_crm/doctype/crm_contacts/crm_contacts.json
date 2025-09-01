@@ -16,7 +16,9 @@
   "email",
   "designation",
   "department",
-  "visiting_card"
+  "visiting_card",
+  "assigned_sales",
+  "last_meeting"
  ],
  "fields": [
   {
@@ -75,11 +77,21 @@
    "fieldname": "visiting_card",
    "fieldtype": "Data",
    "label": "Visiting Card"
+  },
+  {
+   "fieldname": "assigned_sales",
+   "fieldtype": "Data",
+   "label": "Assigned Sales"
+  },
+  {
+   "fieldname": "last_meeting",
+   "fieldtype": "Date",
+   "label": "Last Meeting"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-25 16:56:52.231375",
+ "modified": "2025-08-29 12:17:20.558152",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Contacts",

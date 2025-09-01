@@ -12,7 +12,8 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { useViewport } from "@/hooks/useViewPort";
-
+import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon';
+import {StatusPill} from "@/pages/Tasks/TasksVariantPage"
 interface CompanySubPagesProps {
     boqs: CRMBOQ[];
     contacts: CRMContacts[];
@@ -32,7 +33,7 @@ const BoqList = ({ boqs }: { boqs: CRMBOQ[] }) => {
                 <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Date</TableHead>
+                    <TableHead className="text-right">Submission Deadline</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -107,28 +108,55 @@ const TaskList = ({ tasks, contacts }: { tasks: CRMTask[], contacts: CRMContacts
           <div className="rounded-md border">
         <Table>
             <TableHeader>
-                <TableRow>
-                    <TableHead>Task</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead className="text-right">Date</TableHead>
-                </TableRow>
+               
+                     <TableRow>
+                                {/* This column is visible on all screen sizes */}
+                                <TableHead>Task Details</TableHead>
+                                
+                                {/* These columns will ONLY appear on desktop (md screens and up) */}
+                                <TableHead className="hidden md:table-cell">Company</TableHead>
+                                <TableHead className="hidden md:table-cell">Status</TableHead>
+                                 <TableHead className="hidden md:table-cell text-right">Scheduled On</TableHead>
+                                <TableHead className="hidden md:table-cell text-right">Last Updated</TableHead>
+                                
+                                {/* Chevron column */}
+                                <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
+                            </TableRow>
+          
             </TableHeader>
             <TableBody>
-                {tasks.map((task) => (
-                    <TableRow 
-                            key={task.name} 
-                            // --- APPLY CONDITIONAL NAVIGATION ---
-                            onClick={() => {
-                                const path = isMobile ? `/tasks/task?id=${task.name}` : `/tasks?id=${task.name}`;
-                                navigate(path);
-                            }} 
-                            className="cursor-pointer"
-                        >
-                        <TableCell className="font-medium">{task.type || 'General Task'}</TableCell>
-                        <TableCell>{contactMap.get(task.contact) || 'N/A'}</TableCell>
-                        <TableCell className="text-right">{formatDate(task.start_date)}</TableCell>
-                    </TableRow>
-                ))}
+                {tasks.length > 0 ? (
+                                               tasks.map((task) => (
+                                                   <TableRow key={task.name} onClick={() => isMobile?navigate(`/tasks/task?id=${task.name}`):navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
+                                                       
+                                                       {/* --- MOBILE & DESKTOP: Combined Cell --- */}
+                                                       <TableCell>
+                                                           <div className="flex items-center gap-3">
+                                                               <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
+                                                               <div className="flex flex-col">
+                                                                   <span className="font-medium">{`${task.type} with ${task.first_name}`}</span>
+                                                                   {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                                   <span className="text-xs text-muted-foreground md:hidden">
+                                                                       Updated: {formatDate(task.modified)}
+                                                                   </span>
+                                                               </div>
+                                                           </div>
+                                                       </TableCell>
+               
+                                                       {/* --- DESKTOP ONLY Cells --- */}
+                                                       <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
+                                                       <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
+                                                       <TableCell className="hidden md:table-cell text-right">{formatDate(task.start_date)}</TableCell>
+                                                       <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
+               
+                                                       <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
+                                                   </TableRow>
+                                               ))
+                                           ) : (
+                                               <TableRow>
+                                                   <TableCell colSpan={6} className="text-center h-24">No tasks found in this category.</TableCell>
+                                               </TableRow>
+                                           )}
             </TableBody>
         </Table>
         </div>
@@ -168,10 +196,16 @@ export const CompanySubPages = ({ boqs, contacts, tasks }: CompanySubPagesProps)
 
     return (
         <Tabs defaultValue="boqs" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-transparent p-0">
-                <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">BOQs</TabsTrigger>
-                <TabsTrigger value="contacts" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-none border-x">Contacts</TabsTrigger>
-                <TabsTrigger value="tasks" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-r-md rounded-l-none">Tasks</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 bg-transparent p-0 border">
+                <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">BOQs <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                                {filteredBoqs.length}
+                            </span></TabsTrigger>
+                <TabsTrigger value="contacts" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-none border-x">Contacts <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                                {filteredContacts.length}
+                            </span></TabsTrigger>
+                <TabsTrigger value="tasks" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-r-md rounded-l-none">Tasks <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                                {filteredTasks.length}
+                            </span></TabsTrigger>
             </TabsList>
 
             <div className="relative my-4">

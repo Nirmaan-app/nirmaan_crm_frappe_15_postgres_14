@@ -5,7 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappePostCall,useSWRConfig } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from 'react-select';
@@ -27,6 +27,7 @@ interface NewUserFormProps {
 export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
   // 2. Hook to call our custom Python API method
   const { call, loading } = useFrappePostCall('nirmaan_crm.api.add_crm_user.create_crm_user');
+  const { mutate } = useSWRConfig();
 
   // Hardcoded role profiles for the dropdown
   const roleProfileOptions = useMemo(() => [
@@ -53,6 +54,7 @@ export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
         description: `User ${values.email} has been created.`,
         variant: "success",
       });
+      await mutate(key => typeof key === 'string' && key.startsWith('all-members-'));
       onSuccess?.(); // This would typically close the dialog
     } catch (error: any) {
       toast({
@@ -65,7 +67,7 @@ export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <FormField
           control={form.control}
           name="first_name"
@@ -100,6 +102,9 @@ export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
                   value={roleProfileOptions.find(opt => opt.value === field.value)}
                   onChange={val => field.onChange(val?.value)}
                   placeholder="Select a role profile..."
+                   className="text-sm"
+                   isOptionDisabled={(option) => option.value === field.value}
+                                                                      menuPosition={'auto'}
                 />
               </FormControl>
               <FormMessage />

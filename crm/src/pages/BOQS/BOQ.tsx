@@ -8,13 +8,15 @@ import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { CRMNote } from "@/types/NirmaanCRM/CRMNote";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { formatDate } from "@/utils/FormatDate";
-import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDoc, useFrappeGetDocList,useSWRConfig,useFrappeUpdateDoc } from "frappe-react-sdk";
 import { ChevronDown, ChevronRight, Plus, SquarePen } from "lucide-react";
-import React ,{useMemo}from "react";
+import React ,{useMemo,useState}from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
+import { toast } from "@/hooks/use-toast";
 
 // --- SUB-COMPONENT 1: Header ---
 // Inside src/pages/BOQs/BOQ.tsx
@@ -23,8 +25,34 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 // --- THIS IS THE UPDATED HEADER COMPONENT ---
 const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
-    const { openEditBoqDialog } = useDialogStore();
+      const { openEditBoqDialog } = useDialogStore();
+    const { updateDoc, loading } = useFrappeUpdateDoc();
+    const { mutate } = useSWRConfig();
     const getBoqStatusClass = useStatusStyles("boq");
+    const role = localStorage.getItem('role');
+    const currentUser = localStorage.getItem('userId');
+    
+    // 3. LOCAL STATE: Use useState to control the dialog's visibility
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+
+   const handleConfirmAssign = async () => {
+        if (!currentUser) {
+            toast({ title: "Error", description: "Could not identify current user.", variant: "destructive" });
+            return;
+        }
+        try {
+            await updateDoc("CRM BOQ", boq.name, { assigned_estimations: currentUser });
+            toast({ title: "Success!", description: `BOQ assigned to you.` });
+            await mutate(`BOQ/${boq.name}`);
+            await mutate(key => typeof key === 'string' && key.startsWith('all-boqs-'));
+            setIsConfirmOpen(false)
+        } catch (error) {
+            toast({ title: "Error", description: (error as Error).message, variant: "destructive" });
+        }
+    };
+
+
 
     return (
         <div className="bg-background p-6 rounded-lg border shadow-sm flex justify-between items-start">
@@ -32,11 +60,11 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
             <div className="space-y-4">
                 <div>
                     <p className="text-sm text-muted-foreground">BOQ Name</p>
-                    <h1 className="text-2xl font-bold">{boq?.boq_name || 'N/A'}</h1>
+                    <h1 className="text-lg font-bold">{boq?.boq_name || 'N/A'}</h1>
                 </div>
                 <div>
                     <p className="text-sm text-muted-foreground">BOQ</p>
-                    {/* Display a link if it exists, otherwise 'n/a' */}
+                    {/* Display a link if it exists, otherwise 'N/A' */}
                     {boq?.boq_link ? (
                          <a href={boq.boq_link} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
                             View BOQ
@@ -44,6 +72,14 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                     ) : (
                         <p className="font-semibold">N/A</p>
                     )}
+                </div>
+                <div>
+                    <p className="text-sm text-muted-foreground">Assigned Sales</p>
+                    <h1 className="text-sm font-bold">{boq?.assigned_sales || 'N/A'}</h1>
+                </div>
+                <div>
+                    <p className="text-sm text-muted-foreground">Assigned Estimates</p>
+                    <h1 className="text-sm font-bold">{boq?.assigned_estimations || 'N/A'}</h1>
                 </div>
             </div>
 
@@ -69,6 +105,33 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                 >
                     Update BOQ Status
                 </Button>
+                {role=="Nirmaan Admin User Profile"&&(
+ <Button
+                    onClick={() => openEditBoqDialog({ boqData: boq, mode: 'assigned' })}
+                    className="bg-destructive hover:bg-destructive/90 mt-4" // Added margin for spacing
+                >
+                    Edit Assigned
+                </Button>
+                )}
+
+                {role === "Nirmaan Estimations User Profile" && !boq.assigned_estimations && (
+                        <Button
+                            // 5. The button now just opens the local dialog
+                            onClick={() => setIsConfirmOpen(true)}
+                            disabled={loading}
+                            className="bg-destructive hover:bg-destructive/90 mt-4" 
+                        >
+                            {loading ? "Assigning..." : "Assign to Me"}
+                        </Button>
+                    )}
+               
+                 <ReusableAlertDialog
+                open={isConfirmOpen}
+                onOpenChange={setIsConfirmOpen}
+                title="Assign to Me"
+                children={`Are you sure you want to assign this BOQ (${boq.boq_name}) to yourself?`}
+                onConfirm={handleConfirmAssign}
+            />
             </div>
         </div>
     );
@@ -83,14 +146,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
     const getTaskStatusClass=useStatusStyles("task")
 
     const { openNewTaskDialog } = useDialogStore();
-    const getStatusClass = (status: string) => {
-        switch (status?.toLowerCase()) {
-            case 'completed': return 'bg-green-100 text-green-800';
-            case 'scheduled': return 'bg-yellow-100 text-yellow-800';
-            case 'incomplete': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    }
+   
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
             <div className="flex justify-between items-center mb-4">
@@ -137,19 +193,19 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
 };
 
 // --- SUB-COMPONENT 3: Remarks ---
-const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: string }) => {
+const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) => {
     const { openEditBoqDialog } = useDialogStore();
 
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="font-semibold">Remarks</h2>
+                <h2 className="font-semibold">Additional Remarks</h2>
                 <Button 
                     variant="outline" 
                     size="sm" 
                     className="border-destructive text-destructive" 
                     // This is a partial BOQ object, which is okay for this specific mode
-                    onClick={() => openEditBoqDialog({ boqData: { name: boqId } as CRMBOQ, mode: 'remark' })}
+                    onClick={() => openEditBoqDialog({ boqData:boqId as CRMBOQ, mode: 'remark' })}
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Remarks
@@ -203,22 +259,28 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 </Button>
             </div>
                 {/* Top Details Section */}
-            <div className="grid grid-cols-2 gap-y-5">
-                <DetailItem label="Size" value={boq?.boq_size || 'n/a'} />
-                <DetailItem label="Package" value={boq?.boq_type || 'n/a'} />
-                <DetailItem label="Date Created" value={formatDate(boq?.creation)} />
-                <DetailItem label="Location" value={boq?.city || 'n/a'} />
-                <DetailItem label="Created by" value={boq?.owner.split('@')[0]} isLink href={`/team?memberId=${boq.owner}`} />
+            <div className="grid grid-cols-2 gap-y-5 gap-x-20">
+                <DetailItem label="Size (Sqft)" value={boq?.boq_size || 'N/A'} />
+                <DetailItem label="BOQ Value" value={`₹ ${boq?.boq_value}` || 'N/A'} />
+                  
+                <DetailItem label="Package" value={boq?.boq_type || 'N/A'} />
+                <DetailItem label="City" value={boq?.city || 'N/A'} />
+
+                <DetailItem label="Submission Deadline" value={formatDate(boq?.boq_submission_date)} />
+                    <DetailItem label="Recevied on" value={formatDate(boq?.creation)} />
+                <DetailItem label="Created by" value={boq?.owner.split('@')[0]}/>
+                
+                <DetailItem label="Remarks" value={boq?.remarks || 'N/A'} />
             </div>
 
             <Separator />
 
             {/* Contact & Company Details Section */}
-            <div className="grid grid-cols-2 gap-y-5">
-                <DetailItem label="Contact Name" value={contact ? `${contact.first_name} ${contact.last_name}` : 'n/a'} isLink href={`/contacts/contact?id=${contact?.name}`} />
-                <DetailItem label="Designation" value={contact?.designation || 'n/a'} />
-                <DetailItem label="Company Name" value={contact?.company || 'n/a'} isLink href={`/companies/company?id=${company?.name}`} />
-                <DetailItem label="Location" value={boq?.city || 'n/a'} />
+            <div className="grid grid-cols-2 gap-y-5 gap-x-20">
+                <DetailItem label="Contact Name" value={contact ? `${contact.first_name} ${contact.last_name}` : 'N/A'} isLink href={`/contacts/contact?id=${contact?.name}`} />
+                <DetailItem label="Designation" value={contact?.designation || 'N/A'} />
+                <DetailItem label="Company Name" value={contact?.company || 'N/A'} isLink href={`/companies/company?id=${company?.name}`} />
+                <DetailItem label="Location" value={boq?.city || 'N/A'} />
             </div>
 
             <Separator />
@@ -257,6 +319,8 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 const remarksChange = changes.find(c => c[0] === 'remarks'); // New
                 const dateChange = changes.find(c => c[0] === 'boq_submission_date'); // New
 
+                // console.log(dateChange[2])
+
                 // If this version changed the status, update our tracker.
                 if (statusChange) {
                     lastKnownStatus = statusChange[2]; // [2] is the new value
@@ -270,19 +334,25 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 // Build a descriptive remark based on what changed in this version.
                 let remarkText = '';
                 if (remarksChange) {
-                    remarkText = `Remarks updated: "${remarksChange[2]}"`;
+                    remarkText = `${remarksChange[2]}`;
+                }else{
+                    remarkText='--'
                 }
-                else if (subStatusChange && subStatusChange[2]) {
-                    remarkText = subStatusChange[2]; // e.g., "Awaiting clarification from Client"
-                }   else if (dateChange) {
-                    remarkText = `Submission date changed to ${dateChange[2]}`;
-                } else if (statusChange) {
-                    remarkText = `Status updated`; // Default if only status changed
-                }
+
+             
+                // else if (subStatusChange && subStatusChange[2]) {
+                //     remarkText = subStatusChange[2]; // e.g., "Awaiting clarification from Client"
+                // }   else if (dateChange) {
+                //     remarkText = `Submission date changed to ${dateChange[2]}`;
+                // } else if (statusChange) {
+                //     remarkText = `Status updated`; // Default if only status changed
+                // }
 
                 return {
                     status: lastKnownStatus,
                     remark: remarkText,
+                    submission_date:dateChange?dateChange[2]:"--",
+
                     date: formatDate(version.creation),
                     link: boqLinkChange ? boqLinkChange[2] : undefined
                 };
@@ -305,6 +375,8 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                     <TableRow>
                         <TableHead>BOQs Status</TableHead>
                         <TableHead>Remarks</TableHead>
+                        <TableHead>Submission Deadline</TableHead>
+
                         <TableHead>Date Updated</TableHead>
                         <TableHead>BOQs Link</TableHead>
                     </TableRow>
@@ -319,6 +391,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                                     </span>
                                 </TableCell>
                                 <TableCell>{item.remark || '--'}</TableCell>
+                                <TableCell>{item.submission_date||'--'}</TableCell>
                                 <TableCell>{item.date}</TableCell>
                                 <TableCell>
                                     {item.link ? (
@@ -356,18 +429,18 @@ export const BOQ = () => {
      const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", boqData?.contact);
     
     
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "type", "start_date", "status"],orderBy: { field: "creation", order: "desc" },limit: 0, });
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "type", "start_date", "status"],orderBy: { field: "creation", order: "desc" },limit: 0, },`all-tasks-filterbyBoq-id${id}`);
 
-    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "content", "creation"], orderBy: { field: "creation", order: "desc" },limit: 0, },"All Note");
+    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "content", "creation"], orderBy: { field: "creation", order: "desc" },limit: 0, },`all-notes-filterbyBoq-id${id}`);
 
 
   const { data: versionsList, isLoading: versionsLoading } = useFrappeGetDocList<DocVersion>("Version", {
         filters: { ref_doctype: "CRM BOQ", docname: id },
         fields: ["name", "owner", "creation", "data"],
         orderBy: { field: "creation", order: "desc" },
-        limit: 20,
-        enabled: role !== 'Nirmaan Sales User Profile' //
-    },"BOQ Version");
+        limit: 0,
+        // enabled: role != 'Nirmaan Sales User Profile' //
+    },role != 'Nirmaan Sales User Profile'?`all-boqs-filterbyBoq-id${id}`:null);
 
     if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
         return <div>Loading BOQ Details...</div>;
@@ -378,12 +451,15 @@ export const BOQ = () => {
     return (
         <div className="space-y-6">
             <BoqDetailsHeader boq={boqData} />
-            <BoqTaskDetails 
+            {(role!="Nirmaan Estimations User Profile")&&(
+<BoqTaskDetails 
                 tasks={tasksList || []}
                 boqId={boqData.name}
                 companyId={boqData.company}
                 contactId={boqData.contact}
             />
+            )}
+            
            
             <OtherBoqDetails 
                 boq={boqData} 
@@ -397,246 +473,9 @@ export const BOQ = () => {
 
              <BoqRemarks 
                 remarks={remarksList || []} 
-                boqId={boqData.name}
+                boqId={boqData}
             />
 
         </div>
     );
 };
-
-// import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-// import { Button } from "@/components/ui/button";
-// import { Separator } from "@/components/ui/separator";
-// import { toast } from "@/hooks/use-toast";
-// import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
-// import { useViewport } from "@/hooks/useViewPort";
-// import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
-// import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
-// import { CRMBOQ } from "@/types/NirmaanCRM/CRMBOQ"; // 1. Use new type
-// import { formatDate } from "@/utils/FormatDate";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
-// import { ArrowLeft, SquarePen, Trash2 } from "lucide-react";
-// import { useEffect, useState } from "react";
-// import { useForm } from "react-hook-form";
-// import { useNavigate } from "react-router-dom";
-// import * as z from "zod";
-// import { NewBoqForm } from "./NewBoqForm"; // 2. Use new form component
-
-// // 3. Define a new schema for the BOQ form
-// const boqFormSchema = z.object({
-//     boq_name: z
-//         .string({ required_error: "Required!" })
-//         .min(3, { message: "Minimum 3 characters required!" }),
-//     boq_company: 
-//         z.object({ label: z.string(), value: z.string() }),
-//     boq_contact: 
-//         z.object({ label: z.string(), value: z.string() }),
-//     submission_date: 
-//         z.string({ required_error: "Submission date is required" }),
-//     boq_value: z.coerce.number().optional(),
-//     boq_status: z.string().optional(),
-//     // Add any other fields from your BOQ doctype here
-// });
-
-// type BOQFormValues = z.infer<typeof boqFormSchema>;
-
-// // 4. Rename the component
-// export const BOQ = () => {
-//     const { isDesktop } = useViewport();
-//     const navigate = useNavigate();
-//     const [id] = useStateSyncedWithParams<string>("id", "");
-    
-//     const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
-//     const { deleteDoc, loading: deleteLoading } = useFrappeDeleteDoc();
-
-//     const [editDialogOpen, setEditDialogOpen] = useState(false);
-//     const toggleEditDialog = () => setEditDialogOpen(!editDialogOpen);
-
-//     const [deleteDialog, setDeleteDialog] = useState(false);
-//     const toggleDeleteDialog = () => setDeleteDialog(!deleteDialog);
-
-//     const { mutate } = useSWRConfig();
-
-//     // 5. Fetch from "CRM BOQ" Doctype
-//     const { data, isLoading: dataLoading, mutate: dataMutate } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", id, { enabled: !!id });
-
-//     // 6. Fetch related data using new BOQ field names
-//     const { data: boqCompany } = useFrappeGetDoc<CRMCompany>("CRM Company", data?.boq_company, { enabled: !!data?.boq_company });
-//     const { data: boqContact } = useFrappeGetDoc<CRMContacts>("CRM Contacts", data?.boq_contact, { enabled: !!data?.boq_contact });
-
-//     const form = useForm<BOQFormValues>({
-//         resolver: zodResolver(boqFormSchema),
-//         defaultValues: {}, // Will be set by useEffect
-//         mode: "onBlur",
-//     });
-
-//     useEffect(() => {
-//         if (data) {
-//           // 7. Update form.reset with new BOQ fields
-//           form.reset({
-//             boq_name: data.boq_name,
-//             boq_company: { value: data.boq_company, label: boqCompany?.company_name },
-//             boq_contact: { value: data.boq_contact, label: `${boqContact?.first_name} ${boqContact?.last_name}` },
-//             submission_date: data.submission_date,
-//             boq_value: data.boq_value,
-//             boq_status: data.boq_status,
-//           });
-//         }
-//     }, [data, form, boqCompany, boqContact]);
-
-//     const onSubmit = async (values: BOQFormValues) => {
-//         try {
-//             const isValid = await form.trigger();
-//             if(isValid) {
-//                 // 8. Update "CRM BOQ" Doctype
-//                 await updateDoc("CRM BOQ", data?.name, {
-//                   boq_name: values.boq_name,
-//                   boq_company: values.boq_company?.value,
-//                   boq_contact: values.boq_contact?.value,
-//                   submission_date: values.submission_date,
-//                   boq_value: values.boq_value,
-//                   boq_status: values.boq_status,
-//                 });
-
-//                 await dataMutate();
-//                 await mutate("CRM BOQ"); // Mutate BOQ list key
-//                 toggleEditDialog();
-
-//                 toast({
-//                     title: "Success!",
-//                     description: "BOQ updated successfully!", // Updated toast message
-//                     variant: "success",
-//                 });
-//             }
-//         } catch (error) {
-//             toast({
-//                 title: "Failed!",
-//                 description: `${error?.Error || error?.message}`,
-//                 variant: "destructive",
-//             });
-//         }
-//     };
-
-//     const handleConfirmDelete = async () => {
-//         try {
-//             // 9. Delete from "CRM BOQ"
-//             await deleteDoc("CRM BOQ", data?.name);
-//             await mutate("CRM BOQ");
-//             toast({
-//                 title: "Success!",
-//                 description: `BOQ: ${data?.boq_name} deleted successfully!`, // Updated toast message
-//                 variant: "success",
-//             });
-//             navigate(-1);
-//             toggleDeleteDialog();
-//         } catch (error) {
-//             toast({
-//                 title: "Failed!",
-//                 description: `${error?.Error || error?.message}`,
-//                 variant: "destructive",
-//             });
-//         }
-//     };
-
-//     return (
-//         <div className="dark:text-white space-y-4">
-//             <section>
-//                 <div className="font-medium mb-2 flex items-center gap-1">
-//                     {isDesktop && <ArrowLeft className="cursor-pointer" onClick={() => navigate(-1)} />}
-//                     {/* 10. Update all static text and displayed data */}
-//                     <h2 className="font-medium">BOQ Details</h2>
-//                 </div>
-//                 <div className="p-4 border cardBorder shadow rounded-md flex flex-col gap-4">
-//                     <div className="flex justify-between">
-//                         <div className="flex flex-col gap-6">
-//                             <div>
-//                                 <p className="text-xs">BOQ Name</p>
-//                                 <p className="text-sm font-semibold text-destructive">{data?.boq_name}</p>
-//                             </div>
-//                             <div>
-//                                 <p className="text-xs">Value</p>
-//                                 <p className="text-sm font-semibold text-destructive">{data?.boq_value || "--"}</p>
-//                             </div>
-//                             <div>
-//                                 <p className="text-xs">Date Created</p>
-//                                 <p className="text-sm font-semibold text-destructive">{formatDate(data?.creation) || "--"}</p>
-//                             </div>
-//                         </div>
-//                         <div className="flex flex-col gap-6 text-end">
-//                             <div>
-//                                 <p className="text-xs">Submission Date</p>
-//                                 <p className="text-sm font-semibold text-destructive">{formatDate(data?.submission_date) || "--"}</p>
-//                             </div>
-//                             <div>
-//                                 <p className="text-xs">Status</p>
-//                                 <p className="text-sm font-semibold text-destructive">{data?.boq_status || "--"}</p>
-//                             </div>
-//                         </div>
-//                     </div>
-//                     <Separator />
-//                     <div className="flex justify-between">
-//                         <div className="flex flex-col gap-6">
-//                             <div>
-//                                 <p className="text-xs">Company Name</p>
-//                                 <p className="text-sm font-semibold text-destructive">{boqCompany?.company_name}</p>
-//                             </div>
-//                             <div>
-//                                 <p className="text-xs">Contact Name</p>
-//                                 <p className="text-sm font-semibold text-destructive">{boqContact?.first_name} {boqContact?.last_name}</p>
-//                             </div>
-//                         </div>
-//                         <div className="flex flex-col gap-6 text-end">
-//                             <div>
-//                                 <p className="text-xs">Company Location</p>
-//                                 <p className="text-sm font-semibold text-destructive">{boqCompany?.company_location || "--"}</p>
-//                             </div>
-//                             <div>
-//                                 <p className="text-xs">Contact Designation</p>
-//                                 <p className="text-sm font-semibold text-destructive">{boqContact?.designation || "--"}</p>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div>
-//                 <div className="flex justify-end gap-2 mt-4">
-//                     <Button onClick={toggleEditDialog} variant="outline" className="text-destructive border-destructive">
-//                         <SquarePen />
-//                         Edit
-//                     </Button>
-//                     <Button onClick={toggleDeleteDialog} variant="outline" className="text-destructive border-destructive">
-//                         <Trash2 />
-//                         Delete
-//                     </Button>
-//                 </div>
-              
-//                 <AlertDialog open={deleteDialog} onOpenChange={toggleDeleteDialog}>
-//                     <AlertDialogContent>
-//                         <AlertDialogHeader>
-//                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-//                         </AlertDialogHeader>
-//                         <AlertDialogDescription className="flex gap-2 items-end">
-//                             <Button onClick={handleConfirmDelete} className="flex-1">Delete</Button>
-//                             <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
-//                         </AlertDialogDescription>
-//                     </AlertDialogContent>
-//                 </AlertDialog>
-
-//                 <AlertDialog open={editDialogOpen} onOpenChange={toggleEditDialog}>
-//                     <AlertDialogContent className="max-h-[80vh] overflow-y-auto">
-//                         <AlertDialogHeader className="text-start">
-//                             <AlertDialogTitle className="text-destructive text-center">Edit BOQ</AlertDialogTitle>
-//                             <AlertDialogDescription asChild>
-//                               <NewBoqForm form={form} edit={true} />
-//                             </AlertDialogDescription>
-
-//                         <div className="flex items-end gap-2">
-//                             <Button onClick={() => onSubmit(form.getValues())} className="flex-1">Save</Button>
-//                             <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
-//                         </div>
-//                         </AlertDialogHeader>
-//                     </AlertDialogContent>
-//                 </AlertDialog>
-//             </section>
-//         </div>
-//     );
-// };

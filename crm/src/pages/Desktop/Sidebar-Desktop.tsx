@@ -15,7 +15,7 @@ export const SidebarDesktop = () => {
     if (location.pathname === "/") {
       setActiveTab("Home");
     } else {
-      const currentItem = navItems.find(item => item.path !== '/' && location.pathname.includes(item.path));
+      const currentItem = navItems?.find(item => item.path !== '/' && location.pathname.includes(item.path));
       if (currentItem) {
         setActiveTab(currentItem.label);
       }
@@ -26,7 +26,7 @@ export const SidebarDesktop = () => {
     return (
       <nav className="flex flex-col gap-8" aria-label="Loading navigation">
         {/* We'll render a few placeholders to mimic the real nav items */}
-        {Array.from({ length: 5 }).map((_, index) => (
+        {Array.from({ length: 5 })?.map((_, index) => (
           <div key={index} className="flex flex-col items-center gap-2">
             {/* Skeleton for the icon */}
             <Skeleton className="h-[34px] w-[34px] rounded-md" />

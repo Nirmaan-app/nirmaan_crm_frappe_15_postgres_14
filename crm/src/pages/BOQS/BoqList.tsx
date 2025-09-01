@@ -14,6 +14,7 @@ import { MoreVertical, Plus, SquarePen } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useViewport } from "@/hooks/useViewPort";
 import { BoqListHeader } from "./BoqListHeader"; // Import the new header component
+import { AssignmentFilterControls } from "@/components/ui/AssignmentFilterControls";
 
 type EnrichedBoq = CRMBOQ & { "company.company_name"?: string; "contact.first_name"?: string; "contact.last_name"?: string; };
 interface BoqListProps { onBoqSelect?: (id: string) => void; activeBoqId?: string | null; }
@@ -46,11 +47,13 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
                     <p className="text-sm text-muted-foreground">{boq.company || 'N/A'}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
                         {boq.boq_status || 'N/A'}
                     </span>
-                    <Button variant="outline" size="sm" className="h-8 border-destructive text-destructive" onClick={(e) => { e.stopPropagation(); openNewTaskDialog({ boqId: boq.name, companyId: boq.company, contactId: boq.contact }); }}>
-                        <Plus className="w-4 h-4 mr-1" /> Add Task
+                    <Button variant="outline" size="sm" className="h-8 w-8 rounded-full border-destructive text-destructive" onClick={(e) => { e.stopPropagation(); openNewTaskDialog({ boqId: boq.name, companyId: boq.company, contactId: boq.contact }); }}>
+                        <Plus className="w-4 h-4 mr-0" /> 
+                        {/* Add Task */}
+
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); openEditBoqDialog({ boqData: boq, mode: 'details' }); }}>
                         <SquarePen className="w-5 h-5" />
@@ -63,16 +66,28 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
 
 export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     const { isMobile } = useViewport();
+    // const { role, isLoading: isUserLoading } = useCurrentUser();
+          const role = localStorage.getItem('role');
+    
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState("By Company");
     const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });
+    const [assignmentFilters, setAssignmentFilters] = useState([]);
+
+    const allFilters = useMemo(() => {
+        // REMOVED: No more default filters for Sales User. Backend handles it.
+        const dateFilters = [['modified', 'between', [dateRange.from, dateRange.to]]];
+        return [...dateFilters, ...assignmentFilters];
+    }, [dateRange, assignmentFilters]);
+
+    const swrKey = `all-boqs-${JSON.stringify(allFilters)}`;
 
     const { data: boqs, isLoading } = useFrappeGetDocList<EnrichedBoq>("CRM BOQ", {
-        fields: ["name", "boq_name", "boq_status", "boq_type", "company", "contact", "company.company_name", "contact.first_name", "contact.last_name", "modified"],
-        filters: [["modified", "between", [dateRange.from, dateRange.to]]],
+        fields: ["name", "boq_name", "boq_status","city","boq_sub_status","boq_submission_date", "boq_type","boq_value", "company", "contact", "boq_size","company.company_name", "contact.first_name","boq_link", "contact.last_name", "modified"],
+        filters: allFilters,
        limit: 0,
         orderBy: { field: "modified", order: "desc" }
-    },"All BOQ");
+    },swrKey);
     
     const filteredBoqs = useMemo(() => {
         if (!boqs) return [];
@@ -92,7 +107,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         });
     }, [boqs, searchQuery, filterType]);
 
-    if (isLoading) { return <div className="p-4 text-center">Loading BOQs...</div>; }
+    // if (isLoading) { return <div className="p-4 text-center">Loading BOQs...</div>; }
     
     // Pass all necessary state and functions to the new header component
     const headerProps = {
@@ -106,9 +121,16 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     };
 
     return (
-        <div className="flex flex-col h-full">
+        <div>
             <BoqListHeader {...headerProps} />
-            <div className="flex-1 overflow-y-auto mt-4">
+            
+            {role !== 'Nirmaan Sales User Profile' && (
+                <div className="mt-4">
+                    <AssignmentFilterControls onFilterChange={setAssignmentFilters} filterType="boq" />
+                </div>
+            )}
+
+            <div>
                 {isMobile ? (
                     // MOBILE LIST RENDER
                     <div className="flex flex-col">

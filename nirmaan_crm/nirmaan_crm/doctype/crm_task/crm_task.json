@@ -14,7 +14,7 @@
   "title",
   "type",
   "start_date",
-  "assigned_to",
+  "assigned_sales",
   "status",
   "reason",
   "time",
@@ -40,12 +40,6 @@
    "fieldname": "start_date",
    "fieldtype": "Date",
    "label": "Date"
-  },
-  {
-   "fieldname": "assigned_to",
-   "fieldtype": "Link",
-   "label": "Assigned To",
-   "options": "CRM Contacts"
   },
   {
    "default": "Scheduled",
@@ -95,11 +89,16 @@
    "fieldname": "reason",
    "fieldtype": "Data",
    "label": "Reason"
+  },
+  {
+   "fieldname": "assigned_sales",
+   "fieldtype": "Data",
+   "label": "Assigned Sales"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-20 15:03:13.753309",
+ "modified": "2025-08-25 19:44:41.453224",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Task",

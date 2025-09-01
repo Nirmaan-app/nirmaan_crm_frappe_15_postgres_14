@@ -39,6 +39,9 @@ export const MainDialogs = () => {
         if (mode === 'details') return 'Edit BOQ Details';
         if (mode === 'status') return 'Update Status';
         if (mode === 'remark') return 'Add New Remark';
+        if (mode === 'assigned') return 'Edit Assigned';
+
+
         return 'Edit BOQ';
     };
     const getEditTaskTitle = () => {

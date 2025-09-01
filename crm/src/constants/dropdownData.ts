@@ -8,6 +8,8 @@ export const BOQsubStatusOptions = [
 ];
 
 export const BOQmainStatusOptions = [
+   { label: "New", value: "New" },
+
   { label: "In-Progress", value: "In-Progress" },
   { label: "BOQ Submitted", value: "BOQ Submitted" },
   { label: "Partial BOQ Submitted", value: "Partial BOQ Submitted" },
@@ -17,5 +19,5 @@ export const BOQmainStatusOptions = [
   { label: "Won", value: "Won" },
   { label: "Lost", value: "Lost" },
   { label: "Dropped", value: "Dropped" },
-  { label: "Hold", value: "Hold" }
+  { label: "Hold", value: "Hold" },
 ];

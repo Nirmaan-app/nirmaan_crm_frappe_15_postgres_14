@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { formatDate } from "@/utils/FormatDate";
 import { Link } from "react-router-dom";
+// import
 
 export const TasksTab = ({ tasks }) => {
     const getTaskStatusClass = useStatusStyles("task");
@@ -25,7 +26,7 @@ export const TasksTab = ({ tasks }) => {
                         <TableRow key={task.name}>
                             <TableCell>
                                 <Link to={`/contacts/contact?id=${task.contact}`} className="text-red-600 underline font-medium">
-                                    {task.first_name} {task.last_name}
+                                    {task.contact} 
                                 </Link>
                             </TableCell>
                             <TableCell>

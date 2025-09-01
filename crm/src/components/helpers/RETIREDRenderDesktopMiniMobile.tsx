@@ -1,6 +1,6 @@
 // src/components/helpers/RenderDesktopMiniMobileScreen.tsx
 
-import DesktopTaskCalendar from "@/pages/Calendar/DesktopTaskCalendar";
+import DesktopTaskCalendar from "@/pages/Calendar/RETIREDDesktopTaskCalendar";
 // 1. Import from the new /BOQs path
 import { DesktopMiniCompanyView } from "@/pages/BOQs/DesktopMiniCompanyView"; 
 // 2. This component is no longer used, so we remove the import

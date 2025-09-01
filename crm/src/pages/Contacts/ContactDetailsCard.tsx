@@ -37,7 +37,7 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
             <div className="bg-background p-4 rounded-lg border shadow-sm space-y-4">
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                     <DetailItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} />
-                    <DetailItem label="Contact Type" value="Company" /> {/* Static for now */}
+                    <DetailItem label="Contact Type" value={contact?.mobile?"Mobile":"Email"} /> {/* Static for now */}
                     <DetailItem label="Email" value={contact?.email} href={`mailto:${contact?.email}`} />
                     <DetailItem label="Phone Number" value={contact?.mobile} href={`tel:${contact?.mobile}`} />
                     {/* <DetailItem label="Visiting Card" value={contact?.visiting_card || 'N/A'} href={contact?.visiting_card} /> */}
@@ -45,6 +45,8 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
                         <p className="text-xs text-muted-foreground">Visiting Card</p>
                         <FileLink href={contact?.visiting_card} label="View Card" />
                     </div>
+
+                     <DetailItem label="Assigned Sales" value={contact?.assigned_sales}  />
 
                 </div>
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2 border-t pt-4">

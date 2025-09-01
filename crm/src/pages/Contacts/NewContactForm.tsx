@@ -15,6 +15,8 @@ import { useState, useRef,useMemo,useEffect,useCallback } from "react"; // Impor
 import { Upload } from "lucide-react";
 import {CRMContacts} from "@/types/NirmaanCRM/CRMContacts"
 import {CustomAttachment} from "@/components/helpers/CustomAttachment"
+//Getting Role For Assigned
+import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 
 
 const contactFormSchema = z.object({
@@ -26,8 +28,11 @@ const contactFormSchema = z.object({
   department: z.string().optional(),
   designation: z.string().optional(),
   visiting_card: z.any().optional(),
+  assigned_sales: z.string().optional(),
+  
     // Add a new field for the "Other" department input
   other_department: z.string().optional(), 
+
 
 });
 
@@ -44,8 +49,17 @@ export const NewContactForm = ({ onSuccess, isEditMode = false, initialData = nu
   const { newContact, editContact, closeNewContactDialog, closeEditContactDialog } = useDialogStore();
   const { createDoc, loading :createLoading} = useFrappeCreateDoc();
     const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc(); 
+
+const { data: allContacts } = useFrappeGetDocList("CRM Contacts", {
+        fields: ["name", "email"]
+    },"all-contacts-existornot");
+
+//Hooks get Sales UserList
+  const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
+    
   const { mutate } = useSWRConfig();
   const { upload: uploadFile, loading: isUploading } = useFrappeFileUpload()
+  const role=localStorage.getItem("role")
 
   // CORRECTED: State and ref for file handling
   const [visitingCard, setVisitingCard] = useState<File | null>(null);
@@ -59,7 +73,7 @@ export const NewContactForm = ({ onSuccess, isEditMode = false, initialData = nu
     "CRM Company",
    { 
       fields: ["name", "company_name"], 
-      limit: 1000,
+      limit: 0,
       enabled: !companyIdFromContext 
     }
   );
@@ -116,9 +130,11 @@ const allCompanies = allCompaniesData || [];
         mobile: initialData.mobile || "",
         email: initialData.email || "",
         company: initialData.company || "",
-       department: isOther ? "Others" : initialDept,
+        department: isOther ? "Others" : initialDept,
         other_department: isOther ? initialDept : "",
         designation: initialData.designation || "",
+        assigned_sales:initialData.assigned_sales|| "",
+
       });
     } else {
       // Reset form for creating a new contact
@@ -163,11 +179,31 @@ const uploadVisitingCard = useCallback(async (contactName: string, file: File) =
 
   const onSubmit = async (values: ContactFormValues) => {
     try {
+
+              if (!isEditMode) {
+            const trimmedEmail = values.email.trim().toLowerCase();
+            const existingContact = allContacts?.find(
+                c => c.email.trim().toLowerCase() === trimmedEmail
+            );
+
+            if (existingContact) {
+                toast({
+                    title: "Duplicate Contact",
+                    description: `A contact with the email "${values.email}" already exists.`,
+                    variant: "destructive"
+                });
+                return; // Stop the submission
+            }
+        }
+        
+
+        
    const visitingCardFile = values.visiting_card; 
 
 const dataToSave={
   ...values,
     department: values.department === 'Others' ? values.other_department : values.department,
+    full_name:`${values.first_name} ${values.last_name}`
 
 }
       if (isEditMode) {
@@ -201,7 +237,7 @@ const dataToSave={
         }
       
        
-      mutate("All Contacts"); // Mutate the list for both case
+     await mutate( key => typeof key === 'string' && key.startsWith('all-contacts-')); // Mutate the list
       onSuccess?.();
     } catch (error) {
       toast({ title: "Error", description: (error as Error).message, variant: "destructive" });
@@ -245,7 +281,7 @@ const dataToSave={
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email*</FormLabel>
-              <FormControl><Input type="email" placeholder="e.g. john.doe@example.com" {...field} /></FormControl>
+              <FormControl><Input type="email" placeholder="e.g. john.doe@example.com" {...field} disabled={isEditMode} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -257,24 +293,50 @@ const dataToSave={
             <FormItem>
               <FormLabel>Company*</FormLabel>
               <FormControl>
-                {companyIdFromContext ? (
+                {/* {companyIdFromContext ? (
                   // If context exists, show a disabled input with the company name.
                   <Input value={companyIdFromContext || 'Loading...'} disabled />
-                ) : (
-                  // If no context, show a searchable, enabled dropdown.
+                ) : ( */}
                   <ReactSelect
                     options={companyOptions}
                     value={companyOptions.find(c => c.value === field.value)}
                     onChange={val => field.onChange(val?.value)}
                     placeholder="Search and select a company"
                     isLoading={!allCompanies} // Show loading indicator while fetching
+                    menuPosition="auto"
+                    isOptionDisabled={(option) => option.value === field.value}
                   />
-                )}
+                {/* )} */}
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {role==="Nirmaan Admin User Profile" &&(
+                 <FormField
+                            control={form.control}
+                            name="assigned_sales"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Assigned Salesperson</FormLabel>
+                                    <FormControl>
+                                        <ReactSelect
+                                            options={salesUserOptions}
+                                            value={salesUserOptions.find(u => u.value === field.value)}
+                                            onChange={val => field.onChange(val?.value)}
+                                            placeholder="Select a salesperson..."
+                                            isLoading={usersLoading}
+                                            className="text-sm"
+                                            menuPosition={'auto'}
+                                            isOptionDisabled={(option) => option.value === field.value}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                )}
         <FormField
           control={form.control}
           name="department"
@@ -289,6 +351,7 @@ const dataToSave={
                   // When an option is selected, update the form state with just the value
                   onChange={option => field.onChange(option?.value)}
                   placeholder="Select Department"
+                  isOptionDisabled={(option) => option.value === field.value}
                 />
               </FormControl>
               <FormMessage />

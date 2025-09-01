@@ -1,30 +1,54 @@
 import { useAuth } from "@/auth/AuthProvider";
 import { useFrappeGetDoc } from "frappe-react-sdk";
 import { useEffect } from "react"; // <-- 1. IMPORT useEffect
+import Cookies from 'js-cookie'
+
 
 export const useCurrentUser = () => {
     const { currentUser, isLoading: isAuthLoading } = useAuth();
+//  const currentUser = Cookies.get('user_id') ?? ''
+
+ console.log(currentUser)
+
+   if (currentUser === 'Administrator') {
+        // --- 4. OPTIONAL: SET STORAGE FOR ADMIN USER ---
+        localStorage.setItem('userId', 'Administrator');
+        localStorage.setItem('role', 'Nirmaan Admin User Profile');
+        localStorage.setItem('has_company', 'true');
+        localStorage.setItem('fullName', "Administrator");
+
+
+        const adminUser = window.frappe?.boot?.user;
+        return {
+            user: adminUser, user_id: 'Administrator', full_name:'Administrator',
+            user_image: adminUser?.user_image || undefined, role: 'Nirmaan Admin User Profile',
+            has_company: "true", isLoading: false, error: null, 
+        };
+    }
+
+
 
     const shouldFetchCrmUser = !!currentUser && currentUser !== 'Administrator';
 
     const { data: crmUserDoc, isLoading: isCrmUserLoading, error, mutate } = useFrappeGetDoc(
         'CRM Users',
-        currentUser!,
-        {
-            enabled: shouldFetchCrmUser,
-        }
+        currentUser,
+      
     );
 
     // --- 2. ADD THIS useEffect HOOK ---
     // This effect runs whenever the `crmUserDoc` data changes (i.e., after it's been fetched).
     useEffect(() => {
         // We only want to set the storage if we have valid user data.
-        if (crmUserDoc) {
-            localStorage.setItem('userId', crmUserDoc.name || '');
+        if (!isCrmUserLoading) {
+            if(crmUserDoc){
+            localStorage.setItem('userId', crmUserDoc?.name || '');
             localStorage.setItem('role', crmUserDoc.nirmaan_role_name || '');
-            localStorage.setItem('has_company', String(crmUserDoc.has_company ?? "false"));
+            localStorage.setItem('has_company', String(crmUserDoc.has_company ?? "dsfalse"));
+            localStorage.setItem('fullName', crmUserDoc.full_name || '');
+            }
         }
-    }, [crmUserDoc]); // The dependency array ensures this runs only when crmUserDoc changes.
+    }, [isCrmUserLoading]); // The dependency array ensures this runs only when crmUserDoc changes.
 
 
     const isLoading = isAuthLoading || (shouldFetchCrmUser && isCrmUserLoading);
@@ -40,11 +64,11 @@ export const useCurrentUser = () => {
     }
 
     if (!currentUser) {
-        // --- 3. ADD CLEANUP LOGIC FOR LOGOUT ---
-        // When the user logs out, clear the stored details.
-        localStorage.removeItem('userId');
+      localStorage.removeItem('userId');
         localStorage.removeItem('role');
         localStorage.removeItem('has_company');
+        localStorage.removeItem('fullName');
+
 
         return {
             user: null, user_id: 'Guest', full_name: 'Guest', user_image: undefined,
@@ -57,6 +81,8 @@ export const useCurrentUser = () => {
         localStorage.setItem('userId', 'Administrator');
         localStorage.setItem('role', 'Nirmaan Admin User Profile');
         localStorage.setItem('has_company', 'true');
+        localStorage.setItem('fullName', "Administrator");
+
 
         const adminUser = window.frappe?.boot?.user;
         return {
