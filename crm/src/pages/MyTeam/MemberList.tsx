@@ -100,7 +100,8 @@ export const MemberList = ({ members, isLoading, onMemberSelect, activeMemberId 
     }
 
     return (
-        <div className="flex-1 overflow-y-auto space-y-1">
+        // <div className="flex-1 overflow-y-auto space-y-1">
+        <div>
             {members?.map(member => (
                 <MemberListItem
                     key={member.name}

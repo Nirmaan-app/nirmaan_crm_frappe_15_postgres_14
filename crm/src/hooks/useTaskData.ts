@@ -142,24 +142,24 @@ type AssignmentFilter = ['assigned_sales', 'in' | 'is', any];
 export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskDataReturn => {
     // 1. DYNAMIC FILTERS: Combine the assignment filters with a base filter
     // This ensures we only fetch tasks that are not completed, making the query more efficient.
-    const allFilters = useMemo(() => {
-        const baseFilters = [['status', '!=', 'Completed']];
-        if (assignmentFilters && assignmentFilters.length > 0) {
-            return [...baseFilters, ...assignmentFilters];
-        }
-        return baseFilters;
-    }, [assignmentFilters]);
 
+    // const allFilters = useMemo(() => {
+    //     const baseFilters = [['status', '!=', 'Completed']];
+    //     if (assignmentFilters && assignmentFilters.length > 0) {
+    //         return [...baseFilters, ...assignmentFilters];
+    //     }
+    //     return baseFilters;
+    // }, [assignmentFilters]);
     // 2. DYNAMIC KEY: Create a dynamic SWR key. This is CRITICAL.
     // It ensures that if the filters change, the hook will re-fetch the data.
-    const swrKey = `all-tasks-${JSON.stringify(assignmentFilters)}`;
+    const swrKey = `all-tasks-todays${JSON.stringify(assignmentFilters)}`;
 
     const { data: tasks, isLoading, error } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
         fields: [
             "name", "type", "start_date", "time", "status", "contact", "company",
             "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales", "creation"
         ],
-        filters: assignmentFilters, // Use the combined filters
+        // filters: assignmentFilters, // Use the combined filters
         orderBy: { field: "start_date DESC, time", order: "ASC" },
         limit: 0,
 
@@ -182,9 +182,9 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
         console.log("enriched tasks in useTaskData", today);
 
         return {
-            todayTasks: enriched.filter(t => t.start_date === today),
-            tomorrowTasks: enriched.filter(t => t.start_date === tomorrow),
-            createdTodayTasks: enriched.filter(t => t.creation?.slice(0, 10) === today),
+            todayTasks: enriched.filter(t => t.start_date.slice(0, 10) === today),
+            tomorrowTasks: enriched.filter(t => t.start_date.slice(0, 10) === tomorrow),
+            createdTodayTasks: enriched.filter(t => t.creation.slice(0, 10) === today),
         };
     }, [tasks]);
 
