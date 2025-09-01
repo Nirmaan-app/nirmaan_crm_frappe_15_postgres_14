@@ -58,7 +58,7 @@
 
 
 // export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskDataReturn => {
-    
+
 //     // It ensures that if the filters change, the hook will re-fetch the data.
 //     const swrKey = `all-tasks-CIS${JSON.stringify(assignmentFilters)}`;
 
@@ -70,7 +70,7 @@
 //         filters: assignmentFilters, // Use the combined filters
 //         orderBy: { field: "start_date DESC, time", order: "ASC" },
 //         limit: 0,
-      
+
 //     }, swrKey); // Use the dynamic key
 
 //   const dailyCategorizedTasks = useMemo(() => {
@@ -78,7 +78,7 @@
 //         if (!tasks) {
 //             return { todayTasks: emptyGroup, tomorrowTasks: emptyGroup, createdTodayTasks: emptyGroup };
 //         }
-        
+
 //         const today = new Date().toISOString().slice(0, 10);
 //         const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
 
@@ -87,7 +87,7 @@
 //             contact_name: `${task.first_name || ''} ${task.last_name|| ''}`.trim(),
 //             company_name: task.company_name || 'N/A'
 //         }));
-        
+
 //         // First, filter by date
 //         const todayRaw = enriched.filter(t => t.start_date === today);
 //         const tomorrowRaw = enriched.filter(t => t.start_date === tomorrow);
@@ -142,6 +142,7 @@ type AssignmentFilter = ['assigned_sales', 'in' | 'is', any];
 export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskDataReturn => {
     // 1. DYNAMIC FILTERS: Combine the assignment filters with a base filter
     // This ensures we only fetch tasks that are not completed, making the query more efficient.
+
     // const allFilters = useMemo(() => {
     //     const baseFilters = [['status', '!=', 'Completed']];
     //     if (assignmentFilters && assignmentFilters.length > 0) {
@@ -149,7 +150,6 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
     //     }
     //     return baseFilters;
     // }, [assignmentFilters]);
-    
     // 2. DYNAMIC KEY: Create a dynamic SWR key. This is CRITICAL.
     // It ensures that if the filters change, the hook will re-fetch the data.
     const swrKey = `all-tasks-todays${JSON.stringify(assignmentFilters)}`;
@@ -157,12 +157,12 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
     const { data: tasks, isLoading, error } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
         fields: [
             "name", "type", "start_date", "time", "status", "contact", "company",
-            "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales"
+            "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales", "creation"
         ],
         // filters: assignmentFilters, // Use the combined filters
         orderBy: { field: "start_date DESC, time", order: "ASC" },
         limit: 0,
-      
+
     }, swrKey); // Use the dynamic key
 
     // 3. The categorization logic remains the same.
@@ -175,10 +175,12 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
 
         const enriched = tasks.map(task => ({
             ...task,
-            contact_name: `${task.first_name || ''} ${task.last_name|| ''}`.trim(),
+            contact_name: `${task.first_name || ''} ${task.last_name || ''}`.trim(),
             company_name: task.company_name || 'N/A'
         }));
-        
+
+        console.log("enriched tasks in useTaskData", today);
+
         return {
             todayTasks: enriched.filter(t => t.start_date.slice(0, 10) === today),
             tomorrowTasks: enriched.filter(t => t.start_date.slice(0, 10) === tomorrow),
