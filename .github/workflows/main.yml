@@ -34,10 +34,6 @@ jobs:
       run: |
         export APPS_JSON='[
           {
-            "url": "https://github.com/The-Commit-Company/frappe-types.git",
-            "branch": "main"
-          },
-          {
             "url": "https://github.com/Nirmaan-app/nirmaan_crm_frappe_15_postgres_14.git",
             "branch": "${{ env.RELEASE_VERSION }}"
           }
