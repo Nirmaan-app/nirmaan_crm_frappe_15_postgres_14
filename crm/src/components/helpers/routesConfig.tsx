@@ -16,14 +16,18 @@ import { LoginPage } from "@/pages/Login";
 import { ProtectedRoute } from "@/auth/ProtectedRoute";
 import { MyTeamPage } from "@/pages/MyTeam/MyTeamPage";
 import { MobileMemberDetailsPage } from "@/pages/MyTeam/MobileMemberDetailsPage";
-
 // --- CHANGE 1: Import the new AuthorizationGuard ---
 import { AuthorizationGuard } from "@/auth/AuthorizationGuard";
+import ForgotPassword from "@/pages/forgot-password";
 
 export const appRoutes = [
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path:"/forgot-password",
+    element:<ForgotPassword/>
   },
   {
     path: "/",

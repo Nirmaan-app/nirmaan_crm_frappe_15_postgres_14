@@ -1,0 +1,17 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Portal Menu Item",
+  "enabled": 1,
+  "modified": "2025-09-02 13:36:10.487005",
+  "name": "tjo86sqm7u",
+  "parent": "Portal Settings",
+  "parentfield": "custom_menu",
+  "parenttype": "Portal Settings",
+  "reference_doctype": null,
+  "role": null,
+  "route": "/crm/login",
+  "target": null,
+  "title": "Nirmaan CRM"
+ }
+]

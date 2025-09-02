@@ -28,3 +28,13 @@ export const contactClick=(contactId)=>{
             return `/boqs?id=${boqid}`
         }
     }
+
+
+    export const taskClick=(boqid)=>{
+  const {isMobile}=useViewport()
+        if(isMobile){
+            return `/tasks/task?id=${boqid}`
+        }else{
+            return `/tasks?id=${boqid}`
+        }
+    }
