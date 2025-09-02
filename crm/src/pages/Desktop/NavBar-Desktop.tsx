@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input"
 import { Link } from "react-router-dom"
 import { UserNav } from "@/components/common/UserNav"; 
 // import logo from "@/assets/logo-svg.svg"; // Option 1: If logo is imported (e.g., from assets)
+import logo from "@/assets/Group 1.svg"
+
 
 export const NavBarDesktop = () => {
   return (
@@ -17,11 +19,9 @@ export const NavBarDesktop = () => {
         >
           <div className="flex items-center gap-2"> {/* Container for logo and text */}
             {/* --- NEW: Add your logo here --- */}
-            <img 
-              src="/web-app-manifest-512x512.png" // Path to your logo in the public folder
-              alt="Nirmaan CRM Logo" 
-              className="h-8 w-auto" // Adjust size as needed (e.g., h-8 for 32px height)
-            />
+             <Link to={"/"}>
+                          <img src={logo} alt="Nirmaan CRM" width="20" height="20" />
+                        </Link>
             <h2 className="font-medium text-xl lg:text-2xl text-primary whitespace-nowrap"> {/* Adjusted text size */}
               <Link to="/">
                 Nirmaan CRM

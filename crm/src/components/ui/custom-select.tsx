@@ -45,8 +45,8 @@ const CustomSelect = React.forwardRef<any, CustomSelectProps>(
                   'flex items-center gap-2 text-sm font-medium'
                 )}
                 onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                  // e.preventDefault();
+                  // e.stopPropagation();
                   onAddItemClick();
                 }}
               >

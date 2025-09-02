@@ -13,6 +13,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from 'lucide-react'; // For loading spinner
+import logo from "@/assets/Group 1.svg"
+
 
 // 1. Define the validation schema with Zod
 const loginSchema = z.object({
@@ -83,8 +85,8 @@ export const LoginPage = () => {
                             {/* NEW: Logo and "Login" title */}
                             <div className="flex items-center justify-center gap-1 pr-4"> {/* Use flex to align logo and title */}
                                 <img
-                                    src="/web-app-manifest-512x512.png" // Your existing logo path
-                                    alt="Nirmaan CRM Logo"
+                                    src={logo} // Your existing logo path
+                                    alt="Nirmaan CRM"
                                     className="h-8 w-8 object-contain" // Adjust size as needed
                                 />
                                 <CardTitle className="text-3xl font-bold text-destructive">Login</CardTitle> {/* Changed title to just "Login" */}

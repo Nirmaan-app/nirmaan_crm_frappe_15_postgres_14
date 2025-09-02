@@ -1,9 +1,10 @@
 // File: src/components/layout/MobileNavBar.tsx (or wherever MobileNavBar is located)
 
 import { ArrowLeft } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation ,Link} from "react-router-dom";
 import { UserNav } from "@/components/common/UserNav";
 // import logo from "@/assets/logo-svg.svg"; // Option 1: If logo is imported (e.g., from assets)
+import logo from "@/assets/Group 1.svg"
 
 interface MobileNavBarProps {
     title: string;
@@ -28,11 +29,14 @@ export const MobileNavBar = ({ title, showBackButton }: MobileNavBarProps) => {
                 <div className="flex justify-between items-center">
                     {/* --- NEW: Add Logo before Nirmaan CRM --- */}
                     <div className="flex items-center gap-1"> {/* Container for logo and text */}
-                        <img
+                        {/* <img
                             src="/web-app-manifest-512x512.png" // Path to your logo in the public folder
                             alt="Nirmaan CRM Logo"
                             className="h-8 w-8" // Adjust size as needed
-                        />
+                        /> */}
+                         <Link to={"/"}>
+              <img src={logo} alt="Nirmaan CRM" width="20" height="20" />
+            </Link>
                         <h1 className="text-xl text-primary font-semibold whitespace-nowrap">Nirmaan CRM</h1>
                     </div>
                     <UserNav />

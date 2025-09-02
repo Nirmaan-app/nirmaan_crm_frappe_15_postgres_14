@@ -15,6 +15,7 @@ export const boqFormSchema = z.object({
       .optional(),
       boq_sub_status: z.string().optional(),
       boq_status: z.string().optional(), 
+           other_city: z.string().optional(), 
     
     boq_value: z.coerce
       .number({
@@ -53,6 +54,30 @@ export const boqFormSchema = z.object({
       path: ['contact'],
     });
   }
+ if (data.city === "Others" && (!data.other_city || data.other_city.trim() === "")) {
+         ctx.addIssue({
+             code: z.ZodIssueCode.custom,
+             message: "Please specify the city.",
+             path: ['other_city'],
+         });
+     }
+
+       // --- Custom validation for website URL ---
+         if (data.boq_link && data.boq_link.trim() !== "" && 
+             !data.boq_link.startsWith("http://") && !data.boq_link.startsWith("https://") && !data.boq_link.startsWith("www.")) {
+             // If it's not a valid URL starting with http/https, mark it as invalid here.
+             // We will prepend 'https://' during submission.
+             try {
+                 z.string().url().parse(`https://${data.boq_link}`);
+             } catch (e) {
+                 ctx.addIssue({
+                     code: z.ZodIssueCode.custom,
+                     message: "Please enter a valid URL (e.g., www.example.com or https://example.com).",
+                     path: ['boq_link'],
+                 });
+             }
+         }
+
 
   // --- Status-Specific Validations ---
   switch (data.boq_status) {
@@ -115,6 +140,14 @@ export const boqFormSchema = z.object({
           path: ['remarks'],
         });
       }
+      if (data.boq_status === "Partial BOQ Submitted" && (!data.boq_submission_date || data.boq_submission_date.trim() === "")) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "BOQ Submission Deadline is required for In-Progress BOQs.",
+                path: ['boq_submission_date'],
+              });
+            }
+
       break;
 
     case "Revision Pending":
