@@ -6,8 +6,11 @@ from frappe.model.document import Document
 
 
 class CRMBOQ(Document):
-	def validate(self):
+	def before_insert(self):
 		user = frappe.session.user
-		roles = frappe.get_roles(user)
-		if user != "Administrator" or "System Manager" not in roles:
+		user_doc = frappe.get_doc("CRM Users", user)
+		role_profile = user_doc.nirmaan_role_name
+		if role_profile == "Nirmaan Sales User Profile":
 			self.assigned_sales = self.owner
+		if role_profile == "Nirmaan Estimations User Profile":
+			self.assigned_estimations = self.owner

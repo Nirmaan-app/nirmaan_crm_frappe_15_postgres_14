@@ -17,7 +17,7 @@ type EditCompanyContext = { companyData: CRMCompany | null };
 type EditContactContext = { contactData: CRMContacts | null };
 type EditBoqContext = { 
   boqData: CRMPBOQ | null;
-  mode: 'details' | 'status' | 'remark' | 'attachment'|'assigned'|"assigned-esitmate"; 
+  mode: 'details' | 'status'| 'attachment'|"assigned-esitmate"; 
 
 };
 type EditTaskContext = { 
@@ -28,8 +28,11 @@ type EditTaskContext = {
 type DateRangeContext = { onConfirm: (dateRange: { from: Date; to: Date }) => void };
 type StatsDetailContext = { title: string; items: any[] };
 
+//AssignBoqContext
+type AssignBoqContext = { boqData: CRMBoq | null };
 
-
+// NEW: Dedicated context for Remark BOQ
+type RemarkBoqContext = { boqData: CRMBoq | null }; 
 
 // The state now just holds the isOpen flag and the context data
 type DialogState = {
@@ -40,7 +43,13 @@ type DialogState = {
 
    editCompany: { isOpen: boolean; context: EditCompanyContext };
    editContact: { isOpen: boolean; context: EditContactContext };
+
    editBoq: { isOpen: boolean; context: EditBoqContext };
+   // NEW: Dedicated Assign BOQ dialog state
+   assignBoq: { isOpen: boolean; context: AssignBoqContext }; 
+    // NEW: Dedicated Remark BOQ dialog state
+   remarkBoq: { isOpen: boolean; context: RemarkBoqContext };
+
    editTask: { isOpen: boolean; context: EditTaskContext };
 
    dateRangePicker: { isOpen: boolean; context: DateRangeContext };
@@ -60,7 +69,18 @@ type DialogActions = {
 
   openNewBoqDialog: (context?: NewBoqContext) => void;
   closeNewBoqDialog: () => void;
+
+    openEditBoqDialog: (context: EditBoqContext) => void;
+  closeEditBoqDialog: () => void;
+
+//Assign BOQ
+  openAssignBoqDialog: (context: AssignBoqContext) => void;  
+  closeAssignBoqDialog: () => void; 
   
+  //Remark BOQ
+ openRemarkBoqDialog: (context: RemarkBoqContext) => void; 
+  closeRemarkBoqDialog: () => void; 
+
   openNewTaskDialog: (context?: NewTaskContext) => void;
   closeNewTaskDialog: () => void;
 
@@ -69,9 +89,7 @@ type DialogActions = {
   closeEditCompanyDialog: () => void;
    openEditContactDialog: (context: EditContactContext) => void;
   closeEditContactDialog: () => void;
-   openEditBoqDialog: (context: EditBoqContext) => void;
-  closeEditBoqDialog: () => void;
-
+ 
   openEditTaskDialog: (context: EditTaskContext) => void;
   closeEditTaskDialog: () => void;
 
@@ -96,6 +114,11 @@ const initialState: DialogState = {
   editCompany: { isOpen: false, context: { companyData: null } },
   editContact: { isOpen: false, context: { contactData: null } },
   editBoq: { isOpen: false, context: { boqData: null, mode: 'details' } },
+// NEW: Initial state for Assign BOQ dialog
+  assignBoq: { isOpen: false, context: { boqData: null } }, 
+  // NEW: Initial state for Remark BOQ dialog
+  remarkBoq: { isOpen: false, context: { boqData: null } }, 
+
   editTask: { isOpen: false, context: { taskData: null, mode: 'edit' } },
 
    dateRangePicker: { isOpen: false, context: { onConfirm: () => {} } },
@@ -142,6 +165,13 @@ export const useDialogStore = create<DialogState & DialogActions>((set) => ({
 
    openEditBoqDialog: (context) => set({ editBoq: { isOpen: true, context } }),
   closeEditBoqDialog: () => set((state) => ({ editBoq: { ...state.editBoq, isOpen: false } })),
+
+    // NEW: Implement actions for Assign BOQ dialog
+  openAssignBoqDialog: (context) => set({ assignBoq: { isOpen: true, context } }),
+  closeAssignBoqDialog: () => set((state) => ({ assignBoq: { ...state.assignBoq, isOpen: false } })),
+  // NEW: Implement actions for Remark BOQ dialog
+  openRemarkBoqDialog: (context) => set({ remarkBoq: { isOpen: true, context } }),
+  closeRemarkBoqDialog: () => set((state) => ({ remarkBoq: { ...state.remarkBoq, isOpen: false } })),
 
   
   openEditTaskDialog: (context) => set({ editTask: { isOpen: true, context } }),

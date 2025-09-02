@@ -12,7 +12,8 @@ import { NewUserForm } from "@/pages/MyTeam/NewUserFormMod";
 import { DateRangePickerDialog } from "./DateRangePickerDialog";
 import { StatsDetailDialog } from "./StatsDetailDialog";
 import { UserProfileDialog } from "./UserProfileDialog"; // <-- 1. IMPORT THE NEW DIALOG
-
+import { AssignedBoqForm } from "@/pages/BOQS/forms/AssignedBoqForm";
+import { RemarkBoqForm } from "@/pages/BOQS/forms/RemarkBoqForm";   
 
 export const MainDialogs = () => {
     const {
@@ -27,9 +28,13 @@ export const MainDialogs = () => {
 
         dateRangePicker, closeDateRangePickerDialog,
         statsDetail, closeStatsDetailDialog,
-        userProfile,closeUserProfileDialog,
+        userProfile, closeUserProfileDialog,
 
-        newUser, closeNewUserDialog
+        newUser, closeNewUserDialog,
+        ///NEW: Destructure the new dialog state and close action
+        assignBoq, closeAssignBoqDialog,
+         // NEW: Destructure the new dialog state and close action
+        remarkBoq, closeRemarkBoqDialog,
 
     } = useDialogStore();
 
@@ -38,8 +43,8 @@ export const MainDialogs = () => {
         const mode = editBoq.context.mode;
         if (mode === 'details') return 'Edit BOQ Details';
         if (mode === 'status') return 'Update Status';
-        if (mode === 'remark') return 'Add New Remark';
-        if (mode === 'assigned') return 'Edit Assigned';
+        // if (mode === 'remark') return 'Add New Remark';
+        // if (mode === 'assigned') return 'Edit Assigned';
 
 
         return 'Edit BOQ';
@@ -161,7 +166,7 @@ export const MainDialogs = () => {
                 className="max-w-lg"
 
             >
-            <UserProfileDialog />
+                <UserProfileDialog />
 
             </ReusableFormDialog>
 
@@ -172,6 +177,26 @@ export const MainDialogs = () => {
             >
                 <NewUserForm onSuccess={closeNewUserDialog} />
             </ReusableFormDialog>
+
+            <ReusableFormDialog
+                isOpen={assignBoq.isOpen}
+                onClose={closeAssignBoqDialog}
+                title="Assign Sales/Estimation for BOQ"
+                className="max-w-lg"
+            >
+                <AssignedBoqForm     
+                />
+            </ReusableFormDialog>
+             <ReusableFormDialog
+                isOpen={remarkBoq.isOpen}
+                onClose={closeAssignBoqDialog}
+                title="Additional Remarks for BOQ"
+                className="max-w-lg"
+            >
+                <RemarkBoqForm     
+                />
+            </ReusableFormDialog>
+
 
 
 

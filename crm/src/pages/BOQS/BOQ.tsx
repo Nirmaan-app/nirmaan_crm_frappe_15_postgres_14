@@ -25,7 +25,7 @@ import { toast } from "@/hooks/use-toast";
 
 // --- THIS IS THE UPDATED HEADER COMPONENT ---
 const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
-      const { openEditBoqDialog } = useDialogStore();
+      const { openEditBoqDialog,openAssignBoqDialog } = useDialogStore();
     const { updateDoc, loading } = useFrappeUpdateDoc();
     const { mutate } = useSWRConfig();
     const getBoqStatusClass = useStatusStyles("boq");
@@ -107,7 +107,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                 </Button>
                 {role=="Nirmaan Admin User Profile"&&(
  <Button
-                    onClick={() => openEditBoqDialog({ boqData: boq, mode: 'assigned' })}
+                    onClick={() => openAssignBoqDialog({ boqData: boq})}
                     className="bg-destructive hover:bg-destructive/90 mt-4" // Added margin for spacing
                 >
                     Edit Assigned
@@ -194,7 +194,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
 
 // --- SUB-COMPONENT 3: Remarks ---
 const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) => {
-    const { openEditBoqDialog } = useDialogStore();
+    const { openRemarkBoqDialog } = useDialogStore();
 
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
@@ -205,13 +205,13 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
                     size="sm" 
                     className="border-destructive text-destructive" 
                     // This is a partial BOQ object, which is okay for this specific mode
-                    onClick={() => openEditBoqDialog({ boqData:boqId as CRMBOQ, mode: 'remark' })}
+                    onClick={() => openRemarkBoqDialog({ boqData:boqId})}
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Remarks
                 </Button>
             </div>
-            <div className="space-y-3">
+            <div className="max-h-[275px] overflow-y-auto pr-2 mr-2 space-y-2">
                 {/* *** THE FIX IS HERE: Add the header row *** */}
                 {remarks.length > 0 && (
                     <div className="grid grid-cols-2 gap-x-4 text-sm font-semibold px-2 text-muted-foreground border-b pb-2">
@@ -228,6 +228,8 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
                             <span>{remark.content}</span>
                         </div>
                         {/* We don't need a separator if the header provides the line */}
+                  {index < remarks.length - 1 && <Separator />}
+
                     </React.Fragment>
                 ))}
                 
