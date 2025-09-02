@@ -114,7 +114,7 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
         const today = new Date().toISOString().slice(0, 10);
         let statusFilter;
         switch (variant) {
-            case 'pending': statusFilter = ['!=', 'Completed']; break;
+            case 'pending': statusFilter = ['=', 'Scheduled']; break;
             case 'completed': statusFilter = ['=', 'Completed']; break;
             default: statusFilter = ['!=', '']; break;
         }

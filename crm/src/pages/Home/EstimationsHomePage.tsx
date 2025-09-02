@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import React, { useState, useMemo } from 'react';
 import { Plus, Search, ChevronRight } from "lucide-react";
@@ -57,7 +57,7 @@ const PendingBOQs = () => {
                     // Mobile: Card with border | Desktop: Row with bottom border
                     <div key={boq.name} className="flex justify-between items-start p-3 border rounded-lg md:grid md:grid-cols-[2fr,1fr,1fr,1fr,1fr] md:items-center md:p-0 md:py-3 md:px-2 md:border-none md:border-b md:rounded-none">
                         <div className="flex flex-col">
-                            <button onClick={() => navigate(`/boqs/boq?id=${boq.name}`)} className="text-primary font-semibold hover:underline text-left">{boq.boq_name}</button>
+                            <Link to={`/boqs/boq?id=${boq.name}`} className="text-primary font-semibold hover:underline text-left">{boq.boq_name}</Link>
                             <p className="text-xs text-muted-foreground">Created By: {boq.owner}</p>
                             <p className="text-xs text-muted-foreground md:hidden mt-1">
                                 {boq.boq_submission_date ? format(new Date(boq.boq_submission_date), 'dd-MMM-yyyy') : '--'}
