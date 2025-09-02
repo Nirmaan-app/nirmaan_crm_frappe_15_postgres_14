@@ -1,3 +1,4 @@
+
 export const taskTypeOptions = [{ label: "In Person Meeting", value: "In Person Meeting" }, { label: "Call", value: "Call" }, { label: "Virtual Meeting", value: "Virtual Meeting" }, { label: "Follow-up", value: "Follow-up" }, { label: "Submit BOQ", value: "Submit BOQ" }, { label: "Follow-up BOQ", value: "Follow-up BOQ" }];
 
 export const BOQsubStatusOptions = [
@@ -21,3 +22,31 @@ export const BOQmainStatusOptions = [
   { label: "Dropped", value: "Dropped" },
   { label: "Hold", value: "Hold" },
 ];
+
+
+  
+export const LocationOptions = [
+  { label: "Ahmedabad", value: "Ahmedabad" },
+  { label: "Bengaluru", value: "Bengaluru" },
+  { label: "Chennai", value: "Chennai" },
+  { label: "Delhi", value: "Delhi" },
+  { label: "Gurgaon", value: "Gurgaon" },
+  { label: "Hyderabad", value: "Hyderabad" },
+  { label: "Indore", value: "Indore" },
+  { label: "Jaipur", value: "Jaipur" },
+  { label: "Kanpur", value: "Kanpur" },
+  { label: "Kochi", value: "Kochi" },
+  { label: "Kolkata", value: "Kolkata" },
+  { label: "Lucknow", value: "Lucknow" },
+  { label: "Mumbai", value: "Mumbai" },
+  { label: "Nagpur", value: "Nagpur" },
+  { label: "Noida", value: "Noida" },
+  { label: "Patna", value: "Patna" },
+  { label: "Pune", value: "Pune" },
+  { label: "Surat", value: "Surat" },
+  { label: "Thane", value: "Thane" },
+  { label: "Vadodara", value: "Vadodara" },
+  { label: "Visakhapatnam", value: "Visakhapatnam" },
+  {label:"Others",value:"Others"}
+];
+

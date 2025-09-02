@@ -33,7 +33,7 @@ export const NewCompanyTypeForm: React.FC<NewCompanyTypeFormProps> = ({ onSucces
       try {
         // 2. PAYLOAD FIX: Frappe expects the field name from the doctype.
         await createDoc("CRM Company Type", {
-            name: values.name
+            company_type_name: values.name
         });
         
         await mutate("CRM Company Type");

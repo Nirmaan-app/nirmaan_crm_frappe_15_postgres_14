@@ -266,7 +266,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 <DetailItem label="Package" value={boq?.boq_type || 'N/A'} />
                 <DetailItem label="City" value={boq?.city || 'N/A'} />
 
-                <DetailItem label="Submission Deadline" value={formatDate(boq?.boq_submission_date)} />
+                <DetailItem label="Submission Deadline" value={formatDate(boq?.boq_submission_date)||"--"} />
                     <DetailItem label="Recevied on" value={formatDate(boq?.creation)} />
                 <DetailItem label="Created by" value={boq?.owner.split('@')[0]}/>
                 
@@ -283,15 +283,14 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 <DetailItem label="Location" value={boq?.city || 'N/A'} />
             </div>
 
-            <Separator />
+            {/* <Separator />
 
-            {/* Attachments Section */}
             <div className="flex justify-between items-center">
                 <DetailItem label="Additional Attachments" value="n/a" />
                 <Button variant="outline" size="sm" className="text-destructive border-destructive">
                     <Plus className="w-4 h-4 mr-2" />ADD ATTACHMENTS
                 </Button>
-            </div>
+            </div> */}
         </div>
     );
 };

@@ -14,9 +14,13 @@ import { CRMCompanyType } from "@/types/NirmaanCRM/CRMCompanyType";
 import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 import { NewCompanyTypeForm } from "./NewCompanyTypeForm";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { LocationOptions } from "@/constants/dropdownData";
 
-import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
+import { ReusableCompanyTypeDialog } from "@/components/ui/ReusableDialogs";
 
+
+import { useViewport } from "@/hooks/useViewPort"; // --- NEW: Import useViewport ---
+import { Plus } from "lucide-react"; // --- NEW: Import Plus icon ---
 
 // Zod Schema based on your Frappe Doctype and UI Mockup
 const companyFormSchema = z.object({
@@ -25,10 +29,37 @@ company_name: z.string()
     .regex(/^[a-zA-Z0-9\s-]/, "Only letters, numbers, spaces, and hyphens are allowed."),
 
   company_city: z.string().min(1, "Location is required"),
+   other_company_city: z.string().optional(), 
   company_type: z.string().min(1, "Company type is required"),
-   company_website: z.string().url("Please enter a valid URL").optional().or(z.literal('')),
+   company_website: z.string().optional(),
   assigned_sales: z.string().optional()
+}).superRefine((data, ctx) => {
+    // --- Custom validation for 'Other' city option ---
+    if (data.company_city === "Others" && (!data.other_company_city || data.other_company_city.trim() === "")) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Please specify the city.",
+            path: ['other_company_city'],
+        });
+    }
+
+    // --- Custom validation for website URL ---
+    if (data.company_website && data.company_website.trim() !== "" && 
+        !data.company_website.startsWith("http://") && !data.company_website.startsWith("https://") && !data.company_website.startsWith("www.")) {
+        // If it's not a valid URL starting with http/https, mark it as invalid here.
+        // We will prepend 'https://' during submission.
+        try {
+            z.string().url().parse(`https://${data.company_website}`);
+        } catch (e) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Please enter a valid URL (e.g., www.example.com or https://example.com).",
+                path: ['company_website'],
+            });
+        }
+    }
 });
+
 
 type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
@@ -43,12 +74,13 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
   const { createDoc, loading:createLoading } = useFrappeCreateDoc();
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
   const { mutate } = useSWRConfig();
+  const {isMobile}=useViewport()
 
  const [isCompanyTypeDialogOpen, setCompanyTypeDialogOpen] = useState(false);
 
     const toggleCompanyTypeDialog = useCallback(() => {
         setCompanyTypeDialogOpen((prevState) => !prevState);
-    }, [isCompanyTypeDialogOpen]);
+    }, []);
 
 // Add this hook to get all company names for validation
 const { data: allCompanies } = useFrappeGetDocList("CRM Company", {
@@ -66,60 +98,42 @@ const { data: allCompanies } = useFrappeGetDocList("CRM Company", {
   );
 
 
-  //  // Your static options are perfectly fine
-  //   const companyTypeOptions = [
-  //       { label: "Architect", value: "Architect" },
-  //       { label: "Client", value: "Client" },
-  //       { label: "Contractor", value: "Contractor" },
-  //       { label: "PMC", value: "PMC" },
-  //   ];
-
-  // CORRECTED: Added location options as requested
-  
-  const companyLocationOptions = useMemo(() => [
-    { label: "Bengaluru", value: "Bengaluru" },
-    { label: "Chennai", value: "Chennai" },
-    { label: "Hyderabad", value: "Hyderabad" },
-    { label: "Mumbai", value: "Mumbai" },
-    // Add more cities as needed
-  ], []);
-
-
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companyFormSchema),
     defaultValues: {
       company_name: "",
       company_city: "",
+            other_company_city: "", 
       company_type: "",
       company_website: "",
       assigned_sales: "",
     },
   });
 
+   const selectedCompanyCity = form.watch("company_city"); 
+
     // NEW: Effect to pre-fill the form in edit mode
   useEffect(() => {
     if (isEditMode && initialData) {
+            const isStandardCity = LocationOptions.some(opt => opt.value === initialData.company_city);
+ 
       form.reset({
         company_name: initialData.company_name || "",
-        company_city: initialData.company_city || "",
+              company_city: isStandardCity ? initialData.company_city : "Others", // If not standard, set to "Others"
+        other_company_city: isStandardCity ? "" : initialData.company_city, // If not standard, fill the 'other' field
+
         company_type: initialData.company_type || "",
         company_website: initialData.company_website || "",
         assigned_sales: initialData.assigned_sales || "",
       });
+    }else {
+        // Reset default for new forms
+        form.reset({
+            company_name: "", company_city: "", other_company_city: "",
+            company_type: "", company_website: "", assigned_sales: "",
+        });
     }
   }, [isEditMode, initialData, form]);
-
-
-//   const onSubmit = async (values: CompanyFormValues) => {
-//     try {
-//       const res = await createDoc("CRM Company", values);
-//       await mutate("CRM Company");
-//       toast({ title: "Success!", description: `Company "${res.company_name}" created.` });
-//       onSuccess?.();
-//     } catch (error) {
-//       toast({ title: "Error", description: (error as Error).message, variant: "destructive" });
-//     }
-//   };
 
 const onSubmit = async (values: CompanyFormValues) => {
     try {
@@ -137,16 +151,34 @@ const onSubmit = async (values: CompanyFormValues) => {
           });
           return; // Stop the submission
       }
-      //  const website: values?.company_website && (!values.company_website.startsWith("https://") ? `https://${values.company_website}` : values.company_website)
+     
+      const dataToSubmit = { ...values };
+      
+      // 2. City logic: If "Others" is selected, use the value from 'other_company_city'
+      if (dataToSubmit.company_city === "Others") {
+          dataToSubmit.company_city = dataToSubmit.other_company_city?.trim() || "";
+      }
+      // Remove the temporary other_company_city field from the payload
+      delete dataToSubmit.other_company_city;
+
+
+      // 3. Website URL formatting logic
+      if (dataToSubmit.company_website && dataToSubmit.company_website.trim() !== "") {
+          let formattedWebsite = dataToSubmit.company_website.trim();
+          if (!formattedWebsite.startsWith("http://") && !formattedWebsite.startsWith("https://")) {
+              formattedWebsite = `https://${formattedWebsite}`;
+          }
+          dataToSubmit.company_website = formattedWebsite;
+      }
 
       if (isEditMode) {
         // --- UPDATE LOGIC ---
-        await updateDoc("CRM Company", initialData.name, values);
+        await updateDoc("CRM Company", initialData.name, dataToSubmit);
         await mutate(`Company/${initialData.name}`); // Mutate specific doc
         toast({ title: "Success!", description: "Company updated." });
       } else {
         // --- CREATE LOGIC ---
-        const res = await createDoc("CRM Company", values);
+        const res = await createDoc("CRM Company", dataToSubmit);
         toast({ title: "Success!", description: `Company "${res.company_name}" created.` });
       }
       await mutate( key => typeof key === 'string' && key.startsWith('all-companies-')); // Mutate the list
@@ -176,29 +208,27 @@ const onSubmit = async (values: CompanyFormValues) => {
             </FormItem>
           )}
         />
-        {/* <FormField
+      
+          <FormField
           control={form.control}
           name="company_city"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Location</FormLabel>
-              <FormControl><Input placeholder="e.g. Bengaluru" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
-         <FormField
-          control={form.control}
-          name="company_city"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Location<sup>*</sup></FormLabel>
+              <FormLabel>City<sup>*</sup></FormLabel>
               <FormControl>
                 <ReactSelect
-                  options={companyLocationOptions}
-                  value={companyLocationOptions.find(c => c.value === field.value)}
-                  onChange={val => field.onChange(val?.value)}
-                  placeholder="Select Type"
+                  options={LocationOptions} // Using the imported LocationOptions
+                  value={LocationOptions.find(c => c.value === field.value)}
+                  onChange={val => {
+                    field.onChange(val?.value);
+                    // Clear 'other_company_city' if "Others" is deselected
+                    if (val?.value !== "Others") {
+                        form.setValue("other_company_city", "");
+                    }
+                  }}
+                  placeholder="Select City"
+                  menuPosition={'auto'}
+             
                 />
               </FormControl>
               <FormMessage />
@@ -206,44 +236,61 @@ const onSubmit = async (values: CompanyFormValues) => {
           )}
         />
 
-        {/* <FormField
-          control={form.control}
-          name="company_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Company Type<sup>*</sup></FormLabel>
-              <FormControl>
-                <ReactSelect
-                  options={companyTypeOptions}
-                  value={companyTypeOptions.find(c => c.value === field.value)}
-                  onChange={val => field.onChange(val?.value)}
-                  placeholder="Select Type"
-                  isOptionDisabled={(option) => option.value === field.value}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
-         <FormField
+         {selectedCompanyCity === "Others" && (
+            <FormField
+                control={form.control}
+                name="other_company_city"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Specify City<sup>*</sup></FormLabel>
+                        <FormControl>
+                            <Input placeholder="e.g. New City Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+        )}
+
+
+         
+
+           <FormField
             control={form.control}
             name="company_type"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Company Type<sup>*</sup></FormLabel>
                 <FormControl>
-                  <CustomSelect
+                 <CustomSelect
                     options={companyTypeOptions}
                     value={companyTypeOptions.find(c => c.value === field.value)}
                     onChange={val => field.onChange(val?.value)}
                     placeholder="Select Type"
                     isOptionDisabled={(option) => option.value === field.value}
                     // Props for the "Add New" button
-                    // onAddItemClick={toggleCompanyTypeDialog}
-                    // addButtonLabel="Add New Company Type"
+                    
+                 {...(!isMobile && {
+                        onAddItemClick: toggleCompanyTypeDialog,
+                        addButtonLabel: "Add New Company Type",
+                    })}
+
+                     menuPosition={'auto'}
+                    
                   />
                 </FormControl>
                 <FormMessage />
+                {isMobile && (
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2 w-full border-dashed"
+                        onClick={toggleCompanyTypeDialog}
+                    >
+                        <Plus className="h-4 w-4 mr-2" /> Add New Company Type
+                    </Button>
+                )}
               </FormItem>
             )}
           />
@@ -264,6 +311,7 @@ const onSubmit = async (values: CompanyFormValues) => {
                                     isLoading={usersLoading}
                                     className="text-sm"
                                     menuPosition={'auto'}
+                                    
                                     isOptionDisabled={(option) => option.value === field.value}
                                 />
                             </FormControl>
@@ -295,283 +343,20 @@ const onSubmit = async (values: CompanyFormValues) => {
         </div>
       </form>
     </Form>
-    <ReusableAlertDialog
+    <ReusableCompanyTypeDialog
         open={isCompanyTypeDialogOpen}
         onOpenChange={toggleCompanyTypeDialog}
         title="Add New Company Type"
+         modal={true}
+  className="z-[9999]"
         // We pass the NewCompanyTypeForm as a child
         
       >
         <NewCompanyTypeForm 
             onSuccess={toggleCompanyTypeDialog} 
         />
-      </ReusableAlertDialog>
+      </ReusableCompanyTypeDialog>
 
     </>
   );
 };
-
-// import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-// import { Button } from "@/components/ui/button";
-// import { CustomSelect } from "@/components/ui/custom-select";
-// import {
-//     Form,
-//     FormControl,
-//     FormField,
-//     FormItem,
-//     FormLabel,
-//     FormMessage,
-// } from "@/components/ui/form";
-// import { Input } from "@/components/ui/input";
-// import { toast } from "@/hooks/use-toast";
-// import { useViewport } from "@/hooks/useViewPort";
-// import { CRMCompanyType } from "@/types/NirmaanCRM/CRMCompanyType";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import { useFrappeCreateDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
-// import { useCallback, useMemo, useState } from "react";
-// import { Control, FieldValues, useController, useForm } from "react-hook-form";
-// import { useNavigate } from "react-router-dom";
-// import ReactSelect from 'react-select';
-// import * as z from "zod";
-// import NewCompanyTypeForm from "./NewCompanyTypeForm";
-
-// const companyFormSchema = z.object({
-//     company_name: z
-//         .string({
-//             required_error: "Required!"
-//         })
-//         .min(3, {
-//             message: "Minimum 3 characters required!",
-//         }),
-//     company_location: z.string().optional(),
-//     location: z.string().optional(),
-//     company_website : z.string().optional(),
-//     industry : z.string().optional(),
-// });
-
-// type CompanyFormValues = z.infer<typeof companyFormSchema>;
-
-// export const NewCompanyForm = () => {
-
-//     const navigate = useNavigate()
-//     const {mutate} = useSWRConfig()
-//     const {isMobile} = useViewport()
-//     const [companyTypeDialogOpen, setCompanyTypeDialogOpen] = useState(false);
-
-//     const toggleCompanyTypeDialog = useCallback(() => {
-//         setCompanyTypeDialogOpen((prevState) => !prevState);
-//     }, [companyTypeDialogOpen]);
-
-//     const {createDoc , loading: createLoading} = useFrappeCreateDoc()
-
-//     const {data : companyTypesList, isLoading: companyTypesListLoading} = useFrappeGetDocList<CRMCompanyType>("CRM Company Type", {
-//         fields: ["*"],
-//         limit: 1000
-//     }, "CRM Company Type")
-
-//     const form = useForm<CompanyFormValues>({
-//         resolver: zodResolver(companyFormSchema),
-//         defaultValues: {},
-//         mode: "onBlur",
-//     });
-
-//     const onSubmit = async (values: CompanyFormValues) => {
-//         try {
-//             const isValid = await form.trigger()
-//             if(isValid) {
-//                 const res = await createDoc("CRM Company", {
-//                     company_name: values.company_name,
-//                     company_location: values.company_location === "Other" ? values.location : values.company_location,
-//                     company_website: values?.company_website && (!values.company_website.startsWith("https://") ? `https://${values.company_website}` : values.company_website),
-//                     industry: values.industry,
-//                 })
-//                 await mutate("CRM Company")
-
-//                 navigate(-1)
-
-//                 toast({
-//                     title: "Success!",
-//                     description: `Company ${res.company_name} created successfully!`,
-//                     variant: "success"
-//                 })
-//             }
-//         } catch (error) {
-//             console.log("error", error)
-//             toast({
-//                 title: "Failed!",
-//                 description: error?.message || "Failed to create company!",
-//                 variant: "destructive"
-//             })
-//         }
-//     }
-
-//     const companyTypeOptions = useMemo(() => companyTypesList?.map(com => ({label : com?.name, value : com?.name})) || [], [companyTypesList])
-
-//     const companyLocationOptions = useMemo(() => [
-//         { label: "Bangalore", value: "Bangalore" },
-//         { label: "Chennai", value: "Chennai" },
-//         { label: "Hyderabad", value: "Hyderabad" },
-//         { label: "Kolkata", value: "Kolkata" },
-//         { label: "Mumbai", value: "Mumbai" },
-//         { label: "Pune", value: "Pune" },
-//         {label: "Delhi", value: "Delhi"},
-//         {label: "Ahmedabad", value: "Ahmedabad"},
-//         {label: "Gurgaon", value: "Gurgaon"},
-//         {label: "Other", value: "Other"},
-//     ], []);
-
-//     const companyLocation = form.watch("company_location");
-
-//     if(companyTypesListLoading) {
-//         return <div>Loading...</div>
-//     }
-
-//     return (
-//         <div className={`w-full relative ${!isMobile ? "p-4 border cardBorder shadow rounded-lg" : ""}`}>
-//              {!isMobile && (
-//                 <h2 className="text-center font-bold">Add New Company</h2>
-//             )}
-//             <Form {...form}>
-//                 <form
-//                     onSubmit={(event) => {
-//                         event.stopPropagation();
-//                         return form.handleSubmit(onSubmit)(event);
-//                     }}
-//                     className="space-y-6 py-4 mb-4"
-//                 >
-//                     <FormField
-//                         control={form.control}
-//                         name="company_name"
-//                         render={({ field }) => (
-//                             <FormItem>
-//                                 <FormLabel className="flex">Company Name<sup className="text-sm text-destructive">*</sup></FormLabel>
-//                                 <FormControl>
-//                                     <Input placeholder="Enter Company Name" {...field} />
-//                                 </FormControl>
-//                                 <FormMessage />
-//                             </FormItem>
-//                         )}
-//                     />
-//                     <FormField
-//                         control={form.control}
-//                         name="company_location"
-//                         render={({ field }) => (
-//                             <FormItem>
-//                                 <FormLabel className="flex">Location</FormLabel>
-//                                 <FormControl>
-//                                     <ReactSelect className="text-sm text-muted-foreground" placeholder="Select Location" options={companyLocationOptions} onBlur={field.onBlur} name={field.name} onChange={(e) => field.onChange(e.value)} />
-//                                 </FormControl>
-//                                 <FormMessage />
-//                             </FormItem>
-//                         )}
-//                     />
-
-//                     {companyLocation === "Other" && (
-//                         <FormField
-//                             control={form.control}
-//                             name="location"
-//                             render={({ field }) => (
-//                                 <FormItem>
-//                                     <FormControl>
-//                                         <Input placeholder="Enter Location manually" {...field} />
-//                                     </FormControl>
-//                                     <FormMessage />
-//                                 </FormItem>
-//                             )}
-//                         />
-//                     )}
-
-//                     <FormField
-//                         control={form.control}
-//                         name="company_website"
-//                         render={({ field }) => (
-//                             <FormItem>
-//                                 <FormLabel>Website</FormLabel>
-//                                 <FormControl>
-//                                     <WebsiteInput control={form.control} name="company_website" />
-//                                 </FormControl>
-//                                 <FormMessage />
-//                             </FormItem>
-//                         )}
-//                     />
-//                     <FormField
-//                         control={form.control}
-//                         name="industry"
-//                         render={({ field }) => (
-//                             <FormItem>
-//                                 <FormLabel className="flex">Company Type</FormLabel>
-//                                 <FormControl>
-//                                 <CustomSelect 
-//                                     options={companyTypeOptions}
-//                                     onAddItemClick={toggleCompanyTypeDialog}
-//                                     addButtonLabel="Add New Company Type"
-//                                     placeholder="Select Company Type"
-//                                     onChange={(e) => field.onChange(e?.value)}
-//                                     value={companyTypeOptions.find(opt => opt.value === field.value)}
-//                                     // isSearchable
-//                                     // menuPortalTarget={document.body}
-//                                     // menuPosition="absolute"
-//                                     // styles={{
-//                                     //     menuPortal: base => ({ ...base, zIndex: 9999 }),
-//                                     // }}
-//                                     />
-//                                 </FormControl>
-//                                 <FormMessage />
-//                             </FormItem>
-//                         )}
-//                     />
-//                 </form>
-//             </Form>
-//             <AlertDialog open={companyTypeDialogOpen} onOpenChange={toggleCompanyTypeDialog}>
-//                 <AlertDialogContent>
-//                     <AlertDialogHeader className="text-start">
-//                         <AlertDialogTitle className="text-destructive text-center">Add New Company Type</AlertDialogTitle>
-//                         <AlertDialogDescription asChild>
-//                             <NewCompanyTypeForm toggleNewCompanyTypeDialog={toggleCompanyTypeDialog} />
-//                         </AlertDialogDescription>
-//                     </AlertDialogHeader>
-//                 </AlertDialogContent>
-//             </AlertDialog>
-//             <div className="sticky bottom-0 flex flex-col gap-2">
-//                 <Button onClick={() => onSubmit(form.getValues())}>Next</Button>
-//                 <Button onClick={() => {
-//                     if(isMobile) {
-//                         navigate(-1)
-//                     } else {
-//                         navigate("/prospects?tab=company")
-//                     }
-//                 }} variant={"outline"} className="text-destructive border-destructive">Cancel</Button>
-//             </div>
-//         </div>
-//     )
-// }
-
-// interface WebsiteInputProps<TFieldValues extends FieldValues = FieldValues> {
-//     control: Control<TFieldValues>;
-//     name: string;
-//   }
-
-// const WebsiteInput = <TFieldValues extends FieldValues = FieldValues>({ control, name } : WebsiteInputProps<TFieldValues>) => {
-//     const { field } = useController({ control, name });
-  
-//     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
-//       let value = e.target.value;
-//       field.onChange(value);
-//     };
-  
-//     return (
-//       <div className="relative w-full">
-//         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 font-semibold select-none">
-//           https://
-//         </span>
-  
-//         <Input
-//           type="text"
-//           className="pl-[80px]"
-//           placeholder="Enter Company Website"
-//           value={field.value}
-//           onChange={handleChange}
-//         />
-//       </div>
-//     );
-//   };
