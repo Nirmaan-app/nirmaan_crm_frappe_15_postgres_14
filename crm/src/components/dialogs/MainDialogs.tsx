@@ -158,6 +158,8 @@ export const MainDialogs = () => {
                 isOpen={userProfile.isOpen}
                 onClose={closeUserProfileDialog}
                 title="User Profile" // The title is handled inside the component itself
+                className="max-w-lg"
+
             >
             <UserProfileDialog />
 

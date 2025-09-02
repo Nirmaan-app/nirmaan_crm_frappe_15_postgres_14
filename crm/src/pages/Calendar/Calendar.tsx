@@ -13,6 +13,7 @@ import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useViewport } from "@/hooks/useViewPort"; // 1. IMPORT THE HOOK
 import { TaskStatusIcon } from "@/components/ui/TaskStatusIcon";
+import {taskClick} from "@/utils/LinkNavigate"
 
 export const TaskCalendar = () => {
   const { isMobile } = useViewport(); // 2. GET THE MOBILE STATE
@@ -297,6 +298,8 @@ export const TaskCalendar = () => {
 const TaskList = ({ tasks, selectedDate, hasTasksOnAnyDate }) => {
   const navigate = useNavigate();
   const { openNewTaskDialog } = useDialogStore();
+  const { isMobile } = useViewport(); // 2. GET THE MOBILE STATE
+
 
   const title = selectedDate ? `Tasks for ${format(new Date(selectedDate), 'MMM dd')}` : 'Tasks';
 
@@ -317,7 +320,7 @@ const TaskList = ({ tasks, selectedDate, hasTasksOnAnyDate }) => {
            
              <div
                     className="flex justify-between items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-md"
-                    onClick={() => navigate(`/tasks/task?id=${task.name}`)}
+                    onClick={() => navigate(`${isMobile?`/tasks/task?id=${task.name}`:`/tasks?id=${task.name}`}`)}
                   >
                     
                     <span>
