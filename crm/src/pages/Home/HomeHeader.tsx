@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+import { GlobalSearchInput } from "@/components/common/GlobalSearchInput";
 export const HomeHeader = () => {
     const navigate = useNavigate();
     const fullName = localStorage.getItem('fullName');
@@ -22,8 +22,9 @@ export const HomeHeader = () => {
                 </Button>
             </div>
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input placeholder="Search Names, Company, Project, etc..." className="pl-10 h-12" />
+                 <GlobalSearchInput className="flex-1" /> 
+                {/* <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input placeholder="Search Names, Company, Project, etc..." className="pl-10 h-12" /> */}
             </div>
         </div>
     );
