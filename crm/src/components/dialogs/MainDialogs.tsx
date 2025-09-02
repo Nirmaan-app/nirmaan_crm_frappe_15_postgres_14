@@ -7,7 +7,7 @@ import { EditBoqForm } from "@/pages/BOQS/EditBoqForm"
 import { NewTaskForm } from "@/pages/Tasks/NewTaskForm";
 import { NewContactForm } from "@/pages/Contacts/NewContactForm";
 import { EditTaskForm } from "@/pages/Tasks/EditTaskForm";
-import { NewUserForm } from "@/pages/MyTeam/NewUserForm";
+import { NewUserForm } from "@/pages/MyTeam/NewUserFormMod";
 // --- NEW DIALOG IMPORTS ---
 import { DateRangePickerDialog } from "./DateRangePickerDialog";
 import { StatsDetailDialog } from "./StatsDetailDialog";
