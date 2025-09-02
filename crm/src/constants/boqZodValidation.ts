@@ -34,8 +34,7 @@ export const boqFormSchema = z.object({
   company: z.string().min(1, "Company is required"),
   contact: z.string().min(1, "Contact is required"),
   remarks: z.string().optional(),
-  assigned_sales: z.string().optional(),
-  assigned_estimations:z.string().optional()
+ 
   
 
 }).superRefine((data, ctx) => {
@@ -236,3 +235,35 @@ export const boqFormSchema = z.object({
       break;
   }
 });
+
+
+
+// src/constants/boqZodValidation.ts
+export const assignedBoqSchema = z.object({
+  assigned_sales: z.string().optional(), // Can be empty if unassigned
+  assigned_estimations: z.string().optional(), // Can be empty if unassigned
+});
+
+// src/constants/boqZodValidation.ts
+export type AssignedBoqFormValues = z.infer<typeof assignedBoqSchema>;
+
+// --- Updated: Schema for RemarkBoqForm ---
+export const remarkBoqSchema = z.object({
+  // Title: Optional, but if provided, must not be empty or just whitespace.
+  // We use preprocess to convert empty strings or strings that become empty after trimming to undefined.
+  title:z.string()
+    .min(1, { message: "Remark content cannot be empty." })
+    .trim() // Ensure content is not just whitespace
+    .refine(val => val.length > 0, { // Additional check after trim for robustness
+      message: "Remark content cannot be empty."
+    }),
+  // Content: Required, must not be empty or just whitespace.
+  content: z.string()
+    .min(1, { message: "Remark content cannot be empty." })
+    .trim() // Ensure content is not just whitespace
+    .refine(val => val.length > 0, { // Additional check after trim for robustness
+      message: "Remark content cannot be empty."
+    }),
+});
+export type RemarkBoqFormValues = z.infer<typeof remarkBoqSchema>;
+
