@@ -14,6 +14,7 @@ import ReactSelect from 'react-select';
 import { useMemo, useEffect } from "react";
 import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 import { BOQmainStatusOptions,BOQsubStatusOptions } from "@/constants/dropdownData";
+import { LocationOptions } from "@/constants/dropdownData";
 
 // Schema based on your Frappe Doctype and UI Mockup
 const boqFormSchema = z.object({
@@ -30,6 +31,7 @@ const boqFormSchema = z.object({
       .optional(),
       boq_sub_status: z.string().optional(),
       boq_status: z.string().optional(), 
+       other_city: z.string().optional(), 
     
     boq_value: z.coerce
       .number({
@@ -68,6 +70,29 @@ const boqFormSchema = z.object({
       path: ['contact'],
     });
   }
+ if (data.city === "Others" && (!data.other_city || data.other_city.trim() === "")) {
+         ctx.addIssue({
+             code: z.ZodIssueCode.custom,
+             message: "Please specify the city.",
+             path: ['other_city'],
+         });
+     }
+
+       // --- Custom validation for website URL ---
+         if (data.boq_link && data.boq_link.trim() !== "" && 
+             !data.boq_link.startsWith("http://") && !data.boq_link.startsWith("https://") && !data.boq_link.startsWith("www.")) {
+             // If it's not a valid URL starting with http/https, mark it as invalid here.
+             // We will prepend 'https://' during submission.
+             try {
+                 z.string().url().parse(`https://${data.boq_link}`);
+             } catch (e) {
+                 ctx.addIssue({
+                     code: z.ZodIssueCode.custom,
+                     message: "Please enter a valid URL (e.g., www.example.com or https://example.com).",
+                     path: ['boq_link'],
+                 });
+             }
+         }
 
   // --- Status-Specific Validations ---
   switch (data.boq_status) {
@@ -130,6 +155,15 @@ const boqFormSchema = z.object({
           path: ['remarks'],
         });
       }
+       if (data.boq_status === "Partial BOQ Submitted" && (!data.boq_submission_date || data.boq_submission_date.trim() === "")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "BOQ Submission Deadline is required for In-Progress BOQs.",
+          path: ['boq_submission_date'],
+        });
+      }
+      
+
       break;
 
     case "Revision Pending":
@@ -249,6 +283,9 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
    const selectedCompany = form.watch("company");
   const selectedBoqStatus = form.watch("boq_status");
    const selectedBoqLink = form.watch("boq_link")
+   const selectedCity = form.watch("city"); 
+   
+
 
   // --- CASCADING DATA FETCHING ---
   // 1. Fetch the contact if a contactId was passed. We need this to find its companyId.
@@ -278,7 +315,10 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       company: companyId || "",
       contact: contactIdFromContext || "",
       boq_name: "", boq_size: "", boq_type: "", boq_value: "",
-      boq_submission_date: "", boq_link: "", city: "", remarks: "", assigned_sales: "",assigned_estimations:"",
+      boq_submission_date: "", boq_link: "", 
+      city:
+      
+      "", remarks: "", assigned_sales: "",assigned_estimations:"",
        boq_status: "New",
         boq_sub_status: "",
     });
@@ -295,7 +335,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       }
 
       // Clear boq_submission_date if status doesn't require it (X)
-      const deadlineNotRequiredStatuses = ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted", "Negotiation", "Won", "Lost", "Dropped", "Hold"];
+      const deadlineNotRequiredStatuses = ["BOQ Submitted", "Revision Submitted", "Negotiation", "Won", "Lost", "Dropped", "Hold"];
       if (deadlineNotRequiredStatuses.includes(status || "")) {
         if (form.getValues("boq_submission_date") !== "") {
           form.setValue("boq_submission_date", "", { shouldValidate: true });
@@ -347,7 +387,17 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
         return; // Stop the function here
       }
 
-      const res = await createDoc("CRM BOQ", values);
+      const dataToSubmit = { ...values };
+
+         if (dataToSubmit.city === "Others") {
+          dataToSubmit.city = dataToSubmit.other_city?.trim() || "";
+      }
+      // Remove the temporary other_city field from the payload
+      delete dataToSubmit.other_city;
+
+
+
+      const res = await createDoc("CRM BOQ", dataToSubmit);
       // await mutate("All BOQ");
       // await mutate("AllBOQsList")
       // await mutate("PendingBOQsList")
@@ -361,35 +411,36 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   };
 
 
-  // // Helper functions for conditional rendering and label asterisks
-  // const isRequired = (fieldName: keyof BoqFormValues) => {
-  //   switch (fieldName) {
-  //     case "boq_submission_date":
-  //       return ["New", "In-Progress", "Revision Pending"].includes(selectedBoqStatus || "");
-  //     case "boq_link":
-  //       return ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(selectedBoqStatus || "");
-  //     case "remarks":
-  //       return ["Negotiation", "Partial BOQ Submitted", "Lost", "Dropped", "Hold"].includes(selectedBoqStatus || "");
-  //     case "boq_sub_status":
-  //       return ["In-Progress", "Revision Pending"].includes(selectedBoqStatus || "");
-  //     default:
-  //       return false;
-  //   }
-  // };
+  // Helper functions for conditional rendering and label asterisks
+  const isRequired = (fieldName: keyof BoqFormValues) => {
+    switch (fieldName) {
+      case "boq_submission_date":
+        return ["New", "In-Progress","Partial BOQ Submitted", "Revision Pending"].includes(selectedBoqStatus || "");
+      case "boq_link":
+        return ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(selectedBoqStatus || "");
+      case "remarks":
+        return ["Negotiation", "Partial BOQ Submitted", "Lost", "Dropped", "Hold"].includes(selectedBoqStatus || "");
+      case "boq_sub_status":
+        return ["In-Progress", "Revision Pending"].includes(selectedBoqStatus || "");
+        
+      default:
+        return false;
+    }
+  };
 
-  // const isHidden = (fieldName: keyof BoqFormValues) => {
-  //   switch (fieldName) {
-  //     case "boq_submission_date":
-  //       return ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted", "Negotiation", "Won", "Lost", "Dropped", "Hold"].includes(selectedBoqStatus || "");
-  //     case "boq_link":
-  //       return ["Negotiation", "Won", "Lost", "Dropped", "Hold"].includes(selectedBoqStatus || "");
-  //     // Remarks is always visible but its required status changes
-  //     case "boq_sub_status":
-  //       return !["In-Progress", "Revision Pending"].includes(selectedBoqStatus || "");
-  //     default:
-  //       return false;
-  //   }
-  // };
+  const isHidden = (fieldName: keyof BoqFormValues) => {
+    switch (fieldName) {
+      case "boq_submission_date":
+        return ["BOQ Submitted", "Revision Submitted", "Negotiation", "Won", "Lost", "Dropped", "Hold"].includes(selectedBoqStatus || "");
+      case "boq_link":
+        return ["Negotiation", "Won", "Lost", "Dropped", "Hold"].includes(selectedBoqStatus || "");
+      // Remarks is always visible but its required status changes
+      case "boq_sub_status":
+        return !["In-Progress", "Revision Pending"].includes(selectedBoqStatus || "");
+      default:
+        return false;
+    }
+  };
 
 
 
@@ -455,14 +506,14 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                         <FormItem><FormLabel>BOQ Status</FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl></FormItem>
                     )}/>
 
-                           {(selectedBoqStatus === "In-Progress" || selectedBoqStatus === "Revision_Pending") && (
+                           {(selectedBoqStatus === "In-Progress" || selectedBoqStatus === "Revision Pending") && (
           <FormField
             name="boq_sub_status"
             control={form.control}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Sub Status<sup>*</sup> {/* Always add asterisk when shown in these states */}
+                  Sub Status{isRequired("boq_sub_status")&& <sup>*</sup>} {/* Always add asterisk when shown in these states */}
                 </FormLabel>
                 <FormControl>
                   <ReactSelect
@@ -478,11 +529,68 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
             )}
           />
         )}
-        <FormField name="boq_submission_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Submission Deadline<sup>*</sup></FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
-        <FormField name="boq_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
-        <FormField name="city" control={form.control} render={({ field }) => ( <FormItem><FormLabel>City</FormLabel><FormControl><Input placeholder="e.g. Mumbai" {...field} /></FormControl><FormMessage /></FormItem> )} />
-        
 
+        {
+          !isHidden("boq_submission_date")&&(
+ <FormField name="boq_submission_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Submission Deadline{isRequired("boq_submission_date") && <sup>*</sup>}</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          )
+        }
+        {/* <FormField name="boq_submission_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Submission Deadline<sup>*</sup></FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} /> */}
+
+{
+!isHidden("boq_link")&&(
+ <FormField name="boq_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Link{isRequired("boq_link")&&<sup>*</sup>}</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
+)
+}
+  
+        {/* <FormField name="boq_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} /> */}
+
+{/*         
+        <FormField name="city" control={form.control} render={({ field }) => ( <FormItem><FormLabel>City</FormLabel><FormControl><Input placeholder="e.g. Mumbai" {...field} /></FormControl><FormMessage /></FormItem> )} />
+         */}
+
+  <FormField
+          control={form.control}
+          name="city"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>City<sup>*</sup></FormLabel>
+              <FormControl>
+                <ReactSelect
+                  options={LocationOptions} // Using the imported LocationOptions
+                  value={LocationOptions.find(c => c.value === field.value)}
+                  onChange={val => {
+                    field.onChange(val?.value);
+                    // Clear 'other_company_city' if "Others" is deselected
+                    if (val?.value !== "Others") {
+                        form.setValue("other_city", "");
+                    }
+                  }}
+                  placeholder="Select City"
+                  menuPosition={'auto'}
+             
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {selectedCity === "Others" && (
+                    <FormField
+                        control={form.control}
+                        name="other_city"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Specify City<sup>*</sup></FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g. New City Name" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
 
         <FormField name="company" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Company<sup>*</sup></FormLabel><FormControl>
             {contactIdFromContext ? (
@@ -501,7 +609,11 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
             )}
         </FormControl><FormMessage /></FormItem> )} />
 
-        <FormField name="remarks" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Remarks</FormLabel><FormControl><Textarea placeholder="e.g. Only use  products in this project." {...field} /></FormControl><FormMessage /></FormItem> )} />
+{!isHidden("remarks")&&(
+     <FormField name="remarks" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Remarks{isRequired("remarks")&&<sup>*</sup>}</FormLabel><FormControl><Textarea placeholder="e.g. Only use  products in this project." {...field} /></FormControl><FormMessage /></FormItem> )} />
+)}
+        {/* <FormField name="remarks" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Remarks</FormLabel><FormControl><Textarea placeholder="e.g. Only use  products in this project." {...field} /></FormControl><FormMessage /></FormItem> )} /> */}
+
 
         <div className="flex gap-2 justify-end pt-4">
           <Button type="button" variant="outline" onClick={closeNewBoqDialog}>Cancel</Button>

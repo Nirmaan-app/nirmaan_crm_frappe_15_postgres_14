@@ -134,6 +134,45 @@ export const ReusableAlertDialog: React.FC<ReusableAlertDialogProps> = ({
 };
 
 
+export const ReusableCompanyTypeDialog: React.FC<ReusableAlertDialogProps> = ({
+  open,
+  onOpenChange,
+  title,
+  children,
+  className
+}) => {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}  
+        onOpenAutoFocus={(e) => e.preventDefault()}>
+      <AlertDialogContent
+       className={cn(
+            "p-4 gap-0 w-[90vw] max-w-md rounded-xl shadow-2xl", // Base styles
+            "flex flex-col", // Use flexbox for layout
+            "max-h-[90vh]", // Set a maximum height relative to the viewport
+            className // Allow overriding styles
+        )}
+            >
+        <AlertDialogHeader className="text-start">
+          <AlertDialogTitle className="text-destructive text-center">
+            {title}
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div>{children}</div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {/* <div className="flex items-end gap-2">
+          <AlertDialogCancel className="flex-1">
+            {cancelText}
+          </AlertDialogCancel>
+          <Button disabled={disableConfirm} onClick={onConfirm} className="flex-1">
+            {confirmText}
+          </Button>
+        </div> */}
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 // export interface ReusableDialogProps {
 //   open: boolean;
 //   onOpenChange: (open: boolean) => void;

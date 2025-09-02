@@ -100,7 +100,7 @@ const AllBOQs = () => {
 
     // CRITICAL FIX: Re-added a unique cache key to prevent conflicts with PendingBOQs
     const { data: allBoqs, isLoading, error } = useFrappeGetDocList<BOQ>('CRM BOQ', {
-        fields: ["name", "boq_name", "company", "company.company_name", "boq_status", "boq_sub_status", "modified", "owner"],
+        fields: ["name", "boq_name", "company", "company.company_name", "boq_status", "boq_sub_status", "modified", "owner","assigned_sales"],
         limit: 0
     }, "all-boqs-estimate-all"); // <-- UNIQUE KEY
 
@@ -180,7 +180,7 @@ const AllBOQs = () => {
                                 {boq.boq_sub_status ? <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(boq.boq_sub_status)}`}>{boq.boq_sub_status}</span> : '--'}
                             </div>
                            <span className="hidden md:block text-left text-sm text-muted-foreground">{format(new Date(boq.modified), 'dd-MMM-yyyy')}</span>
-                            <span className="hidden md:block text-left text-sm">{boq.owner}</span>
+                            <span className="hidden md:block text-center text-sm">{boq.assigned_sales||"--"}</span>
                             <div className="flex flex-col items-end gap-2">
                                 <div className="flex flex-col items-end gap-1.5 md:hidden">
                                     <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(boq.boq_status)}`}>{boq.boq_status}</span>

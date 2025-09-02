@@ -27,7 +27,7 @@ export const BOQs = () => {
 
       <div className="bg-background rounded-lg border flex flex-col min-h-0">
            <div className="p-4 border-b flex-shrink-0">
-                <h2 className="text-lg font-semibold mb-4">BOQs</h2>
+                <h2 className="text-lg font-semibold">BOQs</h2>
             </div>   
               <div className="flex-1 overflow-y-auto min-h-0 p-4">
    
