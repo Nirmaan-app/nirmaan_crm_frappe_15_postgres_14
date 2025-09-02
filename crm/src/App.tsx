@@ -1,5 +1,5 @@
 import { FrappeProvider } from "frappe-react-sdk";
-import { FC ,useEffect} from "react";
+import { FC, useEffect } from "react";
 import {
   RouterProvider,
   createBrowserRouter
@@ -15,7 +15,10 @@ const router = createBrowserRouter([
     path: "/*",
     element: <RenderRoutes />,
   },
-]);
+], {
+  basename: `/${import.meta.env.VITE_BASE_NAME}`,
+}
+);
 
 const App: FC = () => {
 
@@ -25,7 +28,7 @@ const App: FC = () => {
       : import.meta.env.VITE_SITE_NAME;
   };
 
-console.log("window.frappe?.boot?.sitename",window.frappe?.boot?.sitename,import.meta.env.VITE_SITE_NAM)
+  console.log("window.frappe?.boot?.sitename", window.frappe?.boot?.sitename, import.meta.env.VITE_SITE_NAM)
   return (
     <FrappeProvider
       url={import.meta.env.VITE_FRAPPE_PATH ?? ""}
@@ -38,11 +41,11 @@ console.log("window.frappe?.boot?.sitename",window.frappe?.boot?.sitename,import
     >
       <AuthProvider>
         <RealTimeProvider>
-        <ApplicationProvider>
-          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-            <RouterProvider router={router} />
-          </ThemeProvider>
-        </ApplicationProvider>
+          <ApplicationProvider>
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <RouterProvider router={router} />
+            </ThemeProvider>
+          </ApplicationProvider>
         </RealTimeProvider>
       </AuthProvider>
     </FrappeProvider>
