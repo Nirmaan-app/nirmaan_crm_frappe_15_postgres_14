@@ -11,17 +11,57 @@ type StatusEntityType = 'boq' | 'task';
  */
 export const useStatusStyles = (entityType: StatusEntityType) => {
     
-    const getBoqStatusClass = (status: string): string => {
+    // const getBoqStatusClass = (status: string): string => {
+    //     // Returns border, background, and text color classes for BOQ statuses
+    //     switch (status?.toLowerCase()) {
+    //         case 'won': return 'border-green-300 bg-green-50 text-green-700';
+    //         case 'lost': return 'border-red-300 bg-red-50 text-red-700';
+    //         case 'hold': return 'border-yellow-300 bg-yellow-50 text-yellow-700';
+    //         case 'revision pending': return 'border-orange-300 bg-orange-50 text-orange-700';
+    //         case 'negotiation': return 'border-emerald-300 bg-emerald-50 text-emerald-700';
+    //         case 'revision submitted': return 'border-blue-300 bg-blue-50 text-blue-700';
+    //         case 'new': return 'border-sky-300 bg-sky-50 text-sky-700';
+    //         default: return 'border-gray-300 bg-gray-100 text-gray-700';
+    //     }
+    // };
+
+     const getBoqStatusClass = (status: string): string => {
         // Returns border, background, and text color classes for BOQ statuses
         switch (status?.toLowerCase()) {
-            case 'won': return 'border-green-300 bg-green-50 text-green-700';
-            case 'lost': return 'border-red-300 bg-red-50 text-red-700';
-            case 'hold': return 'border-yellow-300 bg-yellow-50 text-yellow-700';
-            case 'revision pending': return 'border-orange-300 bg-orange-50 text-orange-700';
-            case 'negotiation': return 'border-emerald-300 bg-emerald-50 text-emerald-700';
-            case 'revision submitted': return 'border-blue-300 bg-blue-50 text-blue-700';
-            case 'new': return 'border-sky-300 bg-sky-50 text-sky-700';
-            default: return 'border-gray-300 bg-gray-100 text-gray-700';
+            // Final/Terminal statuses
+            case 'won': 
+                return 'border-green-300 bg-green-50 text-green-700';
+            case 'lost': 
+                return 'border-red-300 bg-red-50 text-red-700';
+            case 'dropped': 
+                return 'border-gray-400 bg-gray-100 text-gray-600';
+            
+            // Active/In-Progress statuses
+            case 'new': 
+                return 'border-sky-300 bg-sky-50 text-sky-700';
+            case 'in-progress': 
+                return 'border-blue-400 bg-blue-50 text-blue-800';
+            
+            // Submission statuses
+            case 'boq submitted': 
+                return 'border-indigo-300 bg-indigo-50 text-indigo-700';
+            case 'partial boq submitted': 
+                return 'border-purple-300 bg-purple-50 text-purple-700';
+            
+            // Revision statuses
+            case 'revision submitted': 
+                return 'border-blue-300 bg-blue-50 text-blue-700';
+            case 'revision pending': 
+                return 'border-orange-300 bg-orange-50 text-orange-700';
+            
+            // Business statuses
+            case 'negotiation': 
+                return 'border-yellow-300 bg-yellow-50 text-yellow-700';
+            case 'hold': 
+                return 'border-yellow-500 bg-yellow-50 text-yellow-500';
+            
+            default: 
+                return 'border-gray-300 bg-gray-100 text-gray-700';
         }
     };
 

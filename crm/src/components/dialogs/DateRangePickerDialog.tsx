@@ -25,7 +25,7 @@ export const DateRangePickerDialog = () => {
     };
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col min-h-[60vh]">
             {/* <Calendar
                 mode="range" // Set the calendar to range selection mode
             
@@ -35,7 +35,8 @@ export const DateRangePickerDialog = () => {
                 
             /> */}
 
-           <Calendar
+       <div className="flex flex-col">
+            <Calendar
         mode="range"
         // defaultMonth={date}
         selected={date}
@@ -44,7 +45,8 @@ export const DateRangePickerDialog = () => {
         // captionLayout={dropdown}
         // className="rounded-lg"
       />
-            <div className="flex gap-2 justify-center w-full mt-4 pt-4 border-t">
+       </div>
+           <div className="flex justify-end gap-2 pt-4 mt-auto"> 
                 <Button variant="outline" className="flex-1 border-destructive text-destructive" onClick={closeDateRangePickerDialog}>
                     Cancel
                 </Button>
