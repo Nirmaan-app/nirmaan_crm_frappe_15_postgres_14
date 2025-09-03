@@ -29,7 +29,7 @@ export function UserNav() {
     const { user,role,user_id,  full_name,
             user_image, isLoading,has_company } = useCurrentUser();
 
-    console.log("useCurrentUser ",user)
+    // console.log("useCurrentUser ",user)
 
     if (isLoading) {
         return <Skeleton className="h-8 w-8 rounded-full" />;

@@ -21,7 +21,7 @@ export const AssignedBoqForm = ({ onSuccess }: AssignedBoqFormProps) => {
   const {assignBoq, closeAssignBoqDialog } = useDialogStore();
   const { boqData} = assignBoq.context;
 
-  console.log("boqData",boqData,assignBoq)
+  // console.log("boqData",boqData,assignBoq)
   const { salesUserOptions, estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
   const { mutate } = useSWRConfig();
@@ -48,7 +48,7 @@ export const AssignedBoqForm = ({ onSuccess }: AssignedBoqFormProps) => {
   const onSubmit = async (values: AssignedBoqFormValues) => {
     try {
       if (!boqData?.name) throw new Error("BOQ document name is missing.");
-      console.log(values,"values")
+      // console.log(values,"values")
       // Construct the payload with only the fields relevant to 'assigned' mode
       const payload = {
         assigned_sales: values.assigned_sales,
@@ -77,7 +77,7 @@ export const AssignedBoqForm = ({ onSuccess }: AssignedBoqFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* BOQ Header for context */}
-        <div className="flex justify-between items-start text-sm mb-4">
+        <div className="flex justify-between items-start text-sm mb-4 border-b pb-2">
           <div>
             <p className="text-xs text-muted-foreground">Project</p>
             <p className="font-semibold">{boqData?.boq_name}</p>

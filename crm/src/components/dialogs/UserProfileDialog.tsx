@@ -17,16 +17,24 @@ const generateFallback = (full_name: string = "") => {
 
 export const UserProfileDialog = () => {
  
-    const { 
-        user,
-        user_id,
-        full_name,
-        user_image,
-        role,
-        isLoading 
-    } = useCurrentUser();
+    // const { 
+    //     user,
+    //     user_id,
+    //     full_name,
+    //     user_image,
+    //     isLoading 
+    // } = useCurrentUser();
 
-    const hasUserData = user_id && user_id !== 'Guest' && (user || user_id === 'Administrator');
+    const role = localStorage.getItem('role');
+    const full_name = localStorage.getItem('fullName');
+
+    const user_id = localStorage.getItem('userId');
+    const user_image=""
+    const mobile_no=localStorage.getItem('mobileNO');
+
+
+
+    const hasUserData = user_id && user_id !== 'Guest' && (user_id || user_id === 'Administrator');
     const isAdministrator = user_id === 'Administrator';
 
     return (
@@ -34,7 +42,7 @@ export const UserProfileDialog = () => {
             {/* The header is now part of ReusableFormDialog's layout,
                 so we only style the content within the main dialog area */}
             
-            {isLoading ? (
+            {!user_id ? (
                 // --- Loading State Skeleton ---
                 <div className="space-y-6 py-4">
                     <div className="flex items-center space-x-4">
@@ -56,7 +64,7 @@ export const UserProfileDialog = () => {
                     {/* User Avatar and Name */}
                     <div className="flex items-center gap-4">
                         <Avatar className="h-20 w-20 border-2 border-destructive">
-                            <AvatarImage src={user_image} alt={full_name} />
+                            <AvatarImage src={user_image||""} alt={full_name} />
                             <AvatarFallback className="text-2xl bg-destructive text-destructive-foreground">
                                 {generateFallback(full_name)}
                             </AvatarFallback>
@@ -88,7 +96,7 @@ export const UserProfileDialog = () => {
                             Phone
                         </span>
                         <span className="col-span-2 text-base text-muted-foreground">
-                            {user?.mobile_no || "Not provided"}
+                            {mobile_no || "Not provided"}
                         </span>
                     </div>
 

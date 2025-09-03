@@ -8,7 +8,6 @@ export const useCurrentUser = () => {
     const { currentUser, isLoading: isAuthLoading } = useAuth();
 //  const currentUser = Cookies.get('user_id') ?? ''
 
- console.log(currentUser)
 
    if (currentUser === 'Administrator') {
         // --- 4. OPTIONAL: SET STORAGE FOR ADMIN USER ---
@@ -16,6 +15,8 @@ export const useCurrentUser = () => {
         localStorage.setItem('role', 'Nirmaan Admin User Profile');
         localStorage.setItem('has_company', 'true');
         localStorage.setItem('fullName', "Administrator");
+        localStorage.setItem('mobileNO', "--");
+
 
 
         const adminUser = window.frappe?.boot?.user;
@@ -46,7 +47,10 @@ export const useCurrentUser = () => {
             localStorage.setItem('role', crmUserDoc.nirmaan_role_name || '');
             localStorage.setItem('has_company', String(crmUserDoc.has_company ?? "dsfalse"));
             localStorage.setItem('fullName', crmUserDoc.full_name || '');
+            localStorage.setItem('mobileNO', crmUserDoc.mobile_no || '');
+
             }
+            
         }
     }, [isCrmUserLoading]); // The dependency array ensures this runs only when crmUserDoc changes.
 
@@ -82,6 +86,8 @@ export const useCurrentUser = () => {
         localStorage.setItem('role', 'Nirmaan Admin User Profile');
         localStorage.setItem('has_company', 'true');
         localStorage.setItem('fullName', "Administrator");
+        localStorage.setItem('mobileNO', "--");
+
 
 
         const adminUser = window.frappe?.boot?.user;
@@ -91,6 +97,9 @@ export const useCurrentUser = () => {
             has_company: "true", isLoading: false, error: null, mutate: () => {}
         };
     }
+
+    //  console.log("UserName",crmUserDoc?.name)
+
 
     return {
         user: crmUserDoc,

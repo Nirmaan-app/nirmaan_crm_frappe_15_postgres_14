@@ -230,7 +230,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* --- STEP 3: RENDER ALL FIELDS FOR 'details' MODE --- */}
-        <div className="flex justify-between items-start text-sm mb-4">
+        <div className="flex justify-between items-start text-sm mb-4 border-b pb-2">
           <div>
             <p className="text-xs text-muted-foreground">Project</p>
             <p className="font-semibold">{boqData?.boq_name}</p>

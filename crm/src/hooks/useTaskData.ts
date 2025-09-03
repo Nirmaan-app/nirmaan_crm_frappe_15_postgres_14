@@ -179,7 +179,7 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
             company_name: task.company_name || 'N/A'
         }));
 
-        console.log("enriched tasks in useTaskData", today);
+        // console.log("enriched tasks in useTaskData", today);
 
         return {
             todayTasks: enriched.filter(t => t.start_date.slice(0, 10) === today),

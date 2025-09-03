@@ -301,7 +301,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   
   // 5. Fetch the contact document (for display in disabled input)
   const { data: contactDoc } = useFrappeGetDoc<CRMContacts>("CRM Contacts", contactIdFromContext, { enabled: !!contactIdFromContext });
-  console.log("contactDoc",contactDoc)
+  // console.log("contactDoc",contactDoc)
   // 6. Fetch contacts for the selected company (for the dropdown)
   const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: { company: selectedCompany || companyId }, fields: ["name", "first_name", "last_name"], enabled: !!(selectedCompany || companyId) });
 

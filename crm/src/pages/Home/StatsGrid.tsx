@@ -20,7 +20,7 @@ interface StatCardProps {
 }
 
  const getBoqStatusClass = useStatusStyles("boq");
-        const getTaskStatusClass=useStatusStyles("task")
+ const getTaskStatusClass=useStatusStyles("task")
         
 export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardProps) => {
     return (
@@ -126,7 +126,8 @@ export const StatsGrid = () => {
             return false;
         });
         
-        console.log("uniqueMeetingIdentifiers",uniqueMeetingIdentifiers)
+        // console.log("uniqueMeetingIdentifiers",uniqueMeetingIdentifiers)
+
         // CORRECTED: Access linked fields using bracket notation, e.g., item['contact.first_name']
 
     //       const taskNameFormatter = (item) => (
