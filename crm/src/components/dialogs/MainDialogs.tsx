@@ -189,17 +189,13 @@ export const MainDialogs = () => {
             </ReusableFormDialog>
              <ReusableFormDialog
                 isOpen={remarkBoq.isOpen}
-                onClose={closeAssignBoqDialog}
+                onClose={closeRemarkBoqDialog}
                 title="Additional Remarks for BOQ"
                 className="max-w-lg"
             >
                 <RemarkBoqForm     
                 />
             </ReusableFormDialog>
-
-
-
-
         </>
     );
 };

@@ -212,7 +212,7 @@ export const Tasks = () => {
         { key: 'to', defaultValue: format(new Date(), 'yyyy-MM-dd') },
     ]);
     const { id, from, to } = params;
-    console.log("params", params)
+    // console.log("params", params)
     const { openNewTaskDialog } = useDialogStore();
 
     const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks } = useTaskData();

@@ -81,7 +81,7 @@ const { data: allContacts } = useFrappeGetDocList("CRM Contacts", {
   // 2. Fetch the full list of companies ONLY if NO ID is passed in the context
 
 const allCompanies = allCompaniesData || [];
-  console.log("All Companies ",allCompanies)
+  // console.log("All Companies ",allCompanies)
 
   const companyOptions = useMemo(() =>
     allCompanies?.map(c => ({ label: c.company_name, value: c.name })),
@@ -163,7 +163,7 @@ const uploadVisitingCard = useCallback(async (contactName: string, file: File) =
             fieldname: "visiting_card", // Ensure this fieldname matches your DocType
             isPrivate: true // Good practice for personal info
         });
-        console.log("Visiting card upload successful:", result);
+        // console.log("Visiting card upload successful:", result);
         return result.file_url; // Return the URL
     } catch (error) {
         console.error("Upload Error:", error);

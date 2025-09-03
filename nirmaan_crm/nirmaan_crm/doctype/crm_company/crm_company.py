@@ -8,7 +8,14 @@ from frappe.model.document import Document
 class CRMCompany(Document):
 	def before_insert(self):
 		user = frappe.session.user
-		user_doc = frappe.get_doc("CRM Users", user)
-		role_profile = user_doc.nirmaan_role_name
-		if role_profile == "Nirmaan Sales User Profile":
-			self.assigned_sales = self.owner
+		if user == "Administrator":
+			pass
+		else:
+			user_doc = frappe.get_doc("CRM Users", user)
+			role_profile = user_doc.nirmaan_role_name
+			if role_profile == "Nirmaan Sales User Profile":
+				self.assigned_sales = self.owner
+			else:
+				pass
+
+

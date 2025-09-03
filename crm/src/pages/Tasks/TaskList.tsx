@@ -668,7 +668,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
 
         // Check if the assignmentFilters array has any actual filters in it.
         // The .length > 0 check is crucial here.
-        console.log("assignmentFilters", assignmentFilters)
+        // console.log("assignmentFilters", assignmentFilters)
         if (assignmentFilters && assignmentFilters.length > 0) {
             // If there are assignment filters, combine them with the base filters.
             return [...baseFilters, ...assignmentFilters];
@@ -680,7 +680,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
     }, [dateRange, assignmentFilters]);
 
 
-    console.log("allFilters", allFilters)
+    // console.log("allFilters", allFilters)
     const swrkey = `all-tasks-${allFilters}`
 
     const { data: tasks, taskisLoading } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
@@ -714,7 +714,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
     }, [tasks, assignmentFilters]);
 
 
-    console.log(dateRange.from, dateRange.to)
+    // console.log(dateRange.from, dateRange.to)
 
     useEffect(() => {
         onTaskSelect({ from: dateRange.from, to: dateRange.to });

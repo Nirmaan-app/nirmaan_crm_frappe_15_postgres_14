@@ -21,7 +21,7 @@ interface BoqListProps { onBoqSelect?: (id: string) => void; activeBoqId?: strin
 
 const DesktopBoqListItem = ({ boq, companyName, onSelect, isActive }: { boq: EnrichedBoq, companyName: string, onSelect: () => void, isActive: boolean }) => {
     const getBoqStatusClass = useStatusStyles("boq");
-    console.log("boq",boq)
+    // console.log("boq",boq)
     return (
         <div role="button" aria-label={boq.boq_name} onClick={onSelect} className={`flex items-center justify-between p-4 cursor-pointer transition-colors rounded-lg ${isActive ? "bg-destructive/10" : "hover:bg-secondary"}`}>
             <div>
