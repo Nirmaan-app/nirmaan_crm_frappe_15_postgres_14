@@ -67,7 +67,7 @@ export const useGlobalSearch = () => {
   useEffect(() => {
     const SearchResponse=apiResponse?.message
     if (SearchResponse) {
-      console.log(apiResponse)
+      // console.log(apiResponse)
       const groupedResults = SearchResponse?.reduce((acc, item) => {
         if (!acc[item.doctype]) {
           acc[item.doctype] = [];

@@ -33,7 +33,7 @@ export const HomePage = () => {
         })) || [];
     }, [tasksData]);
     
-    console.log("enrichedTasks",enrichedTasks)
+    // console.log("enrichedTasks",enrichedTasks)
     return (
 
         role!=="Nirmaan Estimations User Profile" ?(

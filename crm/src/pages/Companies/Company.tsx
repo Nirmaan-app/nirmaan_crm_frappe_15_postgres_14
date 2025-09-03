@@ -76,7 +76,7 @@ export const Company = () => {
     const INACTIVE_STATUSES = ['Won', 'Lost','Dropped'];
 
     const activeProjectsfilter =() => {
-    console.log("boqsList-company",boqsList)
+    // console.log("boqsList-company",boqsList)
 
     // If there's no list, return an empty array.
     if (!boqsList) {
@@ -91,7 +91,8 @@ export const Company = () => {
 
 }; 
 const active=activeProjectsfilter()
-console.log(active)
+
+// console.log(active)
 
     return (
         <div className="space-y-6">

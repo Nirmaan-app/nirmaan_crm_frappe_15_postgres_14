@@ -10,6 +10,7 @@ import { CRMBoq } from "@/types/NirmaanCRM/CRMBoq"; // Assuming this is the corr
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useSWRConfig } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
+import { useStatusStyles } from "@/hooks/useStatusStyles"; 
 import { remarkBoqSchema, RemarkBoqFormValues } from "@/constants/boqZodValidation"; // Import new schema
 
 interface RemarkBoqFormProps {
@@ -18,9 +19,10 @@ interface RemarkBoqFormProps {
 
 export const RemarkBoqForm = ({ onSuccess }: RemarkBoqFormProps) => {
   const { remarkBoq, closeRemarkBoqDialog } = useDialogStore();
-  console.log("remarkBoq",remarkBoq)
+  const getBoqStatusClass = useStatusStyles('boq');
+  // console.log("remarkBoq",remarkBoq)
   const { boqData } = remarkBoq.context; // Get boqData from the dialog store context
-  console.log("boqDataremarks",boqData)
+  // console.log("boqDataremarks",boqData)
 
   const { createDoc, loading: createLoading } = useFrappeCreateDoc();
   const { mutate } = useSWRConfig();
@@ -68,12 +70,17 @@ export const RemarkBoqForm = ({ onSuccess }: RemarkBoqFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* BOQ Header for context */}
-        <div className="flex items-start text-sm mb-4 border-b pb-2">
+       <div className="flex justify-between items-start text-sm mb-4 border-b pb-2">
           <div>
-            <p className="text-xs text-muted-foreground">Adding Remark for Project</p>
-            <p className="font-semibold">{boqData?.boq_name || 'N/A'}</p>
+            <p className="text-xs text-muted-foreground">Project</p>
+            <p className="font-semibold">{boqData?.boq_name}</p>
           </div>
-          {/* Consider adding BOQ status here for more context, similar to AssignedBoqForm */}
+          <div className="text-right">
+            <p className="text-xs text-center text-muted-foreground"> Status</p>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${getBoqStatusClass(boqData?.boq_status)}`}>
+              {boqData?.boq_status || 'N/A'}
+            </span>
+          </div>
         </div>
 
         <FormField
