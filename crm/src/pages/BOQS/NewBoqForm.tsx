@@ -25,7 +25,7 @@ const boqFormSchema = z.object({
           // This message will be shown if the input cannot be converted to a number (e.g., "abc").
           invalid_type_error: "Please enter a valid number for size.",
       })
-      .positive({ message: "Size must be a positive number." })
+      .nonnegative({ message: "Size must be a positive number." })
       // Use .nullable().optional() to correctly handle an empty field
       .nullable()
       .optional(),
@@ -38,7 +38,7 @@ const boqFormSchema = z.object({
           // A specific, user-friendly message for the value field.
           invalid_type_error: "Please enter a valid number for value.",
       })
-      .positive({ message: "Value must be a positive number." })
+      .nonnegative({ message: "Value must be a positive number." })
       .nullable()
       .optional(),
   // boq_size: z.number().optional(),
@@ -494,16 +494,16 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                             )}
                         />
                 )}
-        <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Size (Sqft)<sup>*</sup></FormLabel><FormControl><Input type="number" placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Size (Sqft)</FormLabel><FormControl><Input type="number" placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
 
         <FormField name="boq_type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Package</FormLabel><FormControl><Input placeholder="e.g. Interior Fitout" {...field} /></FormControl><FormMessage /></FormItem> )} />
         
-        <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value<sup>*</sup></FormLabel><FormControl><Input type="number" placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value</FormLabel><FormControl><Input type="number" placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem> )} />
 
 
 
 <FormField name="boq_status" control={form.control} render={({ field }) => (
-                        <FormItem><FormLabel>BOQ Status</FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl></FormItem>
+                        <FormItem><FormLabel>BOQ Status<sup>*</sup></FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl></FormItem>
                     )}/>
 
                            {(selectedBoqStatus === "In-Progress" || selectedBoqStatus === "Revision Pending") && (

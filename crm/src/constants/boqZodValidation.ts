@@ -2,29 +2,29 @@
 import * as z from "zod";
 
 export const boqFormSchema = z.object({
-  boq_name: z.string() .min(1, "BOQ name is required")
+  boq_name: z.string().min(1, "BOQ name is required")
     .regex(/^[a-zA-Z0-9\s-]/, "Only letters, numbers, spaces, and hyphens are allowed."),
-   boq_size: z.coerce
-      .number({
-          // This message will be shown if the input cannot be converted to a number (e.g., "abc").
-          invalid_type_error: "Please enter a valid number for size.",
-      })
-      .positive({ message: "Size must be a positive number." })
-      // Use .nullable().optional() to correctly handle an empty field
-      .nullable()
-      .optional(),
-      boq_sub_status: z.string().optional(),
-      boq_status: z.string().optional(), 
-           other_city: z.string().optional(), 
-    
-    boq_value: z.coerce
-      .number({
-          // A specific, user-friendly message for the value field.
-          invalid_type_error: "Please enter a valid number for value.",
-      })
-      .positive({ message: "Value must be a positive number." })
-      .nullable()
-      .optional(),
+  boq_size: z.coerce
+    .number({
+      // This message will be shown if the input cannot be converted to a number (e.g., "abc").
+      invalid_type_error: "Please enter a valid number for size.",
+    })
+    .nonnegative({ message: "Size must be a positive number." })
+    // Use .nullable().optional() to correctly handle an empty field
+    .nullable()
+    .optional(),
+  boq_sub_status: z.string().optional(),
+  boq_status: z.string().optional(),
+  other_city: z.string().optional(),
+
+  boq_value: z.coerce
+    .number({
+      // A specific, user-friendly message for the value field.
+      invalid_type_error: "Please enter a valid number for value.",
+    })
+    .nonnegative({ message: "Value must be a positive number." })
+    .nullable()
+    .optional(),
   // boq_size: z.number().optional(),
   boq_type: z.string().optional(),
   // boq_value: z.number().optional(),
@@ -34,8 +34,8 @@ export const boqFormSchema = z.object({
   company: z.string().min(1, "Company is required"),
   contact: z.string().min(1, "Contact is required"),
   remarks: z.string().optional(),
- 
-  
+
+
 
 }).superRefine((data, ctx) => {
   // --- Global Validations ---
@@ -53,29 +53,29 @@ export const boqFormSchema = z.object({
       path: ['contact'],
     });
   }
- if (data.city === "Others" && (!data.other_city || data.other_city.trim() === "")) {
-         ctx.addIssue({
-             code: z.ZodIssueCode.custom,
-             message: "Please specify the city.",
-             path: ['other_city'],
-         });
-     }
+  if (data.city === "Others" && (!data.other_city || data.other_city.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify the city.",
+      path: ['other_city'],
+    });
+  }
 
-       // --- Custom validation for website URL ---
-         if (data.boq_link && data.boq_link.trim() !== "" && 
-             !data.boq_link.startsWith("http://") && !data.boq_link.startsWith("https://") && !data.boq_link.startsWith("www.")) {
-             // If it's not a valid URL starting with http/https, mark it as invalid here.
-             // We will prepend 'https://' during submission.
-             try {
-                 z.string().url().parse(`https://${data.boq_link}`);
-             } catch (e) {
-                 ctx.addIssue({
-                     code: z.ZodIssueCode.custom,
-                     message: "Please enter a valid URL (e.g., www.example.com or https://example.com).",
-                     path: ['boq_link'],
-                 });
-             }
-         }
+  // --- Custom validation for website URL ---
+  if (data.boq_link && data.boq_link.trim() !== "" &&
+    !data.boq_link.startsWith("http://") && !data.boq_link.startsWith("https://") && !data.boq_link.startsWith("www.")) {
+    // If it's not a valid URL starting with http/https, mark it as invalid here.
+    // We will prepend 'https://' during submission.
+    try {
+      z.string().url().parse(`https://${data.boq_link}`);
+    } catch (e) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please enter a valid URL (e.g., www.example.com or https://example.com).",
+        path: ['boq_link'],
+      });
+    }
+  }
 
 
   // --- Status-Specific Validations ---
@@ -125,7 +125,7 @@ export const boqFormSchema = z.object({
           path: ['boq_link'],
         });
       } else if (!z.string().url().safeParse(data.boq_link).success) {
-         ctx.addIssue({
+        ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Please enter a valid URL for BOQ Link.",
           path: ['boq_link'],
@@ -140,12 +140,21 @@ export const boqFormSchema = z.object({
         });
       }
       if (data.boq_status === "Partial BOQ Submitted" && (!data.boq_submission_date || data.boq_submission_date.trim() === "")) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "BOQ Submission Deadline is required for In-Progress BOQs.",
-                path: ['boq_submission_date'],
-              });
-            }
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "BOQ Submission Deadline is required for In-Progress BOQs.",
+          path: ['boq_submission_date'],
+        });
+      }
+      // --- NEW VALIDATION LOGIC ADDED HERE ---
+      if (!data.boq_value || data.boq_value <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `BOQ Value is required for the "${data.boq_status}" status.`,
+          path: ['boq_value'],
+        });
+      }
+      // --- END OF NEW LOGIC ---
 
       break;
 
@@ -180,12 +189,21 @@ export const boqFormSchema = z.object({
           path: ['boq_link'],
         });
       } else if (!z.string().url().safeParse(data.boq_link).success) {
-         ctx.addIssue({
+        ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Please enter a valid URL for BOQ Link.",
           path: ['boq_link'],
         });
       }
+      // --- NEW VALIDATION LOGIC ADDED HERE ---
+      if (!data.boq_value || data.boq_value <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `BOQ Value is required for the "${data.boq_status}" status.`,
+          path: ['boq_value'],
+        });
+      }
+      // --- END OF NEW LOGIC ---
       // Remarks: Optional
       break;
 
@@ -251,7 +269,7 @@ export type AssignedBoqFormValues = z.infer<typeof assignedBoqSchema>;
 export const remarkBoqSchema = z.object({
   // Title: Optional, but if provided, must not be empty or just whitespace.
   // We use preprocess to convert empty strings or strings that become empty after trimming to undefined.
-  title:z.string()
+  title: z.string()
     .min(1, { message: "Remark content cannot be empty." })
     .trim() // Ensure content is not just whitespace
     .refine(val => val.length > 0, { // Additional check after trim for robustness

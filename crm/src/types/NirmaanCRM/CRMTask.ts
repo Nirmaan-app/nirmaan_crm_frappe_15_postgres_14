@@ -10,24 +10,26 @@ export interface CRMTask{
 	parentfield?: string
 	parenttype?: string
 	idx?: number
-	/**	Reference Doctype : Link - DocType	*/
-	reference_doctype?: string
-	/**	Reference Docname : Dynamic Link	*/
-	reference_docname?: string
+	/**	Company : Link - CRM Company	*/
+	company?: string
+	/**	Contact : Link - CRM Contacts	*/
+	contact?: string
+	/**	BOQ : Link - CRM BOQ	*/
+	boq?: string
 	/**	Title : Data	*/
 	title?: string
 	/**	Type : Data	*/
 	type?: string
-	/**	Priority : Data	*/
-	priority?: string
-	/**	Start Date : Data	*/
+	/**	Date : Date	*/
 	start_date?: string
-	/**	Assigned To : Link - Nirmaan Users	*/
-	assigned_to?: string
+	/**	Assigned Sales : Data	*/
+	assigned_sales?: string
 	/**	Status : Data	*/
 	status?: string
-	/**	Due Date : Data	*/
-	due_date?: string
-	/**	Description : Data	*/
-	description?: string
+	/**	Reason : Data	*/
+	reason?: string
+	/**	Time : Time	*/
+	time?: string
+	/**	Remarks : Text	*/
+	remarks?: string
 }

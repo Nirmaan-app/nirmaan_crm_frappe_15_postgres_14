@@ -113,6 +113,14 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         }
       }
 
+      const valueNotRequiredStatuses = ["In Progress", "Revision Pending", "Negotiation", "Won", "Lost", "Dropped", "Hold"];
+      if (valueNotRequiredStatuses.includes(status || "")) {
+        if (form.getValues("boq_value") !== "") {
+          form.setValue("boq_value", "", { shouldValidate: true });
+          form.clearErrors("boq_value");
+        }
+      }
+
       // Clear remarks if status makes them optional/not required AND it currently has a value
       // Specifically for "Won" where remarks become optional from being required in other states
       if (status === "Won") {
@@ -129,7 +137,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
 
 
 
-  const loading = updateLoading ;
+  const loading = updateLoading;
 
   const onSubmit = async (values: EditBoqFormValues) => {
     try {
@@ -170,7 +178,8 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
           boq_sub_status: dataToSave.boq_sub_status,
           boq_link: dataToSave.boq_link || boqData.boq_link,
           boq_submission_date: dataToSave.boq_submission_date,
-          remarks: dataToSave?.remarks || boqData.remarks
+          remarks: dataToSave?.remarks || boqData.remarks,
+          boq_value: dataToSave?.boq_value || boqData.boq_value
         });
 
         toast({ title: "Success", description: "Status updated." });
@@ -198,6 +207,8 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   // Helper functions for conditional rendering and label asterisks
   const isRequired = (fieldName: keyof BoqFormValues) => {
     switch (fieldName) {
+      case "boq_value":
+        return ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(watchedBoqStatus || "");
       case "boq_submission_date":
         return ["New", "In-Progress", "Partial BOQ Submitted", "Revision Pending"].includes(watchedBoqStatus || "");
       case "boq_link":
@@ -219,6 +230,8 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       case "boq_link":
         return ["Negotiation", "Won", "Lost", "Dropped", "Hold"].includes(watchedBoqStatus || "");
       // Remarks is always visible but its required status changes
+      case "boq_value":
+        return ["New", "In-Progress", "Revision Pending", "Negotiation", "Won", "Lost", "Dropped", "Hold"].includes(watchedBoqStatus || "");
       case "boq_sub_status":
         return !["In-Progress", "Revision Pending"].includes(watchedBoqStatus || "");
       default:
@@ -294,8 +307,6 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
 
             <FormField name="boq_type" control={form.control} render={({ field }) => (<FormItem><FormLabel>Package</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
 
-            <FormField name="boq_value" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Value<sup>*</sup></FormLabel><FormControl><Input type="number" placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-
             <FormField name="boq_size" control={form.control} render={({ field }) => (<FormItem><FormLabel>Size(Sqft)<sup>*</sup></FormLabel><FormControl><div className="relative"><Input type="number"  {...field} /><span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Sq.ft.</span></div></FormControl><FormMessage /></FormItem>)} />
 
             <FormField
@@ -356,6 +367,12 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 )}
               />
             )}
+
+            {
+              !isHidden("boq_value") && (
+                <FormField name="boq_value" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Value<sup>*</sup></FormLabel><FormControl><Input type="number" placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+              )
+            }
 
             {
               !isHidden("boq_submission_date") && (

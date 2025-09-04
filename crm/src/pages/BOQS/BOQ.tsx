@@ -194,63 +194,63 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                 )}
             </div>
             </div> */}
-                <div className="max-h-[275px] overflow-y-auto border rounded-md"> 
+            <div className="max-h-[275px] overflow-y-auto border rounded-md">
 
-            <Table>
-                <TableHeader>
+                <Table>
+                    <TableHeader>
 
-                    <TableRow>
-                        {/* This column is visible on all screen sizes */}
-                        <TableHead>Task Details</TableHead>
-
-                        {/* These columns will ONLY appear on desktop (md screens and up) */}
-                        <TableHead className="hidden md:table-cell">Company</TableHead>
-                        <TableHead className="hidden md:table-cell">Status</TableHead>
-                        <TableHead className="hidden md:table-cell text-right">Scheduled On</TableHead>
-                        <TableHead className="hidden md:table-cell text-right">Last Updated</TableHead>
-
-                        {/* Chevron column */}
-                        <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
-                    </TableRow>
-
-                </TableHeader>
-                <TableBody >
-                    {tasks.length > 0 ? (
-                        tasks.map((task) => (
-                            <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
-
-                                {/* --- MOBILE & DESKTOP: Combined Cell --- */}
-                                <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
-                                                {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
-                                            </span></span>
-                                            {/* On mobile, show the date here. Hide it on larger screens. */}
-                                            <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                Updated: {formatDate(task.modified)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </TableCell>
-
-                                {/* --- DESKTOP ONLY Cells --- */}
-                                <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
-                                <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
-                                <TableCell className="hidden md:table-cell text-right">{formatDate(task.start_date)}</TableCell>
-                                <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
-
-                                <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
-                            </TableRow>
-                        ))
-                    ) : (
                         <TableRow>
-                            <TableCell colSpan={6} className="text-center h-24">No tasks found in this category.</TableCell>
+                            {/* This column is visible on all screen sizes */}
+                            <TableHead>Task Details</TableHead>
+
+                            {/* These columns will ONLY appear on desktop (md screens and up) */}
+                            <TableHead className="hidden md:table-cell">Company</TableHead>
+                            <TableHead className="hidden md:table-cell">Status</TableHead>
+                            <TableHead className="hidden md:table-cell text-right">Scheduled On</TableHead>
+                            <TableHead className="hidden md:table-cell text-right">Last Updated</TableHead>
+
+                            {/* Chevron column */}
+                            <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
                         </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+
+                    </TableHeader>
+                    <TableBody >
+                        {tasks.length > 0 ? (
+                            tasks.map((task) => (
+                                <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
+
+                                    {/* --- MOBILE & DESKTOP: Combined Cell --- */}
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
+                                                    {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
+                                                </span></span>
+                                                {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                    Updated: {formatDate(task.modified)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+
+                                    {/* --- DESKTOP ONLY Cells --- */}
+                                    <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
+                                    <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
+                                    <TableCell className="hidden md:table-cell text-right">{formatDate(task.start_date)}</TableCell>
+                                    <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
+
+                                    <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center h-24">No tasks found in this category.</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
             </div>
         </div>
     );
@@ -527,7 +527,8 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                     remark: remarkText,
                     submission_date: dateChange ? dateChange[2] : "--",
                     date: formatDate(version.creation),
-                    link: boqLinkChange ? boqLinkChange[2] : undefined
+                    link: boqLinkChange ? boqLinkChange[2] : undefined,
+                    owner: version.owner.split('@')[0]
                 };
             } catch (e) {
                 console.error("Failed to parse version data:", e);
@@ -550,7 +551,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                     </span>
                 </div>
                 <div className="text-xs text-gray-500 ml-2">
-                    Updated date: {item.date}
+                    Updated date: {item.owner}
                 </div>
             </div>
 
@@ -613,7 +614,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                                     </TableCell>
                                     <TableCell>{item.remark || '--'}</TableCell>
                                     <TableCell>{item.submission_date || '--'}</TableCell>
-                                    <TableCell>{item.date}</TableCell>
+                                    <TableCell>{item.owner}</TableCell>
                                     <TableCell>
                                         {item.link ? (
                                             <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">
