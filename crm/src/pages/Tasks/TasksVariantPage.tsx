@@ -6,12 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
-import { formatDate } from "@/utils/FormatDate";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, Search } from "lucide-react";
 
 import { TaskListHeader } from "./TaskListHeader"; // 1. IMPORT THE NEW HEADER
 import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon'; // Import the status icon
+import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
 
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -143,7 +143,7 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
 
 
     const { data: tasksData, isLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-        fields: ["name", "status","start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name","creation"],
+        fields: ["name", "status","start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name","creation","time"],
         filters: filters,
         limit: 1000,
         orderBy: { field: "modified", order: "desc" }
@@ -224,11 +224,14 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
                                         {/* --- MOBILE & DESKTOP: Combined Cell --- */}
                                         <TableCell>
                                             <div className="flex items-center gap-3">
-                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
+                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
                                                 <div className="flex flex-col">
-                                                    <span className="font-medium">{`${task.type} with ${task.contact_name}`}</span>
+                                                    <span className="font-medium">{`${task.type} with ${task.contact_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
+                                                        {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
+                                                    </span></span>
                                                     {/* On mobile, show the date here. Hide it on larger screens. */}
-                                                    <span className="text-xs text-muted-foreground md:hidden">
+                                                    {/* ADDED: inline-block, px-1.5, py-0.5, rounded-md, and a subtle border color */}
+                                                    <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
                                                         Updated: {formatDate(task.modified)}
                                                     </span>
                                                 </div>

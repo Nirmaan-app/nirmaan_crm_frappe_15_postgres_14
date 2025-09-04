@@ -1,15 +1,17 @@
 // src/pages/Tasks/Task.tsx
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useDialogStore } from "@/store/dialogStore";
 import { CRMBOQ, CRMCompany, CRMContacts, CRMNote, CRMTask } from "@/types/NirmaanCRM"; // Assumes an index file for types
-import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
 import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronRight, SquarePen } from "lucide-react";
-import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
+import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon'; // Import the status icon
+import { StatusPill } from "./TasksVariantPage";
+import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
 
 import * as z from "zod";
 
@@ -32,64 +34,64 @@ export type TaskFormValues = z.infer<typeof taskFormSchema>;
 // --- SUB-COMPONENT: Task Details Card ---
 const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, contact?: CRMContacts, company?: CRMCompany, boq?: CRMBOQ }) => {
     const { openEditTaskDialog } = useDialogStore();
-    const getTaskStatusClass=useStatusStyles("task")
-   
+    const getTaskStatusClass = useStatusStyles("task")
 
-const DetailItem = ({ label, value, href }: { label: string, value?: string | number | null, href?: string }) => {
-    // Determine if the value is present and not an empty string
-    const hasValue = value !== null && value !== undefined && value !== '';
 
-    return (
-        <div>
-            <p className="text-xs text-muted-foreground">{label}</p>
-            {href ? (
-                // If a link URL is provided...
-                hasValue ? (
-                    <Link to={href} className="font-semibold text-blue-600 hover:underline">
-                        {value}
-                    </Link>
+    const DetailItem = ({ label, value, href }: { label: string, value?: string | number | null, href?: string }) => {
+        // Determine if the value is present and not an empty string
+        const hasValue = value !== null && value !== undefined && value !== '';
+
+        return (
+            <div>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                {href ? (
+                    // If a link URL is provided...
+                    hasValue ? (
+                        <Link to={href} className="font-semibold text-blue-600 hover:underline">
+                            {value}
+                        </Link>
+                    ) : (
+                        <p className="font-semibold text-muted-foreground">N/A</p>
+                    )
                 ) : (
-                    <p className="font-semibold text-muted-foreground">N/A</p>
-                )
-            ) : (
-                // If no link URL is provided...
-                <p className="font-semibold">
-                    {hasValue ? value : <span className="text-muted-foreground">N/A</span>}
-                </p>
-            )}
-        </div>
-    );
-};
+                    // If no link URL is provided...
+                    <p className="font-semibold">
+                        {hasValue ? value : <span className="text-muted-foreground">N/A</span>}
+                    </p>
+                )}
+            </div>
+        );
+    };
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
             <div className="flex justify-between items-center mb-4">
-    
-    {/* This is the left side */}
-    <h2 className="text-lg font-semibold">Task Details</h2>
 
-    {/* This is the right side, which only renders if the task is not completed */}
-    {task.status !== "Completed" && (
-        // This inner div groups the buttons together
-        <div className="flex items-center gap-2">
-            <Button 
-                variant="outline" // Using 'outline' for a cleaner look than 'ghost' with a border
-                size="sm" 
-                onClick={() => openEditTaskDialog({ taskData: task, mode: 'edit' })}
-            >
-                <SquarePen className="w-4 h-4 mr-2" />
-                EDIT
-            </Button>
-            
-            <Button 
-                variant="destructive" // Using the 'destructive' variant for the primary action button
-                size="sm" 
-                onClick={() => openEditTaskDialog({ taskData: task, mode: 'updateStatus' })}
-            >
-                Update Status
-            </Button>
-        </div>
-    )}
-</div>
+                {/* This is the left side */}
+                <h2 className="text-lg font-semibold">Task Details</h2>
+
+                {/* This is the right side, which only renders if the task is not completed */}
+                {task.status !== "Completed" && (
+                    // This inner div groups the buttons together
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline" // Using 'outline' for a cleaner look than 'ghost' with a border
+                            size="sm"
+                            onClick={() => openEditTaskDialog({ taskData: task, mode: 'edit' })}
+                        >
+                            <SquarePen className="w-4 h-4 mr-2" />
+                            EDIT
+                        </Button>
+
+                        <Button
+                            variant="destructive" // Using the 'destructive' variant for the primary action button
+                            size="sm"
+                            onClick={() => openEditTaskDialog({ taskData: task, mode: 'updateStatus' })}
+                        >
+                            Update Status
+                        </Button>
+                    </div>
+                )}
+            </div>
             <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                 <DetailItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} href={`/contacts/contact?id=${contact?.name}`} />
                 <DetailItem label="Company" value={task?.company} href={`/companies/company?id=${task?.company}`} />
@@ -101,7 +103,7 @@ const DetailItem = ({ label, value, href }: { label: string, value?: string | nu
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${getTaskStatusClass(task.status)}`}>{task.status}</span>
                 </div>
                 <DetailItem label="Date" className="text-sm" value={`${formatDate(task?.start_date)} - ${formatTime12Hour(task?.time)}`} />
-                <DetailItem label="Remarks" className="text-sm" value={task?.remarks||"--"} />
+                <DetailItem label="Remarks" className="text-sm" value={task?.remarks || "--"} />
             </div>
         </div>
     );
@@ -111,22 +113,82 @@ const DetailItem = ({ label, value, href }: { label: string, value?: string | nu
 const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
     const navigate = useNavigate();
     return (
-        <div className="bg-background p-4 rounded-lg border shadow-sm">
-            <h2 className="font-semibold mb-4">Contact Task History</h2>
-            {tasks.length > 1 ? tasks.map((task, i) => (
-                <div key={task.name}>
-                    <div onClick={() => navigate(`/contacts/contact?id=${task.contact}`)} className="grid grid-cols-3 items-center py-3 cursor-pointer">
-                        <span>{task.type}</span>
-                        <span className="text-muted-foreground text-sm">{formatDate(task.start_date)}</span>
-                        <div className="flex items-center justify-end gap-2">
-                             <span className="text-xs font-semibold px-2 py-1 rounded-full">{task.status||"New"}</span>
-                             <ChevronRight className="w-4 h-4 text-muted-foreground"/>
-                        </div>
-                    </div>
-                    {i < tasks.length - 1 && <Separator />}
-                </div>
-            )) : <p className="text-center text-sm text-muted-foreground py-4">No other tasks for this contact.</p>}
-        </div>
+        // <div className="bg-background p-4 rounded-lg border shadow-sm">
+        //     <h2 className="font-semibold mb-4">Contact Task History</h2>
+        //     {tasks.length > 1 ? tasks.map((task, i) => (
+        //         <div key={task.name}>
+        //             <div onClick={() => navigate(`/contacts/contact?id=${task.contact}`)} className="grid grid-cols-3 items-center py-3 cursor-pointer">
+        //                 <span>{task.type}</span>
+        //                 <span className="text-muted-foreground text-sm">{formatDate(task.start_date)}</span>
+        //                 <div className="flex items-center justify-end gap-2">
+        //                      <span className="text-xs font-semibold px-2 py-1 rounded-full">{task.status||"New"}</span>
+        //                      <ChevronRight className="w-4 h-4 text-muted-foreground"/>
+        //                 </div>
+        //             </div>
+        //             {i < tasks.length - 1 && <Separator />}
+        //         </div>
+        //     )) : <p className="text-center text-sm text-muted-foreground py-4">No other tasks for this contact.</p>}
+        // </div>
+        <>
+            <Card className="mt-4 p-0">
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                {/* This column is visible on all screen sizes */}
+                                <TableHead className="text-black font-bold">Contact Task History</TableHead>
+
+                                {/* These columns will ONLY appear on desktop (md screens and up) */}
+                                <TableHead className="hidden md:table-cell">Company</TableHead>
+                                <TableHead className="hidden md:table-cell">Status</TableHead>
+                                <TableHead className="hidden md:table-cell text-right">Task Date</TableHead>
+                                <TableHead className="hidden md:table-cell text-right">Last Updated</TableHead>
+
+                                {/* Chevron column */}
+                                <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {tasks.length > 0 ? (
+                                tasks.map((task) => (
+                                    <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
+
+                                        {/* --- MOBILE & DESKTOP: Combined Cell --- */}
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
+                                                        {formatCasualDate(task.start_date)} at {formatTime12Hour(task.time)}
+                                                    </span></span>
+
+                                                    {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                          <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                                                                           Updated: {formatDate(task.modified)}
+                                                                                                       </span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+
+                                        {/* --- DESKTOP ONLY Cells --- */}
+                                        <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
+                                        <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
+                                        <TableCell className="hidden md:table-cell text-right">{formatDate(task.start_date)}</TableCell>
+                                        <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
+
+                                        <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center h-24">No tasks found in this category.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </>
     );
 };
 
@@ -159,25 +221,25 @@ const UpdateTaskButtons = ({ task }: { task: CRMTask }) => {
 
 // --- MAIN ORCHESTRATOR COMPONENT ---
 export const Task = () => {
-    const [id] = useStateSyncedWithParams("id","");
+    const [id] = useStateSyncedWithParams("id", "");
 
     // Fetch the main task and all its related documents
-    const { data: taskData, isLoading: taskLoading,mutate:taskMutate } = useFrappeGetDoc<CRMTask>("CRM Task", id,`all-tasks-${id}`);
+    const { data: taskData, isLoading: taskLoading, mutate: taskMutate } = useFrappeGetDoc<CRMTask>("CRM Task", id, `all-tasks-${id}`);
 
-    const { data: contactData, isLoading: contactLoading,mutate:contactMutate } = useFrappeGetDoc<CRMContacts>("CRM Contacts", taskData?.contact, { enabled: !!taskData?.contact },);
-    
-    const { data: companyData, isLoading: companyLoading,mutate:companyMutate } = useFrappeGetDoc<CRMCompany>("CRM Company", taskData?.company, { enabled: !!taskData?.company });
+    const { data: contactData, isLoading: contactLoading, mutate: contactMutate } = useFrappeGetDoc<CRMContacts>("CRM Contacts", taskData?.contact, { enabled: !!taskData?.contact },);
+
+    const { data: companyData, isLoading: companyLoading, mutate: companyMutate } = useFrappeGetDoc<CRMCompany>("CRM Company", taskData?.company, { enabled: !!taskData?.company });
     const { data: boqData, isLoading: boqLoading } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", taskData?.boq, { enabled: !!taskData?.boq },);
 
-   const { data: historyTasks, isLoading: historyLoading } = useFrappeGetDocList<CRMTask>(
-        "CRM Task", 
-        { 
-            filters: { contact: taskData?.contact, name: ['!=', id] }, 
-            limit: 0, 
+    const { data: historyTasks, isLoading: historyLoading } = useFrappeGetDocList<CRMTask>(
+        "CRM Task",
+        {
+            filters: { contact: taskData?.contact, name: ['!=', id] },
+            limit: 0,
             enabled: !!taskData?.contact,
-            fields: ["*"] // Specify required fields here
+            fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "time"],
         }
-    ,`all-tasks-contacthistory${taskData?.contact}`);
+        , `all-tasks-contacthistory${taskData?.contact}`);
 
     // const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM Task", reference_docname: id }, orderBy: {field: "creation", order: "desc"} });
 

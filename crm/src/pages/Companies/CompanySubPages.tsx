@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CRMBOQ } from "@/types/NirmaanCRM/CRMBOQ";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
-import { formatDate } from "@/utils/FormatDate";
 import { ChevronRight, Search } from "lucide-react";
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +13,8 @@ import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { useViewport } from "@/hooks/useViewPort";
 import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon';
 import {StatusPill} from "@/pages/Tasks/TasksVariantPage"
+
+import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
 interface CompanySubPagesProps {
     boqs: CRMBOQ[];
     contacts: CRMContacts[];
@@ -134,9 +135,11 @@ const TaskList = ({ tasks, contacts }: { tasks: CRMTask[], contacts: CRMContacts
                                                            <div className="flex items-center gap-3">
                                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
                                                                <div className="flex flex-col">
-                                                                   <span className="font-medium">{`${task.type} with ${task.first_name}`}</span>
+                                                                   <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
+                                                                                                                           {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
+                                                                                                                       </span></span>
                                                                    {/* On mobile, show the date here. Hide it on larger screens. */}
-                                                                   <span className="text-xs text-muted-foreground md:hidden">
+                                                                    <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
                                                                        Updated: {formatDate(task.modified)}
                                                                    </span>
                                                                </div>
