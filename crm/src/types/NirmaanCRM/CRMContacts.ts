@@ -26,4 +26,10 @@ export interface CRMContacts{
 	designation?: string
 	/**	Department : Data	*/
 	department?: string
+	/**	Visiting Card : Data	*/
+	visiting_card?: string
+	/**	Assigned Sales : Data	*/
+	assigned_sales?: string
+	/**	Last Meeting : Date	*/
+	last_meeting?: string
 }

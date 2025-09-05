@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:email",
  "creation": "2025-01-06 17:54:59.100137",
@@ -91,7 +92,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-29 12:17:20.558152",
+ "modified": "2025-09-05 16:46:06.592440",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Contacts",
