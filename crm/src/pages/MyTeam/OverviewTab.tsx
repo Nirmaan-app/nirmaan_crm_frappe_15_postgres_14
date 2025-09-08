@@ -151,7 +151,7 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }) => {
                             onClick={() => {
                                 if (card.data?.items && card.data.items.length > 0) {
                                     openStatsDetailDialog({
-                                        title: `${card.title} for ${card.full_name}`,
+                                        title: `${card.title} for ${member.full_name}`,
                                         items: card.data.items,
                                     });
                                 }
