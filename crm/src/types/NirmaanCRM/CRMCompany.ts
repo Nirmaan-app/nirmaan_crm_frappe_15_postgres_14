@@ -1,5 +1,5 @@
 
-export interface CRMCompany{
+export interface CRMCompany {
 	name: string
 	creation: string
 	modified: string
