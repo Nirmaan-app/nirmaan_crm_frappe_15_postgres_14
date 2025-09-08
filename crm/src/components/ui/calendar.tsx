@@ -603,12 +603,12 @@ function Calendar({
   const columnsDisplayed = navView === "years" ? 1 : numberOfMonths
   const _monthsClassName = cn("relative", props.monthsClassName)
   const _monthCaptionClassName = cn(
-    `relative ${"mx-24"} flex h-7 items-center justify-center border border-gray-300 rounded-md`,
+    `relative ${"mx-24"} w-[150px] flex h-7 items-center justify-center border border-gray-300 rounded-md`,
     props.monthCaptionClassName
   )
   const _weekdaysClassName = cn("flex flex-row border-b border-gray-300", props.weekdaysClassName)
   const _weekdayClassName = cn(
-    `${isMobile ? "w-12" : "w-8"} text-sm font-normal text-muted-foreground`,
+    `${isMobile ? "w-10" : "w-10"} text-sm font-normal text-muted-foreground`,
     props.weekdayClassName
   )
   const _monthClassName = cn("w-full", props.monthClassName)
@@ -639,7 +639,7 @@ function Calendar({
   const _monthGridClassName = cn("mx-auto mt-4", props.monthGridClassName)
   const _weekClassName = cn("mt-2 flex w-max items-start border-b border-gray-300", props.weekClassName)
   const _dayClassName = cn(
-    `flex ${isMobile ? "size-12" : "size-8"} flex-1 items-center justify-center p-0 text-sm`,
+    `flex ${isMobile ? "size-10" : "size-10"} flex-1 items-center justify-center p-0 text-sm`,
     props.dayClassName
   )
   const _dayButtonClassName = cn(

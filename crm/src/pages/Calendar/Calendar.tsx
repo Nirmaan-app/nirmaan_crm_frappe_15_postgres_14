@@ -261,10 +261,10 @@ export const TaskCalendar = () => {
       
       {/* ===== CALENDAR COLUMN ===== */}
       {/* On desktop (`md:`), it takes half the width. On mobile, it's full-width by default. */}
-      <div className="md:w-1/2">
+      <div className="min-h-[48vh] md:w-1/2">
         
 
-         <Calendar
+        <Calendar
         mode="single"
         showOutsideDays={false}
         timeZone="Asia/Calcutta"

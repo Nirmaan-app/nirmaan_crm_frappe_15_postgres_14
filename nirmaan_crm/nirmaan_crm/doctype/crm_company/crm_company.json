@@ -1,119 +1,120 @@
 {
-    "actions": [],
-    "allow_rename": 1,
-    "autoname": "field:company_name",
-    "creation": "2025-01-07 20:02:45.990572",
-    "doctype": "DocType",
-    "engine": "InnoDB",
-    "field_order": [
-        "company_details_section",
-        "company_name",
-        "company_website",
-        "company_type",
-        "company_city",
-        "assigned_sales",
-        "last_meeting"
-    ],
-    "fields": [
-        {
-            "fieldname": "company_details_section",
-            "fieldtype": "Section Break",
-            "label": "Company Details"
-        },
-        {
-            "fieldname": "company_name",
-            "fieldtype": "Data",
-            "label": "Company Name",
-            "unique": 1
-        },
-        {
-            "fieldname": "company_website",
-            "fieldtype": "Data",
-            "label": "Company Website"
-        },
-        {
-            "fieldname": "company_type",
-            "fieldtype": "Link",
-            "label": "Company Type",
-            "options": "CRM Company Type"
-        },
-        {
-            "fieldname": "company_city",
-            "fieldtype": "Data",
-            "label": "Company City"
-        },
-        {
-            "fieldname": "assigned_sales",
-            "fieldtype": "Data",
-            "label": "Assigned Sales"
-        },
-        {
-            "fieldname": "last_meeting",
-            "fieldtype": "Date",
-            "label": "Last Meeting"
-        }
-    ],
-    "index_web_pages_for_search": 1,
-    "links": [],
-    "modified": "2025-08-29 12:17:40.286758",
-    "modified_by": "Administrator",
-    "module": "Nirmaan CRM",
-    "name": "CRM Company",
-    "naming_rule": "By fieldname",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "System Manager",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Nirmaan Admin User",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Nirmaan Estimations User",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Nirmaan Sales User",
-            "share": 1,
-            "write": 1
-        }
-    ],
-    "row_format": "Dynamic",
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": [],
-    "track_changes": 1
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "field:company_name",
+ "creation": "2025-01-07 20:02:45.990572",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_details_section",
+  "company_name",
+  "company_website",
+  "company_type",
+  "company_city",
+  "assigned_sales",
+  "last_meeting"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_details_section",
+   "fieldtype": "Section Break",
+   "label": "Company Details"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "company_website",
+   "fieldtype": "Data",
+   "label": "Company Website"
+  },
+  {
+   "fieldname": "company_type",
+   "fieldtype": "Link",
+   "label": "Company Type",
+   "options": "CRM Company Type"
+  },
+  {
+   "fieldname": "company_city",
+   "fieldtype": "Data",
+   "label": "Company City"
+  },
+  {
+   "fieldname": "assigned_sales",
+   "fieldtype": "Data",
+   "label": "Assigned Sales"
+  },
+  {
+   "fieldname": "last_meeting",
+   "fieldtype": "Date",
+   "label": "Last Meeting"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-05 16:45:43.983104",
+ "modified_by": "Administrator",
+ "module": "Nirmaan CRM",
+ "name": "CRM Company",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Nirmaan Admin User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Nirmaan Estimations User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Nirmaan Sales User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
 }

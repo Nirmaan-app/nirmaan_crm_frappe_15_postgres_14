@@ -70,7 +70,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
           const role = localStorage.getItem('role');
     
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterType, setFilterType] = useState("By Company");
+    const [filterType, setFilterType] = useState("By Name");
     const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });
     const [assignmentFilters, setAssignmentFilters] = useState([]);
 
@@ -100,7 +100,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
                 case 'By Contact':
                     const contactName = `${boq?.first_name || ''} ${boq?.last_name || ''}`.toLowerCase();
                     return contactName.includes(lowercasedQuery);
-                case 'By BOQ': return boq.boq_name?.toLowerCase().includes(lowercasedQuery);
+                case 'By Name': return boq.boq_name?.toLowerCase().includes(lowercasedQuery);
                 case 'By Type': return boq.boq_type?.toLowerCase().includes(lowercasedQuery);
                 default: return true;
             }

@@ -1,0 +1,65 @@
+[
+ {
+  "company_type_name": "GC",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-05 17:35:06.872717",
+  "name": "GC"
+ },
+ {
+  "company_type_name": "Architect",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-05 17:35:15.956307",
+  "name": "Architect"
+ },
+ {
+  "company_type_name": "PMC",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-05 17:35:39.528950",
+  "name": "PMC"
+ },
+ {
+  "company_type_name": "MEP Consultant",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-05 17:36:03.940544",
+  "name": "MEP Consultant"
+ },
+ {
+  "company_type_name": "Other Consultant",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-05 17:36:18.623501",
+  "name": "Other Consultant"
+ },
+ {
+  "company_type_name": "Real Estate Broker",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-05 17:36:33.127769",
+  "name": "Real Estate Broker"
+ },
+ {
+  "company_type_name": "Coworking / Managed Office",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-05 17:37:06.576317",
+  "name": "Coworking / Managed Office"
+ },
+ {
+  "company_type_name": "Interior Construction",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-05 17:59:31.711241",
+  "name": "Interior Construction"
+ },
+ {
+  "company_type_name": "D&B",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-05 17:48:53.600137",
+  "name": "D&B"
+ }
+]

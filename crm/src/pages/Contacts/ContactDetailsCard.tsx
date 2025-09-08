@@ -35,7 +35,7 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
             </div>
 
             <div className="bg-background p-4 rounded-lg border shadow-sm space-y-4">
-                <div className="grid grid-cols-2 gap-y-4 gap-x-2">
+                <div className="grid grid-cols-2 gap-y-4 gap-x-20">
                     <DetailItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} />
                     <DetailItem label="Contact Type" value={contact?.mobile?"Mobile":"Email"} /> {/* Static for now */}
                     <DetailItem label="Email" value={contact?.email} href={`mailto:${contact?.email}`} />
@@ -49,7 +49,7 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
                      <DetailItem label="Assigned Sales" value={contact?.assigned_sales}  />
 
                 </div>
-                <div className="grid grid-cols-2 gap-y-4 gap-x-2 border-t pt-4">
+                <div className="grid grid-cols-2 gap-y-4 gap-x-20 border-t pt-4">
                     <DetailItem label="Company Name" value={company?.company_name} />
                     <DetailItem label="Location" value={company?.company_city} />
                     <DetailItem label="Department" value={contact?.department || 'N/A'} />
