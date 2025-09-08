@@ -32,7 +32,12 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
 
     const { data: salesUsers, isLoading: salesLoading } = useFrappeGetDocList<CRMUsers>("CRM Users", {
         fields: ["name", "full_name"],
-        filters: { nirmaan_role_name: "Nirmaan Sales User Profile" },
+         filters: { 
+                "nirmaan_role_name": ["in", [
+                    "Nirmaan Sales User Profile", 
+                    "Nirmaan Admin User Profile",
+                ]] 
+            },
         limit: 0,
     }, "sales-users-list");
 

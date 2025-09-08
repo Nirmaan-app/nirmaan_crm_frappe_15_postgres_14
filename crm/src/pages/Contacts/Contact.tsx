@@ -10,6 +10,7 @@ import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useSWRConfig 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
 // Import the new child components
 import { ContactDetailsCard } from "./ContactDetailsCard";
 import { ContactSubPages } from "./ContactSubPages";

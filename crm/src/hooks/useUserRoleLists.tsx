@@ -29,7 +29,8 @@ export const useUserRoleLists = () => {
             filters: { 
                 "nirmaan_role_name": ["in", [
                     "Nirmaan Sales User Profile", 
-                    "Nirmaan Estimations User Profile"
+                    "Nirmaan Estimations User Profile",
+                    "Nirmaan Admin User Profile",
                 ]] 
             },
             limit: 0,
@@ -62,7 +63,7 @@ export const useUserRoleLists = () => {
                 // user.email is used as the key to look up the full_name
                 accumulator.emailMap[user.email] = user.full_name;
 
-                if (user.nirmaan_role_name === "Nirmaan Sales User Profile") {
+                if (user.nirmaan_role_name === "Nirmaan Sales User Profile" || user.nirmaan_role_name==="Nirmaan Admin User Profile") {
                     accumulator.sales.push(userOption);
                 } else if (user.nirmaan_role_name === "Nirmaan Estimations User Profile") {
                     accumulator.estimations.push(userOption);

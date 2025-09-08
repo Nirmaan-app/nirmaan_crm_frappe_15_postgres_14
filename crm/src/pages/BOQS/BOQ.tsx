@@ -319,6 +319,8 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
 // --- SUB-COMPONENT 4: Other Details ---
 const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany }) => {
     const { openEditBoqDialog } = useDialogStore();
+  const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+
     const DetailItem = ({ label, value, href }: { label: string; value: string; href?: string }) => (
         <div>
             <p className="text-xs text-muted-foreground">{label}</p>
@@ -358,7 +360,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 
                 <DetailItem label="Submission Deadline" value={formatDate(boq?.boq_submission_date) || "--"} />
                 <DetailItem label="Recevied on" value={formatDate(boq?.creation)} />
-                <DetailItem label="Created by" value={boq?.owner.split('@')[0]} />
+                <DetailItem label="Created by" value={getUserFullNameByEmail(boq?.owner)||"Administrator"} />
 
                 <DetailItem label="Remarks" value={boq?.remarks || 'N/A'} />
             </div>

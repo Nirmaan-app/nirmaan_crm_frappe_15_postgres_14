@@ -5,6 +5,8 @@ import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { SquarePen } from "lucide-react";
 import { useDialogStore } from "@/store/dialogStore"; 
 import { formatDate, formatTime12Hour,formatDateWithOrdinal } from "@/utils/FormatDate";
+import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+
 
 interface CompanyDetailsCardProps {
     company: CRMCompany;
@@ -18,6 +20,8 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts,activ
    if (!company) {
         return null; // Or a loading skeleton
     }
+      const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+
     return (
         <div>
             <div className="flex justify-between items-center mb-2">
@@ -60,7 +64,7 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts,activ
                     </div>
                            <div className="text-right">
                         <p className="text-xs text-muted-foreground">Assigned Sales</p>
-                        <p className="font-bold text-sm">{company?.assigned_sales ||"N/A"}</p>
+                        <p className="font-bold text-sm">{getUserFullNameByEmail(company?.assigned_sales) ||"N/A"}</p>
                     </div>
                 </div>
             </div>
