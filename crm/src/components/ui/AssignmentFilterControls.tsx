@@ -32,12 +32,12 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
 
     const { data: salesUsers, isLoading: salesLoading } = useFrappeGetDocList<CRMUsers>("CRM Users", {
         fields: ["name", "full_name"],
-         filters: { 
-                "nirmaan_role_name": ["in", [
-                    "Nirmaan Sales User Profile", 
-                    "Nirmaan Admin User Profile",
-                ]] 
-            },
+        filters: {
+            "nirmaan_role_name": ["in", [
+                "Nirmaan Sales User Profile",
+                "Nirmaan Admin User Profile",
+            ]]
+        },
         limit: 0,
     }, "sales-users-list");
 
@@ -133,14 +133,14 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
     //     return null;
     // }
 
-      if (role === 'Nirmaan Estimations User Profile') {
+    if (role === 'Nirmaan Estimations User Profile') {
         // Show tabs ONLY for the BOQ list.
         if (filterType === 'boq') {
             return (
                 <div className="space-y-1">
-                <label className="text-sm font-medium text-muted-foreground">Filter by Sales User</label>
-                <ReactSelect isMulti options={salesUserOptions} isLoading={salesLoading} value={selectedSalesUsers} onChange={setSelectedSalesUsers} placeholder="All Sales Users" className="text-sm" menuPosition={'auto'} />
-            </div>
+                    <label className="text-sm font-medium text-muted-foreground">Filter by Sales User</label>
+                    <ReactSelect isMulti options={salesUserOptions} isLoading={salesLoading} value={selectedSalesUsers} onChange={setSelectedSalesUsers} placeholder="All Sales Users" className="text-sm" menuPosition={'auto'} />
+                </div>
             );
         }
         return null;
@@ -155,17 +155,17 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
             </div>
         );
         // For BOQs, show both dropdowns.
-        if (filterType === 'boq') {
-            return (
-                <div className="space-y-4">
-                    {salesFilterDropdown}
-                    <div className="space-y-1">
-                        <label className="text-sm font-medium text-muted-foreground">Filter by Estimation User</label>
-                        <ReactSelect isMulti options={estimationUserOptions} isLoading={estimationLoading} value={selectedEstimationUsers} onChange={setSelectedEstimationUsers} placeholder="All Estimation Users" className="text-sm" menuPosition={'auto'} />
-                    </div>
-                </div>
-            );
-        }
+        // if (filterType === 'boq') {
+        //     return (
+        //         <div className="space-y-4">
+        //             {salesFilterDropdown}
+        //             <div className="space-y-1">
+        //                 <label className="text-sm font-medium text-muted-foreground">Filter by Estimation User</label>
+        //                 <ReactSelect isMulti options={estimationUserOptions} isLoading={estimationLoading} value={selectedEstimationUsers} onChange={setSelectedEstimationUsers} placeholder="All Estimation Users" className="text-sm" menuPosition={'auto'} />
+        //             </div>
+        //         </div>
+        //     );
+        // }
         // For Company, Contact, AND Task lists, show only the Sales dropdown.
         return salesFilterDropdown;
     }

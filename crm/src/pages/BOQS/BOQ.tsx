@@ -20,7 +20,7 @@ import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon'; // Import the s
 import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
 import { StatusPill } from "@/pages/Tasks/TasksVariantPage"
 import { useViewport } from "@/hooks/useViewPort";
-import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 
 
 // --- SUB-COMPONENT 1: Header ---
@@ -36,7 +36,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
     const getBoqStatusClass = useStatusStyles("boq");
     const role = localStorage.getItem('role');
     const currentUser = localStorage.getItem('userId');
-  const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+    const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
 
     // 3. LOCAL STATE: Use useState to control the dialog's visibility
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -241,13 +241,13 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                                     {/* --- DESKTOP ONLY Cells --- */}
                                     <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
                                     <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
-                                     <TableCell className="hidden md:table-cell text-right">
-                                      <div className="flex flex-col items-center">
-                                        <span>{formatDate(task.start_date)}</span>
-                                        <span className="text-xs text-muted-foreground text-center">
-                                          {formatTime12Hour(task?.time)}
-                                        </span>
-                                      </div>
+                                    <TableCell className="hidden md:table-cell text-right">
+                                        <div className="flex flex-col items-center">
+                                            <span>{formatDate(task.start_date)}</span>
+                                            <span className="text-xs text-muted-foreground text-center">
+                                                {formatTime12Hour(task?.time)}
+                                            </span>
+                                        </div>
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
 
@@ -319,7 +319,7 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
 // --- SUB-COMPONENT 4: Other Details ---
 const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany }) => {
     const { openEditBoqDialog } = useDialogStore();
-  const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+    const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
 
     const DetailItem = ({ label, value, href }: { label: string; value: string; href?: string }) => (
         <div>
@@ -360,7 +360,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 
                 <DetailItem label="Submission Deadline" value={formatDate(boq?.boq_submission_date) || "--"} />
                 <DetailItem label="Recevied on" value={formatDate(boq?.creation)} />
-                <DetailItem label="Created by" value={getUserFullNameByEmail(boq?.owner)||"Administrator"} />
+                <DetailItem label="Created by" value={getUserFullNameByEmail(boq?.owner) || "Administrator"} />
 
                 <DetailItem label="Remarks" value={boq?.remarks || 'N/A'} />
             </div>
@@ -371,8 +371,8 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
             <div className="grid grid-cols-2 gap-y-5 gap-x-20">
                 <DetailItem label="Contact Name" value={contact?.first_name ? `${contact.first_name} ${contact.last_name}` : 'N/A'} isLink href={`/contacts/contact?id=${contact?.name}`} />
                 <DetailItem label="Designation" value={contact?.designation || 'N/A'} />
-                <DetailItem label="Company Name" value={contact?.company || 'N/A'} isLink href={`/companies/company?id=${company?.name}`} />
-                <DetailItem label="Location" value={contact?.company ? company?.company_city : 'N/A'} />
+                <DetailItem label="Company Name" value={company?.name || 'N/A'} isLink href={`/companies/company?id=${company?.name}`} />
+                <DetailItem label="Company City" value={company ? company?.company_city : 'N/A'} />
             </div>
 
             {/* <Separator />
@@ -594,7 +594,7 @@ interface TransformedHistoryItem {
 // --- MAIN COMPONENT ---
 const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
     const getBoqStatusClass = useStatusStyles("boq");
-  const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+    const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
 
 
     const transformedHistory = useMemo((): TransformedHistoryItem[] => {
@@ -619,14 +619,14 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 // If this version changed the status, update our tracker.
                 if (statusChange) {
                     lastKnownStatus = statusChange[2] as string;
-                }else{
-                    lastKnownStatus="-"
+                } else {
+                    lastKnownStatus = "-"
                 }
                 // If this version changed the sub-status, update our tracker.
                 if (subStatusChange) {
                     lastKnownSubStatus = subStatusChange[2] as string;
-                }else{
-                    lastKnownSubStatus="--"
+                } else {
+                    lastKnownSubStatus = "--"
                 }
 
                 // We create a history item if any of the fields we care about were changed.
@@ -637,8 +637,8 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
 
                 const remarkValue = remarksChange ? (remarksChange[2] as string) : '--';
                 const submissionDateValue = dateChange ? (dateChange[2] as string) : '--';
-                const boqLinkValue = boqLinkChange ? (boqLinkChange[2] as string) :undefined ;
-                
+                const boqLinkValue = boqLinkChange ? (boqLinkChange[2] as string) : undefined;
+
                 // Get owner and creation date for THIS specific version
                 const versionOwner = version.owner; // Assuming email format
                 const versionDate = formatDate(version.creation);
@@ -691,41 +691,41 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 </div>
                 {/* NEW: Updated by and Date on mobile */}
                 <div className="text-xs text-gray-500 text-right ml-2 mr-1">
-                    Updated by: <span className="font-semibold">{getUserFullNameByEmail(item.owner)||"Administrator"}</span>
-                    <br/>
+                    Updated by: <span className="font-semibold">{getUserFullNameByEmail(item.owner) || "Administrator"}</span>
+                    <br />
                     <span className="text-[10px] text-muted-foreground">({item.date})</span>
                 </div>
             </div>
 
             <div className="grid grid-cols-2 gap-22 ">
-                 {/* Remarks */}
-                 <div className="mt-1">
-                     <div className="text-xs font-medium text-gray-600 mb-1 font-semibold">Remarks</div>
-                     <div className="text-sm text-gray-800 line-clamp-2">{item.remark || '--'}</div>
-                 </div>
+                {/* Remarks */}
+                <div className="mt-1">
+                    <div className="text-xs font-medium text-gray-600 mb-1 font-semibold">Remarks</div>
+                    <div className="text-sm text-gray-800 line-clamp-2">{item.remark || '--'}</div>
+                </div>
 
-                 {/* Submission Deadline */}
-                 <div className="mt-1">
-                     <div className="text-xs font-medium text-gray-600 mb-1 text-center font-semibold">Submission Deadline</div>
-                     <div className="text-sm text-gray-800 text-center">{item.submission_date || '--'}</div>
-                 </div>
-             </div>
+                {/* Submission Deadline */}
+                <div className="mt-1">
+                    <div className="text-xs font-medium text-gray-600 mb-1 text-center font-semibold">Submission Deadline</div>
+                    <div className="text-sm text-gray-800 text-center">{item.submission_date || '--'}</div>
+                </div>
+            </div>
             {/* BOQ Link */}
             {item.link && (
-                 <div className="mt-2 pt-1 border-t border-gray-100">
-                     <a
-                         href={item.link}
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="inline-flex items-center text-blue-600 text-xs font-medium hover:text-blue-700"
-                     >
-                         <svg className="w-2 h-2 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                         </svg>
-                         View BOQ Link
-                     </a>
-                 </div>
-             )}
+                <div className="mt-2 pt-1 border-t border-gray-100">
+                    <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-blue-600 text-xs font-medium hover:text-blue-700"
+                    >
+                        <svg className="w-2 h-2 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        View BOQ Link
+                    </a>
+                </div>
+            )}
         </div>
     );
 
@@ -768,12 +768,12 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                                     {/* NEW: Combined Updated By & Date cell */}
                                     <TableCell>
                                         <div className="flex flex-col items-start">
-                                            <span className="font-medium text-sm">{getUserFullNameByEmail(item.owner)||"Administrator"}</span>
+                                            <span className="font-medium text-sm">{getUserFullNameByEmail(item.owner) || "Administrator"}</span>
                                             <span className="text-xs text-muted-foreground">{item.date}</span>
                                         </div>
                                     </TableCell>
-                                                                         <TableCell>
-                                        {item.link !=undefined? (
+                                    <TableCell>
+                                        {item.link != undefined ? (
                                             <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">
                                                 View Link
                                             </a>
@@ -781,7 +781,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                                             '--'
                                         )}
                                     </TableCell>
-                                
+
                                 </TableRow>
                             ))
                         ) : (
