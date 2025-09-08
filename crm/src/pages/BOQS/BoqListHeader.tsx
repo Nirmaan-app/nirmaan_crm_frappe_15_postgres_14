@@ -17,7 +17,7 @@ interface BoqListHeaderProps {
     isMobile: boolean; // To handle slight layout differences
 }
 
-const filterOptions = ["By Company", "By Contact", "By BOQ", "By Type"];
+const filterOptions = ["By Name", "By Company", "By Contact", "By Type"];
 
 export const BoqListHeader = ({
     searchQuery,
@@ -25,31 +25,31 @@ export const BoqListHeader = ({
     filterType,
     setFilterType,
     onDateRangeChange,
-   dateRange, // Receive as `dateRange`
+    dateRange, // Receive as `dateRange`
     isMobile
 }: BoqListHeaderProps) => {
-    
-   
-        return (
-            <div className="space-y-4">
-                <div className="flex gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="flex-shrink-0">
-                                {filterType} <ChevronDown className="w-4 h-4 ml-2" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                            {filterOptions.map(opt => <DropdownMenuItem key={opt} onClick={() => setFilterType(opt)}>{opt}</DropdownMenuItem>)}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Search..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                    </div>
+
+
+    return (
+        <div className="space-y-4">
+            <div className="flex gap-2">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="flex-shrink-0">
+                            {filterType} <ChevronDown className="w-4 h-4 ml-2" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                        {filterOptions.map(opt => <DropdownMenuItem key={opt} onClick={() => setFilterType(opt)}>{opt}</DropdownMenuItem>)}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Search..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                 </div>
-               <FilterControls onDateRangeChange={onDateRangeChange} dateRange={dateRange} />
             </div>
-        );
-    
+            <FilterControls onDateRangeChange={onDateRangeChange} dateRange={dateRange} />
+        </div>
+    );
+
 };

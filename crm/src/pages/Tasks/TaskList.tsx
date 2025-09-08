@@ -72,7 +72,7 @@
 // }
 
 // export const DesktopTaskDetailView = ({ title, taskGroup, context }: DesktopTaskDetailViewProps) => {
-    
+
 //     const totalTasks = (taskGroup?.completed?.length || 0) + 
 //                        (taskGroup?.incomplete?.length || 0) + 
 //                        (taskGroup?.scheduled?.length || 0);
@@ -80,7 +80,7 @@
 //     return (
 //         <div className="bg-background rounded-lg border p-4 h-full flex flex-col">
 //             <h2 className="text-lg font-semibold mb-4">{title} - {totalTasks} Tasks</h2>
-            
+
 //             {/* Scrollable content area */}
 //             <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2">
 //                 {totalTasks > 0 ? (
@@ -369,7 +369,7 @@
 //             </div>
 
 //             {isMobile ? (<Accordion type="multiple" defaultValue={["today"]} className="w-full space-y-4">
-                
+
 //                 {/* <div className="bg-background rounded-lg border">
 //                     <AccordionItem value="today" className="border-b-0">
 //                         <AccordionTrigger className="px-4">Today's Tasks - {todayTasks.length} Tasks</AccordionTrigger>
@@ -393,7 +393,7 @@
 //                         </AccordionContent>
 //                     </AccordionItem>
 //                 </div>
-                
+
 //                 <div className="bg-background rounded-lg border">
 //                     <AccordionItem value="createdToday" className="border-b-0">
 //                         <AccordionTrigger className="px-4">Tasks created today - {createdTodayTasks.length} Tasks</AccordionTrigger>
@@ -457,7 +457,7 @@
 
 //             </Accordion>
 //         ) : 
-        
+
 //         (
 //                 // --- CHANGE 3: UPDATE the Desktop view's onClick handlers ---
 //                 <div className="space-y-2 pt-4">
@@ -705,7 +705,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
 
         return {
             allTasks: enriched,
-            pendingTasks: enriched.filter(t => t.status !== 'Completed'),
+            pendingTasks: enriched.filter(t => t.status === 'Scheduled'),
             scheduledTasks: enriched.filter(t => t.status === 'Completed'),
             //      todayTasks: enriched.filter(t => t.start_date?.slice(0, 10) == today),
             // tomorrowTasks: enriched.filter(t => t.start_date?.slice(0, 10) == tomorrow),

@@ -309,26 +309,26 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
 // --- SUB-COMPONENT 4: Other Details ---
 const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany }) => {
     const { openEditBoqDialog } = useDialogStore();
-  const DetailItem = ({ label, value, href }: { label: string; value: string; href?: string }) => (
-    <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        {/* Conditional rendering:
+    const DetailItem = ({ label, value, href }: { label: string; value: string; href?: string }) => (
+        <div>
+            <p className="text-xs text-muted-foreground">{label}</p>
+            {/* Conditional rendering:
             1. If value is "N/A", always render as plain text.
             2. Otherwise, if href is provided, render as a link.
             3. Otherwise (not "N/A" and no href), render as plain text.
         */}
-        {value === "N/A" ? (
-            <p className="font-semibold">{value}</p>
-        ) : href ? (
-            // Added target="_blank" and rel="noopener noreferrer" for external links best practice
-            <a href={href} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
-                {value}
-            </a>
-        ) : (
-            <p className="font-semibold">{value}</p>
-        )}
-    </div>
-);
+            {value === "N/A" ? (
+                <p className="font-semibold">{value}</p>
+            ) : href ? (
+                // Added target="_blank" and rel="noopener noreferrer" for external links best practice
+                <a href={href} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
+                    {value}
+                </a>
+            ) : (
+                <p className="font-semibold">{value}</p>
+            )}
+        </div>
+    );
     return (
         <div className="bg-background p-6 rounded-lg border shadow-sm space-y-6">
 
@@ -360,7 +360,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 <DetailItem label="Contact Name" value={contact?.first_name ? `${contact.first_name} ${contact.last_name}` : 'N/A'} isLink href={`/contacts/contact?id=${contact?.name}`} />
                 <DetailItem label="Designation" value={contact?.designation || 'N/A'} />
                 <DetailItem label="Company Name" value={contact?.company || 'N/A'} isLink href={`/companies/company?id=${company?.name}`} />
-                <DetailItem label="Location" value={contact?.company?company?.company_city : 'N/A'} />
+                <DetailItem label="Location" value={contact?.company ? company?.company_city : 'N/A'} />
             </div>
 
             {/* <Separator />
@@ -679,7 +679,7 @@ export const BOQ = () => {
     const { data: boqData, isLoading: boqLoading } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", id, `BOQ/${id}`);
     const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", boqData?.company, { enabled: !!boqData?.company });
 
-    const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", boqData?.contact);
+    const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", boqData?.contact, boqData?.contact ? undefined : null);
 
 
     const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "time"], orderBy: { field: "creation", order: "desc" }, limit: 0, }, `all-tasks-filterbyBoq-id${id}`);
