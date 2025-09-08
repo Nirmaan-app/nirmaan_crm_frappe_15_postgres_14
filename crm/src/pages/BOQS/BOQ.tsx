@@ -20,6 +20,7 @@ import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon'; // Import the s
 import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
 import { StatusPill } from "@/pages/Tasks/TasksVariantPage"
 import { useViewport } from "@/hooks/useViewPort";
+import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 
 
 // --- SUB-COMPONENT 1: Header ---
@@ -35,6 +36,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
     const getBoqStatusClass = useStatusStyles("boq");
     const role = localStorage.getItem('role');
     const currentUser = localStorage.getItem('userId');
+  const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
 
     // 3. LOCAL STATE: Use useState to control the dialog's visibility
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -79,11 +81,11 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                 </div>
                 <div>
                     <p className="text-sm text-muted-foreground">Assigned Sales</p>
-                    <h1 className="text-sm font-bold">{boq?.assigned_sales || 'N/A'}</h1>
+                    <h1 className="text-sm font-bold">{getUserFullNameByEmail(boq?.assigned_sales) || 'N/A'}</h1>
                 </div>
                 <div>
                     <p className="text-sm text-muted-foreground">Assigned Estimates</p>
-                    <h1 className="text-sm font-bold">{boq?.assigned_estimations || 'N/A'}</h1>
+                    <h1 className="text-sm font-bold">{getUserFullNameByEmail(boq?.assigned_estimations) || 'N/A'}</h1>
                 </div>
             </div>
 
@@ -156,7 +158,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
             <div className="flex justify-between items-center mb-2">
-                <h2 className="font-semibold">{""}</h2>
+                <h2 className="font-semibold">{"Task Lists"}</h2>
                 <Button size="sm" className="bg-destructive hover:bg-destructive/90" onClick={() => openNewTaskDialog({ boqId, companyId, contactId })}>
                     <Plus className="w-4 h-4 mr-2" />Add New Task
                 </Button>
@@ -221,24 +223,32 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
 
                                     {/* --- MOBILE & DESKTOP: Combined Cell --- */}
                                     <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
-                                                    {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
-                                                </span></span>
-                                                {/* On mobile, show the date here. Hide it on larger screens. */}
-                                                <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                    Updated: {formatDate(task.modified)}
-                                                </span>
-                                            </div>
-                                        </div>
+                                        {isMobile ?
+                                            (<div className="flex items-center gap-3">
+                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
+                                                        {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
+                                                    </span></span>
+                                                    {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                    <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                        Updated: {formatDate(task.modified)}
+                                                    </span>
+                                                </div>
+                                            </div>) : (`${task.type} with ${task.first_name}`)}
                                     </TableCell>
 
                                     {/* --- DESKTOP ONLY Cells --- */}
                                     <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
                                     <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
-                                    <TableCell className="hidden md:table-cell text-right">{formatDate(task.start_date)}</TableCell>
+                                     <TableCell className="hidden md:table-cell text-right">
+                                      <div className="flex flex-col items-center">
+                                        <span>{formatDate(task.start_date)}</span>
+                                        <span className="text-xs text-muted-foreground text-center">
+                                          {formatTime12Hour(task?.time)}
+                                        </span>
+                                      </div>
+                                    </TableCell>
                                     <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
 
                                     <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
@@ -341,7 +351,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
             {/* Top Details Section */}
             <div className="grid grid-cols-2 gap-y-5 gap-x-20">
                 <DetailItem label="Size (Sqft)" value={boq?.boq_size || 'N/A'} />
-                <DetailItem label="BOQ Value" value={`₹ ${boq?.boq_value}` || 'N/A'} />
+                <DetailItem label="BOQ Value" value={`${boq?.boq_value} Lakhs` || 'N/A'} />
 
                 <DetailItem label="Package" value={boq?.boq_type || 'N/A'} />
                 <DetailItem label="City" value={boq?.city || 'N/A'} />
@@ -376,7 +386,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 };
 
 
-// --- UPDATED SUBMISSION HISTORY COMPONENT ---
+
 // const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
 //     const getBoqStatusClass = useStatusStyles("boq");
 
@@ -395,14 +405,14 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 //                 const statusChange = changes.find(c => c[0] === 'boq_status');
 //                 const subStatusChange = changes.find(c => c[0] === 'boq_sub_status');
 //                 const boqLinkChange = changes.find(c => c[0] === 'boq_link');
-//                 const remarksChange = changes.find(c => c[0] === 'remarks'); // New
-//                 const dateChange = changes.find(c => c[0] === 'boq_submission_date'); // New
-
-//                 // console.log(dateChange[2])
+//                 const remarksChange = changes.find(c => c[0] === 'remarks');
+//                 const dateChange = changes.find(c => c[0] === 'boq_submission_date');
 
 //                 // If this version changed the status, update our tracker.
 //                 if (statusChange) {
 //                     lastKnownStatus = statusChange[2]; // [2] is the new value
+//                 } else {
+//                     lastKnownStatus = "--"
 //                 }
 
 //                 // We create a history item if any of the fields we care about were changed.
@@ -414,100 +424,188 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 //                 let remarkText = '';
 //                 if (remarksChange) {
 //                     remarkText = `${remarksChange[2]}`;
-//                 }else{
-//                     remarkText='--'
+//                 } else {
+//                     remarkText = '--'
 //                 }
-
-
-//                 // else if (subStatusChange && subStatusChange[2]) {
-//                 //     remarkText = subStatusChange[2]; // e.g., "Awaiting clarification from Client"
-//                 // }   else if (dateChange) {
-//                 //     remarkText = `Submission date changed to ${dateChange[2]}`;
-//                 // } else if (statusChange) {
-//                 //     remarkText = `Status updated`; // Default if only status changed
-//                 // }
 
 //                 return {
 //                     status: lastKnownStatus,
 //                     remark: remarkText,
-//                     submission_date:dateChange?dateChange[2]:"--",
-
+//                     submission_date: dateChange ? dateChange[2] : "--",
 //                     date: formatDate(version.creation),
-//                     link: boqLinkChange ? boqLinkChange[2] : undefined
+//                     link: boqLinkChange ? boqLinkChange[2] : undefined,
+//                     owner: version.owner.split('@')[0]
 //                 };
 //             } catch (e) {
 //                 console.error("Failed to parse version data:", e);
 //                 return null;
 //             }
 //         })
-//         .filter((item): item is TransformedHistoryItem => item !== null) // Remove nulls and add type guard
-//         .reverse(); // Reverse again to show most recent first
+//             .filter((item): item is TransformedHistoryItem => item !== null) // Remove nulls and add type guard
+//             .reverse(); // Reverse again to show most recent first
 
 //     }, [versions]);
+
+//     // Mobile Card Component
+//     const MobileHistoryCard = ({ item, index }: { item: TransformedHistoryItem; index: number }) => (
+//         <div className="bg-white border border-gray-200 rounded-md p-2 mb-1 shadow-sm">
+//             {/* Header with Status and Date */}
+//             <div className="flex justify-between items-start mb-1">
+//                 <div >
+//                     <span className="text-xs text-gray-500 font-semibold">Status:</span> <span className={`text-xs font-semibold px-2 rounded-md ${getBoqStatusClass(item.status)}`}>
+//                         {item.status}
+//                     </span>
+//                 </div>
+//                 <div className="text-xs text-gray-500 ml-2">
+//                     Updated by: {item.owner}
+//                 </div>
+//             </div>
+
+//             <div className="grid grid-cols-2 gap-22 border-t">
+//                 {/* Remarks */}
+//                 <div className="mt-1">
+//                     <div className="text-xs font-medium text-gray-600 mb-1 font-semibold">Remarks</div>
+//                     <div className="text-sm text-gray-800 line-clamp-2">{item.remark || '--'}</div>
+//                 </div>
+
+//                 {/* Submission Deadline */}
+//                 <div className="mt-1">
+//                     <div className="text-xs font-medium text-gray-600 mb-1 text-center font-semibold">Submission Deadline</div>
+//                     <div className="text-sm text-gray-800 text-center">{item.submission_date || '--'}</div>
+//                 </div>
+//             </div>
+//             {/* BOQ Link */}
+//             {item.link && (
+//                 <div className="mt-2 pt-1 border-t border-gray-100">
+//                     <a
+//                         href={item.link}
+//                         target="_blank"
+//                         rel="noopener noreferrer"
+//                         className="inline-flex items-center text-blue-600 text-xs font-medium hover:text-blue-700"
+//                     >
+//                         <svg className="w-2 h-2 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+//                         </svg>
+//                         View BOQ Link
+//                     </a>
+//                 </div>
+//             )}
+//         </div>
+//     );
 
 //     return (
 //         <div className="bg-background p-4 rounded-lg border shadow-sm">
 //             <h2 className="font-semibold mb-4">BOQ Submission History</h2>
-//             <div className="max-h-[275px] overflow-y-auto pr-2">
-//             <Table>
-//                 <TableHeader>
-//                     <TableRow>
-//                         <TableHead>BOQs Status</TableHead>
-//                         <TableHead>Remarks</TableHead>
-//                         <TableHead>Submission Deadline</TableHead>
 
-//                         <TableHead>Date Updated</TableHead>
-//                         <TableHead>BOQs Link</TableHead>
-//                     </TableRow>
-//                 </TableHeader>
-//                 <TableBody>
-//                     {transformedHistory.length > 0 ? (
-//                         transformedHistory.map((item, index) => (
-//                             <TableRow key={index}>
-//                                 <TableCell>
-//                                     <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(item.status)}`}>
-//                                         {item.status}
-//                                     </span>
-//                                 </TableCell>
-//                                 <TableCell>{item.remark || '--'}</TableCell>
-//                                 <TableCell>{item.submission_date||'--'}</TableCell>
-//                                 <TableCell>{item.date}</TableCell>
-//                                 <TableCell>
-//                                     {item.link ? (
-//                                         <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">
-//                                             View Link
-//                                         </a>
-//                                     ) : (
-//                                         '--'
-//                                     )}
-//                                 </TableCell>
-//                             </TableRow>
-//                         ))
-//                     ) : (
+//             {/* Desktop Table View */}
+//             <div className="hidden md:block max-h-[275px] overflow-y-auto pr-2">
+//                 <Table>
+//                     <TableHeader>
 //                         <TableRow>
-//                             <TableCell colSpan={4} className="text-center h-24">No submission history found.</TableCell>
+//                             <TableHead>BOQs Status</TableHead>
+//                             <TableHead>Remarks</TableHead>
+//                             <TableHead>Submission Deadline</TableHead>
+//                             <TableHead>Updated by</TableHead>
+//                             <TableHead>BOQs Link</TableHead>
 //                         </TableRow>
-//                     )}
-//                 </TableBody>
-//             </Table>
+//                     </TableHeader>
+//                     <TableBody>
+//                         {transformedHistory.length > 0 ? (
+//                             transformedHistory.map((item, index) => (
+//                                 <TableRow key={index}>
+//                                     <TableCell>
+//                                         <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(item.status)}`}>
+//                                             {item.status}
+//                                         </span>
+//                                     </TableCell>
+//                                     <TableCell>{item.remark || '--'}</TableCell>
+//                                     <TableCell>{item.submission_date || '--'}</TableCell>
+//                                     <TableCell>{item.owner}</TableCell>
+//                                     <TableCell>
+//                                         {item.link ? (
+//                                             <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">
+//                                                 View Link
+//                                             </a>
+//                                         ) : (
+//                                             '--'
+//                                         )}
+//                                     </TableCell>
+//                                 </TableRow>
+//                             ))
+//                         ) : (
+//                             <TableRow>
+//                                 <TableCell colSpan={5} className="text-center h-24">No submission history found.</TableCell>
+//                             </TableRow>
+//                         )}
+//                     </TableBody>
+//                 </Table>
+//             </div>
+
+//             {/* Mobile Card View */}
+//             <div className="md:hidden max-h-[275px] overflow-y-auto">
+//                 {transformedHistory.length > 0 ? (
+//                     <div className="space-y-3">
+//                         {transformedHistory.map((item, index) => (
+//                             <MobileHistoryCard key={index} item={item} index={index} />
+//                         ))}
+//                     </div>
+//                 ) : (
+//                     <div className="text-center py-12 text-gray-500">
+//                         <div className="text-lg mb-2">📋</div>
+//                         <div>No submission history found.</div>
+//                     </div>
+//                 )}
 //             </div>
 //         </div>
 //     );
 // };
 
+// --- TYPE DEFINITIONS ---
+interface DocVersion {
+    data: string; // A JSON string containing changes
+    creation: string; // ISO date string for when the version was created
+    owner: string; // The user who made this version/change
+}
+
+interface ChangeEntry extends Array<string | any> {
+    0: string; // field name, e.g., 'boq_status'
+    1: any; // old value
+    2: any; // new value
+}
+
+interface ParsedVersionData {
+    changed?: ChangeEntry[];
+}
+
+// 1. UPDATED: TransformedHistoryItem Interface
+interface TransformedHistoryItem {
+    status: string; // The overall BOQ status after this version's changes
+    sub_status: string; // The overall BOQ sub-status after this version's changes
+    remark: string;
+    submission_date: string;
+    date: string; // Updated date for *this specific version entry*
+    link?: string;
+    owner: string; // Owner for *this specific version entry*
+}
+
+
+// --- MAIN COMPONENT ---
 const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
     const getBoqStatusClass = useStatusStyles("boq");
+  const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
 
-    // This memoized function transforms the raw version data into the format needed for the UI table.
+
     const transformedHistory = useMemo((): TransformedHistoryItem[] => {
         if (!versions || versions.length === 0) return [];
 
         let lastKnownStatus = '';
+        let lastKnownSubStatus = ''; // NEW: Track sub-status
 
-        // We process in reverse to establish the correct status at each point in time.
-        return versions.slice().reverse().map(version => {
+        // We process in reverse to establish the correct status and sub-status at each point in time.
+        // Then, reverse again at the end to display most recent first.
+        const tempHistory = versions.slice().reverse().map(version => {
             try {
-                const parsedData = JSON.parse(version.data);
+                const parsedData: ParsedVersionData = JSON.parse(version.data);
                 const changes = parsedData.changed || [];
 
                 const statusChange = changes.find(c => c[0] === 'boq_status');
@@ -518,103 +616,132 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
 
                 // If this version changed the status, update our tracker.
                 if (statusChange) {
-                    lastKnownStatus = statusChange[2]; // [2] is the new value
-                } else {
-                    lastKnownStatus = "--"
+                    lastKnownStatus = statusChange[2] as string;
+                }else{
+                    lastKnownStatus="-"
+                }
+                // If this version changed the sub-status, update our tracker.
+                if (subStatusChange) {
+                    lastKnownSubStatus = subStatusChange[2] as string;
+                }else{
+                    lastKnownSubStatus="--"
                 }
 
                 // We create a history item if any of the fields we care about were changed.
+                // This prevents logging versions where only internal system updates happened.
                 if (!statusChange && !subStatusChange && !boqLinkChange && !remarksChange && !dateChange) {
                     return null;
                 }
 
-                // Build a descriptive remark based on what changed in this version.
-                let remarkText = '';
-                if (remarksChange) {
-                    remarkText = `${remarksChange[2]}`;
-                } else {
-                    remarkText = '--'
-                }
+                const remarkValue = remarksChange ? (remarksChange[2] as string) : '--';
+                const submissionDateValue = dateChange ? (dateChange[2] as string) : '--';
+                const boqLinkValue = boqLinkChange ? (boqLinkChange[2] as string) :undefined ;
+                
+                // Get owner and creation date for THIS specific version
+                const versionOwner = version.owner; // Assuming email format
+                const versionDate = formatDate(version.creation);
+
 
                 return {
-                    status: lastKnownStatus,
-                    remark: remarkText,
-                    submission_date: dateChange ? dateChange[2] : "--",
-                    date: formatDate(version.creation),
+                    status: lastKnownStatus || 'N/A', // Fallback for status
+                    sub_status: lastKnownSubStatus || '--', // Fallback for sub-status
+                    remark: remarkValue,
+                    submission_date: submissionDateValue,
+                    date: versionDate, // Date of this specific version
                     link: boqLinkChange ? boqLinkChange[2] : undefined,
-                    owner: version.owner.split('@')[0]
+                    owner: versionOwner, // Owner of this specific version
                 };
             } catch (e) {
                 console.error("Failed to parse version data:", e);
                 return null;
             }
-        })
-            .filter((item): item is TransformedHistoryItem => item !== null) // Remove nulls and add type guard
-            .reverse(); // Reverse again to show most recent first
+        });
+
+        // Filter out nulls and reverse again to show most recent first
+        return tempHistory.filter((item): item is TransformedHistoryItem => item !== null).reverse();
 
     }, [versions]);
 
     // Mobile Card Component
-    const MobileHistoryCard = ({ item, index }: { item: TransformedHistoryItem; index: number }) => (
-        <div className="bg-white border border-gray-200 rounded-md p-2 mb-1 shadow-sm">
-            {/* Header with Status and Date */}
-            <div className="flex justify-between items-start mb-1">
-                <div >
-                    <span className="text-xs text-gray-500 font-semibold">Status:</span> <span className={`text-xs font-semibold px-2 rounded-md ${getBoqStatusClass(item.status)}`}>
-                        {item.status}
-                    </span>
+    const MobileHistoryCard = ({ item }: { item: TransformedHistoryItem; }) => (
+        <div className="bg-white border border-gray-200 rounded-md p-3 mb-2 shadow-sm"> {/* Increased padding slightly */}
+            {/* Header with Status and Sub-Status */}
+            <div className="flex justify-between items-center mb-2 pb-2 border-b border-dashed border-gray-200">
+                <div className="flex flex-col items-start">
+                    <div className="flex items-center gap-1 mb-1">
+                        <span className="text-xs text-gray-500 font-semibold">Status:</span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${getBoqStatusClass(item.status)}`}>
+                            {item.status}
+                        </span>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${getBoqStatusClass(item.status)}`}>
+                            {item.sub_status}
+                        </span>
+                    </div>
+                    {/* NEW: Display Sub-Status on mobile */}
+                    {/* {item.sub_status && item.sub_status !== '--' && (
+                        <div className="flex items-center gap-1 text-xs">
+                            <span className="text-[10px] text-gray-500 font-semibold">Sub-Status:</span>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${getBoqStatusClass(item.sub_status)}`}>
+                                {item.sub_status}
+                            </span>
+                        </div>
+                    )} */}
                 </div>
-                <div className="text-xs text-gray-500 ml-2">
-                    Updated by: {item.owner}
+                {/* NEW: Updated by and Date on mobile */}
+                <div className="text-xs text-gray-500 text-right ml-2 mr-1">
+                    Updated by: <span className="font-semibold">{getUserFullNameByEmail(item.owner)||"Administrator"}</span>
+                    <br/>
+                    <span className="text-[10px] text-muted-foreground">({item.date})</span>
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-22 border-t">
-                {/* Remarks */}
-                <div className="mt-1">
-                    <div className="text-xs font-medium text-gray-600 mb-1 font-semibold">Remarks</div>
-                    <div className="text-sm text-gray-800 line-clamp-2">{item.remark || '--'}</div>
-                </div>
+            <div className="grid grid-cols-2 gap-22 ">
+                 {/* Remarks */}
+                 <div className="mt-1">
+                     <div className="text-xs font-medium text-gray-600 mb-1 font-semibold">Remarks</div>
+                     <div className="text-sm text-gray-800 line-clamp-2">{item.remark || '--'}</div>
+                 </div>
 
-                {/* Submission Deadline */}
-                <div className="mt-1">
-                    <div className="text-xs font-medium text-gray-600 mb-1 text-center font-semibold">Submission Deadline</div>
-                    <div className="text-sm text-gray-800 text-center">{item.submission_date || '--'}</div>
-                </div>
-            </div>
+                 {/* Submission Deadline */}
+                 <div className="mt-1">
+                     <div className="text-xs font-medium text-gray-600 mb-1 text-center font-semibold">Submission Deadline</div>
+                     <div className="text-sm text-gray-800 text-center">{item.submission_date || '--'}</div>
+                 </div>
+             </div>
             {/* BOQ Link */}
             {item.link && (
-                <div className="mt-2 pt-1 border-t border-gray-100">
-                    <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-blue-600 text-xs font-medium hover:text-blue-700"
-                    >
-                        <svg className="w-2 h-2 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        View BOQ Link
-                    </a>
-                </div>
-            )}
+                 <div className="mt-2 pt-1 border-t border-gray-100">
+                     <a
+                         href={item.link}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="inline-flex items-center text-blue-600 text-xs font-medium hover:text-blue-700"
+                     >
+                         <svg className="w-2 h-2 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                         </svg>
+                         View BOQ Link
+                     </a>
+                 </div>
+             )}
         </div>
     );
 
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
-            <h2 className="font-semibold mb-4">BOQ Submission History</h2>
+            <h2 className="font-semibold mb-4 text-lg">BOQ Submission History</h2>
 
             {/* Desktop Table View */}
             <div className="hidden md:block max-h-[275px] overflow-y-auto pr-2">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>BOQs Status</TableHead>
+                            <TableHead className="w-[120px]">Status</TableHead>
+                            <TableHead className="w-[120px]">Sub-Status</TableHead> {/* NEW: Sub-Status header */}
                             <TableHead>Remarks</TableHead>
-                            <TableHead>Submission Deadline</TableHead>
-                            <TableHead>Updated by</TableHead>
-                            <TableHead>BOQs Link</TableHead>
+                            <TableHead className="w-[150px]">Submission Deadline</TableHead>
+                            <TableHead className="w-[180px]">Updated By & Date</TableHead> {/* NEW: Combined header */}
+                            <TableHead className="w-[100px]">Link</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -626,11 +753,25 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                                             {item.status}
                                         </span>
                                     </TableCell>
-                                    <TableCell>{item.remark || '--'}</TableCell>
-                                    <TableCell>{item.submission_date || '--'}</TableCell>
-                                    <TableCell>{item.owner}</TableCell>
+                                    {/* NEW: Sub-Status cell */}
                                     <TableCell>
-                                        {item.link ? (
+                                        {item.sub_status && item.sub_status !== '--' ? (
+                                            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${getBoqStatusClass(item.sub_status)}`}>
+                                                {item.sub_status}
+                                            </span>
+                                        ) : '--'}
+                                    </TableCell>
+                                    <TableCell className="max-w-[200px] truncate">{item.remark || '--'}</TableCell>
+                                    <TableCell>{item.submission_date || '--'}</TableCell>
+                                    {/* NEW: Combined Updated By & Date cell */}
+                                    <TableCell>
+                                        <div className="flex flex-col items-start">
+                                            <span className="font-medium text-sm">{getUserFullNameByEmail(item.owner)||"Administrator"}</span>
+                                            <span className="text-xs text-muted-foreground">{item.date}</span>
+                                        </div>
+                                    </TableCell>
+                                                                         <TableCell>
+                                        {item.link !=undefined? (
                                             <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">
                                                 View Link
                                             </a>
@@ -638,11 +779,12 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                                             '--'
                                         )}
                                     </TableCell>
+                                
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center h-24">No submission history found.</TableCell>
+                                <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">No submission history found.</TableCell>
                             </TableRow>
                         )}
                     </TableBody>
@@ -654,7 +796,8 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 {transformedHistory.length > 0 ? (
                     <div className="space-y-3">
                         {transformedHistory.map((item, index) => (
-                            <MobileHistoryCard key={index} item={item} index={index} />
+                            // Removed index from props since it's not used in MobileHistoryCard
+                            <MobileHistoryCard key={index} item={item} />
                         ))}
                     </div>
                 ) : (
@@ -668,6 +811,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
     );
 };
 
+export default BoqSubmissionHistory; // Ensure it's exported for use elsewhere
 
 
 // --- MAIN ORCHESTRATOR COMPONENT ---
@@ -701,6 +845,7 @@ export const BOQ = () => {
     if (!boqData) {
         return <div>BOQ not found.</div>;
     }
+    // console.log("boq data", boqData)
     return (
         <div className="space-y-6">
             <BoqDetailsHeader boq={boqData} />

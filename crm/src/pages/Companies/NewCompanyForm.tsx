@@ -84,13 +84,13 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
 
 // Add this hook to get all company names for validation
 const { data: allCompanies } = useFrappeGetDocList("CRM Company", {
-    fields: ["name", "company_name"]},"all-companies-existornot");
+    fields: ["name", "company_name"], limit: 0,},"all-companies-existornot");
 //Hooks get Sales UserList
   const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
 
   const role=localStorage.getItem("role")
   
-  const { data: companyTypes } = useFrappeGetDocList<CRMCompanyType>("CRM Company Type", { fields: ["name"] },"CRM Company Type");
+  const { data: companyTypes } = useFrappeGetDocList<CRMCompanyType>("CRM Company Type", { fields: ["name"], limit: 0, },"CRM Company Type");
   
   const companyTypeOptions = useMemo(() => 
     companyTypes?.map(ct => ({ label: ct.name, value: ct.name })) || [], 

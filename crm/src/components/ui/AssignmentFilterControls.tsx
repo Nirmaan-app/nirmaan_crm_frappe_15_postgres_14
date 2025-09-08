@@ -74,6 +74,8 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
             if (filterType === 'boq' && activeTab === 'me') {
                 newFilters.push(['assigned_estimations', '=', user_id]);
             }
+            const salesFilters = buildFilterBlock(selectedSalesUsers, 'assigned_sales');
+            newFilters.push(...salesFilters);
         } else if (role === 'Nirmaan Admin User Profile') {
             const salesFilters = buildFilterBlock(selectedSalesUsers, 'assigned_sales');
             newFilters.push(...salesFilters);
@@ -111,20 +113,34 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
         return null;
     }
 
-    if (role === 'Nirmaan Estimations User Profile') {
+    // if (role === 'Nirmaan Estimations User Profile') {
+    //     // Show tabs ONLY for the BOQ list.
+    //     if (filterType === 'boq') {
+    //         return (
+    //             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'me' | 'all')}>
+    //                 <TabsList className="grid w-full grid-cols-2">
+    //                     <TabsTrigger value="me">Assigned to Me</TabsTrigger>
+    //                     <TabsTrigger value="all">All</TabsTrigger>
+    //                 </TabsList>
+    //             </Tabs>
+    //         );
+    //     }
+    //     return null;
+    // }
+
+      if (role === 'Nirmaan Estimations User Profile') {
         // Show tabs ONLY for the BOQ list.
         if (filterType === 'boq') {
             return (
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'me' | 'all')}>
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="me">Assigned to Me</TabsTrigger>
-                        <TabsTrigger value="all">All</TabsTrigger>
-                    </TabsList>
-                </Tabs>
+                <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">Filter by Sales User</label>
+                <ReactSelect isMulti options={salesUserOptions} isLoading={salesLoading} value={selectedSalesUsers} onChange={setSelectedSalesUsers} placeholder="All Sales Users" className="text-sm" menuPosition={'auto'} />
+            </div>
             );
         }
         return null;
     }
+
 
     if (role === 'Nirmaan Admin User Profile') {
         const salesFilterDropdown = (

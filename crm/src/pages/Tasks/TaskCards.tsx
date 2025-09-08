@@ -108,17 +108,17 @@ export const TasksTableByDate = ({ date} : { date : string}) => {
     
   const {data : tasks, isLoading: tasksLoading} = useFrappeGetDocList<CRMTask>("CRM Task", {
           fields: ["name", "start_date", "type", "status", "reference_docname"],
-          limit: 1000
+          limit: 0,
       }, 'all-tasks-count-update')
 
   const {data : contactsList, isLoading: contactsListLoading} = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
           fields: ["first_name", "last_name", "name", "company"],
-          limit: 10000
+          limit: 0,
       }, 'all-contacts-count-update')
   
   const {data : companiesList, isLoading: companiesListLoading} = useFrappeGetDocList<CRMCompany>("CRM Company", {
       fields: ["name", "company_name"],
-      limit: 1000,
+      limit: 0,
     }, 'all-companies-count-update')
 
   const filteredTasks = useMemo(() => getFilteredTasks(tasks, date, contactsList, companiesList), [tasks, contactsList, companiesList, date])

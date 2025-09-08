@@ -17,7 +17,6 @@ interface BoqListHeaderProps {
     isMobile: boolean; // To handle slight layout differences
 }
 
-const filterOptions = ["By Name", "By Company", "By Contact", "By Type"];
 
 export const BoqListHeader = ({
     searchQuery,
@@ -28,6 +27,12 @@ export const BoqListHeader = ({
     dateRange, // Receive as `dateRange`
     isMobile
 }: BoqListHeaderProps) => {
+const role = localStorage.getItem("role")
+let filterOptions = ["By Name", "By Company", "By Contact", "By Type"];
+
+if(role =="Nirmaan Estimations User Profile"){
+    filterOptions=["By Name", "By Company", "By Type"]
+}
 
 
     return (

@@ -39,6 +39,7 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
     const navigate = useNavigate();
     const { openNewTaskDialog, openEditBoqDialog } = useDialogStore();
     const getBoqStatusClass = useStatusStyles("boq");
+    const role = localStorage.getItem('role');
     return (
         <div className="py-4">
             <div className="flex justify-between items-center">
@@ -50,11 +51,17 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
                     <span className={`text-xs font-semibold px-2 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
                         {boq.boq_status || 'N/A'}
                     </span>
-                    <Button variant="outline" size="sm" className="h-8 w-8 rounded-full border-destructive text-destructive" onClick={(e) => { e.stopPropagation(); openNewTaskDialog({ boqId: boq.name, companyId: boq.company, contactId: boq.contact }); }}>
+
+                    {
+                        (role != "Nirmaan Estimations User Profile") && (
+<Button variant="outline" size="sm" className="h-8 w-8 rounded-full border-destructive text-destructive" onClick={(e) => { e.stopPropagation(); openNewTaskDialog({ boqId: boq.name, companyId: boq.company, contactId: boq.contact }); }}>
                         <Plus className="w-4 h-4 mr-0" /> 
                         {/* Add Task */}
 
                     </Button>
+                        )
+                    }
+                    
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); openEditBoqDialog({ boqData: boq, mode: 'details' }); }}>
                         <SquarePen className="w-5 h-5" />
                     </Button>
@@ -83,9 +90,9 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     const swrKey = `all-boqs-${JSON.stringify(allFilters)}`;
 
     const { data: boqs, isLoading } = useFrappeGetDocList<EnrichedBoq>("CRM BOQ", {
-        fields: ["name", "boq_name", "boq_status","city","boq_sub_status","boq_submission_date", "boq_type","boq_value", "company", "contact", "boq_size","company.company_name", "contact.first_name","boq_link", "contact.last_name", "modified"],
+        fields: ["name", "boq_name", "boq_status","city","boq_sub_status","boq_submission_date", "boq_type","boq_value", "company", "contact", "boq_size","company.company_name", "contact.first_name","boq_link", "contact.last_name", "modified","assigned_sales"],
         filters: allFilters,
-       limit: 0,
+        limit: 0,
         orderBy: { field: "modified", order: "desc" }
     },swrKey);
     
@@ -97,6 +104,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         return boqs.filter(boq => {
             switch (filterType) {
                 case 'By Company': return boq?.company?.toLowerCase().includes(lowercasedQuery);
+                
                 case 'By Contact':
                     const contactName = `${boq?.first_name || ''} ${boq?.last_name || ''}`.toLowerCase();
                     return contactName.includes(lowercasedQuery);
