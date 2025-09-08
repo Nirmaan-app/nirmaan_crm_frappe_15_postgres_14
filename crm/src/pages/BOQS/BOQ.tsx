@@ -309,12 +309,26 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
 // --- SUB-COMPONENT 4: Other Details ---
 const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany }) => {
     const { openEditBoqDialog } = useDialogStore();
-    const DetailItem = ({ label, value, href }: { label: string; value: string; href?: string }) => (
-        <div>
-            <p className="text-xs text-muted-foreground">{label}</p>
-            {href ? <a href={href} className="font-semibold text-blue-600 underline">{value}</a> : <p className="font-semibold">{value}</p>}
-        </div>
-    );
+  const DetailItem = ({ label, value, href }: { label: string; value: string; href?: string }) => (
+    <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        {/* Conditional rendering:
+            1. If value is "N/A", always render as plain text.
+            2. Otherwise, if href is provided, render as a link.
+            3. Otherwise (not "N/A" and no href), render as plain text.
+        */}
+        {value === "N/A" ? (
+            <p className="font-semibold">{value}</p>
+        ) : href ? (
+            // Added target="_blank" and rel="noopener noreferrer" for external links best practice
+            <a href={href} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
+                {value}
+            </a>
+        ) : (
+            <p className="font-semibold">{value}</p>
+        )}
+    </div>
+);
     return (
         <div className="bg-background p-6 rounded-lg border shadow-sm space-y-6">
 
@@ -343,10 +357,10 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 
             {/* Contact & Company Details Section */}
             <div className="grid grid-cols-2 gap-y-5 gap-x-20">
-                <DetailItem label="Contact Name" value={contact ? `${contact.first_name} ${contact.last_name}` : 'N/A'} isLink href={`/contacts/contact?id=${contact?.name}`} />
+                <DetailItem label="Contact Name" value={contact?.first_name ? `${contact.first_name} ${contact.last_name}` : 'N/A'} isLink href={`/contacts/contact?id=${contact?.name}`} />
                 <DetailItem label="Designation" value={contact?.designation || 'N/A'} />
                 <DetailItem label="Company Name" value={contact?.company || 'N/A'} isLink href={`/companies/company?id=${company?.name}`} />
-                <DetailItem label="Location" value={boq?.city || 'N/A'} />
+                <DetailItem label="Location" value={contact?.company?company?.company_city : 'N/A'} />
             </div>
 
             {/* <Separator />
@@ -551,7 +565,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                     </span>
                 </div>
                 <div className="text-xs text-gray-500 ml-2">
-                    Updated date: {item.owner}
+                    Updated by: {item.owner}
                 </div>
             </div>
 
@@ -599,7 +613,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                             <TableHead>BOQs Status</TableHead>
                             <TableHead>Remarks</TableHead>
                             <TableHead>Submission Deadline</TableHead>
-                            <TableHead>Date Updated</TableHead>
+                            <TableHead>Updated by</TableHead>
                             <TableHead>BOQs Link</TableHead>
                         </TableRow>
                     </TableHeader>

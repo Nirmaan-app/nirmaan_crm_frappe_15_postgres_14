@@ -333,7 +333,9 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 </FormItem>
               )}
             />
-            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact <sup>*</sup></FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact </FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading}  value={contactOptions.find(c => c.value === field.value) || ""} // Ensure it's explicitly null if not found
+          onChange={val => field.onChange(val ? val.value : "")} // Explicitly set to null when clearedmenuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value} 
+            /></FormControl><FormMessage /></FormItem>)} />
           </>
         )}
 
@@ -342,7 +344,8 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         {(mode === 'status' || mode === "details") && (
           <>
             <FormField name="boq_status" control={form.control} render={({ field }) => (
-              <FormItem><FormLabel>Update Status</FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value} /></FormControl></FormItem>
+              <FormItem><FormLabel>Update Status</FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}
+              /></FormControl></FormItem>
             )} />
 
             {['In-Progress', 'Revision Pending'].includes(watchedBoqStatus) && (

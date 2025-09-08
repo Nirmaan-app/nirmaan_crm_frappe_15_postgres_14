@@ -32,7 +32,7 @@ export const boqFormSchema = z.object({
   boq_link: z.string().optional(),
   city: z.string().optional(),
   company: z.string().min(1, "Company is required"),
-  contact: z.string().min(1, "Contact is required"),
+  contact: z.string().optional(),
   remarks: z.string().optional(),
 
 
@@ -46,13 +46,13 @@ export const boqFormSchema = z.object({
       path: ['company'],
     });
   }
-  if (!data.contact || data.contact.trim() === "") {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Contact is required.",
-      path: ['contact'],
-    });
-  }
+  // if (!data.contact || data.contact.trim() === "") {
+  //   ctx.addIssue({
+  //     code: z.ZodIssueCode.custom,
+  //     message: "Contact is required.",
+  //     path: ['contact'],
+  //   });
+  // }
   if (data.city === "Others" && (!data.other_city || data.other_city.trim() === "")) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
