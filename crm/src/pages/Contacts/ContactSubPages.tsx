@@ -53,7 +53,7 @@ const BoqList = ({ boqs }: { boqs: CRMBOQ[] }) => {
                                     {boq.boq_status || 'N/A'}
                                 </span>
                             </TableCell>
-                            <TableCell className="text-right">{formatDate(boq.boq_submission_date)||"--"}</TableCell>
+                            <TableCell className="text-right">{formatDate(boq.boq_submission_date) || "--"}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -94,25 +94,32 @@ const TaskList = ({ tasks }: { tasks: CRMTask[] }) => {
 
                                 {/* --- MOBILE & DESKTOP: Combined Cell --- */}
                                 <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
-                                                        {formatCasualDate(task.start_date)} at {formatTime12Hour(task.time)}
-                                                    </span></span>
-                                            {/* On mobile, show the date here. Hide it on larger screens. */}
-                                            <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                              
-                                                Updated: {formatDate(task.modified)}
-                                            </span>
-                                        </div>
-                                    </div>
+                                    {isMobile ?
+                                        (<div className="flex items-center gap-3">
+                                            <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
+                                                    {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
+                                                </span></span>
+                                                {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                    Updated: {formatDate(task.modified)}
+                                                </span>
+                                            </div>
+                                        </div>) : (`${task.type} with ${task.first_name}`)}
                                 </TableCell>
 
                                 {/* --- DESKTOP ONLY Cells --- */}
                                 <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
                                 <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
-                                <TableCell className="hidden md:table-cell text-right">{formatDate(task.start_date)}</TableCell>
+                                 <TableCell className="hidden md:table-cell text-right">
+                                  <div className="flex flex-col items-center">
+                                    <span>{formatDate(task.start_date)}</span>
+                                    <span className="text-xs text-muted-foreground text-center">
+                                      {formatTime12Hour(task?.time)}
+                                    </span>
+                                  </div>
+                                </TableCell>
                                 <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
 
                                 <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
@@ -150,11 +157,11 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
             <Tabs defaultValue="boqs" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 border">
                     <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">BOQs<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                                {filteredBoqs.length}
-                            </span></TabsTrigger>
+                        {filteredBoqs.length}
+                    </span></TabsTrigger>
                     <TabsTrigger value="tasks" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-r-md rounded-l-none">Tasks<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                                {filteredTasks.length}
-                            </span></TabsTrigger>
+                        {filteredTasks.length}
+                    </span></TabsTrigger>
                 </TabsList>
 
                 <div className="relative my-4">

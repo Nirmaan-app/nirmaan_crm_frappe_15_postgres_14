@@ -5,6 +5,8 @@ import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { SquarePen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FileLink } from "@/components/common/FileLink";
+import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+
 
 interface ContactDetailsCardProps {
     contact: CRMContacts;
@@ -23,6 +25,8 @@ const DetailItem = ({ label, value, href }: { label: string, value: string | Rea
 
 export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps) => {
     const { openEditContactDialog } = useDialogStore();
+      const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+    
     
     return (
         <div>
@@ -46,7 +50,7 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
                         <FileLink href={contact?.visiting_card} label="View Card" />
                     </div>
 
-                     <DetailItem label="Assigned Sales" value={contact?.assigned_sales}  />
+                     <DetailItem label="Assigned Sales" value={getUserFullNameByEmail(contact?.assigned_sales)||"--"}  />
 
                 </div>
                 <div className="grid grid-cols-2 gap-y-4 gap-x-20 border-t pt-4">

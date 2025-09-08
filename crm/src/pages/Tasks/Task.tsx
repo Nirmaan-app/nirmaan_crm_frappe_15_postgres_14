@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon'; // Import the status icon
 import { StatusPill } from "./TasksVariantPage";
 import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
-
+import { useViewport } from "@/hooks/useViewPort";
 import * as z from "zod";
 
 
@@ -112,6 +112,8 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
 // --- SUB-COMPONENT: Task History ---
 const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
     const navigate = useNavigate();
+        const { isMobile } = useViewport(); // <-- 2. USE THE HOOK
+    
     return (
         // <div className="bg-background p-4 rounded-lg border shadow-sm">
         //     <h2 className="font-semibold mb-4">Contact Task History</h2>
@@ -154,26 +156,33 @@ const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
                                     <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
 
                                         {/* --- MOBILE & DESKTOP: Combined Cell --- */}
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
-                                                        {formatCasualDate(task.start_date)} at {formatTime12Hour(task.time)}
-                                                    </span></span>
-
-                                                    {/* On mobile, show the date here. Hide it on larger screens. */}
-                                                          <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                                                                           Updated: {formatDate(task.modified)}
-                                                                                                       </span>
-                                                </div>
-                                            </div>
-                                        </TableCell>
+                                          <TableCell>
+                                                                         {isMobile ?
+                                                                             (<div className="flex items-center gap-3">
+                                                                                 <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                                                 <div className="flex flex-col">
+                                                                                     <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
+                                                                                         {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
+                                                                                     </span></span>
+                                                                                     {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                                                     <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                                                         Updated: {formatDate(task.modified)}
+                                                                                     </span>
+                                                                                 </div>
+                                                                             </div>) : (`${task.type} with ${task.first_name}`)}
+                                                                     </TableCell>
 
                                         {/* --- DESKTOP ONLY Cells --- */}
                                         <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
                                         <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
-                                        <TableCell className="hidden md:table-cell text-right">{formatDate(task.start_date)}</TableCell>
+                                        <TableCell className="hidden md:table-cell text-right">
+                                                                          <div className="flex flex-col items-center">
+                                                                            <span>{formatDate(task.start_date)}</span>
+                                                                            <span className="text-xs text-muted-foreground text-center">
+                                                                              {formatTime12Hour(task?.time)}
+                                                                            </span>
+                                                                          </div>
+                                                                        </TableCell>
                                         <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
 
                                         <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>

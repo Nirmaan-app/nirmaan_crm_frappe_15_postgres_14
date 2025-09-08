@@ -19,14 +19,14 @@ export const DesktopBOQsView = () => {
       fields: ["*"],
       // 6. Filter by the correct field name from your BOQ doctype
       filters: [["boq_company", "=", company]], 
-      limit: 1000,
+      limit: 0,
   }, company ? `CRM BOQ ${company}` : null); // Update SWR key for caching
 
   // This fetch remains the same as it's needed for context
   const { data: contactsList, isLoading: contactsListLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", {
     fields: ["*"],
     filters: [["company", "=", company]],
-    limit: 1000,
+    limit: 0,
   }, company ? `CRM Contacts ${company}` : null);
 
   // If an 'id' is present in the URL, show the detail view for a single BOQ
