@@ -13,7 +13,7 @@ export const DesktopMiniTasksScreen : React.FC = () => {
 
     const { data: tasksData, isLoading: tasksDataLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {
         fields: ["*"],
-        limit: 10000,
+        limit: 0,
     }, "CRM Task");
 
     const cards = [

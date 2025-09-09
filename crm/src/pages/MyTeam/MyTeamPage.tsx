@@ -26,7 +26,7 @@ export const MyTeamPage = () => {
     // The ONLY data this page fetches is the list of team members for the sidebar.
     const { data: members, isLoading: membersLoading } = useFrappeGetDocList("CRM Users", {
         fields: ["name", "email", "full_name", "nirmaan_role_name"],
-        limit: 200
+   limit: 0,
     }, "all-members-MyTeamPage");
 
     // The mobile view navigates to a separate page for details.

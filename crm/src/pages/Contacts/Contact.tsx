@@ -10,6 +10,7 @@ import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useSWRConfig 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
 // Import the new child components
 import { ContactDetailsCard } from "./ContactDetailsCard";
 import { ContactSubPages } from "./ContactSubPages";
@@ -30,9 +31,9 @@ export const Contact = () => {
 
     const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", contactData?.company, { enabled: !!contactData?.company });
 
-    const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: id }, fields: ["*"] },`all-boqs-filterbyContact-id${id}`);
+    const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: id }, fields: ["*"], limit: 0, },`all-boqs-filterbyContact-id${id}`);
 
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {   fields: ["name", "status","start_date","time", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation"], filters: { contact: id } },`all-tasks-filterbyContact-id${id}`);
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {   fields: ["name", "status","start_date","time", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation"], limit: 0, filters: { contact: id } },`all-tasks-filterbyContact-id${id}`);
 
     // console.log("tasksList",tasksList)
 

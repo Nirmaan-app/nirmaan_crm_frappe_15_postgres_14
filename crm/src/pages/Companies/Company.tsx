@@ -33,7 +33,8 @@ export const Company = () => {
         "CRM Contacts", // 1. Doctype name as a string
         {               // 2. Options object
             filters: { company: id },
-            fields: ["*"]
+            fields: ["*"],
+            limit:0,
         },`all-contacts-filterbyCompany-id${id}`
     );
 
@@ -42,7 +43,7 @@ export const Company = () => {
         "CRM BOQ",      // 1. Doctype name as a string
         {               // 2. Options object
             filters: { company: id }, // Use the correct field name from the BOQ doctype
-            fields: ["*"]
+            fields: ["*"],limit:0,
         },`all-boqs-filterbyCompany-id${id}`
     );
 
@@ -51,6 +52,7 @@ export const Company = () => {
         "CRM Task", 
         {
                fields: ["name", "status","start_date","time", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation"],
+               limit:0,
             filters: { company: id }, // Directly filter tasks by the company ID
           
         },`all-tasks-filterbyCompany-id${id}`

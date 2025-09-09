@@ -36,12 +36,13 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   // 1. Fetch ALL companies to populate the company dropdown.
   const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>(
     "CRM Company",
-    { fields: ["name", "company_name"] }
+
+    { fields: ["name", "company_name"],     limit: 0, }
   );
 
   const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>(
     "CRM Contacts",
-    { filters: { company: boqData?.company }, fields: ["name", "first_name", "last_name"], enabled: !!boqData?.company }
+    { filters: { company: boqData?.company }, fields: ["name", "first_name", "last_name"],limit: 0,  enabled: !!boqData?.company }
   );
 
   const contactOptions = useMemo(() => contactsList?.map(c => ({ label: `${c.first_name} ${c.last_name}`, value: c.name })) || [], [contactsList]);
@@ -280,8 +281,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                       }}
                       placeholder="Select City"
                       menuPosition={'auto'}
-                      menuPortalTarget={document.body}
-                      styles={selectMenuStyles}
+               
                     />
                   </FormControl>
                   <FormMessage />
@@ -373,7 +373,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
 
             {
               !isHidden("boq_value") && (
-                <FormField name="boq_value" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Value<sup>*</sup></FormLabel><FormControl><Input type="number" placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField name="boq_value" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Value <span className="text-[10px] text-muted-foreground ">(IN Lakhs)</span></FormLabel><FormControl><Input type="number" placeholder="e.g. 5 Lakhs" {...field} /></FormControl><FormMessage /></FormItem>)} />
               )
             }
 

@@ -48,7 +48,7 @@ const boqFormSchema = z.object({
   boq_link: z.string().optional(),
   city: z.string().optional(),
   company: z.string().min(1, "Company is required"),
-  contact: z.string().min(1, "Contact is required"),
+  contact: z.string().optional(),
   remarks: z.string().optional(),
   assigned_sales: z.string().optional(),
   assigned_estimations:z.string().optional()
@@ -63,13 +63,13 @@ const boqFormSchema = z.object({
       path: ['company'],
     });
   }
-  if (!data.contact || data.contact.trim() === "") {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Contact is required.",
-      path: ['contact'],
-    });
-  }
+  // if (!data.contact || data.contact.trim() === "") {
+  //   ctx.addIssue({
+  //     code: z.ZodIssueCode.custom,
+  //     message: "Contact is required.",
+  //     path: ['contact'],
+  //   });
+  // }
  if (data.city === "Others" && (!data.other_city || data.other_city.trim() === "")) {
          ctx.addIssue({
              code: z.ZodIssueCode.custom,
@@ -498,7 +498,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
 
         <FormField name="boq_type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Package</FormLabel><FormControl><Input placeholder="e.g. Interior Fitout" {...field} /></FormControl><FormMessage /></FormItem> )} />
         
-        <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value</FormLabel><FormControl><Input type="number" placeholder="e.g. ₹2,00,00,000" {...field} /></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value <span className="text-[10px] text-muted-foreground ">(IN Lakhs)</span></FormLabel><FormControl><Input type="number" placeholder="e.g. 5 Lakhs" {...field} /></FormControl><FormMessage /></FormItem> )} />
 
 
 
@@ -601,7 +601,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
         </FormControl><FormMessage /></FormItem> )} />
         
         {/* For test New validation  */}
-        <FormField name="contact" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Contact<sup>*</sup></FormLabel><FormControl>
+        <FormField name="contact" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Contact</FormLabel><FormControl>
             {contactIdFromContext ? (
                 <Input value={contactDoc ? `${contactDoc.first_name} ${contactDoc.last_name}` : "Loading..."} disabled />
             ) : (

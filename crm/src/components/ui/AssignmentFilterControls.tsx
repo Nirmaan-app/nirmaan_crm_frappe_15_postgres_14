@@ -32,7 +32,12 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
 
     const { data: salesUsers, isLoading: salesLoading } = useFrappeGetDocList<CRMUsers>("CRM Users", {
         fields: ["name", "full_name"],
-        filters: { nirmaan_role_name: "Nirmaan Sales User Profile" },
+        filters: {
+            "nirmaan_role_name": ["in", [
+                "Nirmaan Sales User Profile",
+                "Nirmaan Admin User Profile",
+            ]]
+        },
         limit: 0,
     }, "sales-users-list");
 
@@ -70,11 +75,15 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
             if (filterType === 'company' || filterType === 'contact') {
                 if (activeTab === 'me') newFilters.push(['assigned_sales', '=', user_id]);
             }
-        } else if (role === 'Nirmaan Estimations User Profile') {
-            if (filterType === 'boq' && activeTab === 'me') {
-                newFilters.push(['assigned_estimations', '=', user_id]);
-            }
-        } else if (role === 'Nirmaan Admin User Profile') {
+        }
+        // else if (role === 'Nirmaan Estimations User Profile') {
+        //     if (filterType === 'boq' && activeTab === 'me') {
+        //         newFilters.push(['assigned_estimations', '=', user_id]);
+        //     }
+        //     const salesFilters = buildFilterBlock(selectedSalesUsers, 'assigned_sales');
+        //     newFilters.push(...salesFilters);
+        // } 
+        else if (role === 'Nirmaan Admin User Profile') {
             const salesFilters = buildFilterBlock(selectedSalesUsers, 'assigned_sales');
             newFilters.push(...salesFilters);
             if (filterType === 'boq') {
@@ -111,20 +120,34 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
         return null;
     }
 
+    // if (role === 'Nirmaan Estimations User Profile') {
+    //     // Show tabs ONLY for the BOQ list.
+    //     if (filterType === 'boq') {
+    //         return (
+    //             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'me' | 'all')}>
+    //                 <TabsList className="grid w-full grid-cols-2">
+    //                     <TabsTrigger value="me">Assigned to Me</TabsTrigger>
+    //                     <TabsTrigger value="all">All</TabsTrigger>
+    //                 </TabsList>
+    //             </Tabs>
+    //         );
+    //     }
+    //     return null;
+    // }
+
     if (role === 'Nirmaan Estimations User Profile') {
         // Show tabs ONLY for the BOQ list.
         if (filterType === 'boq') {
             return (
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'me' | 'all')}>
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="me">Assigned to Me</TabsTrigger>
-                        <TabsTrigger value="all">All</TabsTrigger>
-                    </TabsList>
-                </Tabs>
+                <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground">Filter by Sales User</label>
+                    <ReactSelect isMulti options={salesUserOptions} isLoading={salesLoading} value={selectedSalesUsers} onChange={setSelectedSalesUsers} placeholder="All Sales Users" className="text-sm" menuPosition={'auto'} />
+                </div>
             );
         }
         return null;
     }
+
 
     if (role === 'Nirmaan Admin User Profile') {
         const salesFilterDropdown = (
@@ -134,17 +157,17 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
             </div>
         );
         // For BOQs, show both dropdowns.
-        if (filterType === 'boq') {
-            return (
-                <div className="space-y-4">
-                    {salesFilterDropdown}
-                    <div className="space-y-1">
-                        <label className="text-sm font-medium text-muted-foreground">Filter by Estimation User</label>
-                        <ReactSelect isMulti options={estimationUserOptions} isLoading={estimationLoading} value={selectedEstimationUsers} onChange={setSelectedEstimationUsers} placeholder="All Estimation Users" className="text-sm" menuPosition={'auto'} />
-                    </div>
-                </div>
-            );
-        }
+        // if (filterType === 'boq') {
+        //     return (
+        //         <div className="space-y-4">
+        //             {salesFilterDropdown}
+        //             <div className="space-y-1">
+        //                 <label className="text-sm font-medium text-muted-foreground">Filter by Estimation User</label>
+        //                 <ReactSelect isMulti options={estimationUserOptions} isLoading={estimationLoading} value={selectedEstimationUsers} onChange={setSelectedEstimationUsers} placeholder="All Estimation Users" className="text-sm" menuPosition={'auto'} />
+        //             </div>
+        //         </div>
+        //     );
+        // }
         // For Company, Contact, AND Task lists, show only the Sales dropdown.
         return salesFilterDropdown;
     }

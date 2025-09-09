@@ -51,7 +51,7 @@ export const NewContactForm = ({ onSuccess, isEditMode = false, initialData = nu
     const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc(); 
 
 const { data: allContacts } = useFrappeGetDocList("CRM Contacts", {
-        fields: ["name", "email"]
+        fields: ["name", "email"], limit: 0,
     },"all-contacts-existornot");
 
 //Hooks get Sales UserList
