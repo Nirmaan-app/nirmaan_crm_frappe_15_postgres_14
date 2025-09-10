@@ -3,7 +3,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Edit } from "lucide-react";
-import { formatDate } from "@/utils/FormatDate";
+import { formatDate,formatDateWithOrdinal } from "@/utils/FormatDate";
 import { Link } from "react-router-dom";
 import { contactClick,companyClick ,boqClick} from "@/utils/LinkNavigate";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
@@ -49,7 +49,7 @@ export const ProjectsTab = ({ boqs }) => {
                                         {boq.boq_status}
                                     </span>
                             </TableCell>
-                            <TableCell>{formatDate(boq.creation)}</TableCell>
+                            <TableCell>{formatDateWithOrdinal(boq.creation)}</TableCell>
                         </TableRow>
                     )) : (
                          <TableRow>

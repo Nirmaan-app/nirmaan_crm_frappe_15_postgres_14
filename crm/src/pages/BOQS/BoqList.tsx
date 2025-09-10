@@ -109,7 +109,9 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
                     const contactName = `${boq?.first_name || ''} ${boq?.last_name || ''}`.toLowerCase();
                     return contactName.includes(lowercasedQuery);
                 case 'By Name': return boq.boq_name?.toLowerCase().includes(lowercasedQuery);
-                case 'By Type': return boq.boq_type?.toLowerCase().includes(lowercasedQuery);
+                case 'By Package': return boq.boq_type?.toLowerCase().includes(lowercasedQuery);
+                case 'By Status': return boq.boq_status?.toLowerCase().includes(lowercasedQuery);
+
                 default: return true;
             }
         });

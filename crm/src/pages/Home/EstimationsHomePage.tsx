@@ -10,6 +10,7 @@ import React, { useState, useMemo } from 'react';
 import { Plus, Search, ChevronRight } from "lucide-react";
 import { useDialogStore } from '@/store/dialogStore';
 import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
 
 // Interface for the BOQ data
 interface BOQ {
@@ -63,7 +64,7 @@ const PendingBOQs = () => {
                                 <Link to={`/boqs/boq?id=${boq.name}`} className="text-primary font-semibold hover:underline text-left">{boq.boq_name}</Link>
                                 <p className="text-xs text-muted-foreground">Created By: {boq.owner}</p>
                                 <p className="text-xs text-muted-foreground md:hidden mt-1">
-                                    {boq.boq_submission_date ? format(new Date(boq.boq_submission_date), 'dd-MMM-yyyy') : '--'}
+                                    {boq.boq_submission_date ? formatDateWithOrdinal(new Date(boq.boq_submission_date), 'dd-MMM-yyyy') : '--'}
                                 </p>
                             </div>
                             {/* Desktop-only status for this cell */}
@@ -76,7 +77,7 @@ const PendingBOQs = () => {
                             </div>
                             {/* Desktop-only submission date for this cell */}
                             <span className="hidden md:block text-sm">
-                                {boq.boq_submission_date ? format(new Date(boq.boq_submission_date), 'dd-MMM-yyyy') : '--'}
+                                {boq.boq_submission_date ? formatDateWithOrdinal(new Date(boq.boq_submission_date), 'dd-MMM-yyyy') : '--'}
                             </span>
                             <div className="flex flex-col items-end gap-2 md:text-center">
                                 {/* Mobile-only status for this cell */}
@@ -184,12 +185,12 @@ const AllBOQs = () => {
                                 <div className="hidden md:block text-left">
                                     {boq.boq_sub_status ? <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(boq.boq_sub_status)}`}>{boq.boq_sub_status}</span> : '--'}
                                 </div>
-                            <span className="hidden md:block text-left text-sm text-muted-foreground">{format(new Date(boq.modified), 'dd-MMM-yyyy')}</span>
+                            <span className="hidden md:block text-left text-sm text-muted-foreground">{formatDateWithOrdinal(new Date(boq.modified), 'dd-MMM-yyyy')}</span>
                                 <span className="hidden md:block text-center text-sm">{getUserFullNameByEmail(boq.assigned_sales)||"--"}</span>
                                 <div className="flex flex-col items-end gap-2">
                                     <div className="flex flex-col items-end gap-1.5 md:hidden">
                                         <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(boq.boq_status)}`}>{boq.boq_status}</span>
-                                        <p className="text-xs text-muted-foreground md:hidden"> {format(new Date(boq.modified), 'dd-MM-yyyy')}</p>
+                                        <p className="text-xs text-muted-foreground md:hidden"> {formatDateWithOrdinal(new Date(boq.modified), 'dd-MM-yyyy')}</p>
                                     </div>
                                     <div className="flex justify-end pt-2 md:pt-0">
                                     <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -229,7 +230,7 @@ export const EstimationsHomePage = () => {
 // import { Button } from "@/components/ui/button";
 // import { Input } from "@/components/ui/input";
 // import { Skeleton } from "@/components/ui/skeleton";
-// import { format } from 'date-fns';
+// import { formatDateWithOrdinal } from 'date-fns';
 // import { useNavigate,Link } from "react-router-dom";
 // import { useStatusStyles } from "@/hooks/useStatusStyles";
 // import React, { useState, useMemo } from 'react';

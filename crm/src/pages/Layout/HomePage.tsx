@@ -19,8 +19,8 @@ export const HomePage = () => {
         filters: homePageTaskFilter,
         limit: 0, // Only show a few tasks on the dashboard
         orderBy: {
-        field: "start_date DESC, time",
-        order: "desc"
+        field: "start_date",
+        order: "asc"
     }
     }, homePageTaskSWR);
     // Process the fetched data to create computed names
