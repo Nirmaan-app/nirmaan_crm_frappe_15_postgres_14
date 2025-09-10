@@ -31,9 +31,9 @@ export const Contact = () => {
 
     const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", contactData?.company);
 
-    const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: id }, fields: ["*"], limit: 0, },`all-boqs-filterbyContact-id${id}`);
+    const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: id }, fields: ["*"], limit: 0,orderBy: { field: "creation", order: "asc"}, },`all-boqs-filterbyContact-id${id}`);
 
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {   fields: ["name", "status","start_date","time", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation","remarks"], limit: 0, filters: { contact: id } },`all-tasks-filterbyContact-id${id}`);
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {   fields: ["name", "status","start_date", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation","remarks"], limit: 0, filters: { contact: id }, orderBy: { field: "start_date", order: "asc"}, },`all-tasks-filterbyContact-id${id}`);
 
     // console.log("tasksList",tasksList)
 

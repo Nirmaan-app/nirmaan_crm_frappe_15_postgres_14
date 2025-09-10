@@ -190,39 +190,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                     <Plus className="w-4 h-4 mr-2" />Add New Task
                 </Button>
             </div>
-            {/* *** ADDED TASK LIST RENDERING LOGIC HERE *** */}
-            {/* <div className="space-y-2">
-                <div className="grid grid-cols-3 text-sm font-semibold px-2 text-muted-foreground">
-                    <span>Task</span>
-                    <span>Due Date</span>
-                    <span className="text-center">Status</span>
-                </div>
-                 <div className="max-h-[275px] overflow-y-auto pr-2 -mr-2"> 
-                {tasks.length > 0 ? (
-                    tasks.map((task, index) => (
-                        // React.Fragment does not need a key or className here
-                        <React.Fragment key={task.name}>
-                            <div 
-                                onClick={() => navigate(`/tasks/task?id=${task.name}`)} 
-                                className="grid grid-cols-3 items-center px-2 py-3 cursor-pointer hover:bg-secondary rounded-md"
-                            >
-                                <span className="font-medium truncate pr-2">{task.type}</span>
-                                <span className="text-sm text-muted-foreground">{formatDate(task.start_date)}</span>
-                                <div className="flex items-center justify-end gap-2">
-                                    <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${getTaskStatusClass(task.status)}`}>
-                                        {task.status}
-                                    </span>
-                                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                                </div>
-                            </div>
-                            {index < tasks.length - 1 && <Separator />}
-                        </React.Fragment>
-                    ))
-                ) : (
-                    <p className="text-center text-sm text-muted-foreground py-4">No tasks found for this BOQ.</p>
-                )}
-            </div>
-            </div> */}
+            
             <div className="max-h-[275px] overflow-y-auto border rounded-md">
 
                 <Table>
@@ -237,7 +205,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                             <TableHead className="hidden md:table-cell">Status</TableHead> */}
                               <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
                             <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
-                            <TableHead className="hidden md:table-cell text-center">Last Updated</TableHead>
+                            
 
                             {/* Chevron column */}
                             <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
@@ -255,15 +223,19 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                                             (<div className="flex items-center gap-3">
                                                 <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
                                                 <div className="flex flex-col">
-                                                    <span className="font-medium">{`${task.type} with ${task.first_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
-                                                        {formatDateWithOrdinal(task.start_date)} at {formatTime12Hour(task?.time)}
-                                                    </span></span>
+                                                    <span>                                                <span className="font-semibold">{task?.type}</span> 
+                                                    {/* with <span className="font-semibold">{task?.first_name}
+
+                                                    </span> */}
+
+                                                                     
+                                                                                                                       </span>
                                                     {/* On mobile, show the date here. Hide it on larger screens. */}
                                                      {task.remarks &&(                                                                <span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
                                                                        Remarks: {task.remarks}
                                                                    </span>)}
                                                     <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                        Updated: {formatDateWithOrdinal(task.modified)}
+                                                        Scheduled for: {formatDateWithOrdinal(task.start_date)}
                                                     </span>
                                                 </div>
                                             </div>) :(<div className="flex items-center gap-3">
@@ -288,7 +260,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                                             </span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="hidden md:table-cell text-right">{formatDateWithOrdinal(task.modified)}</TableCell>
+                                    
 
                                     <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
                                 </TableRow>
@@ -338,7 +310,7 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
                     <React.Fragment key={remark.name}>
                         <div className="grid grid-cols-2 gap-x-4 text-sm px-2 py-1">
                             <span className="text-muted-foreground">{formatDateWithOrdinal(remark.creation)}</span>
-                            <span>{remark.content}</span>
+                            <span><span className="font-semibold">{remark.title}:</span><span>{" "}{remark.content}:</span></span>
                         </div>
                         {/* We don't need a separator if the header provides the line */}
                         {index < remarks.length - 1 && <Separator />}
@@ -414,7 +386,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 <DetailItem label="Recevied on" value={formatDateWithOrdinal(boq?.creation)} />
                 <DetailItem label="Created by" value={getUserFullNameByEmail(boq?.owner) || "Administrator"} />
 
-                <DetailItem label="Remarks" value={boq?.remarks || 'N/A'} />
+                <DetailItem label="Latest Remarks" value={boq?.remarks || 'N/A'} />
             </div>
 
             <Separator />
@@ -441,178 +413,6 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 
 
 
-// const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
-//     const getBoqStatusClass = useStatusStyles("boq");
-
-//     // This memoized function transforms the raw version data into the format needed for the UI table.
-//     const transformedHistory = useMemo((): TransformedHistoryItem[] => {
-//         if (!versions || versions.length === 0) return [];
-
-//         let lastKnownStatus = '';
-
-//         // We process in reverse to establish the correct status at each point in time.
-//         return versions.slice().reverse().map(version => {
-//             try {
-//                 const parsedData = JSON.parse(version.data);
-//                 const changes = parsedData.changed || [];
-
-//                 const statusChange = changes.find(c => c[0] === 'boq_status');
-//                 const subStatusChange = changes.find(c => c[0] === 'boq_sub_status');
-//                 const boqLinkChange = changes.find(c => c[0] === 'boq_link');
-//                 const remarksChange = changes.find(c => c[0] === 'remarks');
-//                 const dateChange = changes.find(c => c[0] === 'boq_submission_date');
-
-//                 // If this version changed the status, update our tracker.
-//                 if (statusChange) {
-//                     lastKnownStatus = statusChange[2]; // [2] is the new value
-//                 } else {
-//                     lastKnownStatus = "--"
-//                 }
-
-//                 // We create a history item if any of the fields we care about were changed.
-//                 if (!statusChange && !subStatusChange && !boqLinkChange && !remarksChange && !dateChange) {
-//                     return null;
-//                 }
-
-//                 // Build a descriptive remark based on what changed in this version.
-//                 let remarkText = '';
-//                 if (remarksChange) {
-//                     remarkText = `${remarksChange[2]}`;
-//                 } else {
-//                     remarkText = '--'
-//                 }
-
-//                 return {
-//                     status: lastKnownStatus,
-//                     remark: remarkText,
-//                     submission_date: dateChange ? dateChange[2] : "--",
-//                     date: formatDate(version.creation),
-//                     link: boqLinkChange ? boqLinkChange[2] : undefined,
-//                     owner: version.owner.split('@')[0]
-//                 };
-//             } catch (e) {
-//                 console.error("Failed to parse version data:", e);
-//                 return null;
-//             }
-//         })
-//             .filter((item): item is TransformedHistoryItem => item !== null) // Remove nulls and add type guard
-//             .reverse(); // Reverse again to show most recent first
-
-//     }, [versions]);
-
-//     // Mobile Card Component
-//     const MobileHistoryCard = ({ item, index }: { item: TransformedHistoryItem; index: number }) => (
-//         <div className="bg-white border border-gray-200 rounded-md p-2 mb-1 shadow-sm">
-//             {/* Header with Status and Date */}
-//             <div className="flex justify-between items-start mb-1">
-//                 <div >
-//                     <span className="text-xs text-gray-500 font-semibold">Status:</span> <span className={`text-xs font-semibold px-2 rounded-md ${getBoqStatusClass(item.status)}`}>
-//                         {item.status}
-//                     </span>
-//                 </div>
-//                 <div className="text-xs text-gray-500 ml-2">
-//                     Updated by: {item.owner}
-//                 </div>
-//             </div>
-
-//             <div className="grid grid-cols-2 gap-22 border-t">
-//                 {/* Remarks */}
-//                 <div className="mt-1">
-//                     <div className="text-xs font-medium text-gray-600 mb-1 font-semibold">Remarks</div>
-//                     <div className="text-sm text-gray-800 line-clamp-2">{item.remark || '--'}</div>
-//                 </div>
-
-//                 {/* Submission Deadline */}
-//                 <div className="mt-1">
-//                     <div className="text-xs font-medium text-gray-600 mb-1 text-center font-semibold">Submission Deadline</div>
-//                     <div className="text-sm text-gray-800 text-center">{item.submission_date || '--'}</div>
-//                 </div>
-//             </div>
-//             {/* BOQ Link */}
-//             {item.link && (
-//                 <div className="mt-2 pt-1 border-t border-gray-100">
-//                     <a
-//                         href={item.link}
-//                         target="_blank"
-//                         rel="noopener noreferrer"
-//                         className="inline-flex items-center text-blue-600 text-xs font-medium hover:text-blue-700"
-//                     >
-//                         <svg className="w-2 h-2 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-//                         </svg>
-//                         View BOQ Link
-//                     </a>
-//                 </div>
-//             )}
-//         </div>
-//     );
-
-//     return (
-//         <div className="bg-background p-4 rounded-lg border shadow-sm">
-//             <h2 className="font-semibold mb-4">BOQ Submission History</h2>
-
-//             {/* Desktop Table View */}
-//             <div className="hidden md:block max-h-[275px] overflow-y-auto pr-2">
-//                 <Table>
-//                     <TableHeader>
-//                         <TableRow>
-//                             <TableHead>BOQs Status</TableHead>
-//                             <TableHead>Remarks</TableHead>
-//                             <TableHead>Submission Deadline</TableHead>
-//                             <TableHead>Updated by</TableHead>
-//                             <TableHead>BOQs Link</TableHead>
-//                         </TableRow>
-//                     </TableHeader>
-//                     <TableBody>
-//                         {transformedHistory.length > 0 ? (
-//                             transformedHistory.map((item, index) => (
-//                                 <TableRow key={index}>
-//                                     <TableCell>
-//                                         <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(item.status)}`}>
-//                                             {item.status}
-//                                         </span>
-//                                     </TableCell>
-//                                     <TableCell>{item.remark || '--'}</TableCell>
-//                                     <TableCell>{item.submission_date || '--'}</TableCell>
-//                                     <TableCell>{item.owner}</TableCell>
-//                                     <TableCell>
-//                                         {item.link ? (
-//                                             <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">
-//                                                 View Link
-//                                             </a>
-//                                         ) : (
-//                                             '--'
-//                                         )}
-//                                     </TableCell>
-//                                 </TableRow>
-//                             ))
-//                         ) : (
-//                             <TableRow>
-//                                 <TableCell colSpan={5} className="text-center h-24">No submission history found.</TableCell>
-//                             </TableRow>
-//                         )}
-//                     </TableBody>
-//                 </Table>
-//             </div>
-
-//             {/* Mobile Card View */}
-//             <div className="md:hidden max-h-[275px] overflow-y-auto">
-//                 {transformedHistory.length > 0 ? (
-//                     <div className="space-y-3">
-//                         {transformedHistory.map((item, index) => (
-//                             <MobileHistoryCard key={index} item={item} index={index} />
-//                         ))}
-//                     </div>
-//                 ) : (
-//                     <div className="text-center py-12 text-gray-500">
-//                         <div className="text-lg mb-2">📋</div>
-//                         <div>No submission history found.</div>
-//                     </div>
-//                 )}
-//             </div>
-//         </div>
-//     );
-// };
 
 // --- TYPE DEFINITIONS ---
 interface DocVersion {
@@ -897,9 +697,9 @@ export const BOQ = () => {
     const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", boqData?.contact, boqData?.contact ? undefined : null);
 
 
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "time"], orderBy: { field: "creation", order: "desc" }, limit: 0, }, `all-tasks-filterbyBoq-id${id}`);
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation","remarks"], orderBy: { field: "start_date", order: "asc" }, limit: 0, }, `all-tasks-filterbyBoq-id${id}`);
 
-    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "content", "creation"], orderBy: { field: "creation", order: "desc" }, limit: 0, }, `all-notes-filterbyBoq-id${id}`);
+    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name","title", "content", "creation"], orderBy: { field: "creation", order: "desc" }, limit: 0, }, `all-notes-filterbyBoq-id${id}`);
 
 
     const { data: versionsList, isLoading: versionsLoading } = useFrappeGetDocList<DocVersion>("Version", {

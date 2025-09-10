@@ -570,11 +570,11 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
     // Determine button label and action based on the context
     let buttonLabel = "Update";
     let buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'updateStatus' });
- console.log("upcoming7Days",context)
+//  console.log("upcoming7Days",context)
     if (context === 'tomorrow') {
         buttonLabel = "Go To Task";
         buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
-    } else if (context === 'createdtoday') {
+    } else if (context === 'createdToday') {
         buttonLabel = "Edit Task";
         buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'edit' });
     }else if (context === 'upcoming7Days') { // NEW: Upcoming 7 Days context
@@ -606,12 +606,12 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
                     <div className="flex">
                         <TaskStatusIcon status={task.status} className="mr-1 flex-shrink-0" />
                         <div>
-                            {task?.type} with {task?.first_name}{" "} from {task?.company_name} {" "}
+                            <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "} from {task?.company_name} {" "}
                             <p className="text-xs inline-block text-muted-foreground p-0 m-0">
-                                {(context === "createdtoday"||context === 'upcoming7Days') && (`on ${formatCasualDate(task.start_date)} `)}
+                                {(context === "createdToday"||context === 'upcoming7Days') && (`on ${formatCasualDate(task.start_date)} `)}
                                 {/* {formatCasualDate(task.start_date)}   */}
 
-                                {formatTime12Hour(task.time)}
+                                
                             </p>
                         </div>
                     </div>
@@ -661,7 +661,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
     } = useTaskData(assignmentFilters);
 
 
-    console.log(upcoming7DaysTasks)
+    // console.log(upcoming7DaysTasks)
 
     // const allFilters = useMemo(() => {
     //     // REMOVED: No default filters for Sales User. Backend handles it.

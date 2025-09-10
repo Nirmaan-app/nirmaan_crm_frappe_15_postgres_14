@@ -54,7 +54,7 @@ const BoqList = ({ boqs }: { boqs: CRMBOQ[] }) => {
                                 {boq.boq_status || 'N/A'}
                             </span>
                         </TableCell>
-                        <TableCell className="text-right">{formatDate(boq.boq_submission_date)||"--"}</TableCell>
+                        <TableCell className="text-right">{formatDateWithOrdinal(boq.boq_submission_date)||"--"}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
@@ -122,7 +122,7 @@ const TaskList = ({ tasks, contacts }: { tasks: CRMTask[], contacts: CRMContacts
 
                                 
                                  <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
-                                <TableHead className="hidden md:table-cell text-center">Last Updated</TableHead>
+                                {/* <TableHead className="hidden md:table-cell text-center">Last Updated</TableHead> */}
                                 
                                 {/* Chevron column */}
                                 <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
@@ -140,24 +140,24 @@ const TaskList = ({ tasks, contacts }: { tasks: CRMTask[], contacts: CRMContacts
                                                            (<div className="flex items-center gap-3">
                                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
                                                                <div className="flex flex-col">
-                                                                   <span className="font-medium">{`${task.type} with ${task.first_name} `}
+                                                                   <span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>
 
-                                                                     {/* <span className="text-xs text-muted-foreground p-0 m-0">
-                                                                                                                           {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
-                                                                                                                       </span> */}
+                                                                     
                                                                                                                        </span>
                                                                            {task.remarks &&(                                                                <span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
                                                                        Remarks: {task.remarks}
                                                                    </span>)}
                                                                    {/* On mobile, show the date here. Hide it on larger screens. */}
                                                                     <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                                       Updated: {formatDateWithOrdinal(task.modified)}
+                                                                       Scheduled for: {formatDateWithOrdinal(task.start_date)}
                                                                    </span>
                                                                </div>
                                                            </div>):(<div className="flex items-center gap-3">
                                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
-                                                               <div className="flex flex-col">
-                                                                   <span className="font-medium">{`${task.type} with ${task.first_name}`}</span>
+                                                               {/* <div className="flex flex-col"> */}
+                                                               <div>
+
+<span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>
                                                                   
                                                                     
                                                                </div>
@@ -173,12 +173,12 @@ const TaskList = ({ tasks, contacts }: { tasks: CRMTask[], contacts: CRMContacts
                                                       <TableCell className="hidden md:table-cell text-right">
   <div className="flex flex-col items-center">
     <span>{formatDateWithOrdinal(task.start_date)}</span>
-    <span className="text-xs text-muted-foreground text-center">
+    {/* <span className="text-xs text-muted-foreground text-center">
       {formatTime12Hour(task?.time)}
-    </span>
+    </span> */}
   </div>
 </TableCell>
-                                                       <TableCell className="hidden md:table-cell text-right">{formatDateWithOrdinal(task.modified)}</TableCell>
+                                                       {/* <TableCell className="hidden md:table-cell text-right">{formatDateWithOrdinal(task.modified)}</TableCell> */}
                
                                                        <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
                                                    </TableRow>

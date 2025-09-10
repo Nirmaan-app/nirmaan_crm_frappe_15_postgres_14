@@ -1,7 +1,7 @@
 // src/pages/MyTeam/ContactsTab.tsx
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate } from "@/utils/FormatDate";
+import { formatDate ,formatDateWithOrdinal} from "@/utils/FormatDate";
 import { Link } from "react-router-dom";
 import { contactClick,companyClick } from "@/utils/LinkNavigate";
 
@@ -34,13 +34,13 @@ export const ContactsTab = ({ contacts }) => {
                                 </Link>
                             </TableCell>
                             <TableCell>{contact.mobile || 'N/A'}</TableCell>
-                            <TableCell>{formatDate(contact.creation)}</TableCell>
+                            <TableCell>{formatDateWithOrdinal(contact.creation)}</TableCell>
 
                             <TableCell className="text-red-600  font-medium cursor-pointer">
-                               {formatDate(contact.last_meeting)||'--'}
+                               {formatDateWithOrdinal(contact.last_meeting)||'--'}
                             </TableCell>
 
-                            <TableCell>{formatDate(contact.modified)}</TableCell>
+                            <TableCell>{formatDateWithOrdinal(contact.modified)}</TableCell>
                         </TableRow>
                     )) : (
                         <TableRow>

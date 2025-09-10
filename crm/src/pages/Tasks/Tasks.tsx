@@ -218,7 +218,7 @@ export const Tasks = () => {
         
     const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks,upcoming7DaysTasks } = useTaskData();
 
-    console.log(upcoming7DaysTasks)
+    // console.log(upcoming7DaysTasks)
     // --- THE FIX IS HERE ---
     // 2. Create a memoized map that links the ID to its title and data.
     const dailyTaskDetails = useMemo(() => ({
@@ -262,13 +262,13 @@ export const Tasks = () => {
         // Check for category-based IDs first
         const lowercasedId = id.toLowerCase();
 
-        console.log("id getting from params",lowercasedId)
+        // console.log("id getting from params",lowercasedId)
 
         // 3. Look up the details for the current ID in our map.
-        console.log("tadiak",dailyTaskDetails[lowercasedId])
+        // console.log("tadiak",dailyTaskDetails[lowercasedId])
 
         const detailInfo = dailyTaskDetails[lowercasedId];
-        console.log("takk",detailInfo)
+        // console.log("takk",detailInfo)
 
         // If a match is found, render the component with the correct title and tasks.
         if (detailInfo) {

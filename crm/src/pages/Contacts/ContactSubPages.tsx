@@ -83,7 +83,7 @@ const TaskList = ({ tasks }: { tasks: CRMTask[] }) => {
                         <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
 
                         <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
-                        <TableHead className="hidden md:table-cell text-center">Last Updated</TableHead>
+                        {/* <TableHead className="hidden md:table-cell text-center">Last Updated</TableHead> */}
 
 
                         {/* Chevron column */}
@@ -101,21 +101,23 @@ const TaskList = ({ tasks }: { tasks: CRMTask[] }) => {
                                         (<div className="flex items-center gap-3">
                                             <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
                                             <div className="flex flex-col">
-                                                <span className="font-medium">{`${task.type}`} <span className="text-xs text-muted-foreground p-0 m-0">
-                                                    {formatDateWithOrdinal(task.start_date)} at {formatTime12Hour(task?.time)}
-                                                </span></span>
+                                                <span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>
+
+                                                                     
+                                                                                                                       </span>
                                                 {/* On mobile, show the date here. Hide it on larger screens. */}
-                                                {task.remarks &&(                                                                <span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
-                                                                       Remarks: {task.remarks}
-                                                                   </span>)}
+                                                {task.remarks && (<span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
+                                                    Remarks: {task.remarks}
+                                                </span>)}
                                                 <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                    Updated: {formatDateWithOrdinal(task.modified)}
+                                                    Scheduled for: {formatDateWithOrdinal(task.start_date)}
                                                 </span>
                                             </div>
                                         </div>) : (<div className="flex items-center gap-3">
                                             <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">{`${task.type}`}</span>
+                                            <div>
+
+                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>
 
 
                                             </div>
@@ -129,12 +131,12 @@ const TaskList = ({ tasks }: { tasks: CRMTask[] }) => {
                                 <TableCell className="hidden md:table-cell text-right">
                                     <div className="flex flex-col items-center">
                                         <span>{formatDateWithOrdinal(task.start_date)}</span>
-                                        <span className="text-xs text-muted-foreground text-center">
+                                        {/* <span className="text-xs text-muted-foreground text-center">
                                             {formatTime12Hour(task?.time)}
-                                        </span>
+                                        </span> */}
                                     </div>
                                 </TableCell>
-                                <TableCell className="hidden md:table-cell text-right">{formatDateWithOrdinal(task.modified)}</TableCell>
+                                {/* <TableCell className="hidden md:table-cell text-right">{formatDateWithOrdinal(task.modified)}</TableCell> */}
 
                                 <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
                             </TableRow>

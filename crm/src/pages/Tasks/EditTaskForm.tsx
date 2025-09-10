@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from "react-select";
 import { useEffect } from "react";
-import { formatDate, formatTime12Hour } from "@/utils/FormatDate";
+import { formatDate, formatTime12Hour,formatDateWithOrdinal } from "@/utils/FormatDate";
 import { Calendar, Clock } from "lucide-react"; // Import icons for a nicer UI
 import { taskTypeOptions } from "@/constants/dropdownData";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
@@ -25,7 +25,7 @@ const editTaskSchema = z.object({
   // For 'edit' and 'scheduleNext' modes
   type: z.string().optional(),
   start_date: z.string().optional(),
-  time: z.string().optional(),
+  // time: z.string().optional(),
   // For 'updateStatus' mode
   status: z.string().optional(), // Status is always required in update mode
   reason: z.string().optional(),
@@ -82,7 +82,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { data: contactDoc, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>(
     "CRM Contacts",
     taskData?.contact, // The ID of the contact from the task
-    { enabled: !!taskData?.contact } // Only run this fetch if taskData and its contact field exist
+   // Only run this fetch if taskData and its contact field exist
   );
   const form = useForm<EditTaskFormValues>({
     resolver: zodResolver(editTaskSchema),
@@ -97,7 +97,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       form.reset({
         type: taskData.type || "",
         start_date: taskData.start_date?.split(" ")[0] || "",
-        time: taskData.time || "",
+        // time: taskData.time || "",
         assigned_sales: taskData.assigned_sales || "",
         status:"",
         reschedule: false,
@@ -105,7 +105,20 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         remarks: "",
       });
     }
-  }, [taskData, form]);
+
+    if(mode=="scheduleNext"){
+      form.reset({
+        type: taskData.type || "",
+        start_date: "",
+        // time: taskData.time || "",
+        assigned_sales: taskData.assigned_sales || "",
+        status:"",
+        reschedule: false,
+        reason: "",
+        remarks: "",
+      });
+    }
+  }, [taskData, form,mode]);
 
   // --- STEP 2: ADD A useEffect TO CLEAR/VALIDATE FIELDS ON CHANGE ---
   useEffect(() => {
@@ -136,12 +149,21 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         return; // Stop submission if status is missing in updateStatus mode
       }
 
+       if (mode === 'edit' && (!values.start_date || values.start_date.trim() === '')) {
+        form.setError('start_date', {
+            type: 'manual',
+            message: 'Date is required to update.',
+        });
+        toast({ title: "Validation Error", description: "Please select a Date.", variant: "destructive" });
+        return; // Stop submission if status is missing in updateStatus mode
+      }
+
       if (mode === 'edit') {
         // console.log("dataTask",taskData)
-        await updateDoc("CRM Task", taskData.name, { type: values.type, start_date: `${values.start_date}`, time: values.time, assigned_sales: values.assigned_sales });
-        toast({ title: "Success", description: "Task rescheduled." });
+        await updateDoc("CRM Task", taskData.name, { type: values.type, start_date:values.start_date, assigned_sales: values.assigned_sales,remarks:values.remarks});
+        toast({ title: "Success", description: "Task Updated." });
       } else if (mode === 'updateStatus') {
-        await updateDoc("CRM Task", taskData.name, { status: values.status, assigned_sales: values.assigned_sales, reason: values.reason || ''});
+        await updateDoc("CRM Task", taskData.name, { status: values.status, assigned_sales: values.assigned_sales,remarks:values.remarks, reason: values.reason || ''});
         toast({ title: "Success", description: "Task status updated." });
 
         // --- THIS IS THE KEY LOGIC CHANGE ---
@@ -154,13 +176,14 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       } else if (mode === 'scheduleNext') {
         await createDoc("CRM Task", {
           type: values.type,
-          start_date: `${values.start_date} ${values.time}`,
-          time: values.time,
+          start_date:values.start_date,
+          // time: values.time,
           status: 'Scheduled',
           contact: taskData.contact,
           company: taskData.company,
           assigned_sales: taskData.assigned_sales,
           boq: taskData.boq,
+          remarks:values.remarks
         });
         toast({ title: "Success", description: "New task scheduled." });
       }
@@ -214,12 +237,12 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span>{formatDate(taskData?.start_date)}</span>
+                    <span>{formatDateWithOrdinal(taskData?.start_date)}</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  {/* <div className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
                     <span>{formatTime12Hour(taskData?.time)}</span>
-                  </div>
+                  </div> */}
                 </div>
                 {/* --- END: 2. ADDED UI ELEMENTS FOR DATE AND TIME --- */}
               </div>
@@ -253,7 +276,8 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               />
             )}
             <FormField name="start_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>Date<sup>*</sup></FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField name="time" control={form.control} render={({ field }) => (<FormItem><FormLabel>Time<sup>*</sup></FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>)} />
+
+            {/* <FormField name="time" control={form.control} render={({ field }) => (<FormItem><FormLabel>Time<sup>*</sup></FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>)} /> */}
           </>
         )}
 
@@ -261,7 +285,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         {mode === 'updateStatus' && (
           <>
             <div className="flex justify-between items-start text-sm mb-4 border-b pb-4">
-              <div className="flex flex-col gap-2"><p className="font-semibold">{taskData?.type} for {contactDoc?.first_name}</p><div className="flex items-center gap-4 text-xs text-muted-foreground"><div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /><span>{formatDate(taskData?.start_date)}</span></div><div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /><span>{formatTime12Hour(taskData?.time)}</span></div></div></div>
+              <div className="flex flex-col gap-2"><p className="font-semibold">{taskData?.type} for {contactDoc?.first_name}</p><div className="flex items-center gap-4 text-xs text-muted-foreground"><div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /><span>{formatDateWithOrdinal(taskData?.start_date)}</span></div><div className="flex items-center gap-1.5"></div></div></div>
               <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
             </div>
 
