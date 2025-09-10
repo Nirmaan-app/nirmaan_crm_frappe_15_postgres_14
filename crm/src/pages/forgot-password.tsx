@@ -7,7 +7,7 @@ import * as z from "zod";
 import { ArrowLeft, Loader2 } from "lucide-react"; // Loader2 is useful for button spinner
 
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk"; // Keep if still needed for direct call to FrappeContext
-import logo from "@/assets/Group 1.svg"
+import logo from "@/assets/nirmaan-red.svg"
 
 // Shadcn UI components for form and display
 import { Button } from "@/components/ui/button";
@@ -99,9 +99,9 @@ export default function ForgotPassword() {
                     <img
                          src={logo} // Your existing logo path
                         alt="Nirmaan CRM Logo"
-                        className="h-8 w-8 object-contain"
+                        className="h-12 w-12 object-contain"
                     />
-                    <CardTitle className="text-2xl font-bold text-destructive">Forgot Password</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-destructive">CRM</CardTitle>
                 </div>
 
                 {/* Welcome Message (optional, but consistent with login page) */}

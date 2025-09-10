@@ -2,9 +2,9 @@
 
 import { Input } from "@/components/ui/input"
 import { Link } from "react-router-dom"
-import { UserNav } from "@/components/common/UserNav"; 
+import { UserNav } from "@/components/common/UserNav";
 // import logo from "@/assets/logo-svg.svg"; // Option 1: If logo is imported (e.g., from assets)
-import logo from "@/assets/Group 1.svg"
+import logo from "@/assets/nirmaan-red.svg"
 
 
 export const NavBarDesktop = () => {
@@ -17,14 +17,14 @@ export const NavBarDesktop = () => {
           // style={{ width: 'calc(100% - var(--notifications-width))' }}
           className="flex items-center justify-between flex-grow" // Use flex-grow
         >
-          <div className="flex items-center gap-2"> {/* Container for logo and text */}
+          <div className="flex items-center gap-1"> {/* Container for logo and text */}
             {/* --- NEW: Add your logo here --- */}
-             <Link to={"/"}>
-                          <img src={logo} alt="Nirmaan CRM" width="20" height="20" />
-                        </Link>
-            <h2 className="font-medium text-xl lg:text-2xl text-primary whitespace-nowrap"> {/* Adjusted text size */}
+            <Link to={"/"}>
+              <img src={logo} alt="Nirmaan CRM" width="36" height="36" />
+            </Link>
+            <h2 className="font-bold text-xl lg:text-2xl text-primary whitespace-nowrap"> {/* Adjusted text size */}
               <Link to="/">
-                Nirmaan CRM
+                CRM
               </Link>
             </h2>
           </div>
