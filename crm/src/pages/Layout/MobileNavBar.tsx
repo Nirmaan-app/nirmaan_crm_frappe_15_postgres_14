@@ -1,10 +1,10 @@
 // File: src/components/layout/MobileNavBar.tsx (or wherever MobileNavBar is located)
 
 import { ArrowLeft } from "lucide-react";
-import { useNavigate, useLocation ,Link} from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { UserNav } from "@/components/common/UserNav";
 // import logo from "@/assets/logo-svg.svg"; // Option 1: If logo is imported (e.g., from assets)
-import logo from "@/assets/Group 1.svg"
+import logo from "@/assets/nirmaan-red.svg"
 
 interface MobileNavBarProps {
     title: string;
@@ -34,17 +34,17 @@ export const MobileNavBar = ({ title, showBackButton }: MobileNavBarProps) => {
                             alt="Nirmaan CRM Logo"
                             className="h-8 w-8" // Adjust size as needed
                         /> */}
-                         <Link to={"/"}>
-              <img src={logo} alt="Nirmaan CRM" width="20" height="20" />
-            </Link>
-                        <h1 className="text-xl text-primary font-semibold whitespace-nowrap">Nirmaan CRM</h1>
+                        <Link to={"/"}>
+                            <img src={logo} alt="Nirmaan CRM" width="36" height="36" />
+                        </Link>
+                        <h1 className="text-xl text-primary font-bold whitespace-nowrap">CRM</h1>
                     </div>
                     <UserNav />
                 </div>
             ) : (
                 <div className="dark:text-white relative flex justify-center items-center h-6">
                     {showBackButton && (
-                        <ArrowLeft className="cursor-pointer absolute left-0 text-foreground" onClick={handleBackClick} /> 
+                        <ArrowLeft className="cursor-pointer absolute left-0 text-foreground" onClick={handleBackClick} />
                     )}
                     <h2 className="font-semibold text-lg text-foreground">{title}</h2> {/* Themed title */}
                 </div>
