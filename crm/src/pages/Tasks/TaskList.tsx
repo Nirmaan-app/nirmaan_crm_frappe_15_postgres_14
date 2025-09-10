@@ -563,20 +563,28 @@ const DesktopTaskCategoryRow = ({ title, count, onClick, isActive }) => (
 );
 
 
-export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: EnrichedCRMTask, context: 'today' | 'tomorrow' | 'createdToday', onTaskSelect?: (id: string) => void }) => {
+export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: EnrichedCRMTask, context: 'today' | 'tomorrow' | 'createdToday'|'upcoming7Days', onTaskSelect?: (id: string) => void }) => {
     const { openEditTaskDialog } = useDialogStore();
     const navigate = useNavigate();
     const { isMobile } = useViewport();
     // Determine button label and action based on the context
     let buttonLabel = "Update";
     let buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'updateStatus' });
-
+ console.log("upcoming7Days",context)
     if (context === 'tomorrow') {
         buttonLabel = "Go To Task";
-        buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) : onTaskSelect({ id: task.name });
+        buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
     } else if (context === 'createdtoday') {
         buttonLabel = "Edit Task";
         buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'edit' });
+    }else if (context === 'upcoming7Days') { // NEW: Upcoming 7 Days context
+        buttonLabel = "Go To Task";
+        buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
+    }
+
+    if(task.status==="Completed"||task.status==="Incomplete"){
+        buttonLabel = "Go To Task";
+        buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
     }
 
     // // For 'today', the default action is 'Update', so no 'if' statement is needed.
@@ -600,7 +608,7 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
                         <div>
                             {task?.type} with {task?.first_name}{" "} from {task?.company_name} {" "}
                             <p className="text-xs inline-block text-muted-foreground p-0 m-0">
-                                {context === "createdtoday" && (`on ${formatCasualDate(task.start_date)} `)}
+                                {(context === "createdtoday"||context === 'upcoming7Days') && (`on ${formatCasualDate(task.start_date)} `)}
                                 {/* {formatCasualDate(task.start_date)}   */}
 
                                 {formatTime12Hour(task.time)}
@@ -648,9 +656,12 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
         error,
         todayTasks,
         tomorrowTasks,
-        createdTodayTasks
+        createdTodayTasks,
+        upcoming7DaysTasks
     } = useTaskData(assignmentFilters);
 
+
+    console.log(upcoming7DaysTasks)
 
     // const allFilters = useMemo(() => {
     //     // REMOVED: No default filters for Sales User. Backend handles it.
@@ -766,7 +777,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
 
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 mb-20">
             <FilterControls onDateRangeChange={setDateRange} dateRange={dateRange} />
             {/* MODIFIED: Conditionally render ONLY for Admin */}
             {role === 'Nirmaan Admin User Profile' && (
@@ -838,6 +849,17 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                         </AccordionContent>
                     </AccordionItem>
                 </div>
+                 <div className="bg-background rounded-lg border">
+                        <AccordionItem value="upcoming7Days" className="border-b-0">
+                            <AccordionTrigger className="px-4">Upcoming 7 Days - {upcoming7DaysTasks.length} Tasks</AccordionTrigger>
+                            <AccordionContent>
+                                {upcoming7DaysTasks.length > 0
+                                    ? upcoming7DaysTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="upcoming7Days" onTaskSelect={onTaskSelect} />)
+                                    : <p className="text-center text-sm text-muted-foreground py-4">No upcoming tasks.</p>
+                                }
+                            </AccordionContent>
+                        </AccordionItem>
+                    </div>
 
 
             </Accordion>) : (<div className="space-y-2 pt-4">
@@ -860,6 +882,17 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                     isActive={activeTaskId === 'createdtoday'}
                     onClick={() => onTaskSelect({ id: 'createdtoday' })}
                 />
+                {/* NEW: Upcoming 7 Days Desktop Category Row */}
+                                    {/* NEW: Upcoming 7 Days Desktop Category Row */}
+                     <DesktopTaskCategoryRow
+                         title="Upcoming 7 Days Tasks"
+                         count={upcoming7DaysTasks.length}
+                         // --- FIX HERE: Use 'upcoming7Days' for activeTaskId comparison ---
+                         isActive={activeTaskId === 'upcoming7Days'}
+                         // --- FIX HERE: Pass 'upcoming7Days' as the ID ---
+                         onClick={() => onTaskSelect({ id: 'upcoming7Days' })}
+                     />
+
             </div>)}
 
 

@@ -32,8 +32,8 @@ export const TaskCalendar = () => {
       fields: ["*"],
       limit: 0,
        orderBy: {
-        field: "start_date DESC, time",
-        order: "asc"
+        field: "start_date DESC, modified",
+        order: "desc"
     }
     },
     "all-tasks-calender"

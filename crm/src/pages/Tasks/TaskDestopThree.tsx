@@ -30,7 +30,21 @@ export const TaskDestopThree = ({ title, tasks = [] }: TaskDestopThreeProps) => 
     // --- FIXES ---
     // 1. This component now correctly receives BOTH `title` and `tasks` from its props.
     // 2. The `tasks = []` part provides a default empty array to prevent crashes if `tasks` is undefined.
-const context=title==="Today's Tasks"?"todays":title==="Tomorrow's Tasks"?"tomorrow":"createdtoday"
+let context: 'today' | 'tomorrow' | 'createdToday' | 'upcoming7Days';
+     if (title === "Today's Tasks") {
+         context = "today";
+     } else if (title === "Tomorrow's Tasks") {
+         context = "tomorrow";
+     } else if (title === "Tasks Created Today") {
+         context = "createdToday";
+     }else if (title === "Upcoming 7 Days Tasks") { // --- FIX HERE: Match title string from Tasks.tsx ---
+          context = "upcoming7Days"; // Consistent context for TaskDashboardRow
+     } else {
+         context = "today";
+     }
+ 
+
+
     return (
         <div className="w-full font-sans bg-white border border-gray-200 rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-2">

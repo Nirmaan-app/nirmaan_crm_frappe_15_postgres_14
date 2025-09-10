@@ -76,9 +76,9 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
                 if (activeTab === 'me') newFilters.push(['assigned_sales', '=', user_id]);
             }
         } else if (role === 'Nirmaan Estimations User Profile') {
-            if (filterType === 'boq' && activeTab === 'me') {
-                newFilters.push(['assigned_estimations', '=', user_id]);
-            }
+            // if (filterType === 'boq' && activeTab === 'me') {
+            //     newFilters.push(['assigned_estimations', '=', user_id]);
+            // }
             const salesFilters = buildFilterBlock(selectedSalesUsers, 'assigned_sales');
             newFilters.push(...salesFilters);
         } else if (role === 'Nirmaan Admin User Profile') {

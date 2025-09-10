@@ -29,11 +29,11 @@ export const Contact = () => {
     // --- Data Fetching ---
     const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", id,`Contact/${id}`);
 
-    const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", contactData?.company, { enabled: !!contactData?.company });
+    const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", contactData?.company);
 
     const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: id }, fields: ["*"], limit: 0, },`all-boqs-filterbyContact-id${id}`);
 
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {   fields: ["name", "status","start_date","time", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation"], limit: 0, filters: { contact: id } },`all-tasks-filterbyContact-id${id}`);
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {   fields: ["name", "status","start_date","time", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation","remarks"], limit: 0, filters: { contact: id } },`all-tasks-filterbyContact-id${id}`);
 
     // console.log("tasksList",tasksList)
 
@@ -65,8 +65,8 @@ export const Contact = () => {
             />
 
             <ContactSubPages
-                boqs={boqsList || []}
-                tasks={tasksList || []}
+                boqs={boqsList}
+                tasks={tasksList}
             />
 
             {/* Delete Dialog */}

@@ -169,7 +169,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       }
       if (mode === 'details') {
         // --- STEP 4: UPDATE ALL FIELDS ON SUBMIT ---
-        await updateDoc("CRM BOQ", boqData.name, { ...dataToSave, boq_link: dataToSave.boq_link || boqData.boq_link, remarks: dataToSave?.remarks || boqData.remarks });
+        await updateDoc("CRM BOQ", boqData.name, { ...dataToSave, boq_link: dataToSave.boq_link || boqData.boq_link, remarks: dataToSave?.remarks || boqData.remarks,     boq_value: dataToSave?.boq_value || boqData.boq_value});
         toast({ title: "Success", description: "BOQ details updated." });
       } else if (mode === 'status') {
         console.log("boqData", boqData)

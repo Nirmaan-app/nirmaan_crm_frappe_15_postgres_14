@@ -72,7 +72,7 @@ export const formatDateWithOrdinal = (dateString: string | Date | undefined): st
         // 'do' = day of month with ordinal (1st, 2nd, 25th)
         // 'MMMM' = full month name (July)
         // 'yyyy' = full year (2025)
-        return format(date, "do MMMM yyyy");
+        return format(date, "do MMM yyyy");
 
     } catch (error) {
         console.error("Invalid date provided to formatDateWithOrdinal:", dateString);

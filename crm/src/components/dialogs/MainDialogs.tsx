@@ -15,6 +15,10 @@ import { UserProfileDialog } from "./UserProfileDialog"; // <-- 1. IMPORT THE NE
 import { AssignedBoqForm } from "@/pages/BOQS/forms/AssignedBoqForm";
 import { RemarkBoqForm } from "@/pages/BOQS/forms/RemarkBoqForm";   
 
+import { RenameBoqName } from "@/pages/BOQS/forms/RenameBoqName"; 
+import { RenameCompanyName } from "@/pages/Companies/forms/RenameCompanyName";
+import { RenameContactName } from "@/pages/Contacts/forms/RenameContactName";
+
 export const MainDialogs = () => {
     const {
         newCompany, closeNewCompanyDialog,
@@ -35,6 +39,10 @@ export const MainDialogs = () => {
         assignBoq, closeAssignBoqDialog,
          // NEW: Destructure the new dialog state and close action
         remarkBoq, closeRemarkBoqDialog,
+        renameBoqName, closeRenameBoqNameDialog,
+        renameCompanyName, closeRenameCompanyNameDialog,
+
+         renameContactName, closeRenameContactNameDialog,
 
     } = useDialogStore();
 
@@ -187,6 +195,7 @@ export const MainDialogs = () => {
                 <AssignedBoqForm     
                 />
             </ReusableFormDialog>
+
              <ReusableFormDialog
                 isOpen={remarkBoq.isOpen}
                 onClose={closeRemarkBoqDialog}
@@ -195,7 +204,61 @@ export const MainDialogs = () => {
             >
                 <RemarkBoqForm     
                 />
+
             </ReusableFormDialog>
+
+            <ReusableFormDialog
+                isOpen={renameBoqName.isOpen}
+                onClose={closeRenameBoqNameDialog}
+                title={renameBoqName.context?.currentDocName ? `Rename "${renameBoqName.context.currentDocName}"` : "Rename Document"}
+                className="max-w-lg"
+            >
+                
+                {renameBoqName.context && (
+                    <RenameBoqName
+                        currentDoctype={renameBoqName.context.currentDoctype}
+                        currentDocName={renameBoqName.context.currentDocName}
+                        onSuccess={closeRenameBoqNameDialog}
+                    />
+                )}
+            </ReusableFormDialog>
+
+
+            <ReusableFormDialog
+               isOpen={renameCompanyName.isOpen}
+               onClose={closeRenameCompanyNameDialog}
+               // Dynamically set title, showing current doc name
+               title={renameCompanyName.context?.currentDocName ? `Rename Company ID "${renameCompanyName.context.currentDocName}"` : "Rename Company"}
+               className="max-w-lg"
+           >
+               {/* Render only when dialog is open and context is available */}
+               {renameCompanyName.isOpen && renameCompanyName.context && (
+                   <RenameCompanyName
+                       currentDoctype={renameCompanyName.context.currentDoctype}
+                       currentDocName={renameCompanyName.context.currentDocName}
+                       onSuccess={closeRenameCompanyNameDialog}
+                   />
+               )}
+           </ReusableFormDialog>
+
+            {/* --- 3. ADD NEW DIALOG FOR RENAMECONTACTNAME --- */}
+           <ReusableFormDialog
+               isOpen={renameContactName.isOpen}
+               onClose={closeRenameContactNameDialog}
+               title={renameContactName.context?.currentDocName ? `Rename Contact ID "${renameContactName.context.currentDocName}"` : "Rename Contact"}
+               className="max-w-lg"
+           >
+               {/* Render only when dialog is open and context is available */}
+               {renameContactName.isOpen && renameContactName.context && (
+                   <RenameContactName
+                       currentDoctype={renameContactName.context.currentDoctype}
+                       currentDocName={renameContactName.context.currentDocName}
+                       onSuccess={closeRenameContactNameDialog}
+                   />
+               )}
+           </ReusableFormDialog>
+
+
         </>
     );
 };

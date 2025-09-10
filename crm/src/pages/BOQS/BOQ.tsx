@@ -21,6 +21,7 @@ import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate }
 import { StatusPill } from "@/pages/Tasks/TasksVariantPage"
 import { useViewport } from "@/hooks/useViewPort";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
+import { parse, isValid } from 'date-fns';
 
 
 // --- SUB-COMPONENT 1: Header ---
@@ -30,7 +31,7 @@ import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 
 // --- THIS IS THE UPDATED HEADER COMPONENT ---
 const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
-    const { openEditBoqDialog, openAssignBoqDialog } = useDialogStore();
+    const { openEditBoqDialog, openAssignBoqDialog,openRenameBoqNameDialog } = useDialogStore();
     const { updateDoc, loading } = useFrappeUpdateDoc();
     const { mutate } = useSWRConfig();
     const getBoqStatusClass = useStatusStyles("boq");
@@ -58,6 +59,18 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
         }
     };
 
+// --- NEW: Handler for opening the rename dialog ---
+    const handleRenameBoqClick = () => {
+        // Ensure boq.name is available before opening
+        if (boq?.name) {
+            openRenameBoqNameDialog({
+                currentDoctype: "CRM BOQ", // Specify your doctype
+                currentDocName: boq.boq_name,
+            });
+        } else {
+            toast({ title: "Error", description: "BOQ document name is missing.", variant: "destructive" });
+        }
+    };
 
 
     return (
@@ -65,11 +78,25 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
             {/* Left Section */}
             <div className="space-y-4">
                 <div>
-                    <p className="text-sm text-muted-foreground">BOQ Name</p>
+                    {/* <p className="text-sm text-muted-foreground">BOQ Name</p> */}
+                    <div className="flex items-center gap-2">
+                                            <p className="text-sm text-muted-foreground">BOQ Name</p>
+
+                        <Button
+                            variant="ghost" // Use a ghost variant for a subtle, icon-only button
+                            size="icon"     // Make it a small, icon-only button
+                            className="h-7 w-7 text-muted-foreground hover:text-primary" // Adjust size/color
+                            onClick={handleRenameBoqClick}
+                            aria-label="Rename BOQ" // Accessibility
+                        >
+                            <SquarePen className="w-4 h-4" /> {/* Pencil icon */}
+                        </Button>
+                    </div>
                     <h1 className="text-lg font-bold">{boq?.boq_name || 'N/A'}</h1>
+                     
                 </div>
                 <div>
-                    <p className="text-sm text-muted-foreground">BOQ</p>
+                    <p className="text-sm text-muted-foreground">BOQ Link</p>
                     {/* Display a link if it exists, otherwise 'N/A' */}
                     {boq?.boq_link ? (
                         <a href={boq.boq_link} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
@@ -83,10 +110,10 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                     <p className="text-sm text-muted-foreground">Assigned Sales</p>
                     <h1 className="text-sm font-bold">{getUserFullNameByEmail(boq?.assigned_sales) || 'N/A'}</h1>
                 </div>
-                <div>
+                {/* <div>
                     <p className="text-sm text-muted-foreground">Assigned Estimates</p>
                     <h1 className="text-sm font-bold">{getUserFullNameByEmail(boq?.assigned_estimations) || 'N/A'}</h1>
-                </div>
+                </div> */}
             </div>
 
             {/* Right Section */}
@@ -120,7 +147,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                     </Button>
                 )}
 
-                {role === "Nirmaan Estimations User Profile" && !boq.assigned_estimations && (
+                {/* {role === "Nirmaan Estimations User Profile" && !boq.assigned_estimations && (
                     <Button
                         // 5. The button now just opens the local dialog
                         onClick={() => setIsConfirmOpen(true)}
@@ -129,7 +156,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                     >
                         {loading ? "Assigning..." : "Assign to Me"}
                     </Button>
-                )}
+                )} */}
 
                 <ReusableAlertDialog
                     open={isConfirmOpen}
@@ -206,10 +233,11 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                             <TableHead>Task Details</TableHead>
 
                             {/* These columns will ONLY appear on desktop (md screens and up) */}
-                            <TableHead className="hidden md:table-cell">Company</TableHead>
-                            <TableHead className="hidden md:table-cell">Status</TableHead>
-                            <TableHead className="hidden md:table-cell text-right">Scheduled On</TableHead>
-                            <TableHead className="hidden md:table-cell text-right">Last Updated</TableHead>
+                            {/* <TableHead className="hidden md:table-cell">Company</TableHead>
+                            <TableHead className="hidden md:table-cell">Status</TableHead> */}
+                              <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
+                            <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
+                            <TableHead className="hidden md:table-cell text-center">Last Updated</TableHead>
 
                             {/* Chevron column */}
                             <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
@@ -227,29 +255,40 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                                             (<div className="flex items-center gap-3">
                                                 <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
                                                 <div className="flex flex-col">
-                                                    <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
-                                                        {formatCasualDate(task.start_date)} at {formatTime12Hour(task?.time)}
+                                                    <span className="font-medium">{`${task.type} with ${task.first_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
+                                                        {formatDateWithOrdinal(task.start_date)} at {formatTime12Hour(task?.time)}
                                                     </span></span>
                                                     {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                     {task.remarks &&(                                                                <span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
+                                                                       Remarks: {task.remarks}
+                                                                   </span>)}
                                                     <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                        Updated: {formatDate(task.modified)}
+                                                        Updated: {formatDateWithOrdinal(task.modified)}
                                                     </span>
                                                 </div>
-                                            </div>) : (`${task.type} with ${task.first_name}`)}
+                                            </div>) :(<div className="flex items-center gap-3">
+                                                                                                                                                   <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
+                                                                                                                                                   <div className="flex flex-col">
+                                                                                                                                                       <span className="font-medium">{`${task.type}`}</span>
+                                                                                                                                                      
+                                                                                                                                                        
+                                                                                                                                                   </div>
+                                                                                                                                               </div>)}
                                     </TableCell>
 
                                     {/* --- DESKTOP ONLY Cells --- */}
-                                    <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
-                                    <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell>
+                                    {/* <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
+                                    <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell> */}
+                                        <TableCell className="hidden md:table-cell text-center">{task.remarks||"--"}</TableCell>
                                     <TableCell className="hidden md:table-cell text-right">
                                         <div className="flex flex-col items-center">
-                                            <span>{formatDate(task.start_date)}</span>
+                                            <span>{formatDateWithOrdinal(task.start_date)}</span>
                                             <span className="text-xs text-muted-foreground text-center">
                                                 {formatTime12Hour(task?.time)}
                                             </span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="hidden md:table-cell text-right">{formatDate(task.modified)}</TableCell>
+                                    <TableCell className="hidden md:table-cell text-right">{formatDateWithOrdinal(task.modified)}</TableCell>
 
                                     <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
                                 </TableRow>
@@ -298,7 +337,7 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
                 {remarks.map((remark, index) => (
                     <React.Fragment key={remark.name}>
                         <div className="grid grid-cols-2 gap-x-4 text-sm px-2 py-1">
-                            <span className="text-muted-foreground">{formatDate(remark.creation)}</span>
+                            <span className="text-muted-foreground">{formatDateWithOrdinal(remark.creation)}</span>
                             <span>{remark.content}</span>
                         </div>
                         {/* We don't need a separator if the header provides the line */}
@@ -321,26 +360,39 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
     const { openEditBoqDialog } = useDialogStore();
     const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
 
-    const DetailItem = ({ label, value, href }: { label: string; value: string; href?: string }) => (
-        <div>
-            <p className="text-xs text-muted-foreground">{label}</p>
-            {/* Conditional rendering:
-            1. If value is "N/A", always render as plain text.
-            2. Otherwise, if href is provided, render as a link.
-            3. Otherwise (not "N/A" and no href), render as plain text.
-        */}
-            {value === "N/A" ? (
-                <p className="font-semibold">{value}</p>
-            ) : href ? (
-                // Added target="_blank" and rel="noopener noreferrer" for external links best practice
-                <a href={href} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
-                    {value}
-                </a>
-            ) : (
-                <p className="font-semibold">{value}</p>
-            )}
-        </div>
-    );
+      // --- UPDATED: DetailItem component to use <Link> for internal paths ---
+    const DetailItem = ({ label, value, href }: { label: string; value: string | React.ReactNode; href?: string }) => {
+        const isNA = value === "N/A" || value === "--"; // Check for both "N/A" and "--"
+        let content: React.ReactNode;
+
+        if (isNA) {
+            content = <p className="font-semibold">{value}</p>;
+        } else if (href) {
+            if (href.startsWith('/') || href.startsWith('.')) { // Internal path check
+                content = (
+                    <Link to={href} className="font-semibold text-blue-600 underline">
+                        {value}
+                    </Link>
+                );
+            } else { // External path (mailto, tel, http, https)
+                content = (
+                    <a href={href} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
+                        {value}
+                    </a>
+                );
+            }
+        } else {
+            content = <p className="font-semibold">{value}</p>;
+        }
+
+        return (
+            <div>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                {content}
+            </div>
+        );
+    };
+
     return (
         <div className="bg-background p-6 rounded-lg border shadow-sm space-y-6">
 
@@ -358,8 +410,8 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 <DetailItem label="Package" value={boq?.boq_type || 'N/A'} />
                 <DetailItem label="City" value={boq?.city || 'N/A'} />
 
-                <DetailItem label="Submission Deadline" value={formatDate(boq?.boq_submission_date) || "--"} />
-                <DetailItem label="Recevied on" value={formatDate(boq?.creation)} />
+                <DetailItem label="Submission Deadline" value={formatDateWithOrdinal(boq?.boq_submission_date) || "--"} />
+                <DetailItem label="Recevied on" value={formatDateWithOrdinal(boq?.creation)} />
                 <DetailItem label="Created by" value={getUserFullNameByEmail(boq?.owner) || "Administrator"} />
 
                 <DetailItem label="Remarks" value={boq?.remarks || 'N/A'} />
@@ -636,19 +688,36 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 }
 
                 const remarkValue = remarksChange ? (remarksChange[2] as string) : '--';
-                const submissionDateValue = dateChange ? (dateChange[2] as string) : '--';
                 const boqLinkValue = boqLinkChange ? (boqLinkChange[2] as string) : undefined;
+
+ // --- FIX: Robustly parse boq_submission_date to a Date object ---
+                let parsedSubmissionDate: Date | null = null;
+                if (dateChange && typeof dateChange[2] === 'string' && dateChange[2].trim() !== '') {
+                    const rawDateString = dateChange[2];
+                    
+                    // Try parsing as DD-MM-YYYY first (common ambiguous format)
+                    let candidateDate = parse(rawDateString, 'dd-MM-yyyy', new Date());
+                    if (isValid(candidateDate)) {
+                        parsedSubmissionDate = candidateDate;
+                    } else {
+                        // If DD-MM-YYYY fails, try parsing as a standard ISO string or whatever new Date() handles
+                        candidateDate = new Date(rawDateString);
+                        if (isValid(candidateDate)) {
+                            parsedSubmissionDate = candidateDate;
+                        }
+                    }
+                }
+
 
                 // Get owner and creation date for THIS specific version
                 const versionOwner = version.owner; // Assuming email format
-                const versionDate = formatDate(version.creation);
-
+                const versionDate = formatDateWithOrdinal(version.creation);
 
                 return {
                     status: lastKnownStatus || 'N/A', // Fallback for status
                     sub_status: lastKnownSubStatus || '--', // Fallback for sub-status
                     remark: remarkValue,
-                    submission_date: submissionDateValue,
+                    submission_date: parsedSubmissionDate,
                     date: versionDate, // Date of this specific version
                     link: boqLinkChange ? boqLinkChange[2] : undefined,
                     owner: versionOwner, // Owner of this specific version
@@ -693,7 +762,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 <div className="text-xs text-gray-500 text-right ml-2 mr-1">
                     Updated by: <span className="font-semibold">{getUserFullNameByEmail(item.owner) || "Administrator"}</span>
                     <br />
-                    <span className="text-[10px] text-muted-foreground">({item.date})</span>
+                    <span className="text-xs text-muted-foreground">({item.date})</span>
                 </div>
             </div>
 
@@ -707,7 +776,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 {/* Submission Deadline */}
                 <div className="mt-1">
                     <div className="text-xs font-medium text-gray-600 mb-1 text-center font-semibold">Submission Deadline</div>
-                    <div className="text-sm text-gray-800 text-center">{item.submission_date || '--'}</div>
+                    <div className="text-sm text-gray-800 text-center">{item.submission_date ? formatDateWithOrdinal(item.submission_date) : '--'}</div>
                 </div>
             </div>
             {/* BOQ Link */}
@@ -764,7 +833,7 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                                         ) : '--'}
                                     </TableCell>
                                     <TableCell className="max-w-[200px] truncate">{item.remark || '--'}</TableCell>
-                                    <TableCell>{item.submission_date || '--'}</TableCell>
+                                    <TableCell>{item.submission_date ? formatDateWithOrdinal(item.submission_date) : '--'}</TableCell>
                                     {/* NEW: Combined Updated By & Date cell */}
                                     <TableCell>
                                         <div className="flex flex-col items-start">
@@ -823,7 +892,7 @@ export const BOQ = () => {
 
 
     const { data: boqData, isLoading: boqLoading } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", id, `BOQ/${id}`);
-    const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", boqData?.company, { enabled: !!boqData?.company });
+    const { data: companyData, isLoading: companyLoading } = useFrappeGetDoc<CRMCompany>("CRM Company", boqData?.company);
 
     const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", boqData?.contact, boqData?.contact ? undefined : null);
 
@@ -853,7 +922,7 @@ export const BOQ = () => {
             <BoqDetailsHeader boq={boqData} />
             {(role != "Nirmaan Estimations User Profile") && (
                 <BoqTaskDetails
-                    tasks={tasksList || []}
+                    tasks={tasksList}
                     boqId={boqData.name}
                     companyId={boqData.company}
                     contactId={boqData.contact}
@@ -867,12 +936,12 @@ export const BOQ = () => {
                 company={companyData}
             />
             {role !== "Nirmaan Sales User Profile" && (
-                <BoqSubmissionHistory versions={versionsList || []} boqData={boqData} />
+                <BoqSubmissionHistory versions={versionsList} boqData={boqData} />
 
             )}
 
             <BoqRemarks
-                remarks={remarksList || []}
+                remarks={remarksList}
                 boqId={boqData}
             />
 

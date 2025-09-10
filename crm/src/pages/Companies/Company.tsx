@@ -51,7 +51,7 @@ export const Company = () => {
         const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>(
         "CRM Task", 
         {
-               fields: ["name", "status","start_date","time", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation"],
+               fields: ["name", "status","start_date","time", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation","remarks"],
                limit:0,
             filters: { company: id }, // Directly filter tasks by the company ID
           

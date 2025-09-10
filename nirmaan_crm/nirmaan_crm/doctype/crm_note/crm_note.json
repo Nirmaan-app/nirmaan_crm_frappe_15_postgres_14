@@ -1,110 +1,110 @@
 {
-    "actions": [],
-    "allow_rename": 1,
-    "creation": "2025-01-08 13:47:15.182952",
-    "doctype": "DocType",
-    "engine": "InnoDB",
-    "field_order": [
-        "links_section",
-        "reference_doctype",
-        "reference_docname",
-        "note_details_section",
-        "title",
-        "content"
-    ],
-    "fields": [
-        {
-            "fieldname": "links_section",
-            "fieldtype": "Section Break",
-            "label": "Links"
-        },
-        {
-            "fieldname": "reference_doctype",
-            "fieldtype": "Link",
-            "label": "Reference Doctype",
-            "options": "DocType"
-        },
-        {
-            "fieldname": "reference_docname",
-            "fieldtype": "Dynamic Link",
-            "label": "Reference Docname",
-            "options": "reference_doctype"
-        },
-        {
-            "fieldname": "note_details_section",
-            "fieldtype": "Section Break",
-            "label": "Note Details"
-        },
-        {
-            "fieldname": "title",
-            "fieldtype": "Data",
-            "label": "Title"
-        },
-        {
-            "fieldname": "content",
-            "fieldtype": "Data",
-            "label": "Content"
-        }
-    ],
-    "index_web_pages_for_search": 1,
-    "links": [],
-    "modified": "2025-08-20 15:07:05.681878",
-    "modified_by": "Administrator",
-    "module": "Nirmaan CRM",
-    "name": "CRM Note",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "System Manager",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Nirmaan Admin User",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Nirmaan Sales User",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Nirmaan Estimations User",
-            "share": 1,
-            "write": 1
-        }
-    ],
-    "row_format": "Dynamic",
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": []
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-08 13:47:15.182952",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "links_section",
+  "reference_doctype",
+  "reference_docname",
+  "note_details_section",
+  "title",
+  "content"
+ ],
+ "fields": [
+  {
+   "fieldname": "links_section",
+   "fieldtype": "Section Break",
+   "label": "Links"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Doctype",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_docname",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Docname",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "note_details_section",
+   "fieldtype": "Section Break",
+   "label": "Note Details"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Text",
+   "label": "Content"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-10 11:51:25.053984",
+ "modified_by": "Administrator",
+ "module": "Nirmaan CRM",
+ "name": "CRM Note",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Nirmaan Admin User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Nirmaan Sales User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Nirmaan Estimations User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
 }

@@ -2,7 +2,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
-import { formatDate } from "@/utils/FormatDate";
+import { formatDate,formatDateWithOrdinal } from "@/utils/FormatDate";
 import { Link } from "react-router-dom";
 // import
 
@@ -35,7 +35,7 @@ export const TasksTab = ({ tasks }) => {
                                 </Link>
                             </TableCell>
                             <TableCell>{task.type}</TableCell>
-                            <TableCell>{formatDate(task.start_date)}</TableCell>
+                            <TableCell>{formatDateWithOrdinal(task.start_date)}</TableCell>
                             <TableCell>
                                 <span className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${getTaskStatusClass(task.status)}`}>
                                     {task.status}

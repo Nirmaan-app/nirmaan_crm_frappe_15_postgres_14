@@ -28,7 +28,7 @@ export const BoqListHeader = ({
     isMobile
 }: BoqListHeaderProps) => {
 const role = localStorage.getItem("role")
-let filterOptions = ["By Name", "By Company", "By Contact", "By Type"];
+let filterOptions = ["By Name", "By Company", "By Contact", "By Package","By Status"];
 
 if(role =="Nirmaan Estimations User Profile"){
     filterOptions=["By Name", "By Company", "By Type"]

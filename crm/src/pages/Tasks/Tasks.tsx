@@ -215,7 +215,10 @@ export const Tasks = () => {
     // console.log("params", params)
     const { openNewTaskDialog } = useDialogStore();
 
-    const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks } = useTaskData();
+        
+    const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks,upcoming7DaysTasks } = useTaskData();
+
+    console.log(upcoming7DaysTasks)
     // --- THE FIX IS HERE ---
     // 2. Create a memoized map that links the ID to its title and data.
     const dailyTaskDetails = useMemo(() => ({
@@ -230,8 +233,12 @@ export const Tasks = () => {
         createdtoday: { // Ensure this key matches the one set in TaskList's onClick
             title: "Tasks Created Today",
             tasks: createdTodayTasks || []
+        },
+        upcoming7days: { // Ensure this key matches the one set in TaskList's onClick
+            title: "Upcoming 7 Days Tasks",
+            tasks: upcoming7DaysTasks || []
         }
-    }), [todayTasks, tomorrowTasks, createdTodayTasks]); // Dependencies
+    }), [todayTasks, tomorrowTasks, createdTodayTasks,upcoming7DaysTasks]); // Dependencies
 
 
     if (isMobile) {
@@ -255,8 +262,13 @@ export const Tasks = () => {
         // Check for category-based IDs first
         const lowercasedId = id.toLowerCase();
 
+        console.log("id getting from params",lowercasedId)
+
         // 3. Look up the details for the current ID in our map.
+        console.log("tadiak",dailyTaskDetails[lowercasedId])
+
         const detailInfo = dailyTaskDetails[lowercasedId];
+        console.log("takk",detailInfo)
 
         // If a match is found, render the component with the correct title and tasks.
         if (detailInfo) {
