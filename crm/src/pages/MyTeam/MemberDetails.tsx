@@ -21,11 +21,11 @@ export const MemberDetails = ({ memberId }) => {
 
     // Fetch TASKS assigned to this member.
     const { data: tasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
-       fields: ["name", "type", "start_date", "time", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name","creation","modified"], // TODO: Specify fields like ["name", "status", "type", ...] in production
+       fields: ["name", "type", "start_date","status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name","creation","modified"], // TODO: Specify fields like ["name", "status", "type", ...] in production
         filters: [['assigned_sales', '=', memberEmail]],
         limit: 0,
         // Only fetch tasks if the user is a Sales user.
-        orderBy: { field: "modified", order: "desc" },
+        orderBy: { field: "start_date", order: "asc" },
         // enabled: !!memberEmail && memberRole === 'Nirmaan Sales User Profile'
     }, `all-tasks-for-member-${memberEmail}`);
 
@@ -35,7 +35,7 @@ export const MemberDetails = ({ memberId }) => {
         filters: [['assigned_sales', '=', memberEmail]],
         limit: 0,
         // Only fetch contacts if the user is a Sales user.
-        orderBy: { field: "modified", order: "desc" },
+        orderBy: { field: "first_name", order: "asc"},
         // enabled: !!memberEmail && memberRole === 'Nirmaan Sales User Profile'
     }, `all-contacts-for-member-${memberEmail}`);
 
@@ -46,7 +46,7 @@ export const MemberDetails = ({ memberId }) => {
             ? [['assigned_estimations', '=', memberEmail]] // Filter for Estimation users
             : [['assigned_sales', '=', memberEmail]],      // Filter for Sales users
         limit: 0,
-        orderBy: { field: "modified", order: "desc" },
+       orderBy: { field: "creation", order: "asc"},
         // This hook should run as long as we have an email and the user is NOT an Admin.
     }, `all-boqs-for-member-${memberEmail}`);
 

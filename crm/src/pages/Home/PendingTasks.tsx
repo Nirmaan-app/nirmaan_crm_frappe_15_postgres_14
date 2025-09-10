@@ -28,9 +28,9 @@ const PendingTaskRow = ({ task }: { task: EnrichedCRMTask }) => {
                     <div className="flex">
                         <TaskStatusIcon status={task.status} className="mr-1 flex-shrink-0" />
                         <div>
-                            {task?.type} with {task?.first_name}{" "} from {task?.company_name} {" "}
+                            <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "} from {task?.company_name} {" "}
                             <p className="text-xs inline-block text-muted-foreground p-0 m-0">
-                               {formatCasualDate(task.start_date)} at {formatTime12Hour(task.time)}
+                               {formatCasualDate(task.start_date)}
                             </p>
                         </div>
                     </div>

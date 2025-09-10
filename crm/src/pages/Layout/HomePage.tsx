@@ -15,7 +15,7 @@ export const HomePage = () => {
     const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]]
     const homePageTaskSWR =  `all-tasks-${JSON.stringify(homePageTaskFilter)}`;
     const { data: tasksData, isLoading: tasksLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-        fields: ["name", "type", "start_date", "time", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name","creation","modified"],
+        fields: ["name", "type", "start_date", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name","creation","modified"],
         filters: homePageTaskFilter,
         limit: 0, // Only show a few tasks on the dashboard
         orderBy: {

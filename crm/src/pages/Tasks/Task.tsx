@@ -70,7 +70,7 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                 <h2 className="text-lg font-semibold">Task Details</h2>
 
                 {/* This is the right side, which only renders if the task is not completed */}
-                {task.status !== "Completed" && (
+                {task.status === "Scheduled" && (
                     // This inner div groups the buttons together
                     <div className="flex items-center gap-2">
                         <Button
@@ -102,7 +102,7 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                     <p className="text-xs text-muted-foreground">Current Status</p>
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${getTaskStatusClass(task.status)}`}>{task.status}</span>
                 </div>
-                <DetailItem label="Date" className="text-sm" value={`${formatDateWithOrdinal(task?.start_date)} - ${formatTime12Hour(task?.time)}`} />
+                <DetailItem label="Date" className="text-sm" value={`${formatDateWithOrdinal(task?.start_date)}`} />
                 <DetailItem label="Remarks" className="text-sm" value={task?.remarks || "--"} />
             </div>
         </div>
@@ -112,8 +112,8 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
 // --- SUB-COMPONENT: Task History ---
 const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
     const navigate = useNavigate();
-        const { isMobile } = useViewport(); // <-- 2. USE THE HOOK
-    
+    const { isMobile } = useViewport(); // <-- 2. USE THE HOOK
+
     return (
         // <div className="bg-background p-4 rounded-lg border shadow-sm">
         //     <h2 className="font-semibold mb-4">Contact Task History</h2>
@@ -144,10 +144,10 @@ const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
                                 {/* <TableHead className="hidden md:table-cell">Company</TableHead>
                                 <TableHead className="hidden md:table-cell">Status</TableHead> */}
                                 <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
-                                
-                                                                
-                                                                 <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
-                                                                <TableHead className="hidden md:table-cell text-center">Last Updated</TableHead>
+
+
+                                <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
+
 
                                 {/* Chevron column */}
                                 <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
@@ -159,46 +159,44 @@ const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
                                     <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
 
                                         {/* --- MOBILE & DESKTOP: Combined Cell --- */}
-                                               <TableCell>
-                                           {isMobile?
-                                                                                                      (<div className="flex items-center gap-3">
-                                                                                                          <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
-                                                                                                          <div className="flex flex-col">
-                                                                                                              <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`} <span className="text-xs text-muted-foreground p-0 m-0">
-                                                                                                                                                                      {formatDateWithOrdinal(task.start_date)} at {formatTime12Hour(task?.time)}
-                                                                                                                                                                  </span></span>
-                                                                                                              {/* On mobile, show the date here. Hide it on larger screens. */}
-                                        {task.remarks &&(                                                                <span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
-                                                                       Remarks: {task.remarks}
-                                                                   </span>)}                                                                        <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                                                                                  Updated: {formatDateWithOrdinal(task.modified)}
-                                                                                                              </span>
-                                                                                                          </div>
-                                                                                                      </div>): (<div className="flex items-center gap-3">
-                                                                                                                                                  <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                                                                                                                                  <div className="flex flex-col">
-                                                                                                                                                      <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`}</span>
-                                                                                                      
-                                                                                                      
-                                                                                                                                                  </div>
-                                                                                                                                              </div>)}
+                                        <TableCell>
+                                            {isMobile ?
+                                                (<div className="flex items-center gap-3">
+                                                    <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                    <div className="flex flex-col">
+                                                        <span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>
+
+
+                                                        </span>
+                                                        {task.remarks && (<span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
+                                                            Remarks: {task.remarks}
+                                                        </span>)}
+                                                        {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                        <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                            Scheduled for: {formatDateWithOrdinal(task.start_date)}
+                                                        </span>
+                                                    </div>
+                                                </div>) : (<div className="flex items-center gap-3">
+                                                    <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                    <div>
+                                                        <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>
+
+                                                    </div>
+                                                </div>)}
                                         </TableCell>
 
 
                                         {/* --- DESKTOP ONLY Cells --- */}
                                         {/* <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
                                         <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell> */}
-                                         <TableCell className="hidden md:table-cell text-center">{task.remarks || "--"}</TableCell>
-                                         
-                                          <TableCell className="hidden md:table-cell text-right">
-                                           <div className="flex flex-col items-center">
-                                             <span>{formatDateWithOrdinal(task.start_date)}</span>
-                                             <span className="text-xs text-muted-foreground text-center">
-                                               {formatTime12Hour(task?.time)}
-                                             </span>
-                                           </div>
-                                         </TableCell>
-                                        <TableCell className="hidden md:table-cell text-right">{formatDateWithOrdinal(task.modified)}</TableCell>
+                                        <TableCell className="hidden md:table-cell text-center">{task.remarks || "--"}</TableCell>
+
+                                        <TableCell className="hidden md:table-cell text-right">
+                                            <div className="flex flex-col items-center">
+                                                <span>{formatDateWithOrdinal(task.start_date)}</span>
+
+                                            </div>
+                                        </TableCell>
 
                                         <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
                                     </TableRow>
@@ -260,8 +258,10 @@ export const Task = () => {
         {
             filters: { contact: taskData?.contact, name: ['!=', id] },
             limit: 0,
-         
-            fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "time","assigned_sales"],
+
+            fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales","remarks"],
+            orderBy: { field: "start_date", order: "desc"},
+            
         }
         , `all-tasks-contacthistory${taskData?.contact}`);
 

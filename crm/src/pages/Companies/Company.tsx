@@ -35,6 +35,7 @@ export const Company = () => {
             filters: { company: id },
             fields: ["*"],
             limit:0,
+            orderBy: { field: "first_name", order: "asc"},
         },`all-contacts-filterbyCompany-id${id}`
     );
 
@@ -44,6 +45,7 @@ export const Company = () => {
         {               // 2. Options object
             filters: { company: id }, // Use the correct field name from the BOQ doctype
             fields: ["*"],limit:0,
+            orderBy: { field: "creation", order: "asc"},
         },`all-boqs-filterbyCompany-id${id}`
     );
 
@@ -51,9 +53,11 @@ export const Company = () => {
         const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>(
         "CRM Task", 
         {
-               fields: ["name", "status","start_date","time", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation","remarks"],
+               fields: ["name", "status","start_date","type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation","remarks"],
                limit:0,
-            filters: { company: id }, // Directly filter tasks by the company ID
+            filters: { company: id },
+            orderBy: { field: "start_date", order: "asc"},
+             // Directly filter tasks by the company ID
           
         },`all-tasks-filterbyCompany-id${id}`
     );

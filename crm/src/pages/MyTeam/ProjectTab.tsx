@@ -45,7 +45,7 @@ export const ProjectsTab = ({ boqs }) => {
                                 
                             </TableCell>
                             <TableCell>
-                               <span className={`text-xs font-semibold px-3 py-1 rounded-md ${getBoqStatusClass(boq.boq_status)}`}>
+                               <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(boq.boq_status)}`}>
                                         {boq.boq_status}
                                     </span>
                             </TableCell>
