@@ -45,13 +45,14 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
           </CardHeader>
           <CardContent className="p-2 pt-0 flex justify-between items-center text-xs">
             <div>
+                
               <span className={`font-semibold px-2 py-1 rounded-full border ${getBoqStatusClass(item.boq_status)}`}>
-                {item.boq_status || 'No Status'}
+                {item.boq_status || 'N/A'}
               </span>
             </div>
             <div className="text-muted-foreground font-medium border p-2">
              <span>Received on</span><br></br>
-              {formatDate(item.creation)}
+              {formatDateWithOrdinal(item.creation)}
             </div>
           </CardContent>
         </Card>

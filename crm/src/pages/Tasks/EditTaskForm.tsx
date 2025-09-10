@@ -149,7 +149,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         return; // Stop submission if status is missing in updateStatus mode
       }
 
-       if (mode === 'edit' && (!values.start_date || values.start_date.trim() === '')) {
+       if ((mode === 'edit'||mode === 'scheduleNext') && (!values.start_date || values.start_date.trim() === '')) {
         form.setError('start_date', {
             type: 'manual',
             message: 'Date is required to update.',
@@ -181,7 +181,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           status: 'Scheduled',
           contact: taskData.contact,
           company: taskData.company,
-          assigned_sales: taskData.assigned_sales,
+          assigned_sales: values.assigned_sales||taskData.assigned_sales,
           boq: taskData.boq,
           remarks:values.remarks
         });
