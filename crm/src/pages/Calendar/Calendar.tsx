@@ -32,8 +32,8 @@ export const TaskCalendar = () => {
       fields: ["*"],
       limit: 0,
        orderBy: {
-        field: "start_date DESC, time",
-        order: "asc"
+        field: "start_date DESC, modified",
+        order: "desc"
     }
     },
     "all-tasks-calender"
@@ -328,10 +328,10 @@ const TaskList = ({ tasks, selectedDate, hasTasksOnAnyDate }) => {
                         <TaskStatusIcon status={task.status} className="mr-1 flex-shrink-0"/>
                         <div>
                       {task?.type} with {task?.contact?.first_name}{" "}
-                      {task?.contact?.last_name} from {task?.company?.company_name} at {" "}
-                      <p className="text-xs inline-block text-muted-foreground p-0 m-0">
+                      {task?.contact?.last_name} from {task?.company?.company_name} 
+                      {/* <p className="text-xs inline-block text-muted-foreground p-0 m-0">
                         {formatTime12Hour(task.time)}
-                    </p>
+                    </p> */}
                     </div>
                     </div>
                     </span>

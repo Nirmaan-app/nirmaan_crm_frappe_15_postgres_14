@@ -16,11 +16,26 @@ interface CompanyDetailsCardProps {
 }
 
 export const CompanyDetailsCard = ({ company, totalProjects, totalContacts,activeProjects }: CompanyDetailsCardProps) => {
-  const { openEditCompanyDialog } = useDialogStore();
+  const { openEditCompanyDialog,openRenameCompanyNameDialog } = useDialogStore();
    if (!company) {
         return null; // Or a loading skeleton
     }
       const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+
+
+      // --- NEW: Handler for opening the rename dialog ---
+          const handleRenameCompanyClick = () => {
+              // Ensure boq.name is available before opening
+              if (company?.name) {
+                  openRenameCompanyNameDialog({
+                      currentDoctype: "CRM Company", // Specify your doctype
+                      currentDocName: company.name,
+                  });
+              } else {
+                  toast({ title: "Error", description: "BOQ document name is missing.", variant: "destructive" });
+              }
+          };
+      
 
     return (
         <div>
@@ -35,7 +50,20 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts,activ
             <div className="bg-background p-4 rounded-lg border shadow-sm">
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                     <div>
-                        <p className="text-xs text-muted-foreground">Company Name</p>
+                        {/* <p className="text-xs text-muted-foreground">Company Name</p> */}
+                        <div className="flex items-center gap-2">
+                                                                    <p className="text-sm text-muted-foreground">BOQ Company</p>
+                        
+                                                <Button
+                                                    variant="ghost" // Use a ghost variant for a subtle, icon-only button
+                                                    size="icon"     // Make it a small, icon-only button
+                                                    className="h-7 w-7 text-muted-foreground hover:text-primary" // Adjust size/color
+                                                    onClick={handleRenameCompanyClick}
+                                                    aria-label="Rename BOQ" // Accessibility
+                                                >
+                                                    <SquarePen className="w-4 h-4" /> {/* Pencil icon */}
+                                                </Button>
+                                            </div>
                         <p className="font-semibold">{company?.company_name}</p>
                     </div>
                     <div className="text-right">

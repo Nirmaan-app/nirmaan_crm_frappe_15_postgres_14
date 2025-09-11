@@ -45,21 +45,23 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
           </CardHeader>
           <CardContent className="p-2 pt-0 flex justify-between items-center text-xs">
             <div>
+                
               <span className={`font-semibold px-2 py-1 rounded-full border ${getBoqStatusClass(item.boq_status)}`}>
-                {item.boq_status || 'No Status'}
+                {item.boq_status || 'N/A'}
               </span>
             </div>
             <div className="text-muted-foreground font-medium border p-2">
              <span>Received on</span><br></br>
-              {formatDate(item.creation)}
+              {formatDateWithOrdinal(item.creation)}
             </div>
           </CardContent>
         </Card>
     );
 
-          export   const taskNameFormatter = (item) =>    <div className="flex p-1"><TaskStatusIcon status={item.status} className="mr-1 flex-shrink-0" /> <div>{item.type} with {item.first_name || ''} from {item.company_name || ''}{" "}
+          export   const taskNameFormatter = (item) =>    <div className="flex p-1"><TaskStatusIcon status={item.status} className="mr-1 flex-shrink-0" /> 
+          <div><span className="font-semibold">{item?.type}</span> with <span className="font-semibold">{item?.first_name}</span>{" "} from {item?.company_name} {" "}
           <p className="text-xs inline-block text-muted-foreground p-0 m-0">
-                                         {formatCasualDate(item.start_date)} at {formatTime12Hour(item.time)}
+                                         {formatCasualDate(item.start_date)} 
                                       </p></div> <ChevronRight className="w-4 h-4 text-muted-foreground" /></div>;
 
           export  const formatItems = (data: any[], nameFormatter: (item: any) => string, type: 'Task' | 'BOQ'): StatItem[] => {
@@ -93,7 +95,7 @@ export const StatsGrid = () => {
     const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
         fields: ["name", "type", "start_date", "time" ,"status", "contact", "company","boq", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
         filters: homeStatsGridFilterTasks,
-        orderBy: { field: "start_date DESC, time", order: "desc"},
+        orderBy: { field: "start_date", order: "desc"},
         limit: 0
     },homeStatsGridTask);
 

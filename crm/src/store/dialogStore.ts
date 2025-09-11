@@ -34,6 +34,23 @@ type AssignBoqContext = { boqData: CRMBoq | null };
 // NEW: Dedicated context for Remark BOQ
 type RemarkBoqContext = { boqData: CRMBoq | null }; 
 
+type RenameBoqNameContext = {
+    currentDoctype: string;
+    currentDocName: string;
+};
+type RenameCompanyNameContext = {
+    currentDoctype: string;
+    currentDocName: string;
+};
+
+type RenameContactNameContext = {
+   currentDoctype: string;
+   currentDocName: string;
+  };
+ 
+
+
+
 // The state now just holds the isOpen flag and the context data
 type DialogState = {
   newCompany: { isOpen: boolean };
@@ -56,7 +73,15 @@ type DialogState = {
   statsDetail: { isOpen: boolean; context: StatsDetailContext };
   userProfile: { isOpen: boolean }; // <-- ADD THIS
 
-  newUser: { isOpen: boolean };
+    newUser: { isOpen: boolean };
+
+   renameBoqName: { isOpen: boolean; context: RenameBoqNameContext | null };
+
+   renameCompanyName: { isOpen: boolean; context: RenameCompanyNameContext | null };
+
+   renameContactName: { isOpen: boolean; context: RenameContactNameContext | null };
+
+
 };
 
 // The actions are now explicit open/close functions
@@ -103,6 +128,18 @@ type DialogActions = {
 
   openNewUserDialog: () => void;
 closeNewUserDialog: () => void;
+
+
+    // --- NEW: Rename BOQ Name Dialog Actions ---
+    openRenameBoqNameDialog: (context: RenameBoqNameContext) => void;
+    closeRenameBoqNameDialog: () => void;
+      // --- NEW: Rename Company Name Dialog Actions ---
+    openRenameCompanyNameDialog: (context: RenameCompanyNameContext) => void;
+    closeRenameCompanyNameDialog: () => void;
+
+    openRenameContactNameDialog: (context: RenameContactNameContext) => void;
+  closeRenameContactNameDialog: () => void;
+
 };
 
 const initialState: DialogState = {
@@ -127,6 +164,12 @@ const initialState: DialogState = {
   userProfile: { isOpen: false }, // <-- ADD THIS
 
   newUser: { isOpen: false },
+
+  renameBoqName: { isOpen: false, context: null },
+  renameCompanyName: { isOpen: false, context: null },
+
+  renameContactName: { isOpen: false, context: null },
+
 
 };
 
@@ -189,6 +232,16 @@ export const useDialogStore = create<DialogState & DialogActions>((set) => ({
 
   openNewUserDialog: () => set({ newUser: { isOpen: true } }),
 closeNewUserDialog: () => set({ newUser: { isOpen: false } }),
+
+ openRenameBoqNameDialog: (context) => set({ renameBoqName: { isOpen: true, context } }),
+    closeRenameBoqNameDialog: () => set({ renameBoqName: { isOpen: false, context: null } }),
+
+     openRenameCompanyNameDialog: (context) => set({ renameCompanyName: { isOpen: true, context } }),
+    closeRenameCompanyNameDialog: () => set({ renameCompanyName: { isOpen: false, context: null } }),
+
+    openRenameContactNameDialog: (context) => set({ renameContactName: { isOpen: true, context } }),
+  closeRenameContactNameDialog: () => set({ renameContactName: { isOpen: false, context: null } }),
+
 
 
 }));

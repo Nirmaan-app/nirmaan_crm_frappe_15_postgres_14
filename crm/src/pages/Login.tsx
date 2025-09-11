@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from 'lucide-react'; // For loading spinner
-import logo from "@/assets/Group 1.svg"
+import logo from "@/assets/nirmaan-red.svg"
 
 
 // 1. Define the validation schema with Zod
@@ -87,16 +87,16 @@ export const LoginPage = () => {
                                 <img
                                     src={logo} // Your existing logo path
                                     alt="Nirmaan CRM"
-                                    className="h-8 w-8 object-contain" // Adjust size as needed
+                                    className="h-12 w-12 object-contain" // Adjust size as needed
                                 />
-                                <CardTitle className="text-3xl font-bold text-destructive">Login</CardTitle> {/* Changed title to just "Login" */}
+                                <CardTitle className="text-3xl font-bold text-destructive">CRM</CardTitle> {/* Changed title to just "Login" */}
                             </div>
 
-                            {/* NEW: Welcome Message */}
+                            {/* NEW: Welcome Message
                             <p className="text-lg font-semibold text-foreground">
                                 Welcome to Nirmaan CRM
-                            </p>
-                            
+                            </p> */}
+
                             {/* Original CardDescription */}
                             <CardDescription className="text-muted-foreground text-sm">
                                 Enter your credentials to access your account.
