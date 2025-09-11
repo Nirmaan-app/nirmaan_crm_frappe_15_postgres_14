@@ -109,7 +109,8 @@ const AllBOQs = () => {
 
     const { data: allBoqs, isLoading, error } = useFrappeGetDocList<BOQ>('CRM BOQ', {
         fields: ["*"],
-        limit: 0
+        limit: 0,
+         orderBy: { field: 'modified', order: 'desc' },
     }, "all-boqs-estimate-all");
 
     const statusOptions = ['New', 'Revision Pending', 'In-Progress', 'Revision Submitted', 'Negotiation', 'Won', 'Lost', 'Hold'];
