@@ -159,7 +159,7 @@
 // //             return companyMatch && searchMatch && statusMatch;
 // //         });
 // //     }, [allBoqs, searchTerm, companyFilter, statusFilter]);
-    
+
 // //     if (error) return <div className="text-red-500">Error loading BOQs.</div>;
 
 // //     return (
@@ -424,7 +424,7 @@
 // // Main component that assembles the page
 // export const EstimationsHomePage = () => {
 //      const fullName = localStorage.getItem('fullName');
-    
+
 //     return (
 //         <div className="space-y-6">
 //             <div className="flex flex-wrap gap-4 justify-between items-center">
@@ -446,7 +446,7 @@ import { useStatusStyles } from "@/hooks/useStatusStyles";
 import React, { useMemo } from 'react';
 import { Plus, ChevronRight } from "lucide-react";
 import { useDialogStore } from '@/store/dialogStore';
-import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { formatDateWithOrdinal } from "@/utils/FormatDate";
 
 // TanStack Table Imports (needed for Row type)
@@ -506,7 +506,7 @@ const PendingBOQs = () => {
         }));
     }, []);
 
-      const pendingcompanyOptions = useMemo(() => {
+    const pendingcompanyOptions = useMemo(() => {
         if (!pendingBoqs) return [];
         const companies = new Map<string, string>();
         pendingBoqs.forEach(boq => {
@@ -525,7 +525,7 @@ const PendingBOQs = () => {
         }));
     }, [pendingBoqs]);
 
-     const pendingSalespersonOptions = useMemo(() => {
+    const pendingSalespersonOptions = useMemo(() => {
         if (!pendingBoqs || usersLoading) return [];
         const salespersons = new Map<string, string>();
         pendingBoqs.forEach(boq => {
@@ -552,16 +552,16 @@ const PendingBOQs = () => {
     const columns = useMemo<DataTableColumnDef<BOQ>[]>(() => [
         {
             accessorKey: "boq_name",
-            meta: { title: "Project Name", filterVariant: 'select', enableSorting: true, filterOptions: pendingProjectNamesOptions },
+            meta: { title: "Project Name", filterVariant: 'select', enableSorting: true }, //filterOptions: pendingProjectNamesOptions },
             cell: ({ row }) => (
                 <Link to={`/boqs/boq?id=${row.original.name}`} className="text-primary font-semibold hover:underline text-left">
                     {row.original.boq_name}
                 </Link>
             ),
-            filterFn: 'faceted',
+            // filterFn: 'faceted',
             enableSorting: true,
         },
-         {
+        {
             accessorKey: "company",
             meta: { title: "Company Name", filterVariant: 'select', filterOptions: pendingcompanyOptions, enableSorting: true },
             cell: ({ row }) => <span className="text-left">{row.original.company || '--'}</span>,
@@ -610,10 +610,10 @@ const PendingBOQs = () => {
             enableSorting: true,
             filterFn: 'dateRange',
         },
-         
+
         {
             id: 'actions',
-            meta: { title: "Action", enableSorting: false }, 
+            meta: { title: "Action", enableSorting: false },
             // Actions column for the button
             cell: ({ row }) => (
                 <div className="flex flex-col items-start gap-2 md:text-center">
@@ -625,7 +625,7 @@ const PendingBOQs = () => {
             enableSorting: false,
             enableColumnFilter: false,
         },
-    ], [pendingBoqs, pendingStatusOptions,pendingcompanyOptions,pendingSalespersonOptions, pendingSubStatusOptions, pendingProjectNamesOptions, getBoqStatusClass, openEditBoqDialog]);
+    ], [pendingBoqs, pendingStatusOptions, pendingcompanyOptions, pendingSalespersonOptions, pendingSubStatusOptions, pendingProjectNamesOptions, getBoqStatusClass, openEditBoqDialog]);
 
 
     if (error) return <div className="text-red-500">Error loading pending BOQs.</div>;
@@ -696,15 +696,15 @@ const PendingBOQs = () => {
             gridColsClass="md:grid-cols-[1fr,1fr,1fr,1fr,1fr,1fr,1fr]" // Adjust grid columns for Pending BOQs table
             noResultsMessage="No pending BOQs found."
             headerTitle="Pending BOQs"
-            // Optional: Add an export button for Pending BOQs if needed
-            // renderToolbarActions={(filteredData) => (
-            //     <DataTableExportButton
-            //         data={filteredData}
-            //         columns={pendingBoqExportFields}
-            //         fileName="Pending_BOQs_Export"
-            //         label="Export Pending BOQs"
-            //     />
-            // )}
+        // Optional: Add an export button for Pending BOQs if needed
+        // renderToolbarActions={(filteredData) => (
+        //     <DataTableExportButton
+        //         data={filteredData}
+        //         columns={pendingBoqExportFields}
+        //         fileName="Pending_BOQs_Export"
+        //         label="Export Pending BOQs"
+        //     />
+        // )}
         />
     );
 };
@@ -773,13 +773,13 @@ const AllBOQs = () => {
     const columns = useMemo<DataTableColumnDef<BOQ>[]>(() => [
         {
             accessorKey: "boq_name",
-            meta: { title: "Project Name", filterVariant: 'select', enableSorting: true, filterOptions: projectNamesOptions }, // Now uses projectNamesOptions
+            meta: { title: "Project Name", filterVariant: 'select', enableSorting: true },// filterOptions: projectNamesOptions }, // Now uses projectNamesOptions
             cell: ({ row }) => (
                 <span className="text-primary font-semibold hover:underline text-left">
                     {row.original.boq_name}
                 </span>
             ),
-            filterFn: 'faceted',
+            // filterFn: 'faceted',
             enableSorting: true,
         },
         {
@@ -882,7 +882,7 @@ const AllBOQs = () => {
         </div>
     );
 
-   const boqExportFields = useMemo<DataTableColumnDef<BOQ>[]>(() => ([
+    const boqExportFields = useMemo<DataTableColumnDef<BOQ>[]>(() => ([
         // Using accessorKey to match the data properties, and meta.exportHeaderName for the CSV header
         { accessorKey: "name", meta: { exportHeaderName: "BOQ ID" } },
         { accessorKey: "boq_name", meta: { exportHeaderName: "BOQ Name" } },
@@ -898,7 +898,7 @@ const AllBOQs = () => {
         { accessorKey: "remarks", meta: { exportHeaderName: "Remarks" } },
         { accessorKey: "boq_status", meta: { exportHeaderName: "Status" } },
         { accessorKey: "boq_sub_status", meta: { exportHeaderName: "Sub-Status" } },
-       {
+        {
             accessorKey: "assigned_sales",
             meta: {
                 exportHeaderName: "Assigned Salesperson",
@@ -945,13 +945,13 @@ const AllBOQs = () => {
 
 // Main component that assembles the page
 export const EstimationsHomePage = () => {
-     const fullName = localStorage.getItem('fullName');
+    const fullName = localStorage.getItem('fullName');
 
     return (
         <div className="space-y-6">
             <div className="flex flex-wrap gap-4 justify-between items-center">
                 <h1 className="text-2xl font-bold">Welcome, {fullName}!</h1>
-                <Button className="h-9 px-4 py-2" onClick={() => {/* navigate to create BOQ */}}>
+                <Button className="h-9 px-4 py-2" onClick={() => {/* navigate to create BOQ */ }}>
                     <Plus className="mr-2 h-4 w-4" /> Create New BOQ
                 </Button>
             </div>
