@@ -63,10 +63,38 @@ def get_task_permission_query_conditions(user):
     """
     if not user:
         user = frappe.session.user
+    if user == "Administrator":
+         return None
+    else:
+        user_doc = frappe.get_doc("CRM Users", user)
+        role_profile = user_doc.nirmaan_role_name
+        if role_profile == "Nirmaan Sales User Profile" or role_profile == "Nirmaan Estimations User Profile":
+             return f"`tabCRM Task`.assigned_sales = '{user}'"
+        else:
+             return None
+             
+    
 
-    # Nirmaan Admin User has unrestricted access
-    if "System Manager" in frappe.get_roles(user):
-        return None  # Returning None or an empty string means no conditions are applied
+    # # Nirmaan Admin User has unrestricted access
+    # if "System Manager" in frappe.get_roles(user):
+    #     return None  # Returning None or an empty string means no conditions are applied
 
-    # General condition for Sales Users
-    return f"`tabCRM Task`.assigned_sales = '{user}'"
+    # # General condition for Sales Users
+    # return f"`tabCRM Task`.assigned_sales = '{user}'"
+
+
+
+
+    # def before_insert(self):
+	# 	user = frappe.session.user
+	# 	if user == "Administrator":
+	# 		pass
+	# 	else:
+	# 		user_doc = frappe.get_doc("CRM Users", user)
+	# 		role_profile = user_doc.nirmaan_role_name
+	# 		if role_profile == "Nirmaan Sales User Profile":
+	# 			self.assigned_sales = self.owner
+	# 		elif role_profile == "Nirmaan Estimations User Profile":
+	# 			self.assigned_estimations = self.owner
+	# 		else:
+	# 			pass

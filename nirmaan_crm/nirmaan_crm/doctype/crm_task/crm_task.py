@@ -6,8 +6,33 @@ from frappe.model.document import Document
 
 
 class CRMTask(Document):
-	def validate(self):
+	def before_insert(self):
 		user = frappe.session.user
-		roles = frappe.get_roles(user)
-		if user != "Administrator" or "System Manager" not in roles:
-			self.assigned_sales = self.owner
+		if user == "Administrator":
+			pass
+		else:
+			user_doc = frappe.get_doc("CRM Users", user)
+			role_profile = user_doc.nirmaan_role_name
+			if role_profile == "Nirmaan Sales User Profile" or role_profile == "Nirmaan Estimations User Profile":
+				self.assigned_sales = self.owner
+			else:
+				pass
+		# roles = frappe.get_roles(user)
+		# if user != "Administrator" or "System Manager" not in roles:
+		# 	self.assigned_sales = self.owner
+
+
+
+
+		# 	def before_insert(self):
+		# user = frappe.session.user
+		
+		# else:
+		# 	user_doc = frappe.get_doc("CRM Users", user)
+		# 	role_profile = user_doc.nirmaan_role_name
+		# 	if role_profile == "Nirmaan Sales User Profile":
+		# 		self.assigned_sales = self.owner
+		# 	elif role_profile == "Nirmaan Estimations User Profile":
+		# 		self.assigned_estimations = self.owner
+		# 	else:
+		# 		pass

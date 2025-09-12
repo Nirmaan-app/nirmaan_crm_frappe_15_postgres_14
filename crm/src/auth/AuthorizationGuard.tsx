@@ -43,7 +43,7 @@ export const AuthorizationGuard = () => {
   }
  
   if (role === 'Nirmaan Estimations User Profile') {
-    const allowedBasePaths = ['/', '/boqs',"/calendar"];
+    const allowedBasePaths = ['/', '/boqs',"/calendar", "/tasks"];
     if (!isPathAllowed(location.pathname, allowedBasePaths)) {
       return <Navigate to="/" replace />;
     }

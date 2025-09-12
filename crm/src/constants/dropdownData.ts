@@ -1,5 +1,16 @@
 
-export const taskTypeOptions = [{ label: "In Person Meeting", value: "In Person Meeting" }, { label: "Call", value: "Call" }, { label: "Virtual Meeting", value: "Virtual Meeting" }, { label: "Follow-up", value: "Follow-up" }, { label: "Submit BOQ", value: "Submit BOQ" }, { label: "Follow-up BOQ", value: "Follow-up BOQ" }];
+export const taskTypeOptions = [
+  { label: "In Person Meeting", value: "In Person Meeting" },
+  { label: "Call", value: "Call" },
+  { label: "Virtual Meeting", value: "Virtual Meeting" },
+  { label: "Follow-up", value: "Follow-up" },
+  { label: "Submit BOQ", value: "Submit BOQ" },
+  { label: "Follow-up BOQ", value: "Follow-up BOQ" },
+  { label: "Get Vendor Quotes", value: "Get Vendor Quotes" },
+  { label: "Follow-up with Sales", value: "Follow-up with Sales" },
+  { label: "Review", value: "Review" },
+  { label: "Other", value: "Other" }
+];
 
 export const BOQsubStatusOptions = [
   { label: "WIP", value: "WIP" },
@@ -9,7 +20,7 @@ export const BOQsubStatusOptions = [
 ];
 
 export const BOQmainStatusOptions = [
-   { label: "New", value: "New" },
+  { label: "New", value: "New" },
 
   { label: "In-Progress", value: "In-Progress" },
   { label: "BOQ Submitted", value: "BOQ Submitted" },
@@ -24,7 +35,7 @@ export const BOQmainStatusOptions = [
 ];
 
 
-  
+
 export const LocationOptions = [
   { label: "Ahmedabad", value: "Ahmedabad" },
   { label: "Bengaluru", value: "Bengaluru" },
@@ -47,6 +58,6 @@ export const LocationOptions = [
   { label: "Thane", value: "Thane" },
   { label: "Vadodara", value: "Vadodara" },
   { label: "Visakhapatnam", value: "Visakhapatnam" },
-  {label:"Others",value:"Others"}
+  { label: "Others", value: "Others" }
 ];
 
