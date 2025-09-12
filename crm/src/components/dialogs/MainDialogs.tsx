@@ -19,6 +19,8 @@ import { RenameBoqName } from "@/pages/BOQS/forms/RenameBoqName";
 import { RenameCompanyName } from "@/pages/Companies/forms/RenameCompanyName";
 import { RenameContactName } from "@/pages/Contacts/forms/RenameContactName";
 
+import { EditDealStatusForm } from "@/pages/BOQS/forms/EditBoqDealStatusForm";
+
 export const MainDialogs = () => {
     const {
         newCompany, closeNewCompanyDialog,
@@ -44,6 +46,7 @@ export const MainDialogs = () => {
 
          renameContactName, closeRenameContactNameDialog,
 
+         editDealStatus, closeEditDealStatusDialog,
     } = useDialogStore();
 
     // Helper to generate a dynamic title
@@ -257,6 +260,21 @@ export const MainDialogs = () => {
                    />
                )}
            </ReusableFormDialog>
+
+
+           <ReusableFormDialog
+                 isOpen={editDealStatus.isOpen}
+                 onClose={closeEditDealStatusDialog}
+                 title={editDealStatus.context?.boqData?.boq_name ? `Update Deal Status for "${editDealStatus.context.boqData.boq_name}"` : "Update Deal Status"}
+                 className="max-w-md" // Adjust width for this form
+             >
+                 {editDealStatus.context?.boqData && (
+                     <EditDealStatusForm
+                         boqData={editDealStatus.context.boqData}
+                         onSuccess={closeEditDealStatusDialog}
+                     />
+                 )}
+             </ReusableFormDialog>
 
 
         </>

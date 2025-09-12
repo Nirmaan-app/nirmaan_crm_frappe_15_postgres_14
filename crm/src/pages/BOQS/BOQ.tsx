@@ -22,6 +22,7 @@ import { StatusPill } from "@/pages/Tasks/TasksVariantPage"
 import { useViewport } from "@/hooks/useViewPort";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { parse, isValid } from 'date-fns';
+import { BoqDealStatusCard } from "./components/BoqDealStatusCard";
 
 
 // --- SUB-COMPONENT 1: Header ---
@@ -720,6 +721,12 @@ export const BOQ = () => {
     return (
         <div className="space-y-6">
             <BoqDetailsHeader boq={boqData} />
+
+            
+            {(role != "Nirmaan Estimations User Profile") && (
+            <BoqDealStatusCard boq={boqData}/>
+             )}
+
             {(role != "Nirmaan Estimations User Profile") && (
                 <BoqTaskDetails
                     tasks={tasksList}
