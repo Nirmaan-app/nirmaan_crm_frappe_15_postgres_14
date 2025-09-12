@@ -8,6 +8,18 @@ import { CRMPBOQ } from '@/types/NirmaanCRM/CRMBOQ';
 import {CRMTask} from '@/types/NirmaanCRM/CRMTask';
 import { create } from 'zustand';
 
+
+
+// Assuming this is your type for BOQ data when passed to dialogs
+ interface CRMBoq {
+     name: string;
+     boq_name: string; // Ensure this is present for context
+     deal_status?: 'Hot' | 'Warm' | 'Cold'; // Ensure this is present for context
+     // Add other relevant fields for BOQ here
+ }
+ 
+
+
 // Context types define what data each dialog can receive
 type NewContactContext = { companyId?: string };
 type NewBoqContext = { companyId?: string };
@@ -48,6 +60,10 @@ type RenameContactNameContext = {
    currentDocName: string;
   };
  
+  // --- NEW: Context for EditDealStatusForm ---
+type EditDealStatusContext = {
+   boqData: CRMBoq | null; // Pass the entire BOQ object
+};
 
 
 
@@ -80,6 +96,8 @@ type DialogState = {
    renameCompanyName: { isOpen: boolean; context: RenameCompanyNameContext | null };
 
    renameContactName: { isOpen: boolean; context: RenameContactNameContext | null };
+
+   editDealStatus: { isOpen: boolean; context: EditDealStatusContext | null };
 
 
 };
@@ -140,6 +158,9 @@ closeNewUserDialog: () => void;
     openRenameContactNameDialog: (context: RenameContactNameContext) => void;
   closeRenameContactNameDialog: () => void;
 
+  openEditDealStatusDialog: (context: EditDealStatusContext) => void;
+  closeEditDealStatusDialog: () => void;
+
 };
 
 const initialState: DialogState = {
@@ -169,6 +190,8 @@ const initialState: DialogState = {
   renameCompanyName: { isOpen: false, context: null },
 
   renameContactName: { isOpen: false, context: null },
+
+  editDealStatus: { isOpen: false, context: null },
 
 
 };
@@ -241,6 +264,10 @@ closeNewUserDialog: () => set({ newUser: { isOpen: false } }),
 
     openRenameContactNameDialog: (context) => set({ renameContactName: { isOpen: true, context } }),
   closeRenameContactNameDialog: () => set({ renameContactName: { isOpen: false, context: null } }),
+
+    // --- NEW: Edit Deal Status Dialog Implementation ---
+  openEditDealStatusDialog: (context) => set({ editDealStatus: { isOpen: true, context } }),
+  closeEditDealStatusDialog: () => set({ editDealStatus: { isOpen: false, context: null } }),
 
 
 
