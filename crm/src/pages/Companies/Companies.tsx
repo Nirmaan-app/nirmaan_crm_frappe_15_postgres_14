@@ -7,6 +7,8 @@ import { Company } from "./Company";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useDialogStore } from "@/store/dialogStore";
 import { Plus } from "lucide-react";
+import {CompanyTableView} from "./components/CompanyTableView"
+import { useState, useMemo, useCallback } from "react";
 
 const DesktopPlaceholder = () => (
   <div className="flex h-full items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 bg-secondary">
@@ -19,11 +21,42 @@ export const Companies = () => {
   const [id, setId] = useStateSyncedWithParams<string>("id", "");
   const { openNewCompanyDialog } = useDialogStore();
 
+    
+       const userRoleIsAdminOrSales = useMemo(() => {
+          const storedRole = localStorage.getItem('role');
+          if (!storedRole) return false;
+          // Check if it includes 'Admin' or 'Sales'
+          return storedRole.includes('Admin') || storedRole.includes('Sales');
+      }, []);
+      const hideStatusColumnForRole = userRoleIsAdminOrSales;
+
   // If we are on a mobile device, we only show the list.
   // Navigation to the detail page is handled inside CompanyList.
   if (isMobile) {
     return <CompanyList />;
   }
+
+  if (!isMobile && userRoleIsAdminOrSales) {
+          return (
+              <div className="flex flex-col h-[calc(100vh-var(--navbar-height)-80px)]">
+                  {/* <div className="p-4 border-b bg-background rounded-t-lg flex items-center justify-between flex-shrink-0">
+                      <h2 className="text-lg font-semibold">All BOQs</h2>
+                      <button onClick={openNewBoqDialog} className="h-9 px-4 py-2 bg-destructive text-white rounded-lg flex items-center justify-center gap-2">
+                          <Plus size={20} /> Add New BOQ
+                      </button>
+                  </div> */}
+                  {/* FIX: Removed overflow-hidden and added min-h-0 */}
+                  <div className="flex-1 min-h-0 bg-background rounded-b-lg border-x border-b">
+                      <CompanyTableView
+                          hideStatusColumn={hideStatusColumnForRole}
+                          isStandalonePage={true}
+                          shouldExpandHeight={true}
+                          className="h-full" // FIX: Ensure BoqTableView itself fills its container
+                      />
+                  </div>
+              </div>
+          );
+      }
 
   // On desktop, we render the master-detail layout.
   return (

@@ -50,3 +50,22 @@ export const LocationOptions = [
   {label:"Others",value:"Others"}
 ];
 
+
+
+// src/constants/dropdownData.ts
+
+// ... (your existing LocationOptions, TeamSizeOptions, etc.)
+
+export const CompanyProgressPriorityOptions = [
+  { label: "Meet Once Every 2 Weeks", value: "Meet Once Every 2 Weeks" },
+  { label: "Meet Once a Month", value: "Meet Once a Month" },
+  { label: "Hold", value: "Hold" },
+];
+
+export const TeamSizeOptions = [
+  { label: "0-10", value: "0-10" },
+  { label: "11-50", value: "11-50" },
+  { label: "50-100", value: "50-100" },
+  { label: "100-500", value: "100-500" },
+  { label: "500+", value: "500+" },
+];
