@@ -15,7 +15,7 @@ import ReactSelect from "react-select";
 import { useEffect } from "react";
 import { formatDate, formatTime12Hour,formatDateWithOrdinal } from "@/utils/FormatDate";
 import { Calendar, Clock } from "lucide-react"; // Import icons for a nicer UI
-import { taskTypeOptions } from "@/constants/dropdownData";
+import { salesTaskTypeOptions } from "@/constants/dropdownData";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 
@@ -183,7 +183,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           company: taskData.company,
           assigned_sales: values.assigned_sales||taskData.assigned_sales,
           boq: taskData.boq,
-          remarks:values.remarks
+          remarks:values.remarks || taskData.remarks,
         });
         toast({ title: "Success", description: "New task scheduled." });
       }
@@ -250,7 +250,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               {/* Status Pill */}
               <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
             </div>
-            <FormField name="type" control={form.control} render={({ field }) => (<FormItem><FormLabel>Task Type<sup>*</sup></FormLabel><FormControl><ReactSelect options={taskTypeOptions} value={taskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)} isOptionDisabled={(option) => option.value === field.value} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="type" control={form.control} render={({ field }) => (<FormItem><FormLabel>Task Type<sup>*</sup></FormLabel><FormControl><ReactSelect options={salesTaskTypeOptions} value={salesTaskTypeOptions.find(t => t.value === field.value)} onChange={val => field.onChange(val?.value)} isOptionDisabled={(option) => option.value === field.value} /></FormControl><FormMessage /></FormItem>)} />
             {role === "Nirmaan Admin User Profile" && (
               <FormField
                 control={form.control}
@@ -303,15 +303,17 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             )}
 
             {/* Always render Remarks, but add asterisk conditionally */}
-            {selectedStatus &&
+            {/* {selectedStatus &&
               <>
                 <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks{isRequired("remarks") && <sup className="text-destructive">*</sup>}</FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem>)} />
 
                 <FormField name="reschedule" control={form.control} render={({ field }) => (<FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><div className="space-y-1 leading-none"><FormLabel>{selectedStatus === "Incomplete" ? "Re-schedule this task?" : "Schedule a follow-up?"} </FormLabel></div></FormItem>)} />
               </>
-            }
+            } */}
           </>
         )}
+
+        <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks{isRequired("remarks") && <sup className="text-destructive">*</sup>}</FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem>)} />
 
         <div className="flex gap-2 justify-end pt-4">
           <Button type="button" variant="outline" className="border-destructive text-destructive" onClick={closeEditTaskDialog}>Cancel</Button>

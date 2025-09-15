@@ -1,16 +1,31 @@
 
-export const taskTypeOptions = [
+export const salesTaskTypeOptions = [
   { label: "In Person Meeting", value: "In Person Meeting" },
   { label: "Call", value: "Call" },
   { label: "Virtual Meeting", value: "Virtual Meeting" },
   { label: "Follow-up", value: "Follow-up" },
   { label: "Submit BOQ", value: "Submit BOQ" },
   { label: "Follow-up BOQ", value: "Follow-up BOQ" },
+];
+
+export const estimationTaskTypeOptions = [
   { label: "Get Vendor Quotes", value: "Get Vendor Quotes" },
   { label: "Follow-up with Sales", value: "Follow-up with Sales" },
   { label: "Review", value: "Review" },
   { label: "Other", value: "Other" }
 ];
+
+/**
+ * A helper function to get the appropriate task type options based on a task profile.
+ * This will be used by the Admin user's task creation flow.
+ * @param profile - The task profile, either 'Sales' or 'Estimates'.
+ * @returns An array of task type options for the given profile.
+ */
+export const getTaskTypesForProfile = (profile: 'Sales' | 'Estimates') => {
+  if (profile === 'Sales') return salesTaskTypeOptions;
+  if (profile === 'Estimates') return estimationTaskTypeOptions;
+  return []; // Fallback for safety
+};
 
 export const BOQsubStatusOptions = [
   { label: "WIP", value: "WIP" },
