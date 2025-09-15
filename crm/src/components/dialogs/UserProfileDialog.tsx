@@ -5,6 +5,10 @@ import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { User as UserIcon, Phone, Tag, MailIcon} from "lucide-react";
 import { formatRoleName } from "@/pages/MyTeam/MemberList";
+import { Button } from "@/components/ui/button";
+import { useDialogStore } from "@/store/dialogStore";
+
+
 
 // Helper to generate initials for the avatar fallback
 const generateFallback = (full_name: string = "") => {
@@ -16,6 +20,9 @@ const generateFallback = (full_name: string = "") => {
 };
 
 export const UserProfileDialog = () => {
+
+        const { userProfile, closeUserProfileDialog } = useDialogStore();
+    
  
     // const { 
     //     user,
@@ -101,6 +108,9 @@ export const UserProfileDialog = () => {
                     </div>
 
                     {/* Roles */}
+                    <Button variant="outline" className="w-full" onClick={closeUserProfileDialog}>
+                                    Close
+                                </Button>
                    
                 </div>
             ) : (

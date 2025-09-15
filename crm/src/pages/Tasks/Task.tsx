@@ -103,7 +103,7 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
             </div> */}
 
             <div className="grid grid-cols-2 gap-y-4 gap-x-2">
-                {task?.task_profile === "Sales" && <DetailItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} href={`/contacts/contact?id=${contact?.name}`} />}
+                {task?.task_profile === "Sales" && <DetailItem label="Name" value={contact?.first_name} href={`/contacts/contact?id=${contact?.name}`} />}
                 {task?.task_profile === "Sales" && <DetailItem label="Company" value={task?.company} href={`/companies/company?id=${task?.company}`} />}
                 {task?.task_profile === "Sales" && <DetailItem label="Mobile Number" value={contact?.mobile} href={`tel:${contact?.mobile}`} />}
                 <DetailItem label="Type" value={task?.type} />
