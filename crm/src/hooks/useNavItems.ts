@@ -18,7 +18,7 @@ const getFilteredNavItems = (role: string | null): NavItem[] => {
     return items.filter(item => item.label !== 'My Team');
   }
   if (role === 'Nirmaan Estimations User Profile') {
-    return items.filter(item => ['Home', 'BOQs'].includes(item.label));
+    return items.filter(item => ['Home', 'BOQs', 'Tasks'].includes(item.label));
   }
   if (role === 'Nirmaan Admin User Profile') {
     return items;

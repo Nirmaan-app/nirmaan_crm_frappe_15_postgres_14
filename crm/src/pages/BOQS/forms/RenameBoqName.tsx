@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappePostCall, useSWRConfig } from "frappe-react-sdk";
+import { useFrappePostCall, useSWRConfig,useFrappeGetDocList } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import React, { useEffect } from "react";
@@ -28,9 +28,15 @@ interface RenameBoqNameProps { // <--- UPDATED INTERFACE NAME
 }
 
 export const RenameBoqName = ({ onSuccess, currentDoctype, currentDocName }: RenameBoqNameProps) => { // <--- UPDATED COMPONENT NAME
-  const { closeDialog } = useDialogStore();
+  const { closeRenameBoqNameDialog } = useDialogStore();
   const { mutate } = useSWRConfig();
   const navigate = useNavigate();
+
+console.log("currentDocName",currentDocName)
+  //Validation Check 
+    const { data: allBoqs } = useFrappeGetDocList("CRM BOQ", {
+      fields: ["boq_name"]
+    },"all-boqs-existornot");
 
   // --- 2. useForm Hook ---
   const form = useForm<RenameBoqFormValues>({
@@ -107,11 +113,28 @@ export const RenameBoqName = ({ onSuccess, currentDoctype, currentDocName }: Ren
       toast({
         title: "No Change",
         description: "The new name is the same as the current name.",
-        variant: "info",
+       variant: "destructive"
       });
       onSuccess?.(); // Close dialog if no change needed
       return;
     }
+     const trimmedBoqName = values.newName.trim();
+          
+          // Check if a BOQ with the same name already exists (case-insensitive).
+          const existingBoq = allBoqs?.find(
+            b => b.boq_name.trim().toLowerCase() === trimmedBoqName.toLowerCase()
+          );
+    
+          if (existingBoq) {
+            // If a duplicate is found, show an error and stop the submission.
+            toast({
+                title: "Duplicate BOQ",
+                description: `A BOQ with the name "${trimmedBoqName}" already exists.`,
+                variant: "destructive"
+            });
+            return; // Stop the function here
+          }
+    
 
     try {
       const payload = {
@@ -196,7 +219,7 @@ export const RenameBoqName = ({ onSuccess, currentDoctype, currentDocName }: Ren
         />
 
         <div className="flex gap-2 justify-end pt-4">
-          <Button type="button" variant="outline" onClick={closeDialog}>
+          <Button type="button" variant="outline" onClick={closeRenameBoqNameDialog}>
             Cancel
           </Button>
           <Button type="submit" disabled={renameLoading}>

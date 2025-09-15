@@ -13,7 +13,11 @@
   "company_type",
   "company_city",
   "assigned_sales",
-  "last_meeting"
+  "last_meeting",
+  "priority",
+  "expected_boq_count",
+  "team_size",
+  "projects_per_month"
  ],
  "fields": [
   {
@@ -52,11 +56,32 @@
    "fieldname": "last_meeting",
    "fieldtype": "Date",
    "label": "Last Meeting"
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Data",
+   "label": "Priority"
+  },
+  {
+   "fieldname": "expected_boq_count",
+   "fieldtype": "Int",
+   "label": "Expected BOQ Count",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "team_size",
+   "fieldtype": "Data",
+   "label": "Team Size"
+  },
+  {
+   "fieldname": "projects_per_month",
+   "fieldtype": "Data",
+   "label": "Projects Per Month"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-05 16:45:43.983104",
+ "modified": "2025-09-12 13:43:10.505871",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Company",

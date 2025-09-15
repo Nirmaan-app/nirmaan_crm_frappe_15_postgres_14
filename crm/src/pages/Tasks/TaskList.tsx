@@ -532,6 +532,8 @@ import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon';
 import { StatusPill } from "./TasksVariantPage";
 import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
 
+import { useTaskEditor } from "@/hooks/useTaskEditor"; // --- CHANGE 1: Import the new hook ---
+
 // A reusable type for tasks that include contact/company names
 type EnrichedTask = CRMTask & {
     "contact.first_name"?: string;
@@ -563,28 +565,53 @@ const DesktopTaskCategoryRow = ({ title, count, onClick, isActive }) => (
 );
 
 
-export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: EnrichedCRMTask, context: 'today' | 'tomorrow' | 'createdToday'|'upcoming7Days', onTaskSelect?: (id: string) => void }) => {
-    const { openEditTaskDialog } = useDialogStore();
+export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: EnrichedCRMTask, context: 'today' | 'tomorrow' | 'createdToday' | 'upcoming7Days', onTaskSelect?: (id: string) => void }) => {
+    // --- CHANGE 2: Remove direct use of openEditTaskDialog ---
+    // const { openEditTaskDialog } = useDialogStore(); // This is no longer needed directly
+
+    // --- CHANGE 3: Instantiate our new centralized hook ---
+    const openTaskEditor = useTaskEditor();
     const navigate = useNavigate();
     const { isMobile } = useViewport();
     // Determine button label and action based on the context
-    let buttonLabel = "Update";
-    let buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'updateStatus' });
-//  console.log("upcoming7Days",context)
-    if (context === 'tomorrow') {
+    //     let buttonLabel = "Update";
+    //     let buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'updateStatus' });
+    // //  console.log("upcoming7Days",context)
+    //     if (context === 'tomorrow') {
+    //         buttonLabel = "Go To Task";
+    //         buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
+    //     } else if (context === 'createdToday') {
+    //         buttonLabel = "Edit Task";
+    //         buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'edit' });
+    //     }else if (context === 'upcoming7Days') { // NEW: Upcoming 7 Days context
+    //         buttonLabel = "Go To Task";
+    //         buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
+    //     }
+
+    //     if(task.status==="Completed"||task.status==="Incomplete"){
+    //         buttonLabel = "Go To Task";
+    //         buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
+    //     }
+
+    // --- CHANGE 4: Refactor button action logic to use the new handler ---
+    let buttonLabel: string;
+    let buttonAction: () => void;
+    // console.log("context",context)
+
+    if (task.status === "Completed" || task.status === "Incomplete") {
         buttonLabel = "Go To Task";
-        buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
+        buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`);
     } else if (context === 'createdToday') {
         buttonLabel = "Edit Task";
-        buttonAction = () => openEditTaskDialog({ taskData: task, mode: 'edit' });
-    }else if (context === 'upcoming7Days') { // NEW: Upcoming 7 Days context
+        // Pass the task and 'edit' mode to our handler
+        buttonAction = () => openTaskEditor(task, 'edit');
+    } else if (context === 'today') {
+        buttonLabel = "Update";
+        // Pass the task and 'updateStatus' mode to our handler
+        buttonAction = () => openTaskEditor(task, 'updateStatus');
+    } else { // Covers 'tomorrow' and 'upcoming7Days'
         buttonLabel = "Go To Task";
-        buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
-    }
-
-    if(task.status==="Completed"||task.status==="Incomplete"){
-        buttonLabel = "Go To Task";
-        buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) :navigate(`/tasks?id=${task.name}`) 
+        buttonAction = () => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`);
     }
 
     // // For 'today', the default action is 'Update', so no 'if' statement is needed.
@@ -598,22 +625,34 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
     //         navigate(`/task?id=${task_id}`);
     //     }
     // };
-
     return (
         <div className="px-4"> {/* Add slight horizontal padding for better spacing */}
             <div className="flex items-center justify-between py-3">
                 <span>
                     <div className="flex">
                         <TaskStatusIcon status={task.status} className="mr-1 flex-shrink-0" />
-                        <div>
-                            <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "} from {task?.company_name} {" "}
+                        {task.task_profile==="Sales"?( <div>
+                            <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "} from 
+                            
+                            {task?.company_name} {" "}
                             <p className="text-xs inline-block text-muted-foreground p-0 m-0">
-                                {(context === "createdToday"||context === 'upcoming7Days') && (`on ${formatCasualDate(task.start_date)} `)}
+                                {(context === "createdToday" || context === 'upcoming7Days') && (`on ${formatCasualDate(task.start_date)} `)}
                                 {/* {formatCasualDate(task.start_date)}   */}
 
-                                
+
                             </p>
-                        </div>
+                        </div>):( <div>
+                            <span className="font-semibold">{task?.type}</span> for {" "}  
+                            
+                            {task?.boq}
+                            <p className="text-xs inline-block text-muted-foreground p-0 m-0">
+                                {(context === "createdToday" || context === 'upcoming7Days') && (`on ${formatCasualDate(task.start_date)} `)}
+                                {/* {formatCasualDate(task.start_date)}   */}
+
+
+                            </p>
+                        </div>)}
+                       
                     </div>
                 </span>
                 <Button variant="outline" size="sm" onClick={buttonAction}>
@@ -695,10 +734,10 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
     const swrkey = `all-tasks-${allFilters}`
 
     const { data: tasks, taskisLoading } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
-        fields: ["name", "type", "start_date", "time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales"],
+        fields: ["name", "type", "start_date", "time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales","boq"],
         filters: allFilters,
         limit: 0,
-        orderBy: { field: "creation", order: "asc" }
+        orderBy: { field: "start_date", order: "desc" }
     }, swrkey);
 
     // console.log("TTASKS", tasks)
@@ -838,28 +877,28 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                     </AccordionItem>
                 </div>
                 {/* *** NEWLY ADDED ACCORDION ITEM *** */}
-                <div className="bg-background rounded-lg border">
+                {/* <div className="bg-background rounded-lg border">
                     <AccordionItem value="createdToday" className="border-b-0">
                         <AccordionTrigger className="px-4">Tasks created today - {createdTodayTasks.length} Tasks</AccordionTrigger>
                         <AccordionContent>
                             {createdTodayTasks.length > 0
-                                ? createdTodayTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="createdtoday" onTaskSelect={onTaskSelect} />)
+                                ? createdTodayTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="createdToday" onTaskSelect={onTaskSelect} />)
                                 : <p className="text-center text-sm text-muted-foreground py-4 px-4">No tasks were created today.</p>
                             }
                         </AccordionContent>
                     </AccordionItem>
+                </div> */}
+                <div className="bg-background rounded-lg border">
+                    <AccordionItem value="upcoming7Days" className="border-b-0">
+                        <AccordionTrigger className="px-4">Upcoming 7 Days - {upcoming7DaysTasks.length} Tasks</AccordionTrigger>
+                        <AccordionContent>
+                            {upcoming7DaysTasks.length > 0
+                                ? upcoming7DaysTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="upcoming7Days" onTaskSelect={onTaskSelect} />)
+                                : <p className="text-center text-sm text-muted-foreground py-4">No upcoming tasks.</p>
+                            }
+                        </AccordionContent>
+                    </AccordionItem>
                 </div>
-                 <div className="bg-background rounded-lg border">
-                        <AccordionItem value="upcoming7Days" className="border-b-0">
-                            <AccordionTrigger className="px-4">Upcoming 7 Days - {upcoming7DaysTasks.length} Tasks</AccordionTrigger>
-                            <AccordionContent>
-                                {upcoming7DaysTasks.length > 0
-                                    ? upcoming7DaysTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="upcoming7Days" onTaskSelect={onTaskSelect} />)
-                                    : <p className="text-center text-sm text-muted-foreground py-4">No upcoming tasks.</p>
-                                }
-                            </AccordionContent>
-                        </AccordionItem>
-                    </div>
 
 
             </Accordion>) : (<div className="space-y-2 pt-4">
@@ -875,23 +914,23 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                     isActive={activeTaskId === 'tomorrow'}
                     onClick={() => onTaskSelect({ id: 'tomorrow' })}
                 />
-                <DesktopTaskCategoryRow
+                {/* <DesktopTaskCategoryRow
                     title="Tasks Created Today"
                     count={createdTodayTasks.length}
                     // No count is passed, so it won't be rendered
                     isActive={activeTaskId === 'createdtoday'}
                     onClick={() => onTaskSelect({ id: 'createdtoday' })}
-                />
+                /> */}
                 {/* NEW: Upcoming 7 Days Desktop Category Row */}
-                                    {/* NEW: Upcoming 7 Days Desktop Category Row */}
-                     <DesktopTaskCategoryRow
-                         title="Upcoming 7 Days Tasks"
-                         count={upcoming7DaysTasks.length}
-                         // --- FIX HERE: Use 'upcoming7Days' for activeTaskId comparison ---
-                         isActive={activeTaskId === 'upcoming7Days'}
-                         // --- FIX HERE: Pass 'upcoming7Days' as the ID ---
-                         onClick={() => onTaskSelect({ id: 'upcoming7Days' })}
-                     />
+                {/* NEW: Upcoming 7 Days Desktop Category Row */}
+                <DesktopTaskCategoryRow
+                    title="Upcoming 7 Days Tasks"
+                    count={upcoming7DaysTasks.length}
+                    // --- FIX HERE: Use 'upcoming7Days' for activeTaskId comparison ---
+                    isActive={activeTaskId === 'upcoming7Days'}
+                    // --- FIX HERE: Pass 'upcoming7Days' as the ID ---
+                    onClick={() => onTaskSelect({ id: 'upcoming7Days' })}
+                />
 
             </div>)}
 

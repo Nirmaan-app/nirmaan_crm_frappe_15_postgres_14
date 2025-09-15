@@ -161,10 +161,10 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
     const { data: tasks, isLoading, error } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
         fields: [
             "name", "type", "start_date", "status", "contact", "company",
-            "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales", "creation","remarks"
+            "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales", "creation","remarks","task_profile","boq"
         ],
         // filters: assignmentFilters, // Use the combined filters
-        orderBy: { field: "start_date", order: "asc" },
+        orderBy: { field: "start_date", order: "desc" },
         limit: 0,
 
     }, swrKey); // Use the dynamic key

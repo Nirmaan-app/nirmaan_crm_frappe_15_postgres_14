@@ -144,7 +144,7 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
  const swrKey = `all-tasks-todays${JSON.stringify(filters)}`;
 
     const { data: tasksData, isLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-        fields: ["name", "status","start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name","creation","remarks"],
+        fields: ["name", "status","start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name","creation","remarks","boq","task_profile"],
         filters: filters,
         limit: 0,
         orderBy: { field: "start_date", order: "desc" }
@@ -232,10 +232,13 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
                                                                                                       (<div className="flex items-center gap-3">
                                                                                                                                                                      <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
                                                                                                                                                                      <div className="flex flex-col">
-                                                                                                                                                                         <span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from {task.company_name}               
+                                                                                                                                                                         {
+                                                                                                                                                                            task.task_profile==="Sales"?(<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}            
                                                                                                       
                                                                                                                                                                            
-                                                                                                                                                                                                                             </span>
+                                                                                                                                                                                                                             </span>):(<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}            
+                                                                                            </span>)
+                                                                                                                                                                         }
                                                                                                                                                                                  {task.remarks &&(                                                                <span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
                                                                                                                                                                              Remarks: {task.remarks}
                                                                                                                                                                          </span>)}
@@ -248,7 +251,13 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
                                                                                                                                                   <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
                                                                                                                                                   <div >
                                                                                                                                                       {/* <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`}</span> */}
-                                     <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span> from {task.company_name}                                                             
+                                    {
+                                                                                                                                                                            task.task_profile==="Sales"?(<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}            
+                                                                                                      
+                                                                                                                                                                           
+                                                                                                                                                                                                                             </span>):(<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}            
+                                                                                            </span>)
+                                                                                                                                                                         }       
                                                                                                       
                                                                                                                                                   </div>
                                                                                                                                               </div>)}

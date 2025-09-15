@@ -4,19 +4,38 @@
 import { CRMCompany } from '@/types/NirmaanCRM/CRMCompany'; // Make sure this 
 // import exists
 import { CRMContacts } from '@/types/NirmaanCRM/CRMContacts';
-import { CRMPBOQ } from '@/types/NirmaanCRM/CRMBOQ';
+import { CRMBOQ } from '@/types/NirmaanCRM/CRMBOQ';
 import {CRMTask} from '@/types/NirmaanCRM/CRMTask';
 import { create } from 'zustand';
+
+
+
+// Assuming this is your type for BOQ data when passed to dialogs
+ interface CRMBoq {
+     name: string;
+     boq_name: string; // Ensure this is present for context
+     deal_status?: 'Hot' | 'Warm' | 'Cold'; // Ensure this is present for context
+     // Add other relevant fields for BOQ here
+ }
+ 
+ export interface CRMCompanyProgress { // Export this if it's used elsewhere
+    name?: string; // Frappe name (doc.name) of the Company Progress document (optional for new)
+   
+    priority?: string;
+    expected_boq_count?: number;
+}
+
+
 
 // Context types define what data each dialog can receive
 type NewContactContext = { companyId?: string };
 type NewBoqContext = { companyId?: string };
-type NewTaskContext = { companyId?: string; contactId?: string; boqId?: string };
+type NewTaskContext = { companyId?: string; contactId?: string; boqId?: string; taskId?: string; task_profile?: 'Sales' | 'Estimates' };
 //EDIT Type
 type EditCompanyContext = { companyData: CRMCompany | null }; 
 type EditContactContext = { contactData: CRMContacts | null };
 type EditBoqContext = { 
-  boqData: CRMPBOQ | null;
+  boqData: CRMBOQ | null;
   mode: 'details' | 'status'| 'attachment'|"assigned-esitmate"; 
 
 };
@@ -24,6 +43,19 @@ type EditTaskContext = {
   taskData: CRMTask | null;
   mode: 'edit' | 'updateStatus' | 'scheduleNext';
 };
+
+
+// --- NEW CONTEXT TYPES ---
+// 1. Context for the new Estimation Task forms will be the same as the Sales Task forms.
+type EstimationTaskContext = NewTaskContext;
+type EditEstimationTaskContext = EditTaskContext;
+
+// 2. Context for the Admin's selection dialog. It holds the original context and an onSelect callback.
+type SelectTaskProfileContext = {
+  originalContext: NewTaskContext;
+  onSelect: (profile: 'Sales' | 'Estimates') => void;
+};
+// --- END OF NEW CONTEXT TYPES ---
 
 type DateRangeContext = { onConfirm: (dateRange: { from: Date; to: Date }) => void };
 type StatsDetailContext = { title: string; items: any[] };
@@ -48,7 +80,17 @@ type RenameContactNameContext = {
    currentDocName: string;
   };
  
+  // --- NEW: Context for EditDealStatusForm ---
+type EditDealStatusContext = {
+   boqData: CRMBoq | null; // Pass the entire BOQ object
+};
 
+
+// --- NEW: Context for CompanyProgressForm ---
+type CompanyProgressContext = {
+    companyId: string; // The Frappe 'name' (ID) of the CRM Company
+    progressData?: CRMCompanyProgress | null; // Optional: existing progress data if editing
+};
 
 
 // The state now just holds the isOpen flag and the context data
@@ -57,6 +99,14 @@ type DialogState = {
   newContact: { isOpen: boolean; context: NewContactContext };
   newBoq: { isOpen: boolean; context: NewBoqContext };
   newTask: { isOpen: boolean; context: NewTaskContext };
+
+  // --- NEW DIALOG STATES ---
+  // 3. States for the new Estimation task dialogs.
+  newEstimationTask: { isOpen: boolean; context: EstimationTaskContext };
+  editEstimationTask: { isOpen: boolean; context: EditEstimationTaskContext };
+  // 4. State for the Admin's selection dialog.
+  selectTaskProfileDialog: { isOpen: boolean; context: SelectTaskProfileContext };
+  // --- END OF NEW DIALOG STATES ---
 
    editCompany: { isOpen: boolean; context: EditCompanyContext };
    editContact: { isOpen: boolean; context: EditContactContext };
@@ -80,6 +130,10 @@ type DialogState = {
    renameCompanyName: { isOpen: boolean; context: RenameCompanyNameContext | null };
 
    renameContactName: { isOpen: boolean; context: RenameContactNameContext | null };
+
+   editDealStatus: { isOpen: boolean; context: EditDealStatusContext | null };
+
+    companyProgress: { isOpen: boolean; context: CompanyProgressContext | null };
 
 
 };
@@ -109,6 +163,16 @@ type DialogActions = {
   openNewTaskDialog: (context?: NewTaskContext) => void;
   closeNewTaskDialog: () => void;
 
+  // --- NEW DIALOG ACTIONS ---
+  // 5. Actions for the new Estimation task dialogs.
+  openNewEstimationTaskDialog: (context?: EstimationTaskContext) => void;
+  closeNewEstimationTaskDialog: () => void;
+  openEditEstimationTaskDialog: (context: EditEstimationTaskContext) => void;
+  closeEditEstimationTaskDialog: () => void;
+  // 6. Actions for the Admin's selection dialog.
+  openSelectTaskProfileDialog: (context: SelectTaskProfileContext) => void;
+  closeSelectTaskProfileDialog: () => void;
+  // --- END OF NEW DIALOG ACTIONS ---
 
   openEditCompanyDialog: (context: EditCompanyContext) => void;
   closeEditCompanyDialog: () => void;
@@ -140,6 +204,14 @@ closeNewUserDialog: () => void;
     openRenameContactNameDialog: (context: RenameContactNameContext) => void;
   closeRenameContactNameDialog: () => void;
 
+  openEditDealStatusDialog: (context: EditDealStatusContext) => void;
+  closeEditDealStatusDialog: () => void;
+
+
+    // --- NEW: Company Progress Dialog Actions ---
+    openCompanyProgressDialog: (context: CompanyProgressContext) => void;
+    closeCompanyProgressDialog: () => void;
+
 };
 
 const initialState: DialogState = {
@@ -147,6 +219,12 @@ const initialState: DialogState = {
   newContact: { isOpen: false, context: {} },
   newBoq: { isOpen: false, context: {} },
   newTask: { isOpen: false, context: {} },
+
+  // --- NEW INITIAL STATES ---
+  newEstimationTask: { isOpen: false, context: {} },
+  editEstimationTask: { isOpen: false, context: { taskData: null, mode: 'edit' } },
+  selectTaskProfileDialog: { isOpen: false, context: { originalContext: {}, onSelect: () => { } } },
+  // --- END NEW INITIAL STATES ---
 
   editCompany: { isOpen: false, context: { companyData: null } },
   editContact: { isOpen: false, context: { contactData: null } },
@@ -169,6 +247,10 @@ const initialState: DialogState = {
   renameCompanyName: { isOpen: false, context: null },
 
   renameContactName: { isOpen: false, context: null },
+
+  editDealStatus: { isOpen: false, context: null },
+
+   companyProgress: { isOpen: false, context: null },
 
 
 };
@@ -242,7 +324,24 @@ closeNewUserDialog: () => set({ newUser: { isOpen: false } }),
     openRenameContactNameDialog: (context) => set({ renameContactName: { isOpen: true, context } }),
   closeRenameContactNameDialog: () => set({ renameContactName: { isOpen: false, context: null } }),
 
+    // --- NEW: Edit Deal Status Dialog Implementation ---
+  openEditDealStatusDialog: (context) => set({ editDealStatus: { isOpen: true, context } }),
+  closeEditDealStatusDialog: () => set({ editDealStatus: { isOpen: false, context: null } }),
 
+  // --- NEW: Company Progress Dialog Implementation ---
+  openCompanyProgressDialog: (context) => set({ companyProgress: { isOpen: true, context } }),
+    closeCompanyProgressDialog: () => set({ companyProgress: { isOpen: false, context: null } }),
+
+
+  // --- NEW DIALOG ACTION IMPLEMENTATIONS ---
+  // 7. Implement the actions for the new dialogs.
+  openNewEstimationTaskDialog: (context = {}) => set({ newEstimationTask: { isOpen: true, context } }),
+  closeNewEstimationTaskDialog: () => set((state) => ({ newEstimationTask: { ...state.newEstimationTask, isOpen: false } })),
+  openEditEstimationTaskDialog: (context) => set({ editEstimationTask: { isOpen: true, context } }),
+  closeEditEstimationTaskDialog: () => set((state) => ({ editEstimationTask: { ...state.editEstimationTask, isOpen: false } })),
+  openSelectTaskProfileDialog: (context) => set({ selectTaskProfileDialog: { isOpen: true, context } }),
+  closeSelectTaskProfileDialog: () => set((state) => ({ selectTaskProfileDialog: { ...state.selectTaskProfileDialog, isOpen: false } })),
+  // --- END OF NEW DIALOG ACTION IMPLEMENTATIONS ---
 
 }));
 

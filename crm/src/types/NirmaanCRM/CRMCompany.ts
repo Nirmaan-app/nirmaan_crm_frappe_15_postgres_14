@@ -1,5 +1,5 @@
 
-export interface CRMCompany {
+export interface CRMCompany{
 	name: string
 	creation: string
 	modified: string
@@ -22,4 +22,12 @@ export interface CRMCompany {
 	assigned_sales?: string
 	/**	Last Meeting : Date	*/
 	last_meeting?: string
+	/**	Priority : Data	*/
+	priority?: string
+	/**	Expected BOQ Count : Int	*/
+	expected_boq_count?: number
+	/**	Team Size : Data	*/
+	team_size?: string
+	/**	Projects Per Month : Data	*/
+	projects_per_month?: string
 }

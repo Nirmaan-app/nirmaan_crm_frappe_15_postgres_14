@@ -9,13 +9,16 @@ import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDialogStore } from "@/store/dialogStore";
+import { ArrowLeft, SquarePen, ChevronRight, Plus } from "lucide-react";
+
+
 
 
 // Import the new child components
 import { ContactDetailsCard } from "./ContactDetailsCard";
 import { ContactSubPages } from "./ContactSubPages";
 
-import { useDialogStore } from "@/store/dialogStore";
 
 export const Contact = () => {
     const navigate = useNavigate();
@@ -23,7 +26,7 @@ export const Contact = () => {
     const [id] = useStateSyncedWithParams<string>("id", "");
     
     // Using Zustand for edit dialog, but keeping delete local for simplicity
-    const { editContact } = useDialogStore();
+    const { editContact,openEditContactDialog } = useDialogStore();
     const [deleteDialog, setDeleteDialog] = useState(false);
 
     // --- Data Fetching ---
@@ -33,7 +36,7 @@ export const Contact = () => {
 
     const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: id }, fields: ["*"], limit: 0,orderBy: { field: "creation", order: "asc"}, },`all-boqs-filterbyContact-id${id}`);
 
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {   fields: ["name", "status","start_date", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation","remarks"], limit: 0, filters: { contact: id }, orderBy: { field: "start_date", order: "asc"}, },`all-tasks-filterbyContact-id${id}`);
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", {   fields: ["name", "status","start_date", "type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation","remarks"], limit: 0, filters: { contact: id }, orderBy: { field: "start_date", order: "desc"}, },`all-tasks-filterbyContact-id${id}`);
 
     // console.log("tasksList",tasksList)
 
@@ -57,8 +60,34 @@ export const Contact = () => {
         return <div>Loading Contact Details...</div>;
     }
 
+     const handleBackToCompanysList = () => {
+        // Construct the path back to /boqs, including statusTab if it exists
+
+        navigate(-1);
+    };
+
+
+    // openEditContactDialog({ contactData: contactData })
     return (
-        <div className="space-y-6">
+         <div className="flex flex-col h-full max-h-screen overflow-y-auto space-y-2">
+
+            <div className="sticky top-0 z-20 bg-background p-2 flex items-center justify-between flex-shrink-0">
+                        
+                                        <div className="flex items-center gap-4"> {/* Added a container for back button and header */}
+                                            <Button variant="ghost" size="icon" onClick={handleBackToCompanysList} aria-label="Back to Company List" className="hidden md:inline-flex">
+                                                <div className="bg-destructive text-black font-bold p-2 rounded-full">
+                                                    <ArrowLeft className="w-8 h-8" />
+                                                </div>
+                                            </Button>
+                                            <h1 className="text-md md:text-2xl font-bold ">{`${contactData?.first_name || ''} ${contactData?.last_name || ''}`}Details</h1> {/* Main title for the page */}
+                                        </div>
+                        
+                                        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => openEditContactDialog({ contactData: contactData })}>
+                                            <SquarePen className="w-4 h-4 mr-2" />
+                                            EDIT
+                                        </Button>
+                            </div>
+
             <ContactDetailsCard
                 contact={contactData}
                 company={companyData}

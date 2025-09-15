@@ -1,27 +1,43 @@
-export interface CRMPBOQ{
-  name: string
-	boq_name: string
+
+export interface CRMBOQ{
+	name: string
 	creation: string
 	modified: string
 	owner: string
 	modified_by: string
 	docstatus: 0 | 1 | 2
+	parent?: string
+	parentfield?: string
+	parenttype?: string
 	idx?: number
-	/**	Company Id : Link - CRM Company	*/
-	boq_company?: string
-	/**	Contact Id : Link - CRM Contacts	*/
-	boq_contact?: string
-	/**	Project Location : Data	*/
-	boq_location?: string
-	/**	Project Size : Data	*/
+	/**	Company : Link - CRM Company	*/
+	company?: string
+	/**	Contact : Link - CRM Contacts	*/
+	contact?: string
+	/**	BOQ Name : Data	*/
+	boq_name?: string
+	/**	BOQ Size : Data	*/
 	boq_size?: string
-	/**	Project Type : Data	*/
+	/**	BOQ Type : Data	*/
 	boq_type?: string
-  /** Project Packages: Data */
-  boq_packages?: string
-	/** Project Status: Data */
-	boq_status? : string
-	/** BOQ Date: Datetime */
-	boq_date? : string
-
+	/**	BOQ Value : Data	*/
+	boq_value?: string
+	/**	BOQ Submission Date : Date	*/
+	boq_submission_date?: string
+	/**	BOQ Link : Data	*/
+	boq_link?: string
+	/**	City : Data	*/
+	city?: string
+	/**	Remarks : Text	*/
+	remarks?: string
+	/**	BOQ Status : Data	*/
+	boq_status?: string
+	/**	BOQ Sub Status : Data	*/
+	boq_sub_status?: string
+	/**	Assigned Sales : Data	*/
+	assigned_sales?: string
+	/**	Assigned Estimations : Data	*/
+	assigned_estimations?: string
+	/**	Deal Status : Data	*/
+	deal_status?: string
 }

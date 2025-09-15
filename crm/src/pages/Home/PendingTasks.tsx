@@ -27,12 +27,24 @@ const PendingTaskRow = ({ task }: { task: EnrichedCRMTask }) => {
                 <span>
                     <div className="flex">
                         <TaskStatusIcon status={task.status} className="mr-1 flex-shrink-0" />
-                        <div>
+                        {task.task_profile==="Sales"?(
+                        <div> 
+                            
                             <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "} from {task?.company_name} {" "}
                             <p className="text-xs inline-block text-muted-foreground p-0 m-0">
                                {formatCasualDate(task.start_date)}
                             </p>
                         </div>
+                        ):(
+                            <div>
+                            
+                            <span className="font-semibold">{task?.type}</span> for <span className="font-semibold"> {task?.boq} {" "}</span>
+                            <p className="text-xs inline-block text-muted-foreground p-0 m-0">
+                               {formatCasualDate(task.start_date)}
+                            </p>
+                        </div>
+                        )}
+                        
                     </div>
                 </span>
                 <Button variant="outline" size="sm" onClick={() => openEditTaskDialog({ taskData: task, mode: 'updateStatus' })}>

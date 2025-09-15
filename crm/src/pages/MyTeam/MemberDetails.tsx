@@ -25,7 +25,7 @@ export const MemberDetails = ({ memberId }) => {
         filters: [['assigned_sales', '=', memberEmail]],
         limit: 0,
         // Only fetch tasks if the user is a Sales user.
-        orderBy: { field: "start_date", order: "asc" },
+        orderBy: { field: "start_date", order: "desc" },
         // enabled: !!memberEmail && memberRole === 'Nirmaan Sales User Profile'
     }, `all-tasks-for-member-${memberEmail}`);
 
