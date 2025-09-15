@@ -21,6 +21,8 @@ import { RenameContactName } from "@/pages/Contacts/forms/RenameContactName";
 
 import { EditDealStatusForm } from "@/pages/BOQS/forms/EditBoqDealStatusForm";
 
+import {CompanyProgressForm} from "@/pages/Companies/forms/CompanyProgressForm"
+
 export const MainDialogs = () => {
     const {
         newCompany, closeNewCompanyDialog,
@@ -47,6 +49,9 @@ export const MainDialogs = () => {
          renameContactName, closeRenameContactNameDialog,
 
          editDealStatus, closeEditDealStatusDialog,
+         // --- NEW: Destructure the companyProgress state and close action ---
+        companyProgress, closeCompanyProgressDialog,
+
     } = useDialogStore();
 
     // Helper to generate a dynamic title
@@ -67,6 +72,24 @@ export const MainDialogs = () => {
         if (mode === 'scheduleNext') return 'Schedule New Task';
         return 'Task';
     };
+
+     const getCompanyProgressTitle = () => {
+        if (!companyProgress.context || !companyProgress.context.companyId) {
+            return "Update Company Progress"; // Fallback
+        }
+        // If progressData exists and has a parent_company, we can use that for context
+        // Otherwise, we just use the companyId (Frappe 'name')
+        const companyIdentifier = companyProgress.context.progressData || companyProgress.context.companyId;
+
+        if (companyProgress.context.progressData) {
+            // If editing, use the linked company's name for clarity
+            return `Edit Progress for ${companyIdentifier}`;
+        }
+        // If creating new progress, use the companyId for context
+        return `Add Progress for ${companyIdentifier}`;
+    };
+
+
 
     return (
         <>
@@ -276,6 +299,24 @@ export const MainDialogs = () => {
                  )}
              </ReusableFormDialog>
 
+
+               <ReusableFormDialog
+                isOpen={companyProgress.isOpen}
+                onClose={closeCompanyProgressDialog}
+                title={getCompanyProgressTitle()}
+                className="max-w-lg"
+            >
+                {/* Conditionally render the form only when context (specifically companyId) is available */}
+                {companyProgress.context?.companyId ? (
+                    <CompanyProgressForm
+                        companyId={companyProgress.context.companyId} // Pass companyId directly
+                        initialData={companyProgress.context.progressData}
+                        onSuccess={closeCompanyProgressDialog}
+                    />
+                ) : (
+                    <p className="text-destructive">Error: Company ID missing for progress update.</p>
+                )}
+            </ReusableFormDialog>
 
         </>
     );

@@ -6,6 +6,8 @@ import { SquarePen } from "lucide-react";
 import { useDialogStore } from "@/store/dialogStore"; 
 import { formatDate, formatTime12Hour,formatDateWithOrdinal } from "@/utils/FormatDate";
 import {useUserRoleLists} from "@/hooks/useUserRoleLists"
+import { ArrowLeft,ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 
 interface CompanyDetailsCardProps {
@@ -17,6 +19,7 @@ interface CompanyDetailsCardProps {
 
 export const CompanyDetailsCard = ({ company, totalProjects, totalContacts,activeProjects }: CompanyDetailsCardProps) => {
   const { openEditCompanyDialog,openRenameCompanyNameDialog } = useDialogStore();
+    const navigate = useNavigate();
    if (!company) {
         return null; // Or a loading skeleton
     }
@@ -36,11 +39,25 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts,activ
               }
           };
       
+           const handleBackToCompanysList = () => {
+    // Construct the path back to /boqs, including statusTab if it exists
+   
+    navigate("/companies");
+};
 
     return (
         <div>
             <div className="flex justify-between items-center mb-2">
-                <h2 className="text-lg font-semibold">Company Details</h2>
+                
+                <div className="flex items-center gap-4 mb-4"> {/* Added a container for back button and header */}
+                               <Button variant="ghost" size="icon" onClick={handleBackToCompanysList} aria-label="Back to Company List">
+  <div className="bg-destructive text-black font-bold p-2 rounded-full">
+    <ArrowLeft className="w-8 h-8" />
+  </div>
+</Button>
+                                <h1 className="text-2xl font-bold">Company Details</h1> {/* Main title for the page */}
+                            </div>
+              
                 <Button variant="ghost" size="sm" className="text-destructive" onClick={() => openEditCompanyDialog({ companyData: company })}>
                     <SquarePen className="w-4 h-4 mr-2" />
                     EDIT
@@ -93,6 +110,14 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts,activ
                            <div className="text-right">
                         <p className="text-xs text-muted-foreground">Assigned Sales</p>
                         <p className="font-bold text-sm">{getUserFullNameByEmail(company?.assigned_sales) ||"N/A"}</p>
+                    </div>
+                     <div>
+                        <p className="text-xs text-muted-foreground">Projects Per Month</p>
+                        <p className="font-bold text-lg">{company?.projects_per_month ||"N/A"}</p>
+                    </div>
+                           <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Team Size</p>
+                        <p className="font-bold text-sm">{getUserFullNameByEmail(company?.team_size) ||"N/A"}</p>
                     </div>
                 </div>
             </div>

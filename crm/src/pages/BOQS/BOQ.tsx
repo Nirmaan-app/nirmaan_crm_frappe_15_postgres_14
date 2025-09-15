@@ -8,9 +8,8 @@ import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { CRMNote } from "@/types/NirmaanCRM/CRMNote";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { useFrappeGetDoc, useFrappeGetDocList, useSWRConfig, useFrappeUpdateDoc } from "frappe-react-sdk";
-import { ChevronDown, ChevronRight, Plus, SquarePen } from "lucide-react";
+import {ArrowLeft, ChevronDown,ChevronLeft, ChevronRight, Plus, SquarePen } from "lucide-react";
 import React, { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -23,6 +22,7 @@ import { useViewport } from "@/hooks/useViewPort";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { parse, isValid } from 'date-fns';
 import { BoqDealStatusCard } from "./components/BoqDealStatusCard";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 
 // --- SUB-COMPONENT 1: Header ---
@@ -688,8 +688,12 @@ export default BoqSubmissionHistory; // Ensure it's exported for use elsewhere
 
 // --- MAIN ORCHESTRATOR COMPONENT ---
 export const BOQ = () => {
+    const navigate = useNavigate(); // For navigation
+
     const [id] = useStateSyncedWithParams<string>("id", "");
     const role = localStorage.getItem('role');
+     const [searchParams] = useSearchParams(); // To read URL query parameters
+    const statusTab = searchParams.get('statusTab'); // Get the 'statusTab' value
 
 
     const { data: boqData, isLoading: boqLoading } = useFrappeGetDoc<CRMBOQ>("CRM BOQ", id, `BOQ/${id}`);
@@ -718,8 +722,24 @@ export const BOQ = () => {
         return <div>BOQ not found.</div>;
     }
     // console.log("boq data", boqData)
+    const handleBackToBoqsList = () => {
+    // Construct the path back to /boqs, including statusTab if it exists
+    const path = statusTab ? `/boqs?statusTab=${encodeURIComponent(statusTab)}` : '/boqs';
+    navigate(path);
+};
+
     return (
         <div className="space-y-6">
+
+            <div className="flex items-center gap-4 mb-4"> {/* Added a container for back button and header */}
+                <Button variant="ghost" size="icon" onClick={handleBackToBoqsList} aria-label="Back to Company List">
+  <div className="bg-destructive text-black font-bold p-2 rounded-full">
+    <ArrowLeft className="w-8 h-8" />
+  </div>
+</Button>
+                <h1 className="text-2xl font-bold">BOQ Details</h1> {/* Main title for the page */}
+            </div>
+
             <BoqDetailsHeader boq={boqData} />
 
             

@@ -1,3 +1,4 @@
+
 // src/components/table/data-table-faceted-filter.tsx
 import * as React from 'react';
 import { Column } from '@tanstack/react-table';

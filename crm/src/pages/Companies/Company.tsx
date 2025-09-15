@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { CompanyDetailsCard } from "./CompanyDetailsCard";
 import { DynamicCompanyStats } from "./DynamicCompanyStats";
 import { CompanySubPages } from "./CompanySubPages";
+import {CompanyProgressCard} from "./components/CompanyProgressCard"
 // Assume you have an EditCompanyForm component for the dialog
 // import { EditCompanyForm } from "./EditCompanyForm"; 
 
@@ -108,7 +109,7 @@ const active=activeProjectsfilter()
                 totalContacts={contactsList?.length || 0}
                 activeProjects={active?.length||0}
             />
-
+  {companyData && <CompanyProgressCard company={companyData} />} {/* Render the new card here */}
                   
             {id && <DynamicCompanyStats companyId={id} />}
 

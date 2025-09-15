@@ -18,6 +18,13 @@ import { create } from 'zustand';
      // Add other relevant fields for BOQ here
  }
  
+ export interface CRMCompanyProgress { // Export this if it's used elsewhere
+    name?: string; // Frappe name (doc.name) of the Company Progress document (optional for new)
+   
+    priority?: string;
+    expected_boq_count?: number;
+}
+
 
 
 // Context types define what data each dialog can receive
@@ -66,6 +73,12 @@ type EditDealStatusContext = {
 };
 
 
+// --- NEW: Context for CompanyProgressForm ---
+type CompanyProgressContext = {
+    companyId: string; // The Frappe 'name' (ID) of the CRM Company
+    progressData?: CRMCompanyProgress | null; // Optional: existing progress data if editing
+};
+
 
 // The state now just holds the isOpen flag and the context data
 type DialogState = {
@@ -98,6 +111,8 @@ type DialogState = {
    renameContactName: { isOpen: boolean; context: RenameContactNameContext | null };
 
    editDealStatus: { isOpen: boolean; context: EditDealStatusContext | null };
+
+    companyProgress: { isOpen: boolean; context: CompanyProgressContext | null };
 
 
 };
@@ -161,6 +176,11 @@ closeNewUserDialog: () => void;
   openEditDealStatusDialog: (context: EditDealStatusContext) => void;
   closeEditDealStatusDialog: () => void;
 
+
+    // --- NEW: Company Progress Dialog Actions ---
+    openCompanyProgressDialog: (context: CompanyProgressContext) => void;
+    closeCompanyProgressDialog: () => void;
+
 };
 
 const initialState: DialogState = {
@@ -192,6 +212,8 @@ const initialState: DialogState = {
   renameContactName: { isOpen: false, context: null },
 
   editDealStatus: { isOpen: false, context: null },
+
+   companyProgress: { isOpen: false, context: null },
 
 
 };
@@ -268,6 +290,10 @@ closeNewUserDialog: () => set({ newUser: { isOpen: false } }),
     // --- NEW: Edit Deal Status Dialog Implementation ---
   openEditDealStatusDialog: (context) => set({ editDealStatus: { isOpen: true, context } }),
   closeEditDealStatusDialog: () => set({ editDealStatus: { isOpen: false, context: null } }),
+
+  // --- NEW: Company Progress Dialog Implementation ---
+  openCompanyProgressDialog: (context) => set({ companyProgress: { isOpen: true, context } }),
+    closeCompanyProgressDialog: () => set({ companyProgress: { isOpen: false, context: null } }),
 
 
 

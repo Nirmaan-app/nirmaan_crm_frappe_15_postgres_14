@@ -21,6 +21,11 @@ import { ReusableCompanyTypeDialog } from "@/components/ui/ReusableDialogs";
 
 import { useViewport } from "@/hooks/useViewPort"; // --- NEW: Import useViewport ---
 import { Plus } from "lucide-react"; // --- NEW: Import Plus icon ---
+import {TeamSizeOptions} from "@/constants/dropdownData";
+
+
+
+
 
 // Zod Schema based on your Frappe Doctype and UI Mockup
 const companyFormSchema = z.object({
@@ -32,7 +37,19 @@ company_name: z.string()
    other_company_city: z.string().optional(), 
   company_type: z.string().min(1, "Company type is required"),
    company_website: z.string().optional(),
-  assigned_sales: z.string().optional()
+  assigned_sales: z.string().optional(),
+    team_size: z.enum(TeamSizeOptions.map(opt => opt.value)).optional().nullable()
+                 .transform(e => e === null ? undefined : e),
+
+  // projects_per_month remains a number
+  projects_per_month: z.union([
+      z.number().min(0, "Projects per month cannot be negative"),
+      z.literal(NaN),
+      z.null()
+  ]).optional()
+    .transform(e => (e === NaN || e === null || e === undefined) ? undefined : Number(e)),
+
+  
 }).superRefine((data, ctx) => {
     // --- Custom validation for 'Other' city option ---
     if (data.company_city === "Others" && (!data.other_company_city || data.other_company_city.trim() === "")) {
@@ -59,6 +76,8 @@ company_name: z.string()
         }
     }
 });
+
+
 
 
 type CompanyFormValues = z.infer<typeof companyFormSchema>;
@@ -107,6 +126,8 @@ const { data: allCompanies } = useFrappeGetDocList("CRM Company", {
       company_type: "",
       company_website: "",
       assigned_sales: "",
+       team_size: undefined, // Changed to undefined for ReactSelect
+    projects_per_month: undefined,
     },
   });
 
@@ -125,12 +146,18 @@ const { data: allCompanies } = useFrappeGetDocList("CRM Company", {
         company_type: initialData.company_type || "",
         company_website: initialData.company_website || "",
         assigned_sales: initialData.assigned_sales || "",
+              // --- NEW: Pre-fill new fields in edit mode ---
+      team_size: initialData.team_size ?? undefined, // Should now be the string value or null/undefined
+      projects_per_month: initialData.projects_per_month ?? undefined,
+
       });
     }else {
         // Reset default for new forms
         form.reset({
             company_name: "", company_city: "", other_company_city: "",
             company_type: "", company_website: "", assigned_sales: "",
+            team_size: undefined, // Reset to undefined
+      projects_per_month: undefined,
         });
     }
   }, [isEditMode, initialData, form]);
@@ -320,6 +347,51 @@ const onSubmit = async (values: CompanyFormValues) => {
                     )}
                 />
         )}
+        
+<FormField
+  control={form.control}
+  name="team_size"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Team Size</FormLabel>
+      <FormControl>
+        <ReactSelect
+          options={TeamSizeOptions} // Use the defined options
+          value={TeamSizeOptions.find(opt => opt.value === field.value) || null} // Find current value
+          onChange={val => field.onChange(val ? val.value : undefined)} // Update field with selected value
+          placeholder="Select Team Size"
+          isClearable={true} // Allow clearing the selection
+          menuPosition={'auto'}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
+{/* projects_per_month field remains as it was */}
+<FormField
+  control={form.control}
+  name="projects_per_month"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Projects Per Month</FormLabel>
+      <FormControl>
+        <Input
+          type="number"
+          placeholder="e.g. 5"
+          {...field}
+          onChange={(e) => {
+            const value = e.target.value;
+            field.onChange(value === "" ? undefined : Number(value));
+          }}
+          value={field.value ?? ""}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
         {/* Website is no longer required but still here */}
         <FormField
           control={form.control}
