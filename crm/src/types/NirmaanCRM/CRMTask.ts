@@ -16,14 +16,16 @@ export interface CRMTask{
 	contact?: string
 	/**	BOQ : Link - CRM BOQ	*/
 	boq?: string
+	/**	Task Profile : Data	*/
+	task_profile?: string
+	/**	Assigned Sales : Data	*/
+	assigned_sales?: string
 	/**	Title : Data	*/
 	title?: string
 	/**	Type : Data	*/
 	type?: string
 	/**	Date : Date	*/
 	start_date?: string
-	/**	Assigned Sales : Data	*/
-	assigned_sales?: string
 	/**	Status : Data	*/
 	status?: string
 	/**	Reason : Data	*/
