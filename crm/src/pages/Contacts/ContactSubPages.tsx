@@ -42,7 +42,7 @@ const BoqList = ({ boqs }: { boqs: CRMBOQ[] }) => {
                             key={boq.name}
                             // --- 3. IMPLEMENT CONDITIONAL NAVIGATION ---
                             onClick={() => {
-                                const path = isMobile ? `/boqs/boq?id=${boq.name}` : `/boqs?id=${boq.name}`;
+                                const path = `/boqs/boq?id=${boq.name}`
                                 navigate(path);
                             }}
                             className="cursor-pointer"
@@ -93,7 +93,7 @@ const TaskList = ({ tasks }: { tasks: CRMTask[] }) => {
                 <TableBody>
                     {tasks.length > 0 ? (
                         tasks.map((task) => (
-                            <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
+                            <TableRow key={task.name} onClick={() => navigate(`/tasks/task?id=${task.name}`)} className="cursor-pointer">
 
                                 {/* --- MOBILE & DESKTOP: Combined Cell --- */}
                                 <TableCell>

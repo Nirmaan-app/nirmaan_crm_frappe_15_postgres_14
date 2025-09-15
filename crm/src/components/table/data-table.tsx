@@ -1,4 +1,3 @@
-
 // src/components/table/data-table.tsx
 import * as React from "react";
 import {
@@ -118,8 +117,8 @@ export function DataTable<TData>({
   };
 
   return (
-    <div className={cn("bg-background p-4 rounded-xl border flex flex-col", className)}>
-      {headerTitle && <h2 className="font-semibold text-lg mb-4">{headerTitle} - {isLoading ? '...' : filteredRowsCount}</h2>}
+    <div className={cn("bg-background p-2 border rounded-md  flex flex-col", className)}>
+      {headerTitle && <h2 className="font-semibold text-lg mb-2">{headerTitle} - {isLoading ? '...' : filteredRowsCount}</h2>}
 
       {renderTopToolbarActions && ( // NEW: Render top toolbar actions if provided
         <div className="mb-4 flex-shrink-0">
@@ -128,7 +127,7 @@ export function DataTable<TData>({
       )}
 
       {/* Main Toolbar: Search and Reset Filters */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-4 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-2 flex-shrink-0">
         <div className="relative w-full md:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
@@ -198,7 +197,7 @@ export function DataTable<TData>({
 
               <div
                 onClick={() => onRowClick?.(row)}
-                className={cn("hidden md:grid md:items-center md:p-0 md:py-3 md:px-2 md:border-none md:border-b md:rounded-none cursor-pointer hover:bg-muted/50 transition-colors", gridColsClass)}
+                className={cn("hidden md:grid md:items-center md:p-0 md:py-2 md:px-2 md:border-none md:border-b md:rounded-none cursor-pointer hover:bg-muted/50 transition-colors", gridColsClass)}
               >
                 {row.getVisibleCells().map(cell => (
                   <div key={cell.id} className="text-left">

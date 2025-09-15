@@ -91,14 +91,7 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-2">
-                <h2 className="text-lg font-semibold">Contact Details</h2>
-                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => openEditContactDialog({ contactData: contact })}>
-                    <SquarePen className="w-4 h-4 mr-2" />
-                    EDIT
-                </Button>
-            </div>
-
+            
             <div className="bg-background p-4 rounded-lg border shadow-sm space-y-4">
                 <div className="grid grid-cols-2 gap-y-4 gap-x-20">
                     <DetailDisplayItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} />

@@ -43,7 +43,7 @@ export const BoqDealStatusCard = ({ boq }: BoqDealStatusCardProps) => {
             {/* Left side: Deal Status */}
             <div>
                 <p className="text-sm text-muted-foreground">Deal Status : <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getDealStatusClass(boq.deal_status)}`}>
-                    {boq.deal_status}
+                    {boq.deal_status||"N/A"}
                 </span></p>
                 
             </div>

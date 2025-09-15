@@ -134,6 +134,9 @@ const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
         <>
             <Card className="mt-4 p-0">
                 <CardContent className="p-0">
+                    
+            <div className="max-h-[310px] overflow-y-auto border rounded-md">
+
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -153,7 +156,8 @@ const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
                                 <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
                             </TableRow>
                         </TableHeader>
-                        <TableBody>
+                        
+                        <TableBody >
                             {tasks.length > 0 ? (
                                 tasks.map((task) => (
                                     <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
@@ -208,6 +212,7 @@ const TaskHistory = ({ tasks }: { tasks: CRMTask[] }) => {
                             )}
                         </TableBody>
                     </Table>
+                    </div>
                 </CardContent>
             </Card>
         </>

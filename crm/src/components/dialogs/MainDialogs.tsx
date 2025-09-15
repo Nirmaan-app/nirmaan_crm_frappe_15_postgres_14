@@ -46,9 +46,9 @@ export const MainDialogs = () => {
         renameBoqName, closeRenameBoqNameDialog,
         renameCompanyName, closeRenameCompanyNameDialog,
 
-         renameContactName, closeRenameContactNameDialog,
+        renameContactName, closeRenameContactNameDialog,
 
-         editDealStatus, closeEditDealStatusDialog,
+        editDealStatus, closeEditDealStatusDialog,
          // --- NEW: Destructure the companyProgress state and close action ---
         companyProgress, closeCompanyProgressDialog,
 
@@ -79,9 +79,10 @@ export const MainDialogs = () => {
         }
         // If progressData exists and has a parent_company, we can use that for context
         // Otherwise, we just use the companyId (Frappe 'name')
-        const companyIdentifier = companyProgress.context.progressData || companyProgress.context.companyId;
+        console.log("companyProgress",companyProgress)
+        const companyIdentifier = companyProgress.context.companyId || companyProgress.context.companyId;
 
-        if (companyProgress.context.progressData) {
+        if (companyProgress?.context.progressData?.expected_boq_count) {
             // If editing, use the linked company's name for clarity
             return `Edit Progress for ${companyIdentifier}`;
         }

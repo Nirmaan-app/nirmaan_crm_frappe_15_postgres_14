@@ -29,7 +29,7 @@ export const AppLayout = () => {
 		return (
 			<div className="flex flex-col h-dvh">
 				<MobileNavBar title={title} showBackButton={showBackButton} />
-				<main className="mt-14 mb-20 flex-1 overflow-y-auto px-3 py-4">
+				<main className="mt-14 mb-20 flex-1 overflow-y-auto px-3 py-1">
 					<Outlet />
 				</main>
 				<BottomBar/>
@@ -53,7 +53,7 @@ export const AppLayout = () => {
 
 				{/* --- THIS IS THE KEY CHANGE --- */}
 				{/* The main content area now only accounts for the sidebar's width. */}
-				<main className={`overflow-y-auto max-h-[calc(100vh-var(--navbar-height))] px-10 py-8 flex-1 ml-[var(--sidebar-width)]`}>
+				<main className={`overflow-y-auto max-h-[calc(100vh-var(--navbar-height))] px-10 py-2 flex-1 ml-[var(--sidebar-width)]`}>
 					{/* The header inside the main content is removed as pages like Companies/BOQs now control their own titles and buttons */}
 					<Outlet />
 				</main>

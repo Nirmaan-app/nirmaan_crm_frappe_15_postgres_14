@@ -78,7 +78,7 @@ export const BoqTableView = ({
         fields: ["*"],
         limit: 0,
         orderBy: { field: 'modified', order: 'desc' },
-    }, "boq-list-all-view");
+    }, "all-boqs-all-view");
 
 
     // --- Memoized Filter Options (derived from the fetched `boqs` data) ---
@@ -133,7 +133,7 @@ export const BoqTableView = ({
     const columns = useMemo<DataTableColumnDef<BOQ>[]>(() => [
         {
             accessorKey: "boq_name",
-            meta: { title: "Project Name", filterVariant: 'select', enableSorting: true, filterOptions: projectNamesOptions },
+            meta: { title: "Project Name",enableSorting: true },
             cell: ({ row }) => (
                 <Link to={`/boqs/boq?id=${row.original.name}&statusTab=${activeTabStatus}`} className="text-primary font-semibold hover:underline text-left">
                     {row.original.boq_name}
@@ -145,6 +145,8 @@ export const BoqTableView = ({
             accessorKey: "company",
             meta: { title: "Company Name", filterVariant: 'select', enableSorting: true, filterOptions: companyOptions },
             cell: ({ row }) => <span className="text-left">{row.original.company || '--'}</span>,
+            filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+            enableSorting: true,
             
         },
         {
@@ -155,6 +157,8 @@ export const BoqTableView = ({
                     {row.original.boq_status}
                 </span>
             ),
+            filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+            enableSorting: true,
             
         },
         {
@@ -167,6 +171,8 @@ export const BoqTableView = ({
                     </span>
                 ) : '--'
             ),
+            filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+            enableSorting: true,
             
         },
         // If 'deal_status' is a real field, add it here:
@@ -192,12 +198,14 @@ export const BoqTableView = ({
             accessorKey: "deal_status", // Filter for sub_status
             meta: { title: "Deal Status", filterVariant: 'select', enableSorting: true, filterOptions: dealStatusOptions }, // Using NEW subStatusOptions
             cell: ({ row }) => (
-                row.original.boq_sub_status ? (
+                row.original.deal_status ? (
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(row.original.deal_status)}`}>
                         {row.original.deal_status}
                     </span>
                 ) : '--'
             ),
+            filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+            enableSorting: true,
             
         },
         // {
