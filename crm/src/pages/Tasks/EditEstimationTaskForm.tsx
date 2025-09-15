@@ -17,6 +17,8 @@ import { estimationTaskTypeOptions } from "@/constants/dropdownData";
 import { formatDateWithOrdinal } from "@/utils/FormatDate";
 import { Calendar } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useUserRoleLists } from "@/hooks/useUserRoleLists"
+
 
 // --- CHANGE 1: Create a flexible Zod schema for all modes ---
 const editEstimationTaskSchema = z.object({
@@ -25,10 +27,22 @@ const editEstimationTaskSchema = z.object({
     remarks: z.string().optional(), // Add remarks field
     status: z.string().optional(),
     reschedule: z.boolean().optional(),
+     assigned_sales: z.string().optional(),
     // Core identifiers
     boq: z.string().optional(),
     task_profile: z.string().default("Estimates"),
-});
+}).superRefine((data,ctx)=>{
+
+     if (data.status && data.status !== 'Scheduled') {
+        if (!data.remarks || data.remarks.trim() === "") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Remarks are required.",
+            path: ['remarks'],
+          });
+        }
+      }
+})
 
 type EditEstimationTaskFormValues = z.infer<typeof editEstimationTaskSchema>;
 
@@ -46,6 +60,9 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
     // --- CHANGE 2: Get mode from context and access dialog controls ---
     const { editEstimationTask, openEditEstimationTaskDialog } = useDialogStore();
     const { taskData, mode } = editEstimationTask.context;
+     const role = localStorage.getItem("role")
+           const { estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
+     
 
     const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
     const { createDoc, loading: createLoading } = useFrappeCreateDoc(); // Add createDoc
@@ -72,6 +89,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                 start_date: taskData.start_date?.split(" ")[0] || "",
                 remarks: taskData.remarks || "",
                 boq: taskData.boq,
+                assigned_sales:taskData.assigned_sales||"",
                 task_profile: "Estimates",
             });
         } else if (mode === 'scheduleNext') {
@@ -80,6 +98,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                 start_date: "", // Clear date for the new task
                 remarks: "",      // Clear remarks
                 boq: taskData.boq,
+                assigned_sales:taskData.assigned_sales,
                 task_profile: "Estimates",
             });
         } else { // 'updateStatus'
@@ -88,6 +107,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                 remarks: "",
                 reschedule: false,
                 boq: taskData.boq,
+                assigned_sales:taskData.assigned_sales,
                 task_profile: "Estimates",
             });
         }
@@ -105,6 +125,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                     type: values.type,
                     start_date: values.start_date,
                     remarks: values.remarks,
+                    assigned_sales:values.assigned_sales
                 });
                 toast({ title: "Success!", description: "Estimation task updated." });
             } else if (mode === 'updateStatus') {
@@ -112,6 +133,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                     form.setError('status', { message: 'Status is required.' });
                     return;
                 }
+               
                 await updateDoc("CRM Task", taskData.name, {
                     status: values.status,
                     remarks: values.remarks,
@@ -136,6 +158,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                     boq: taskData.boq, // Carry over the BOQ link
                     company: taskData.company, // Carry over company
                     contact: taskData.contact, // Carry over contact
+                    assigned_sales:taskData.assigned_sales,
                     task_profile: 'Estimates',
                 });
                 toast({ title: "Success!", description: "New follow-up task scheduled." });
@@ -167,6 +190,30 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                 {/* --- CHANGE 5: Conditional UI for 'edit' and 'scheduleNext' modes --- */}
                 {(mode === 'edit' || mode === 'scheduleNext') && (
                     <>
+                    {role === "Nirmaan Admin User Profile" && (
+                                              <FormField
+                                                control={form.control}
+                                                name="assigned_sales"
+                                                render={({ field }) => (
+                                                  <FormItem>
+                                                    <FormLabel>Estimates Person:</FormLabel>
+                                                    <FormControl>
+                                                      <ReactSelect
+                                                        options={estimationUserOptions}
+                                                        value={estimationUserOptions.find(u => u.value === field.value)}
+                                                        onChange={val => field.onChange(val?.value)}
+                                                        placeholder="Select a Estimates Person..."
+                                                        isLoading={usersLoading}
+                                                        className="text-sm"
+                                                        menuPosition={'auto'}
+                                                        isOptionDisabled={(option) => option.value === field.value}
+                                                      />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                  </FormItem>
+                                                )}
+                                              />
+                                            )}
                         <FormField
                             name="type"
                             control={form.control}
@@ -179,7 +226,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                                             value={estimationTaskTypeOptions.find(t => t.value === field.value)}
                                             onChange={val => field.onChange(val?.value)}
                                             placeholder="Select Type"
-                                            menuPosition={'fixed'}
+                                            menuPosition={'auto'}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -229,7 +276,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                                             options={statusOptions}
                                             onChange={val => field.onChange(val?.value)}
                                             placeholder="Select status..."
-                                            menuPosition={'fixed'}
+                                            menuPosition={'auto'}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -241,7 +288,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                             control={form.control}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Remarks</FormLabel>
+                                    <FormLabel>Remarks <sup>*</sup></FormLabel>
                                     <FormControl>
                                         <Textarea placeholder="e.g., Awaiting final drawing from client." {...field} />
                                     </FormControl>

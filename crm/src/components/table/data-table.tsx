@@ -117,7 +117,7 @@ export function DataTable<TData>({
   };
 
   return (
-    <div className={cn("bg-background p-2 border rounded-md  flex flex-col", className)}>
+    <div className={cn("bg-background p-2 border-2 rounded-md  flex flex-col", className)}>
       {headerTitle && <h2 className="font-semibold text-lg mb-2">{headerTitle} - {isLoading ? '...' : filteredRowsCount}</h2>}
 
       {renderTopToolbarActions && ( // NEW: Render top toolbar actions if provided

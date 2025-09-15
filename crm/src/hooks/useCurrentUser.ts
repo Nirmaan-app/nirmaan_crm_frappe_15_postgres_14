@@ -75,7 +75,7 @@ export const useCurrentUser = () => {
 
 
         return {
-            user: null, user_id: 'Guest', full_name: 'Guest', user_image: undefined,
+            user: null, user_id: null, full_name: null, user_image: undefined,
             role: '', has_company: "false", isLoading: false, error: null, mutate: () => {},
         };
     }

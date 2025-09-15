@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { exportToCsv } from '@/utils/export-to-csv'; // Corrected relative import
 import { DataTableColumnDef } from './utils/table-filters'; // Corrected relative import
+import { cn } from '@/lib/utils';
 
 // Define props for the export button
 interface DataTableExportButtonProps<TData> {
@@ -30,7 +31,10 @@ export function DataTableExportButton<TData>({
       size="sm"
       onClick={handleExport}
       disabled={data.length === 0} // Disable if no data available for export
-      className="h-10 w-full md:w-auto" // Styling to match other toolbar buttons
+      className={cn(
+        "h-10 w-full md:w-auto", // Existing styling
+        "hidden md:inline-flex"    // <--- ADDED: Hide on mobile, show as inline-flex on desktop
+      )}
     >
       <Download className="mr-2 h-4 w-4" /> {/* Standard icon size for button */}
       {label}

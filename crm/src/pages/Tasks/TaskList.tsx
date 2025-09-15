@@ -596,6 +596,7 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
     // --- CHANGE 4: Refactor button action logic to use the new handler ---
     let buttonLabel: string;
     let buttonAction: () => void;
+    // console.log("context",context)
 
     if (task.status === "Completed" || task.status === "Incomplete") {
         buttonLabel = "Go To Task";
@@ -624,22 +625,34 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
     //         navigate(`/task?id=${task_id}`);
     //     }
     // };
-
     return (
         <div className="px-4"> {/* Add slight horizontal padding for better spacing */}
             <div className="flex items-center justify-between py-3">
                 <span>
                     <div className="flex">
                         <TaskStatusIcon status={task.status} className="mr-1 flex-shrink-0" />
-                        <div>
-                            <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "} from {task?.company_name} {" "}
+                        {task.task_profile==="Sales"?( <div>
+                            <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "} from 
+                            
+                            {task?.company_name} {" "}
                             <p className="text-xs inline-block text-muted-foreground p-0 m-0">
                                 {(context === "createdToday" || context === 'upcoming7Days') && (`on ${formatCasualDate(task.start_date)} `)}
                                 {/* {formatCasualDate(task.start_date)}   */}
 
 
                             </p>
-                        </div>
+                        </div>):( <div>
+                            <span className="font-semibold">{task?.type}</span> for {" "}  
+                            
+                            {task?.boq}
+                            <p className="text-xs inline-block text-muted-foreground p-0 m-0">
+                                {(context === "createdToday" || context === 'upcoming7Days') && (`on ${formatCasualDate(task.start_date)} `)}
+                                {/* {formatCasualDate(task.start_date)}   */}
+
+
+                            </p>
+                        </div>)}
+                       
                     </div>
                 </span>
                 <Button variant="outline" size="sm" onClick={buttonAction}>
@@ -721,10 +734,10 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
     const swrkey = `all-tasks-${allFilters}`
 
     const { data: tasks, taskisLoading } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
-        fields: ["name", "type", "start_date", "time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales"],
+        fields: ["name", "type", "start_date", "time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales","boq"],
         filters: allFilters,
         limit: 0,
-        orderBy: { field: "creation", order: "asc" }
+        orderBy: { field: "start_date", order: "desc" }
     }, swrkey);
 
     // console.log("TTASKS", tasks)
@@ -864,17 +877,17 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                     </AccordionItem>
                 </div>
                 {/* *** NEWLY ADDED ACCORDION ITEM *** */}
-                <div className="bg-background rounded-lg border">
+                {/* <div className="bg-background rounded-lg border">
                     <AccordionItem value="createdToday" className="border-b-0">
                         <AccordionTrigger className="px-4">Tasks created today - {createdTodayTasks.length} Tasks</AccordionTrigger>
                         <AccordionContent>
                             {createdTodayTasks.length > 0
-                                ? createdTodayTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="createdtoday" onTaskSelect={onTaskSelect} />)
+                                ? createdTodayTasks.map(task => <TaskDashboardRow key={task.name} task={task} context="createdToday" onTaskSelect={onTaskSelect} />)
                                 : <p className="text-center text-sm text-muted-foreground py-4 px-4">No tasks were created today.</p>
                             }
                         </AccordionContent>
                     </AccordionItem>
-                </div>
+                </div> */}
                 <div className="bg-background rounded-lg border">
                     <AccordionItem value="upcoming7Days" className="border-b-0">
                         <AccordionTrigger className="px-4">Upcoming 7 Days - {upcoming7DaysTasks.length} Tasks</AccordionTrigger>
@@ -901,13 +914,13 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                     isActive={activeTaskId === 'tomorrow'}
                     onClick={() => onTaskSelect({ id: 'tomorrow' })}
                 />
-                <DesktopTaskCategoryRow
+                {/* <DesktopTaskCategoryRow
                     title="Tasks Created Today"
                     count={createdTodayTasks.length}
                     // No count is passed, so it won't be rendered
                     isActive={activeTaskId === 'createdtoday'}
                     onClick={() => onTaskSelect({ id: 'createdtoday' })}
-                />
+                /> */}
                 {/* NEW: Upcoming 7 Days Desktop Category Row */}
                 {/* NEW: Upcoming 7 Days Desktop Category Row */}
                 <DesktopTaskCategoryRow

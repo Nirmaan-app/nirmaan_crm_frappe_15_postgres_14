@@ -14,12 +14,15 @@ import ReactSelect from 'react-select';
 import { useMemo } from "react";
 import { estimationTaskTypeOptions } from "@/constants/dropdownData";
 import { Textarea } from "@/components/ui/textarea";
+import { useUserRoleLists } from "@/hooks/useUserRoleLists"
+
 
 // Simplified Zod schema for the Estimation Task
 const estimationTaskFormSchema = z.object({
     boq: z.string().min(1, "BOQ is required"),
     type: z.string().min(1, "Task type is required"),
     start_date: z.string().min(1, "Date is required"),
+    assigned_sales: z.string().optional(),
     // Hidden fields that will be set automatically
     company: z.string().optional(),
     contact: z.string().optional(),
@@ -37,7 +40,10 @@ export const NewEstimationTaskForm = ({ onSuccess }: NewEstimationTaskFormProps)
     const { newEstimationTask } = useDialogStore();
     const { createDoc, loading } = useFrappeCreateDoc();
     const { mutate } = useSWRConfig();
+  const role = localStorage.getItem("role")
+
     const { boqId: boqIdFromContext } = newEstimationTask.context;
+      const { estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
 
     const form = useForm<EstimationTaskFormValues>({
         resolver: zodResolver(estimationTaskFormSchema),
@@ -61,6 +67,8 @@ export const NewEstimationTaskForm = ({ onSuccess }: NewEstimationTaskFormProps)
         enabled: !!selectedBoqId
     });
 
+
+    console.log("selectedBoqDoc",selectedBoqDoc)
     // Memoize options for the BOQ dropdown
     const boqOptions = useMemo(() =>
         boqsList?.map(b => ({ label: b.boq_name, value: b.name })) || [],
@@ -93,6 +101,29 @@ export const NewEstimationTaskForm = ({ onSuccess }: NewEstimationTaskFormProps)
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                   {role === "Nirmaan Admin User Profile" && (
+                          <FormField
+                            control={form.control}
+                            name="assigned_sales"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Estimates Person:</FormLabel>
+                                <FormControl>
+                                  <ReactSelect
+                                    options={estimationUserOptions}
+                                    value={estimationUserOptions.find(u => u.value === field.value)}
+                                    onChange={val => field.onChange(val?.value)}
+                                    placeholder="Select a Estimates Person..."
+                                    isLoading={usersLoading}
+                                    className="text-sm"
+                                    menuPosition={'auto'}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
                 <FormField
                     name="boq"
                     control={form.control}

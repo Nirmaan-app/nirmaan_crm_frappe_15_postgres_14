@@ -47,7 +47,7 @@ company_name: z.string()
       z.literal(NaN),
       z.null()
   ]).optional()
-    .transform(e => (e === NaN || e === null || e === undefined) ? undefined : Number(e)),
+    .transform(e => (e === null || e === undefined) ? undefined : Number(e)),
 
   
 }).superRefine((data, ctx) => {

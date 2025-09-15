@@ -69,10 +69,9 @@ export const LoginPage = () => {
     }
 
     // Redirect if already logged in. - NO LOGIC CHANGE
-    if (currentUser && currentUser !== 'Guest') {
-        return <Navigate to="/" replace />;
-    }
-
+    if (!currentUser) {
+        // console.error(error)
+        
     // 6. Render the login form with the new split-screen UI.
     return (
         // Main container for the split layout
@@ -163,7 +162,10 @@ export const LoginPage = () => {
                 />
             </div> */}
         </div>
-    );
+    )
+} else {
+    return <Navigate to="/"/>;
+}
 };
 // import { useAuth } from '@/auth/AuthProvider';
 // import { useFrappeAuth } from 'frappe-react-sdk'; // <-- ADD THIS

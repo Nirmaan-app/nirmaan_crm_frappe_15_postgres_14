@@ -119,7 +119,7 @@ export const useFabOptions = () => {
         } else if (pathname.startsWith('/boqs')) {
             newOptions = [{ label: "Add New BOQ", action: openNewBoqDialog }];
         } else if (pathname.startsWith('/tasks')) {
-            newOptions = [{ label: "Add New Task", action: openNewTaskDialog }];
+            newOptions = [{ label: "Add New Task", action: handleCreateTask }];
         } else if (pathname.startsWith('/team')) {
             newOptions = [{ label: "Add New CRM User", action: openNewUserDialog }];
         } else if (role === "Nirmaan Estimations User Profile" && pathname === '/') {
