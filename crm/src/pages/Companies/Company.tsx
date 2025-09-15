@@ -59,7 +59,7 @@ export const Company = () => {
                fields: ["name", "status","start_date","type", "modified", "company", "contact.first_name", "contact.last_name" ,"company.company_name","creation","remarks"],
                limit:0,
             filters: { company: id },
-            orderBy: { field: "start_date", order: "asc"},
+            orderBy: { field: "start_date", order: "desc"},
              // Directly filter tasks by the company ID
           
         },`all-tasks-filterbyCompany-id${id}`

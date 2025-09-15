@@ -10,6 +10,8 @@ import { Plus, ChevronRight } from "lucide-react";
 import { useDialogStore } from '@/store/dialogStore';
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { formatDateWithOrdinal } from "@/utils/FormatDate";
+import { useViewport } from "@/hooks/useViewPort";
+
 
 // TanStack Table Imports (needed for Row type and ColumnFiltersState)
 import { Row, ColumnFiltersState } from '@tanstack/react-table';
@@ -578,6 +580,7 @@ export const AllBOQs = () => {
             containerClassName="max-h-[300px]" // Explicitly set max-height for the scrollable table body
             gridColsClass="md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,auto]" // 7 columns for AllBOQs
             headerTitle="All BOQs"
+            
             renderToolbarActions={(filteredData) => (
                 <DataTableExportButton
                     data={filteredData}
@@ -595,6 +598,8 @@ export const AllBOQs = () => {
 // =============================================================================
 export const EstimationsHomePage = () => {
      const fullName = localStorage.getItem('fullName');
+         const { isMobile } = useViewport();
+     
 
        const {
             
@@ -626,9 +631,12 @@ export const EstimationsHomePage = () => {
       <div className="sticky top-0 z-20 bg-background px-4 py-2  flex-shrink-0">
         <div className="flex flex-wrap gap-4 justify-between items-center">
           <h1 className="text-2xl font-bold">Welcome, {fullName}!</h1>
-          <Button className="h-9 px-4 py-2" onClick={openNewBoqDialog} >
+          {!isMobile &&(
+<Button className="h-9 px-4 py-2" onClick={openNewBoqDialog} >
             <Plus className="mr-2 h-4 w-4" /> Create New BOQ
           </Button>
+          )}
+          
         </div>
       </div>
 

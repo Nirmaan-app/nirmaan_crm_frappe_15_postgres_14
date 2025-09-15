@@ -121,7 +121,7 @@ export const HomeHeader = () => {
     const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]];
     const homePageTaskSWR = `all-tasks-${JSON.stringify(homePageTaskFilter)}`;
     const { data: tasksData, isLoading: tasksLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-        fields: ["name", "type", "start_date", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name", "creation", "modified"],
+        fields: ["name", "type", "start_date", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name", "creation", "modified","task_profile"],
         filters: homePageTaskFilter,
         limit: 0,
         orderBy: {
@@ -156,7 +156,7 @@ export const HomeHeader = () => {
                 {/* --- REPLACED WITH SHADCN TABS --- */}
                 {isAdmin && ( // Only show Tabs for Admins, based on your logic
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-                        <TabsList className="grid  grid-cols-2 w-[400px]">
+                        <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
                             <TabsTrigger
                                 value="sales_review"
                                 className={cn(
@@ -190,9 +190,9 @@ export const HomeHeader = () => {
             <div className="flex-1 px-4"> {/* flex-1 allows this section to fill remaining space */}
                 {activeTab === 'sales_review' ? (
                     <div className="space-y-6"> {/* Use space-y- to manage spacing between components */}
-                    <div className="relative mt-4 mb-2 flex-shrink-0">
-                    <GlobalSearchInput className="flex-1" />
-                </div>
+                         <div className="relative mt-0 mb-0 flex-shrink-0">
+                           <GlobalSearchInput className="flex-1" />
+                       </div>
                         <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
                         <StatsGrid />
                     </div>

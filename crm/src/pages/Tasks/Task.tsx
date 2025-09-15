@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { useDialogStore } from "@/store/dialogStore";
 import { CRMBOQ, CRMCompany, CRMContacts, CRMNote, CRMTask } from "@/types/NirmaanCRM"; // Assumes an index file for types
 import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
-import { ChevronRight, SquarePen } from "lucide-react";
+import { ChevronRight, SquarePen,ArrowLeft, Plus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon'; // Import the status icon
+
 import { StatusPill } from "./TasksVariantPage";
 import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
 import { useViewport } from "@/hooks/useViewPort";
@@ -70,12 +71,12 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
     };
     return (
         <div className="bg-background p-4 rounded-lg border shadow-sm">
-            <div className="flex justify-between items-center mb-4">
+            {/* <div className="flex justify-between items-center mb-4">
 
-                {/* This is the left side */}
+                
                 <h2 className="text-lg font-semibold">Task Details</h2>
+                
 
-                {/* This is the right side, which only renders if the task is not completed */}
                 {task.status === "Scheduled" && (
                     // This inner div groups the buttons together
                     <div className="flex items-center gap-2">
@@ -99,7 +100,8 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                         </Button>
                     </div>
                 )}
-            </div>
+            </div> */}
+
             <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                 {task?.task_profile === "Sales" && <DetailItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} href={`/contacts/contact?id=${contact?.name}`} />}
                 {task?.task_profile === "Sales" && <DetailItem label="Company" value={task?.company} href={`/companies/company?id=${task?.company}`} />}
@@ -257,6 +259,9 @@ const UpdateTaskButtons = ({ task }: { task: CRMTask }) => {
 // --- MAIN ORCHESTRATOR COMPONENT ---
 export const Task = () => {
     const [id] = useStateSyncedWithParams("id", "");
+    const openTaskEditor = useTaskEditor();
+    const navigate=useNavigate()
+
 
     // Fetch the main task and all its related documents
     const { data: taskData, isLoading: taskLoading, mutate: taskMutate } = useFrappeGetDoc<CRMTask>("CRM Task", id, `all-tasks-${id}`);
@@ -289,8 +294,54 @@ export const Task = () => {
     }
     // console.log("tasks",taskData)
 
+     const handleBackToTaskList = () => {
+        // Construct the path back to /boqs, including statusTab if it exists
+
+        navigate(-1);
+    };
+
+
     return (
-        <div className="space-y-6 pb-24"> {/* Padding bottom to prevent overlap with fixed button */}
+       <div className="flex flex-col h-full max-h-screen overflow-y-auto space-y-2">
+               <div className="sticky top-0 z-20 bg-background p-2 flex items-center justify-between flex-shrink-0">
+                {/* This is the left side */}
+                
+                <div className="flex items-center gap-4"> {/* Added a container for back button and header */}
+                                <Button variant="ghost" size="icon" onClick={handleBackToTaskList} aria-label="Back to Company List" className="hidden md:inline-flex">
+                                    <div className="bg-destructive text-black font-bold p-2 rounded-full">
+                                        <ArrowLeft className="w-8 h-8" />
+                                    </div>
+                                </Button>
+                                <h1 className="text-md md:text-2xl font-bold ">Task Details</h1> {/* Main title for the page */}
+                            </div>
+                
+
+                {/* This is the right side, which only renders if the task is not completed */}
+                {taskData.status === "Scheduled" && (
+                    // This inner div groups the buttons together
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline" // Using 'outline' for a cleaner look than 'ghost' with a border
+                            size="sm"
+                            // --- CHANGE 4: Use the new handler with 'edit' mode ---
+                            onClick={() => openTaskEditor(taskData, 'edit')}
+                        >
+                            <SquarePen className="w-4 h-4 mr-2" />
+                            EDIT
+                        </Button>
+
+                        <Button
+                            variant="destructive" // Using the 'destructive' variant for the primary action button
+                            size="sm"
+                            // --- CHANGE 5: Use the new handler with 'updateStatus' mode ---
+                            onClick={() => openTaskEditor(taskData, 'updateStatus')}
+                        >
+                            Update Status
+                        </Button>
+                    </div>
+                )}
+            </div>
+
             <TaskDetailsCard task={taskData} contact={contactData} company={companyData} boq={boqData} />
             {taskData.task_profile === "Sales" && <TaskHistory tasks={historyTasks || []} />}
             {/* <TaskRemarks remarks={remarksList || []} /> */}

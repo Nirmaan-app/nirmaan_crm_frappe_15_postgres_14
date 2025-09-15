@@ -9,26 +9,31 @@ import { ThemeProvider } from "./components/ui/ThemeProvider";
 import { ApplicationProvider } from "./contexts/ApplicationContext";
 import { AuthProvider } from "./auth/AuthProvider";
 import { RealTimeProvider } from "./auth/RealTimeProvider";
+import { appRoutes } from "./components/helpers/routesConfig";
 
-const router = createBrowserRouter([
-  {
-    path: "/*",
-    element: <RenderRoutes />,
-  },
-], {
+const router = createBrowserRouter(
+//   [
+//   {
+//     path: "/*",
+//     element: <RenderRoutes />,
+//   },
+// ],
+appRoutes,
+ {
   basename: `/${import.meta.env.VITE_BASE_NAME}`,
 }
 );
 
 const App: FC = () => {
 
+  console.log("window.frappe?.boot?.sitename",window.frappe?.boot?.sitename)
   const getSiteName = () => {
     return window.frappe?.boot?.sitename !== undefined
       ? window.frappe?.boot?.sitename
       : import.meta.env.VITE_SITE_NAME;
   };
 
-  console.log("window.frappe?.boot?.sitename", window.frappe?.boot?.sitename, import.meta.env.VITE_SITE_NAM)
+  console.log("window.frappe?.boot?.sitename", window.frappe?.boot?.sitename, import.meta.env.VITE_SITE_NAME)
   return (
     <FrappeProvider
       url={import.meta.env.VITE_FRAPPE_PATH ?? ""}

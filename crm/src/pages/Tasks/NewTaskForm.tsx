@@ -24,7 +24,7 @@ const taskFormSchema = z.object({
   start_date: z.string().min(1, "Date is required"),
   // time: z.string().min(1, "Time is required"),
   company: z.string().min(1, "Company is required"),
-  contact: z.string().min(1, "Contact is required"),
+  contact: z.string().optional(),
   boq: z.string().optional(),
   assigned_sales: z.string().optional(),
   remarks: z.string().optional(),
@@ -187,7 +187,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
 
 
         {/* --- DYNAMIC CONTACT FIELD --- */}
-        <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact<sup>*</sup></FormLabel><FormControl>
+        <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact</FormLabel><FormControl>
           {contactIdFromContext ? (
             // If a contactId was provided directly, show its name disabled.
             <Input value={contactDocFromContext ? `${contactDocFromContext.first_name} ${contactDocFromContext.last_name}` : "Loading..."} disabled />
