@@ -26,15 +26,13 @@ interface CRMCompany {
   hot_boq?: number;
 }
 
-export const CompanyTableView = ({
-   isStandalonePage = false,
-    className,
-    tableContainerClassName,
-}) => {
+export const CompanyTableView = () => {
   const { getUserFullNameByEmail } = useUserRoleLists();
 
+  const swrKey="all-companies-list_modified"
+
   const { data, isLoading, error } = useFrappeGetCall<CRMCompany[]>(
-    'nirmaan_crm.api.get_modified_crm_company.get_modified_crm_companies'
+    'nirmaan_crm.api.get_modified_crm_company.get_modified_crm_companies',undefined,swrKey,
   );
 
   const companies = data?.message || [];
@@ -56,10 +54,20 @@ export const CompanyTableView = ({
     return Array.from(set).map(name => ({ label: name, value: name }));
   }, [companies]);
 
+    const companyCityOptions = useMemo(() => {
+    if (!companies || !Array.isArray(companies)) return [];
+    const set = new Set<string>();
+    companies.forEach(c => c.company_city && set.add(c.company_city));
+    return Array.from(set).map(name => ({ label: name, value: name }));
+  }, [companies]);
+
+  
+
+
   const columns = useMemo<DataTableColumnDef<CRMCompany>[]>(() => [
     {
       accessorKey: "company_name",
-      meta: { title: "Company Name", filterVariant: "select", enableSorting: true, filterOptions: companyNameOptions },
+      meta: { title: "Company Name",enableSorting: true},
       cell: ({ row }) => (
         <Link to={`/companies/company?id=${row.original.name}`} className="text-primary font-semibold hover:underline text-left">
           {row.original.company_name}
@@ -70,8 +78,10 @@ export const CompanyTableView = ({
     },
     {
       accessorKey: "company_city",
-      meta: { title: "City", enableSorting: true },
+      meta: { title: "City",filterVariant:"select", enableSorting: true,filterOptions:companyCityOptions },
       cell: ({ row }) => <span>{row.original.company_city || '--'}</span>,
+         filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+            enableSorting: true,
      
     },
     {
@@ -86,7 +96,8 @@ export const CompanyTableView = ({
         row.original.assigned_sales
           ? getUserFullNameByEmail(row.original.assigned_sales) || row.original.assigned_sales
           : '--',
-      filterFn: 'faceted',
+     filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+            enableSorting: true,
    
     },
     {
@@ -102,6 +113,8 @@ export const CompanyTableView = ({
         row.original.last_meeting
           ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
           : '--',
+           enableSorting: true,
+            filterFn: 'dateRange', 
     },
     {
       accessorKey: "next_meeting_date",
@@ -110,6 +123,8 @@ export const CompanyTableView = ({
         row.original.next_meeting_date
           ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
           : '--',
+           enableSorting: true,
+            filterFn: 'dateRange', 
  
     },
     {
@@ -126,7 +141,7 @@ export const CompanyTableView = ({
     },
     {
       accessorKey: "last_three_remarks_from_tasks",
-      meta: { title: "Last 3 Remarks" , enableSorting: true},
+      meta: { title: "Last 3 Remarks" , enableSorting: false},
       cell: ({ row }) => {
         const remarks = row.original.last_three_remarks_from_tasks || [];
         if (remarks.length === 0) {
@@ -154,7 +169,7 @@ export const CompanyTableView = ({
       },
       enableSorting: true,
     }
-  ], [companyNameOptions, assignedSalesOptions, getUserFullNameByEmail]);
+  ], [companyNameOptions,companyCityOptions, assignedSalesOptions, getUserFullNameByEmail]);
 
   const initialSorting = [{ id: 'next_meeting_date', desc: false }];
 

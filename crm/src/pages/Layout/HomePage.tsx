@@ -12,26 +12,26 @@ export const HomePage = () => {
     // Fetch pending tasks for the top card]
     const role = localStorage.getItem('role');
 
-    const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]]
-    const homePageTaskSWR =  `all-tasks-${JSON.stringify(homePageTaskFilter)}`;
-    const { data: tasksData, isLoading: tasksLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-        fields: ["name", "type", "start_date", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name","creation","modified"],
-        filters: homePageTaskFilter,
-        limit: 0, // Only show a few tasks on the dashboard
-        orderBy: {
-        field: "start_date",
-        order: "asc"
-    }
-    }, homePageTaskSWR);
-    // Process the fetched data to create computed names
+    // const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]]
+    // const homePageTaskSWR =  `all-tasks-${JSON.stringify(homePageTaskFilter)}`;
+    // const { data: tasksData, isLoading: tasksLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
+    //     fields: ["name", "type", "start_date", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name","creation","modified"],
+    //     filters: homePageTaskFilter,
+    //     limit: 0, // Only show a few tasks on the dashboard
+    //     orderBy: {
+    //     field: "start_date",
+    //     order: "asc"
+    // }
+    // }, homePageTaskSWR);
+    // // Process the fetched data to create computed names
     
-    const enrichedTasks = useMemo(() => {
-        return tasksData?.map(task => ({
-            ...task,
-            contact_name: `${task.first_name || ''} ${task.last_name || ''}`.trim() || 'N/A',
-            company_name: task.company_name || 'N/A'
-        })) || [];
-    }, [tasksData]);
+    // const enrichedTasks = useMemo(() => {
+    //     return tasksData?.map(task => ({
+    //         ...task,
+    //         contact_name: `${task.first_name || ''} ${task.last_name || ''}`.trim() || 'N/A',
+    //         company_name: task.company_name || 'N/A'
+    //     })) || [];
+    // }, [tasksData]);
     
     // console.log("enrichedTasks",enrichedTasks)
     return (
@@ -39,8 +39,8 @@ export const HomePage = () => {
         role!=="Nirmaan Estimations User Profile" ?(
 <div className="space-y-6">
             <HomeHeader />
-            <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
-            <StatsGrid />
+            {/* <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
+            <StatsGrid /> */}
         </div>
         ):(
 <EstimationsHomePage/>

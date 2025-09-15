@@ -148,7 +148,7 @@ const { data: allCompanies } = useFrappeGetDocList("CRM Company", {
         assigned_sales: initialData.assigned_sales || "",
               // --- NEW: Pre-fill new fields in edit mode ---
       team_size: initialData.team_size ?? undefined, // Should now be the string value or null/undefined
-      projects_per_month: initialData.projects_per_month ?? undefined,
+      projects_per_month: Number(initialData.projects_per_month) ?? undefined,
 
       });
     }else {

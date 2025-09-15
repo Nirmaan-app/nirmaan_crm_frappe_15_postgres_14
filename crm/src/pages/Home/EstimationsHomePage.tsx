@@ -50,7 +50,7 @@ interface BOQ {
 // =============================================================================
 // Component for the "Pending BOQs" section
 // =============================================================================
-const PendingBOQs = () => {
+export const PendingBOQs = () => {
     const navigate = useNavigate();
     const { openEditBoqDialog } = useDialogStore();
     const getBoqStatusClass = useStatusStyles("boq");
@@ -302,7 +302,7 @@ const PendingBOQs = () => {
             globalSearchPlaceholder="Search pending BOQs..."
             shouldExpandHeight={false} // Explicitly NOT expanding height (fixed 350px max-height)
             className="h-full" // Ensure DataTable's root div itself fills its parent container
-            containerClassName="max-h-[350px]" // Apply fixed max-height to the scrollable table body
+            containerClassName="max-h-[300px]" // Apply fixed max-height to the scrollable table body
             // Grid columns for Pending BOQs (7 columns)
             gridColsClass="md:grid-cols-[1.8fr,1.2fr,1fr,1fr,1.2fr,1.3fr,1fr]"
             headerTitle="Pending BOQs"
@@ -323,7 +323,7 @@ const PendingBOQs = () => {
 // =============================================================================
 // Component for the "All BOQs" section
 // =============================================================================
-const AllBOQs = () => {
+export const AllBOQs = () => {
     const navigate = useNavigate();
     const getBoqStatusClass = useStatusStyles("boq");
     const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
@@ -575,7 +575,7 @@ const AllBOQs = () => {
             globalSearchPlaceholder="Search project name, company, salesperson..."
             shouldExpandHeight={false} // AllBOQs will have a fixed height (not flex-1)
             className="h-full" // The DataTable's root div itself should fill its parent
-            containerClassName="max-h-[350px]" // Explicitly set max-height for the scrollable table body
+            containerClassName="max-h-[300px]" // Explicitly set max-height for the scrollable table body
             gridColsClass="md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,auto]" // 7 columns for AllBOQs
             headerTitle="All BOQs"
             renderToolbarActions={(filteredData) => (
@@ -596,17 +596,56 @@ const AllBOQs = () => {
 export const EstimationsHomePage = () => {
      const fullName = localStorage.getItem('fullName');
 
+       const {
+            
+             openNewBoqDialog,
+             
+         } = useDialogStore();
+
     return (
-        <div className="space-y-6">
-            <div className="flex flex-wrap gap-4 justify-between items-center">
-                <h1 className="text-2xl font-bold">Welcome, {fullName}!</h1>
-                <Button className="h-9 px-4 py-2" onClick={() => {/* navigate to create BOQ */ }}>
-                    <Plus className="mr-2 h-4 w-4" /> Create New BOQ
-                </Button>
-            </div>
+        // <div className="space-y-2">
+        //     <div className="flex flex-wrap gap-4 justify-between items-center">
+        //         <h1 className="text-2xl font-bold">Welcome, {fullName}!</h1>
+        //         <Button className="h-9 px-4 py-2" onClick={() => {/* navigate to create BOQ */ }}>
+        //             <Plus className="mr-2 h-4 w-4" /> Create New BOQ
+        //         </Button>
+        //     </div>
+        //     <PendingBOQs />
+        //     <AllBOQs />
+        // </div>
+            <div className="flex flex-col h-full max-h-screen overflow-y-auto">
+      {/* 
+        This is the fixed/sticky header section.
+        - sticky top-0: Makes it stick to the top of its scrolling parent.
+        - z-20: Ensures it stays above other content.
+        - bg-background: Gives it a solid background so content doesn't show through.
+        - p-4: Adds padding.
+        - border-b: Adds a subtle separator.
+        - flex-shrink-0: Prevents it from shrinking if it's in a flex container.
+      */}
+      <div className="sticky top-0 z-20 bg-background px-4 py-2  flex-shrink-0">
+        <div className="flex flex-wrap gap-4 justify-between items-center">
+          <h1 className="text-2xl font-bold">Welcome, {fullName}!</h1>
+          <Button className="h-9 px-4 py-2" onClick={openNewBoqDialog} >
+            <Plus className="mr-2 h-4 w-4" /> Create New BOQ
+          </Button>
+        </div>
+      </div>
+
+      {/* 
+        The content that scrolls underneath the fixed header.
+        This div is now the main content area below the fixed header.
+        No explicit overflow-y-auto here if its parent already handles it.
+        We remove space-y-2 from the parent, and manage spacing internally or in child components.
+      */}
+      <div className="flex-1 p-4 pt-0"> {/* Added p-4 for general content padding, pt-0 to avoid double padding with header */}
+        <div className="space-y-2"> {/* Manage internal spacing here */}
             <PendingBOQs />
             <AllBOQs />
         </div>
+      </div>
+    </div>
+
     );
 };
 

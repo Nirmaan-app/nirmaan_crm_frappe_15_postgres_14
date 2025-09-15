@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappePostCall, useSWRConfig } from "frappe-react-sdk";
+import { useFrappePostCall, useSWRConfig,useFrappeGetDocList } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import React from "react";
@@ -26,9 +26,13 @@ interface RenameContactNameProps {
 }
 
 export const RenameContactName = ({ onSuccess, currentDoctype, currentDocName }: RenameContactNameProps) => {
-  const { closeDialog } = useDialogStore(); // Access closeDialog from your store
+  const { closeRenameContactNameDialog } = useDialogStore(); // Access closeRenameContactNameDialog from your store
   const { mutate } = useSWRConfig();
   const navigate = useNavigate();
+
+  const { data: allContacts } = useFrappeGetDocList("CRM Contacts", {
+          fields: ["name", "email"], limit: 0,
+      },"all-contacts-existornot");
 
   // --- 2. useForm Hook ---
   const form = useForm<RenameContactFormValues>({
@@ -108,11 +112,25 @@ export const RenameContactName = ({ onSuccess, currentDoctype, currentDocName }:
       toast({
         title: "No Change",
         description: "The new name is the same as the current name.",
-        variant: "info",
+        variant: "destructive"
       });
       onSuccess?.(); // Close dialog if no change needed
       return;
     }
+
+     const trimmedEmail = values.newName.trim().toLowerCase();
+
+            const existingContact = allContacts?.find(
+                c => c.email.trim().toLowerCase() === trimmedEmail
+            );
+            if (existingContact) {
+                            toast({
+                                title: "Duplicate Contact",
+                                description: `A contact with the email "${values.email}" already exists.`,
+                                variant: "destructive"
+                            });
+                            return; // Stop the submission
+                        }
 
     try {
       const payload = {
@@ -194,7 +212,7 @@ export const RenameContactName = ({ onSuccess, currentDoctype, currentDocName }:
         />
 
         <div className="flex gap-2 justify-end pt-4">
-          <Button type="button" variant="outline" onClick={closeDialog}>
+          <Button type="button" variant="outline" onClick={closeRenameContactNameDialog}>
             Cancel
           </Button>
           <Button type="submit" disabled={renameLoading}>

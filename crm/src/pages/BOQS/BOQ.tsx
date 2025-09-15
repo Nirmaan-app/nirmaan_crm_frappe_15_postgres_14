@@ -8,7 +8,7 @@ import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { CRMNote } from "@/types/NirmaanCRM/CRMNote";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { useFrappeGetDoc, useFrappeGetDocList, useSWRConfig, useFrappeUpdateDoc } from "frappe-react-sdk";
-import {ArrowLeft, ChevronDown,ChevronLeft, ChevronRight, Plus, SquarePen } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Plus, SquarePen } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
@@ -32,7 +32,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 // --- THIS IS THE UPDATED HEADER COMPONENT ---
 const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
-    const { openEditBoqDialog, openAssignBoqDialog,openRenameBoqNameDialog } = useDialogStore();
+    const { openEditBoqDialog, openAssignBoqDialog, openRenameBoqNameDialog } = useDialogStore();
     const { updateDoc, loading } = useFrappeUpdateDoc();
     const { mutate } = useSWRConfig();
     const getBoqStatusClass = useStatusStyles("boq");
@@ -60,7 +60,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
         }
     };
 
-// --- NEW: Handler for opening the rename dialog ---
+    // --- NEW: Handler for opening the rename dialog ---
     const handleRenameBoqClick = () => {
         // Ensure boq.name is available before opening
         if (boq?.name) {
@@ -81,7 +81,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                 <div>
                     {/* <p className="text-sm text-muted-foreground">BOQ Name</p> */}
                     <div className="flex items-center gap-2">
-                                            <p className="text-sm text-muted-foreground">BOQ Name</p>
+                        <p className="text-sm text-muted-foreground">BOQ Name</p>
 
                         <Button
                             variant="ghost" // Use a ghost variant for a subtle, icon-only button
@@ -94,7 +94,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                         </Button>
                     </div>
                     <h1 className="text-lg font-bold">{boq?.boq_name || 'N/A'}</h1>
-                     
+
                 </div>
                 <div>
                     <p className="text-sm text-muted-foreground">BOQ Link</p>
@@ -191,7 +191,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                     <Plus className="w-4 h-4 mr-2" />Add New Task
                 </Button>
             </div>
-            
+
             <div className="max-h-[275px] overflow-y-auto border rounded-md">
 
                 <Table>
@@ -204,9 +204,9 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                             {/* These columns will ONLY appear on desktop (md screens and up) */}
                             {/* <TableHead className="hidden md:table-cell">Company</TableHead>
                             <TableHead className="hidden md:table-cell">Status</TableHead> */}
-                              <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
+                            <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
                             <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
-                            
+
 
                             {/* Chevron column */}
                             <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
@@ -224,35 +224,35 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                                             (<div className="flex items-center gap-3">
                                                 <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
                                                 <div className="flex flex-col">
-                                                    <span>                                                <span className="font-semibold">{task?.type}</span> 
-                                                    {/* with <span className="font-semibold">{task?.first_name}
+                                                    <span>                                                <span className="font-semibold">{task?.type}</span>
+                                                        {/* with <span className="font-semibold">{task?.first_name}
 
                                                     </span> */}
 
-                                                                     
-                                                                                                                       </span>
+
+                                                    </span>
                                                     {/* On mobile, show the date here. Hide it on larger screens. */}
-                                                     {task.remarks &&(                                                                <span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
-                                                                       Remarks: {task.remarks}
-                                                                   </span>)}
+                                                    {task.remarks && (<span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
+                                                        Remarks: {task.remarks}
+                                                    </span>)}
                                                     <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
                                                         Scheduled for: {formatDateWithOrdinal(task.start_date)}
                                                     </span>
                                                 </div>
-                                            </div>) :(<div className="flex items-center gap-3">
-                                                                                                                                                   <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
-                                                                                                                                                   <div className="flex flex-col">
-                                                                                                                                                       <span className="font-medium">{`${task.type}`}</span>
-                                                                                                                                                      
-                                                                                                                                                        
-                                                                                                                                                   </div>
-                                                                                                                                               </div>)}
+                                            </div>) : (<div className="flex items-center gap-3">
+                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{`${task.type}`}</span>
+
+
+                                                </div>
+                                            </div>)}
                                     </TableCell>
 
                                     {/* --- DESKTOP ONLY Cells --- */}
                                     {/* <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
                                     <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell> */}
-                                        <TableCell className="hidden md:table-cell text-center">{task.remarks||"--"}</TableCell>
+                                    <TableCell className="hidden md:table-cell text-center">{task.remarks || "--"}</TableCell>
                                     <TableCell className="hidden md:table-cell text-right">
                                         <div className="flex flex-col items-center">
                                             <span>{formatDateWithOrdinal(task.start_date)}</span>
@@ -261,7 +261,7 @@ const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask
                                             </span>
                                         </div>
                                     </TableCell>
-                                    
+
 
                                     <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
                                 </TableRow>
@@ -333,7 +333,7 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
     const { openEditBoqDialog } = useDialogStore();
     const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
 
-      // --- UPDATED: DetailItem component to use <Link> for internal paths ---
+    // --- UPDATED: DetailItem component to use <Link> for internal paths ---
     const DetailItem = ({ label, value, href }: { label: string; value: string | React.ReactNode; href?: string }) => {
         const isNA = value === "N/A" || value === "--"; // Check for both "N/A" and "--"
         let content: React.ReactNode;
@@ -491,11 +491,11 @@ const BoqSubmissionHistory = ({ versions }: { versions: DocVersion[] }) => {
                 const remarkValue = remarksChange ? (remarksChange[2] as string) : '--';
                 const boqLinkValue = boqLinkChange ? (boqLinkChange[2] as string) : undefined;
 
- // --- FIX: Robustly parse boq_submission_date to a Date object ---
+                // --- FIX: Robustly parse boq_submission_date to a Date object ---
                 let parsedSubmissionDate: Date | null = null;
                 if (dateChange && typeof dateChange[2] === 'string' && dateChange[2].trim() !== '') {
                     const rawDateString = dateChange[2];
-                    
+
                     // Try parsing as DD-MM-YYYY first (common ambiguous format)
                     let candidateDate = parse(rawDateString, 'dd-MM-yyyy', new Date());
                     if (isValid(candidateDate)) {
@@ -692,7 +692,7 @@ export const BOQ = () => {
 
     const [id] = useStateSyncedWithParams<string>("id", "");
     const role = localStorage.getItem('role');
-     const [searchParams] = useSearchParams(); // To read URL query parameters
+    const [searchParams] = useSearchParams(); // To read URL query parameters
     const statusTab = searchParams.get('statusTab'); // Get the 'statusTab' value
 
 
@@ -702,9 +702,9 @@ export const BOQ = () => {
     const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", boqData?.contact, boqData?.contact ? undefined : null);
 
 
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation","remarks"], orderBy: { field: "start_date", order: "asc" }, limit: 0, }, `all-tasks-filterbyBoq-id${id}`);
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "remarks"], orderBy: { field: "start_date", order: "asc" }, limit: 0, }, `all-tasks-filterbyBoq-id${id}`);
 
-    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name","title", "content", "creation"], orderBy: { field: "creation", order: "desc" }, limit: 0, }, `all-notes-filterbyBoq-id${id}`);
+    const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "title", "content", "creation"], orderBy: { field: "creation", order: "desc" }, limit: 0, }, `all-notes-filterbyBoq-id${id}`);
 
 
     const { data: versionsList, isLoading: versionsLoading } = useFrappeGetDocList<DocVersion>("Version", {
@@ -723,29 +723,54 @@ export const BOQ = () => {
     }
     // console.log("boq data", boqData)
     const handleBackToBoqsList = () => {
-    // Construct the path back to /boqs, including statusTab if it exists
-    const path = statusTab ? `/boqs?statusTab=${encodeURIComponent(statusTab)}` : '/boqs';
-    navigate(path);
-};
+        // Construct the path back to /boqs, including statusTab if it exists
+        // const path = statusTab ? `/boqs?statusTab=${encodeURIComponent(statusTab)}` : '/boqs';
+        navigate(-1);
+
+    };
 
     return (
-        <div className="space-y-6">
+         <div className="flex flex-col h-full max-h-screen overflow-y-auto space-y-2">
+             <div className="sticky top-0 z-20 bg-background p-2  flex-shrink-0">
+          <div className="flex items-center gap-4"> {/* Container for back button and header text */}
+              
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleBackToBoqsList}
+                      aria-label="Back to Company List"
+                      className="hidden md:inline-flex" // Hide on mobile, show on desktop
+                  >
+                      <div className="bg-destructive text-black font-bold p-2 rounded-full">
+                          <ArrowLeft className="w-8 h-8" />
+                      </div>
+                  </Button>
+              
+              <h1 className="text-md md:text-2xl font-bold">{boqData.boq_name}</h1> 
+          </div>
+      </div>
+{/* 
+            <div className="flex items-center gap-4 mb-4"> 
 
-            <div className="flex items-center gap-4 mb-4"> {/* Added a container for back button and header */}
-                <Button variant="ghost" size="icon" onClick={handleBackToBoqsList} aria-label="Back to Company List">
-  <div className="bg-destructive text-black font-bold p-2 rounded-full">
-    <ArrowLeft className="w-8 h-8" />
-  </div>
-</Button>
-                <h1 className="text-2xl font-bold">BOQ Details</h1> {/* Main title for the page */}
-            </div>
+                {(role != "Nirmaan Estimations User Profile") && (
+                    <Button variant="ghost" size="icon" onClick={handleBackToBoqsList} aria-label="Back to Company List"
+                        className="hidden md:inline-flex" // Add these classes
+                    >
+                        <div className="bg-destructive text-black font-bold p-2 rounded-full">
+                            <ArrowLeft className="w-8 h-8" />
+                        </div>
+                    </Button>
+                )}
+
+                <h1 className="text-xl md:text-2xl font-bold ">{boqData.boq_name}</h1> 
+            </div> */}
 
             <BoqDetailsHeader boq={boqData} />
 
-            
+
             {(role != "Nirmaan Estimations User Profile") && (
-            <BoqDealStatusCard boq={boqData}/>
-             )}
+                <BoqDealStatusCard boq={boqData} />
+            )}
 
             {(role != "Nirmaan Estimations User Profile") && (
                 <BoqTaskDetails
