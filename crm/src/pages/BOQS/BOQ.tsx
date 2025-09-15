@@ -23,6 +23,124 @@ import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { parse, isValid } from 'date-fns';
 import { BoqDealStatusCard } from "./components/BoqDealStatusCard";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
+
+// ============================================================================================
+// START OF CHANGES: Implementing the new Task Creation Handler and Role-Based Filtering
+// ============================================================================================
+
+/**
+ * A new centralized hook to handle the logic for creating tasks. It checks the user's
+ * role and opens the correct dialog (Sales, Estimation, or Admin's choice).
+ */
+
+
+
+/**
+ * A new, reusable component to render a list of tasks with a title and an "Add Task" button.
+ * This will be used by all user roles to display their relevant tasks.
+ */
+const TaskListSection = ({ title, tasks, boqId, companyId, contactId, taskProfile, disableTaskCreate }: {
+    title: string;
+    tasks: CRMTask[];
+    boqId: string;
+    companyId: string;
+    contactId: string;
+    taskProfile: 'Sales' | 'Estimates';
+    disableTaskCreate?: boolean; // New prop to disable task creation button
+}) => {
+    const navigate = useNavigate();
+    const { isMobile } = useViewport();
+    const handleCreateTask = useTaskCreationHandler();
+
+    return (
+        <div className="bg-background p-4 rounded-lg border shadow-sm">
+            <div className="flex justify-between items-center mb-2">
+                <h2 className="font-semibold">{title} ({tasks.length})</h2>
+                {(disableTaskCreate !== true) && <Button size="sm" className="bg-destructive hover:bg-destructive/90" onClick={() => handleCreateTask({ boqId, companyId, contactId, task_profile: taskProfile })}>
+                    <Plus className="w-4 h-4 mr-2" />Add New Task
+                </Button>}
+            </div>
+            <div className="max-h-[275px] overflow-y-auto border rounded-md">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Task Details</TableHead>
+                            <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
+                            <TableHead className="hidden md:table-cell text-center">Deadline</TableHead>
+                            <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {tasks.length > 0 ? (
+                            tasks.map((task) => (
+                                <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <TaskStatusIcon status={task.status} className="flex-shrink-0" />
+                                            <div>
+                                                <span className="font-medium">{task.type}</span>
+                                                {task.remarks && (
+                                                    <span className="block text-xs text-muted-foreground mt-1 md:hidden">Remarks: {task.remarks}</span>
+                                                )}
+                                                <span className="block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                    Scheduled for: {formatDateWithOrdinal(task.start_date)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell text-center">{task.remarks || "--"}</TableCell>
+                                    <TableCell className="hidden md:table-cell text-center">{formatDateWithOrdinal(task.start_date)}</TableCell>
+                                    <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-center h-24">No tasks found in this category.</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+    );
+};
+
+
+/**
+ * The `BoqTaskDetails` component is now a smart orchestrator. It receives the full task list
+ * and determines which `TaskListSection`(s) to render based on the user's role.
+ */
+const BoqTaskDetails = ({ allTasks, boqId, companyId, contactId }: { allTasks: CRMTask[], boqId: string, companyId: string, contactId: string }) => {
+    const role = localStorage.getItem('role');
+
+    // Filter tasks based on their profile. This logic is now inside the component that uses it.
+    const salesTasks = useMemo(() => allTasks?.filter(task => task.task_profile === 'Sales') || [], [allTasks]);
+    const estimationTasks = useMemo(() => allTasks?.filter(task => task.task_profile === 'Estimates') || [], [allTasks]);
+
+    // Role-based rendering logic
+    if (role === 'Nirmaan Admin User Profile') {
+        return (
+            <div className="space-y-6">
+                <TaskListSection title="Sales Tasks" tasks={salesTasks} boqId={boqId} companyId={companyId} contactId={contactId} taskProfile="Sales" disableTaskCreate={true} />
+                <TaskListSection title="Estimation Tasks" tasks={estimationTasks} boqId={boqId} companyId={companyId} contactId={contactId} taskProfile="Estimates" disableTaskCreate={true} />
+            </div>
+        );
+    }
+
+    if (role === 'Nirmaan Sales User Profile') {
+        return <TaskListSection title="Sales Tasks" tasks={salesTasks} boqId={boqId} companyId={companyId} contactId={contactId} taskProfile="Sales" />;
+    }
+
+    if (role === 'Nirmaan Estimations User Profile') {
+        return <TaskListSection title="Estimation Tasks" tasks={estimationTasks} boqId={boqId} companyId={companyId} contactId={contactId} taskProfile="Estimates" />;
+    }
+
+    return null; // Render nothing if the role is not recognized
+};
+// ============================================================================================
+// END OF CHANGES
+// ============================================================================================
 
 
 // --- SUB-COMPONENT 1: Header ---
@@ -173,110 +291,110 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
 
 
 
-// --- SUB-COMPONENT 2: Task List (Now with rendering logic) ---
-const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask[], boqId: string, companyId: string, contactId: string }) => {
-    const navigate = useNavigate();
-    // console.log("tasks",tasks)
-    const getTaskStatusClass = useStatusStyles("task")
-    const { isMobile } = useViewport();
+// // --- SUB-COMPONENT 2: Task List (Now with rendering logic) ---
+// const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask[], boqId: string, companyId: string, contactId: string }) => {
+//     const navigate = useNavigate();
+//     // console.log("tasks",tasks)
+//     const getTaskStatusClass = useStatusStyles("task")
+//     const { isMobile } = useViewport();
 
 
-    const { openNewTaskDialog } = useDialogStore();
+//     const { openNewTaskDialog } = useDialogStore();
 
-    return (
-        <div className="bg-background p-4 rounded-lg border shadow-sm">
-            <div className="flex justify-between items-center mb-2">
-                <h2 className="font-semibold">{"Task Lists"}</h2>
-                <Button size="sm" className="bg-destructive hover:bg-destructive/90" onClick={() => openNewTaskDialog({ boqId, companyId, contactId })}>
-                    <Plus className="w-4 h-4 mr-2" />Add New Task
-                </Button>
-            </div>
+//     return (
+//         <div className="bg-background p-4 rounded-lg border shadow-sm">
+//             <div className="flex justify-between items-center mb-2">
+//                 <h2 className="font-semibold">{"Task Lists"}</h2>
+//                 <Button size="sm" className="bg-destructive hover:bg-destructive/90" onClick={() => openNewTaskDialog({ boqId, companyId, contactId })}>
+//                     <Plus className="w-4 h-4 mr-2" />Add New Task
+//                 </Button>
+//             </div>
 
-            <div className="max-h-[275px] overflow-y-auto border rounded-md">
+//             <div className="max-h-[275px] overflow-y-auto border rounded-md">
 
-                <Table>
-                    <TableHeader>
+//                 <Table>
+//                     <TableHeader>
 
-                        <TableRow>
-                            {/* This column is visible on all screen sizes */}
-                            <TableHead>Task Details</TableHead>
+//                         <TableRow>
+//                             {/* This column is visible on all screen sizes */}
+//                             <TableHead>Task Details</TableHead>
 
-                            {/* These columns will ONLY appear on desktop (md screens and up) */}
-                            {/* <TableHead className="hidden md:table-cell">Company</TableHead>
-                            <TableHead className="hidden md:table-cell">Status</TableHead> */}
-                            <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
-                            <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
-
-
-                            {/* Chevron column */}
-                            <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
-                        </TableRow>
-
-                    </TableHeader>
-                    <TableBody >
-                        {tasks.length > 0 ? (
-                            tasks.map((task) => (
-                                <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
-
-                                    {/* --- MOBILE & DESKTOP: Combined Cell --- */}
-                                    <TableCell>
-                                        {isMobile ?
-                                            (<div className="flex items-center gap-3">
-                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                                <div className="flex flex-col">
-                                                    <span>                                                <span className="font-semibold">{task?.type}</span>
-                                                        {/* with <span className="font-semibold">{task?.first_name}
-
-                                                    </span> */}
+//                             {/* These columns will ONLY appear on desktop (md screens and up) */}
+//                             {/* <TableHead className="hidden md:table-cell">Company</TableHead>
+//                             <TableHead className="hidden md:table-cell">Status</TableHead> */}
+//                             <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
+//                             <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
 
 
-                                                    </span>
-                                                    {/* On mobile, show the date here. Hide it on larger screens. */}
-                                                    {task.remarks && (<span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
-                                                        Remarks: {task.remarks}
-                                                    </span>)}
-                                                    <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                        Scheduled for: {formatDateWithOrdinal(task.start_date)}
-                                                    </span>
-                                                </div>
-                                            </div>) : (<div className="flex items-center gap-3">
-                                                <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{`${task.type}`}</span>
+//                             {/* Chevron column */}
+//                             <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
+//                         </TableRow>
+
+//                     </TableHeader>
+//                     <TableBody >
+//                         {tasks.length > 0 ? (
+//                             tasks.map((task) => (
+//                                 <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
+
+//                                     {/* --- MOBILE & DESKTOP: Combined Cell --- */}
+//                                     <TableCell>
+//                                         {isMobile ?
+//                                             (<div className="flex items-center gap-3">
+//                                                 <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+//                                                 <div className="flex flex-col">
+//                                                     <span>                                                <span className="font-semibold">{task?.type}</span>
+//                                                         {/* with <span className="font-semibold">{task?.first_name}
+
+//                                                     </span> */}
 
 
-                                                </div>
-                                            </div>)}
-                                    </TableCell>
-
-                                    {/* --- DESKTOP ONLY Cells --- */}
-                                    {/* <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
-                                    <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell> */}
-                                    <TableCell className="hidden md:table-cell text-center">{task.remarks || "--"}</TableCell>
-                                    <TableCell className="hidden md:table-cell text-right">
-                                        <div className="flex flex-col items-center">
-                                            <span>{formatDateWithOrdinal(task.start_date)}</span>
-                                            <span className="text-xs text-muted-foreground text-center">
-                                                {formatTime12Hour(task?.time)}
-                                            </span>
-                                        </div>
-                                    </TableCell>
+//                                                     </span>
+//                                                     {/* On mobile, show the date here. Hide it on larger screens. */}
+//                                                     {task.remarks && (<span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
+//                                                         Remarks: {task.remarks}
+//                                                     </span>)}
+//                                                     <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+//                                                         Scheduled for: {formatDateWithOrdinal(task.start_date)}
+//                                                     </span>
+//                                                 </div>
+//                                             </div>) : (<div className="flex items-center gap-3">
+//                                                 <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+//                                                 <div className="flex flex-col">
+//                                                     <span className="font-medium">{`${task.type}`}</span>
 
 
-                                    <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center h-24">No tasks found in this category.</TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-        </div>
-    );
-};
+//                                                 </div>
+//                                             </div>)}
+//                                     </TableCell>
+
+//                                     {/* --- DESKTOP ONLY Cells --- */}
+//                                     {/* <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
+//                                     <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell> */}
+//                                     <TableCell className="hidden md:table-cell text-center">{task.remarks || "--"}</TableCell>
+//                                     <TableCell className="hidden md:table-cell text-right">
+//                                         <div className="flex flex-col items-center">
+//                                             <span>{formatDateWithOrdinal(task.start_date)}</span>
+//                                             <span className="text-xs text-muted-foreground text-center">
+//                                                 {formatTime12Hour(task?.time)}
+//                                             </span>
+//                                         </div>
+//                                     </TableCell>
+
+
+//                                     <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
+//                                 </TableRow>
+//                             ))
+//                         ) : (
+//                             <TableRow>
+//                                 <TableCell colSpan={6} className="text-center h-24">No tasks found in this category.</TableCell>
+//                             </TableRow>
+//                         )}
+//                     </TableBody>
+//                 </Table>
+//             </div>
+//         </div>
+//     );
+// };
 
 // --- SUB-COMPONENT 3: Remarks ---
 const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) => {
@@ -702,7 +820,7 @@ export const BOQ = () => {
     const { data: contactData, isLoading: contactLoading } = useFrappeGetDoc<CRMContacts>("CRM Contacts", boqData?.contact, boqData?.contact ? undefined : null);
 
 
-    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "remarks"], orderBy: { field: "start_date", order: "asc" }, limit: 0, }, `all-tasks-filterbyBoq-id${id}`);
+    const { data: tasksList, isLoading: tasksLoading } = useFrappeGetDocList<CRMTask>("CRM Task", { filters: { boq: id }, fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "remarks", "task_profile"], orderBy: { field: "start_date", order: "desc" }, limit: 0, }, `all-tasks-filterbyBoq-id${id}`);
 
     const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM BOQ", reference_docname: id }, fields: ["name", "title", "content", "creation"], orderBy: { field: "creation", order: "desc" }, limit: 0, }, `all-notes-filterbyBoq-id${id}`);
 
@@ -730,26 +848,26 @@ export const BOQ = () => {
     };
 
     return (
-         <div className="flex flex-col h-full max-h-screen overflow-y-auto space-y-2">
-             <div className="sticky top-0 z-20 bg-background p-2  flex-shrink-0">
-          <div className="flex items-center gap-4"> {/* Container for back button and header text */}
-              
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleBackToBoqsList}
-                      aria-label="Back to Company List"
-                      className="hidden md:inline-flex" // Hide on mobile, show on desktop
-                  >
-                      <div className="bg-destructive text-black font-bold p-2 rounded-full">
-                          <ArrowLeft className="w-8 h-8" />
-                      </div>
-                  </Button>
-              
-              <h1 className="text-md md:text-2xl font-bold">{boqData.boq_name}</h1> 
-          </div>
-      </div>
-{/* 
+        <div className="flex flex-col h-full max-h-screen overflow-y-auto space-y-2">
+            <div className="sticky top-0 z-20 bg-background p-2  flex-shrink-0">
+                <div className="flex items-center gap-4"> {/* Container for back button and header text */}
+
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleBackToBoqsList}
+                        aria-label="Back to Company List"
+                        className="hidden md:inline-flex" // Hide on mobile, show on desktop
+                    >
+                        <div className="bg-destructive text-black font-bold p-2 rounded-full">
+                            <ArrowLeft className="w-8 h-8" />
+                        </div>
+                    </Button>
+
+                    <h1 className="text-md md:text-2xl font-bold">{boqData.boq_name}</h1>
+                </div>
+            </div>
+            {/* 
             <div className="flex items-center gap-4 mb-4"> 
 
                 {(role != "Nirmaan Estimations User Profile") && (
@@ -772,14 +890,15 @@ export const BOQ = () => {
                 <BoqDealStatusCard boq={boqData} />
             )}
 
-            {(role != "Nirmaan Estimations User Profile") && (
-                <BoqTaskDetails
-                    tasks={tasksList}
-                    boqId={boqData.name}
-                    companyId={boqData.company}
-                    contactId={boqData.contact}
-                />
-            )}
+            {/* {(role != "Nirmaan Estimations User Profile") && ( */}
+            <BoqTaskDetails
+                // tasks={tasksList}
+                allTasks={tasksList || []}
+                boqId={boqData.name}
+                companyId={boqData.company}
+                contactId={boqData.contact}
+            />
+            {/* )} */}
 
 
             <OtherBoqDetails

@@ -15,6 +15,8 @@ import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate }
 import { useViewport } from "@/hooks/useViewPort";
 import * as z from "zod";
 
+import { useTaskEditor } from "@/hooks/useTaskEditor"; // --- CHANGE 1: Import the new hook ---
+
 
 export const taskFormSchema = z.object({
     reference_docname: z
@@ -33,7 +35,11 @@ export type TaskFormValues = z.infer<typeof taskFormSchema>;
 
 // --- SUB-COMPONENT: Task Details Card ---
 const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, contact?: CRMContacts, company?: CRMCompany, boq?: CRMBOQ }) => {
-    const { openEditTaskDialog } = useDialogStore();
+    // --- CHANGE 2: Remove direct use of openEditTaskDialog ---
+    // const { openEditTaskDialog } = useDialogStore(); // This is no longer needed directly
+
+    // --- CHANGE 3: Instantiate our new centralized hook ---
+    const openTaskEditor = useTaskEditor();
     const getTaskStatusClass = useStatusStyles("task")
 
 
@@ -76,7 +82,8 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                         <Button
                             variant="outline" // Using 'outline' for a cleaner look than 'ghost' with a border
                             size="sm"
-                            onClick={() => openEditTaskDialog({ taskData: task, mode: 'edit' })}
+                            // --- CHANGE 4: Use the new handler with 'edit' mode ---
+                            onClick={() => openTaskEditor(task, 'edit')}
                         >
                             <SquarePen className="w-4 h-4 mr-2" />
                             EDIT
@@ -85,7 +92,8 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                         <Button
                             variant="destructive" // Using the 'destructive' variant for the primary action button
                             size="sm"
-                            onClick={() => openEditTaskDialog({ taskData: task, mode: 'updateStatus' })}
+                            // --- CHANGE 5: Use the new handler with 'updateStatus' mode ---
+                            onClick={() => openTaskEditor(task, 'updateStatus')}
                         >
                             Update Status
                         </Button>
@@ -93,9 +101,9 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                 )}
             </div>
             <div className="grid grid-cols-2 gap-y-4 gap-x-2">
-                <DetailItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} href={`/contacts/contact?id=${contact?.name}`} />
-                <DetailItem label="Company" value={task?.company} href={`/companies/company?id=${task?.company}`} />
-                <DetailItem label="Mobile Number" value={contact?.mobile} href={`tel:${contact?.mobile}`} />
+                {task?.task_profile === "Sales" && <DetailItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} href={`/contacts/contact?id=${contact?.name}`} />}
+                {task?.task_profile === "Sales" && <DetailItem label="Company" value={task?.company} href={`/companies/company?id=${task?.company}`} />}
+                {task?.task_profile === "Sales" && <DetailItem label="Mobile Number" value={contact?.mobile} href={`tel:${contact?.mobile}`} />}
                 <DetailItem label="Type" value={task?.type} />
                 <DetailItem label="Project" value={task.boq} href={`/boqs/boq?id=${task.boq}`} />
                 <div className="flex flex-col">
@@ -264,9 +272,9 @@ export const Task = () => {
             filters: { contact: taskData?.contact, name: ['!=', id] },
             limit: 0,
 
-            fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales","remarks"],
-            orderBy: { field: "start_date", order: "desc"},
-            
+            fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales", "remarks"],
+            orderBy: { field: "start_date", order: "desc" },
+
         }
         , `all-tasks-contacthistory${taskData?.contact}`);
 
@@ -284,7 +292,7 @@ export const Task = () => {
     return (
         <div className="space-y-6 pb-24"> {/* Padding bottom to prevent overlap with fixed button */}
             <TaskDetailsCard task={taskData} contact={contactData} company={companyData} boq={boqData} />
-            <TaskHistory tasks={historyTasks || []} />
+            {taskData.task_profile === "Sales" && <TaskHistory tasks={historyTasks || []} />}
             {/* <TaskRemarks remarks={remarksList || []} /> */}
             {/* {taskData.status!=="Completed"&&(
             <UpdateTaskButtons task={taskData} />

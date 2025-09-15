@@ -195,6 +195,7 @@ import { TasksVariantPage } from "./TasksVariantPage"
 import { useTaskData } from "@/hooks/useTaskData";
 import { useMemo, useState, useEffect } from "react";
 import { TaskDestopThree } from "./TaskDestopThree"
+import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
 
 
 
@@ -213,10 +214,11 @@ export const Tasks = () => {
     ]);
     const { id, from, to } = params;
     // console.log("params", params)
-    const { openNewTaskDialog } = useDialogStore();
+    // const { openNewTaskDialog } = useDialogStore();
+    const handleCreateTask = useTaskCreationHandler();
 
-        
-    const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks,upcoming7DaysTasks } = useTaskData();
+
+    const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks, upcoming7DaysTasks } = useTaskData();
 
     // console.log(upcoming7DaysTasks)
     // --- THE FIX IS HERE ---
@@ -238,11 +240,11 @@ export const Tasks = () => {
             title: "Upcoming 7 Days Tasks",
             tasks: upcoming7DaysTasks || []
         }
-    }), [todayTasks, tomorrowTasks, createdTodayTasks,upcoming7DaysTasks]); // Dependencies
+    }), [todayTasks, tomorrowTasks, createdTodayTasks, upcoming7DaysTasks]); // Dependencies
 
 
     if (isMobile) {
-        const fabOptions = [{ label: 'Add New Task', action: openNewTaskDialog }];
+        const fabOptions = [{ label: 'Add New Task', action: handleCreateTask }];
 
 
         return (
@@ -300,7 +302,7 @@ export const Tasks = () => {
                     activeTaskId={id}
                 />
                 <div className="mt-4 pt-4 border-t">
-                    <button onClick={openNewTaskDialog} className="w-full h-12 bg-destructive text-white rounded-lg flex items-center justify-center gap-2 hover:bg-destructive/90 transition-colors">
+                    <button onClick={handleCreateTask} className="w-full h-12 bg-destructive text-white rounded-lg flex items-center justify-center gap-2 hover:bg-destructive/90 transition-colors">
                         <Plus size={20} /> Add New Task
                     </button>
                 </div>

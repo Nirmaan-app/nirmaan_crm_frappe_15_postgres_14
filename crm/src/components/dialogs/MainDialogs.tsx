@@ -13,15 +13,28 @@ import { DateRangePickerDialog } from "./DateRangePickerDialog";
 import { StatsDetailDialog } from "./StatsDetailDialog";
 import { UserProfileDialog } from "./UserProfileDialog"; // <-- 1. IMPORT THE NEW DIALOG
 import { AssignedBoqForm } from "@/pages/BOQS/forms/AssignedBoqForm";
-import { RemarkBoqForm } from "@/pages/BOQS/forms/RemarkBoqForm";   
+import { RemarkBoqForm } from "@/pages/BOQS/forms/RemarkBoqForm";
 
-import { RenameBoqName } from "@/pages/BOQS/forms/RenameBoqName"; 
+import { RenameBoqName } from "@/pages/BOQS/forms/RenameBoqName";
 import { RenameCompanyName } from "@/pages/Companies/forms/RenameCompanyName";
 import { RenameContactName } from "@/pages/Contacts/forms/RenameContactName";
 
 import { EditDealStatusForm } from "@/pages/BOQS/forms/EditBoqDealStatusForm";
 
-import {CompanyProgressForm} from "@/pages/Companies/forms/CompanyProgressForm"
+import { CompanyProgressForm } from "@/pages/Companies/forms/CompanyProgressForm"
+// ============================================================================================
+// START OF CHANGES: Importing new forms for Estimation and Admin flows
+// ============================================================================================
+
+// --- NEW FORM IMPORTS ---
+// The actual files for these components will be created in Phase 4.
+import { NewEstimationTaskForm } from "@/pages/Tasks/NewEstimationTaskForm"; // Placeholder import
+import { EditEstimationTaskForm } from "@/pages/Tasks/EditEstimationTaskForm"; // Placeholder import
+import { SelectTaskProfileDialog } from "./SelectTaskProfileDialog"; // Placeholder import
+
+// ============================================================================================
+// END OF CHANGES
+// ============================================================================================
 
 export const MainDialogs = () => {
     const {
@@ -41,16 +54,28 @@ export const MainDialogs = () => {
         newUser, closeNewUserDialog,
         ///NEW: Destructure the new dialog state and close action
         assignBoq, closeAssignBoqDialog,
-         // NEW: Destructure the new dialog state and close action
+        // NEW: Destructure the new dialog state and close action
         remarkBoq, closeRemarkBoqDialog,
         renameBoqName, closeRenameBoqNameDialog,
         renameCompanyName, closeRenameCompanyNameDialog,
 
         renameContactName, closeRenameContactNameDialog,
 
-        editDealStatus, closeEditDealStatusDialog,
-         // --- NEW: Destructure the companyProgress state and close action ---
         companyProgress, closeCompanyProgressDialog,
+
+        editDealStatus, closeEditDealStatusDialog,
+        // ============================================================================================
+        // START OF CHANGES: Destructuring new dialog states from the store
+        // ============================================================================================
+
+        // --- DESTRUCTURE NEW STATES AND ACTIONS ---
+        newEstimationTask, closeNewEstimationTaskDialog,
+        editEstimationTask, closeEditEstimationTaskDialog,
+        selectTaskProfileDialog, closeSelectTaskProfileDialog,
+
+        // ============================================================================================
+        // END OF CHANGES
+        // ============================================================================================
 
     } = useDialogStore();
 
@@ -73,13 +98,13 @@ export const MainDialogs = () => {
         return 'Task';
     };
 
-     const getCompanyProgressTitle = () => {
+    const getCompanyProgressTitle = () => {
         if (!companyProgress.context || !companyProgress.context.companyId) {
             return "Update Company Progress"; // Fallback
         }
         // If progressData exists and has a parent_company, we can use that for context
         // Otherwise, we just use the companyId (Frappe 'name')
-        console.log("companyProgress",companyProgress)
+        console.log("companyProgress", companyProgress)
         const companyIdentifier = companyProgress.context.companyId || companyProgress.context.companyId;
 
         if (companyProgress?.context.progressData?.expected_boq_count) {
@@ -205,6 +230,27 @@ export const MainDialogs = () => {
 
             </ReusableFormDialog>
 
+            {/* ============================================================================================ */}
+            {/* START OF CHANGES: Adding new ReusableFormDialog instances for the new states */}
+            {/* ============================================================================================ */}
+
+            {/* --- NEW: Estimation Task Dialogs --- */}
+            <ReusableFormDialog isOpen={newEstimationTask.isOpen} onClose={closeNewEstimationTaskDialog} title="Add New Estimation Task" className="max-w-lg">
+                <NewEstimationTaskForm onSuccess={closeNewEstimationTaskDialog} />
+            </ReusableFormDialog>
+            <ReusableFormDialog isOpen={editEstimationTask.isOpen} onClose={closeEditEstimationTaskDialog} title="Edit Estimation Task" className="max-w-lg">
+                <EditEstimationTaskForm onSuccess={closeEditEstimationTaskDialog} />
+            </ReusableFormDialog>
+
+            {/* --- NEW: Admin Task Profile Selection Dialog --- */}
+            <ReusableFormDialog isOpen={selectTaskProfileDialog.isOpen} onClose={closeSelectTaskProfileDialog} title="Select Task Profile" className="max-w-sm">
+                <SelectTaskProfileDialog />
+            </ReusableFormDialog>
+
+            {/* ============================================================================================ */}
+            {/* END OF CHANGES */}
+            {/* ============================================================================================ */}
+
             <ReusableFormDialog
                 isOpen={newUser.isOpen}
                 onClose={closeNewUserDialog}
@@ -219,17 +265,17 @@ export const MainDialogs = () => {
                 title="Assign Sales/Estimation for BOQ"
                 className="max-w-lg"
             >
-                <AssignedBoqForm     
+                <AssignedBoqForm
                 />
             </ReusableFormDialog>
 
-             <ReusableFormDialog
+            <ReusableFormDialog
                 isOpen={remarkBoq.isOpen}
                 onClose={closeRemarkBoqDialog}
                 title="Additional Remarks for BOQ"
                 className="max-w-lg"
             >
-                <RemarkBoqForm     
+                <RemarkBoqForm
                 />
 
             </ReusableFormDialog>
@@ -240,7 +286,7 @@ export const MainDialogs = () => {
                 title={renameBoqName.context?.currentDocName ? `Rename "${renameBoqName.context.currentDocName}"` : "Rename Document"}
                 className="max-w-lg"
             >
-                
+
                 {renameBoqName.context && (
                     <RenameBoqName
                         currentDoctype={renameBoqName.context.currentDoctype}
@@ -252,56 +298,56 @@ export const MainDialogs = () => {
 
 
             <ReusableFormDialog
-               isOpen={renameCompanyName.isOpen}
-               onClose={closeRenameCompanyNameDialog}
-               // Dynamically set title, showing current doc name
-               title={renameCompanyName.context?.currentDocName ? `Rename Company ID "${renameCompanyName.context.currentDocName}"` : "Rename Company"}
-               className="max-w-lg"
-           >
-               {/* Render only when dialog is open and context is available */}
-               {renameCompanyName.isOpen && renameCompanyName.context && (
-                   <RenameCompanyName
-                       currentDoctype={renameCompanyName.context.currentDoctype}
-                       currentDocName={renameCompanyName.context.currentDocName}
-                       onSuccess={closeRenameCompanyNameDialog}
-                   />
-               )}
-           </ReusableFormDialog>
+                isOpen={renameCompanyName.isOpen}
+                onClose={closeRenameCompanyNameDialog}
+                // Dynamically set title, showing current doc name
+                title={renameCompanyName.context?.currentDocName ? `Rename Company ID "${renameCompanyName.context.currentDocName}"` : "Rename Company"}
+                className="max-w-lg"
+            >
+                {/* Render only when dialog is open and context is available */}
+                {renameCompanyName.isOpen && renameCompanyName.context && (
+                    <RenameCompanyName
+                        currentDoctype={renameCompanyName.context.currentDoctype}
+                        currentDocName={renameCompanyName.context.currentDocName}
+                        onSuccess={closeRenameCompanyNameDialog}
+                    />
+                )}
+            </ReusableFormDialog>
 
             {/* --- 3. ADD NEW DIALOG FOR RENAMECONTACTNAME --- */}
-           <ReusableFormDialog
-               isOpen={renameContactName.isOpen}
-               onClose={closeRenameContactNameDialog}
-               title={renameContactName.context?.currentDocName ? `Rename Contact ID "${renameContactName.context.currentDocName}"` : "Rename Contact"}
-               className="max-w-lg"
-           >
-               {/* Render only when dialog is open and context is available */}
-               {renameContactName.isOpen && renameContactName.context && (
-                   <RenameContactName
-                       currentDoctype={renameContactName.context.currentDoctype}
-                       currentDocName={renameContactName.context.currentDocName}
-                       onSuccess={closeRenameContactNameDialog}
-                   />
-               )}
-           </ReusableFormDialog>
+            <ReusableFormDialog
+                isOpen={renameContactName.isOpen}
+                onClose={closeRenameContactNameDialog}
+                title={renameContactName.context?.currentDocName ? `Rename Contact ID "${renameContactName.context.currentDocName}"` : "Rename Contact"}
+                className="max-w-lg"
+            >
+                {/* Render only when dialog is open and context is available */}
+                {renameContactName.isOpen && renameContactName.context && (
+                    <RenameContactName
+                        currentDoctype={renameContactName.context.currentDoctype}
+                        currentDocName={renameContactName.context.currentDocName}
+                        onSuccess={closeRenameContactNameDialog}
+                    />
+                )}
+            </ReusableFormDialog>
 
 
-           <ReusableFormDialog
-                 isOpen={editDealStatus.isOpen}
-                 onClose={closeEditDealStatusDialog}
-                 title={editDealStatus.context?.boqData?.boq_name ? `Update Deal Status for "${editDealStatus.context.boqData.boq_name}"` : "Update Deal Status"}
-                 className="max-w-md" // Adjust width for this form
-             >
-                 {editDealStatus.context?.boqData && (
-                     <EditDealStatusForm
-                         boqData={editDealStatus.context.boqData}
-                         onSuccess={closeEditDealStatusDialog}
-                     />
-                 )}
-             </ReusableFormDialog>
+            <ReusableFormDialog
+                isOpen={editDealStatus.isOpen}
+                onClose={closeEditDealStatusDialog}
+                title={editDealStatus.context?.boqData?.boq_name ? `Update Deal Status for "${editDealStatus.context.boqData.boq_name}"` : "Update Deal Status"}
+                className="max-w-md" // Adjust width for this form
+            >
+                {editDealStatus.context?.boqData && (
+                    <EditDealStatusForm
+                        boqData={editDealStatus.context.boqData}
+                        onSuccess={closeEditDealStatusDialog}
+                    />
+                )}
+            </ReusableFormDialog>
 
 
-               <ReusableFormDialog
+            <ReusableFormDialog
                 isOpen={companyProgress.isOpen}
                 onClose={closeCompanyProgressDialog}
                 title={getCompanyProgressTitle()}
