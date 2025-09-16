@@ -17,7 +17,7 @@ import { CRMCompanyProgress } from "@/store/dialogStore"; // CRMCompany no longe
 
 // Zod Schema for CompanyProgressForm
 const companyProgressFormSchema = z.object({
-  priority: z.enum(CompanyProgressPriorityOptions.map(opt => opt.value))
+  priority: z.enum(CompanyProgressPriorityOptions?.map(opt => opt.value))
               .optional().nullable()
               .transform(e => e === null ? undefined : e),
   expected_boq_count: z.union([
@@ -25,7 +25,7 @@ const companyProgressFormSchema = z.object({
       z.literal(NaN),
       z.null()
   ]).optional()
-    .transform(e => (e === NaN || e === null || e === undefined) ? undefined : Number(e)),
+    .transform(e => ( e === null || e === undefined) ? undefined : Number(e)),
 });
 
 type CompanyProgressFormValues = z.infer<typeof companyProgressFormSchema>;

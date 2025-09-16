@@ -320,7 +320,7 @@ const TaskList = ({ tasks, selectedDate, hasTasksOnAnyDate }) => {
            
              <div
                     className="flex justify-between items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-md"
-                    onClick={() => navigate(`${isMobile?`/tasks/task?id=${task.name}`:`/tasks?id=${task.name}`}`)}
+                    onClick={() => navigate(`/tasks/task?id=${task.name}`)}
                   >
                     
                     <span>

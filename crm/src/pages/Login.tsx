@@ -42,6 +42,8 @@ export const LoginPage = () => {
         setError,
     } = form;
 
+ 
+
     // 3. Handle form submission - NO LOGIC CHANGE
     const onSubmit = async (data: LoginFormValues) => {
         try {
@@ -49,7 +51,10 @@ export const LoginPage = () => {
                 username: data.email,
                 password: data.password
             });
-            window.location.href = '/'; // Full page reload on success
+            console.log("/${import.meta.env.VITE_BASE_NAME}",`${import.meta.env.VITE_BASE_NAME}`)
+
+            window.location.href = `/${import.meta.env.VITE_BASE_NAME}`; 
+            // // Full page reload on success
         } catch (err) {
             const error = err as FrappeError;
             setError("root", {
@@ -69,6 +74,11 @@ export const LoginPage = () => {
     }
 
     // Redirect if already logged in. - NO LOGIC CHANGE
+    if (currentUser) {
+        navigate("/")
+    }
+
+
     if (!currentUser) {
         // console.error(error)
         
@@ -163,10 +173,14 @@ export const LoginPage = () => {
             </div> */}
         </div>
     )
-} else {
-    return <Navigate to="/"/>;
-}
+} 
+// else {
+//     return <Navigate to="/"/>;
+// }
 };
+
+
+
 // import { useAuth } from '@/auth/AuthProvider';
 // import { useFrappeAuth } from 'frappe-react-sdk'; // <-- ADD THIS
 // import { Navigate, useNavigate,Link } from 'react-router-dom';

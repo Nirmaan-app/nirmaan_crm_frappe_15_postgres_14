@@ -74,7 +74,7 @@ const TaskListSection = ({ title, tasks, boqId, companyId, contactId, taskProfil
                     <TableBody>
                         {tasks.length > 0 ? (
                             tasks.map((task) => (
-                                <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
+                                <TableRow key={task.name} onClick={() =>  navigate(`/tasks/task?id=${task.name}`)} className="cursor-pointer">
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <TaskStatusIcon status={task.status} className="flex-shrink-0" />
