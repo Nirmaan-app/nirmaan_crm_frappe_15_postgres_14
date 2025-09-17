@@ -129,97 +129,180 @@ export const BoqTableView = ({
         }));
     }, [boqs]);
 
-    // --- Column Definitions for the DataTable ---
-    const columns = useMemo<DataTableColumnDef<BOQ>[]>(() => [
-        {
-            accessorKey: "boq_name",
-            meta: { title: "Project Name",enableSorting: true },
-            cell: ({ row }) => (
-                <Link to={`/boqs/boq?id=${row.original.name}&statusTab=${activeTabStatus}`} className="text-primary font-semibold hover:underline text-left">
-                    {row.original.boq_name}
-                </Link>
-            ),
-           
-        },
-        {
-            accessorKey: "company",
-            meta: { title: "Company Name", filterVariant: 'select', enableSorting: true, filterOptions: companyOptions },
-            cell: ({ row }) => <span className="text-left">{row.original.company || '--'}</span>,
-            filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
-            enableSorting: true,
-            
-        },
-        {
-            accessorKey: "boq_status", // This column is ALWAYS defined and visible
-            meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: statusOptions },
-            cell: ({ row }) => (
-                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(row.original.boq_status)}`}>
-                    {row.original.boq_status}
-                </span>
-            ),
-            filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
-            enableSorting: true,
-            
-        },
-        {
-            accessorKey: "boq_sub_status", // Filter for sub_status
-            meta: { title: "Sub-Status", filterVariant: 'select', enableSorting: true, filterOptions: subStatusOptions }, // Using NEW subStatusOptions
-            cell: ({ row }) => (
-                row.original.boq_sub_status ? (
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(row.original.boq_sub_status)}`}>
-                        {row.original.boq_sub_status}
-                    </span>
-                ) : '--'
-            ),
-            filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
-            enableSorting: true,
-            
-        },
-        // If 'deal_status' is a real field, add it here:
-        // {
-        //     accessorKey: "deal_status",
-        //     meta: { title: "Deal Status", filterVariant: 'select', enableSorting: true, filterOptions: dealStatusOptions },
-        //     cell: ({ row }) => <span className="text-left">{row.original.deal_status || '--'}</span>,
-        //     enableSorting: true,
-        //     filterFn: 'faceted',
-        // },
-        {
-            accessorKey: "modified",
-            meta: { title: "Last Updated", filterVariant: 'date', enableSorting: true },
+      const boqSubmissionDateColumn: DataTableColumnDef<BOQ> = {
+            accessorKey: "boq_submission_date",
+            meta: { title: "Submission Deadline", filterVariant: 'date', enableSorting: true },
             cell: ({ row }) => (
                 <span className="text-sm text-muted-foreground">
-                    {formatDateWithOrdinal(new Date(row.original.modified), 'dd-MMM-yyyy')}
+                    {row.original.boq_submission_date ? formatDateWithOrdinal(new Date(row.original.boq_submission_date), 'dd-MMM-yyyy') : '--'}
                 </span>
             ),
             enableSorting: true,
-            filterFn: 'dateRange', // Uses the 'dateRangeFilterFn' registered in useDataTableLogic
-        },
-        {
-            accessorKey: "deal_status", // Filter for sub_status
-            meta: { title: "Deal Status", filterVariant: 'select', enableSorting: true, filterOptions: dealStatusOptions }, // Using NEW subStatusOptions
-            cell: ({ row }) => (
-                row.original.deal_status ? (
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(row.original.deal_status)}`}>
-                        {row.original.deal_status}
-                    </span>
-                ) : '--'
-            ),
-            filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
-            enableSorting: true,
+            filterFn: 'dateRange',
+        };
+    
+
+    // // --- Column Definitions for the DataTable ---
+    // const columns = useMemo<DataTableColumnDef<BOQ>[]>(() => [
+    //     {
+    //         accessorKey: "boq_name",
+    //         meta: { title: "Project Name",enableSorting: true },
+    //         cell: ({ row }) => (
+    //             <Link to={`/boqs/boq?id=${row.original.name}&statusTab=${activeTabStatus}`} className="text-primary font-semibold hover:underline text-left">
+    //                 {row.original.boq_name}
+    //             </Link>
+    //         ),
+           
+    //     },
+    //     {
+    //         accessorKey: "company",
+    //         meta: { title: "Company Name", filterVariant: 'select', enableSorting: true, filterOptions: companyOptions },
+    //         cell: ({ row }) => <span className="text-left">{row.original.company || '--'}</span>,
+    //         filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+    //         enableSorting: true,
             
-        },
-        // {
-        //     id: 'actions', // Unique ID for columns without a direct accessorKey
-        //     meta: { title: "", enableSorting: false, filterVariant: undefined, excludeFromExport: true }, // Empty title, not sortable/filterable, excluded from export
-        //     cell: () => (
-        //         <div className="flex justify-end pt-2 md:pt-0">
-        //             <ChevronRight className="h-5 w-5 text-muted-foreground" />
-        //         </div>
-        //     ),
-        //     enableSorting: false,
-        //     enableColumnFilter: false,
-        // },
-    ], [boqs, companyOptions, projectNamesOptions, statusOptions,dealStatusOptions, subStatusOptions, getBoqStatusClass]); // Added subStatusOptions to dependencies
+    //     },
+    //     {
+    //         accessorKey: "boq_status", // This column is ALWAYS defined and visible
+    //         meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: statusOptions },
+    //         cell: ({ row }) => (
+    //             <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(row.original.boq_status)}`}>
+    //                 {row.original.boq_status}
+    //             </span>
+    //         ),
+    //         filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+    //         enableSorting: true,
+            
+    //     },
+    //     {
+    //         accessorKey: "boq_sub_status", // Filter for sub_status
+    //         meta: { title: "Sub-Status", filterVariant: 'select', enableSorting: true, filterOptions: subStatusOptions }, // Using NEW subStatusOptions
+    //         cell: ({ row }) => (
+    //             row.original.boq_sub_status ? (
+    //                 <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(row.original.boq_sub_status)}`}>
+    //                     {row.original.boq_sub_status}
+    //                 </span>
+    //             ) : '--'
+    //         ),
+    //         filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+    //         enableSorting: true,
+            
+    //     },
+    //     // If 'deal_status' is a real field, add it here:
+    //     // {
+    //     //     accessorKey: "deal_status",
+    //     //     meta: { title: "Deal Status", filterVariant: 'select', enableSorting: true, filterOptions: dealStatusOptions },
+    //     //     cell: ({ row }) => <span className="text-left">{row.original.deal_status || '--'}</span>,
+    //     //     enableSorting: true,
+    //     //     filterFn: 'faceted',
+    //     // },
+    //     {
+    //         accessorKey: "modified",
+    //         meta: { title: "Last Updated", filterVariant: 'date', enableSorting: true },
+    //         cell: ({ row }) => (
+    //             <span className="text-sm text-muted-foreground">
+    //                 {formatDateWithOrdinal(new Date(row.original.modified), 'dd-MMM-yyyy')}
+    //             </span>
+    //         ),
+    //         enableSorting: true,
+    //         filterFn: 'dateRange', // Uses the 'dateRangeFilterFn' registered in useDataTableLogic
+    //     },
+    //     {
+    //         accessorKey: "deal_status", // Filter for sub_status
+    //         meta: { title: "Deal Status", filterVariant: 'select', enableSorting: true, filterOptions: dealStatusOptions }, // Using NEW subStatusOptions
+    //         cell: ({ row }) => (
+    //             row.original.deal_status ? (
+    //                 <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(row.original.deal_status)}`}>
+    //                     {row.original.deal_status}
+    //                 </span>
+    //             ) : '--'
+    //         ),
+    //         filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
+    //         enableSorting: true,
+            
+    //     },
+       
+    // ], [boqs, companyOptions, projectNamesOptions, statusOptions,dealStatusOptions, subStatusOptions, getBoqStatusClass]); // Added subStatusOptions to dependencies
+
+        // --- Column Definitions for the DataTable ---
+    const columns = useMemo<DataTableColumnDef<BOQ>[]>(() => {
+        const baseColumns: DataTableColumnDef<BOQ>[] = [
+            {
+                accessorKey: "boq_name",
+                meta: { title: "Project Name", enableSorting: true },
+                cell: ({ row }) => (
+                    <Link to={`/boqs/boq?id=${row.original.name}&statusTab=${activeTabStatus}`} className="text-primary font-semibold hover:underline text-left">
+                        {row.original.boq_name}
+                    </Link>
+                ),
+            },
+            {
+                accessorKey: "company",
+                meta: { title: "Company Name", filterVariant: 'select', enableSorting: true, filterOptions: companyOptions },
+                cell: ({ row }) => <span className="text-left">{row.original.company || '--'}</span>,
+                filterFn: 'faceted',
+                enableSorting: true,
+            },
+            {
+                accessorKey: "boq_status",
+                meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: statusOptions },
+                cell: ({ row }) => (
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(row.original.boq_status)}`}>
+                        {row.original.boq_status}
+                    </span>
+                ),
+                filterFn: 'faceted',
+                enableSorting: true,
+            },
+            {
+                accessorKey: "boq_sub_status",
+                meta: { title: "Sub-Status", filterVariant: 'select', enableSorting: true, filterOptions: subStatusOptions },
+                cell: ({ row }) => (
+                    row.original.boq_sub_status ? (
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(row.original.boq_sub_status)}`}>
+                            {row.original.boq_sub_status}
+                        </span>
+                    ) : '--'
+                ),
+                filterFn: 'faceted',
+                enableSorting: true,
+            },
+            {
+                accessorKey: "modified",
+                meta: { title: "Last Updated", filterVariant: 'date', enableSorting: true },
+                cell: ({ row }) => (
+                    <span className="text-sm text-muted-foreground">
+                        {formatDateWithOrdinal(new Date(row.original.modified), 'dd-MMM-yyyy')}
+                    </span>
+                ),
+                enableSorting: true,
+                filterFn: 'dateRange',
+            },
+            {
+                accessorKey: "deal_status",
+                meta: { title: "Deal Status", filterVariant: 'select', enableSorting: true, filterOptions: dealStatusOptions },
+                cell: ({ row }) => (
+                    row.original.deal_status ? (
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(row.original.deal_status)}`}>
+                            {row.original.deal_status}
+                        </span>
+                    ) : '--'
+                ),
+                filterFn: 'faceted',
+                enableSorting: true,
+            },
+        ];
+
+        // Conditionally add the boq_submission_date column
+        const statusesWithSubmissionDate = ['New', 'In-Progress', 'Revision Pending'];
+        if (statusesWithSubmissionDate.includes(activeTabStatus)) {
+            // Insert it before the "Deal Status" column for a logical flow
+            baseColumns.splice(5, 0, boqSubmissionDateColumn); // Insert at index 5
+        }
+
+        return baseColumns;
+
+    }, [boqs, companyOptions, projectNamesOptions, statusOptions, dealStatusOptions, subStatusOptions, getBoqStatusClass, activeTabStatus]); // IMPORTANT: Add activeTabStatus to dependencies
 
 
     if (error) return <div className="text-red-500">Error loading BOQs.</div>;
@@ -355,6 +438,37 @@ export const BoqTableView = ({
     ]), [getUserFullNameByEmail]);
 
 
+    // ... (after tableLogic declaration)
+
+// NEW: Calculate gridColsClass dynamically based on visible columns
+const calculatedGridColsClass = useMemo(() => {
+    const statusesWithSubmissionDate = ['New', 'In-Progress', 'Revision Pending'];
+    const isSubmissionDateColumnVisible = statusesWithSubmissionDate.includes(activeTabStatus);
+    const isActionsColumnVisible = tableLogic.columnVisibility.actions;
+
+    let gridTemplate: string;
+
+    if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
+        // 7 data columns + Actions
+        // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status, actions)
+        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1.5fr,1fr,1fr,auto]";
+    } else if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
+        // 7 data columns, no Actions
+        // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status)
+        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1.5fr,1fr,1fr]";
+    } else if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
+        // 6 data columns + Actions
+        // (boq_name, company, boq_status, boq_sub_status, modified, deal_status, actions)
+        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,auto]";
+    } else { // !isSubmissionDateColumnVisible && !isActionsColumnVisible
+        // 6 data columns, no Actions
+        // (boq_name, company, boq_status, boq_sub_status, modified, deal_status)
+        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr]";
+    }
+
+    return gridTemplate;
+}, [activeTabStatus, tableLogic.columnVisibility.actions]); // Dependencies for this memo
+
     return (
         <DataTable
             tableLogic={tableLogic}
@@ -371,10 +485,8 @@ export const BoqTableView = ({
             shouldExpandHeight={true} // BoqTableView always tells DataTable to expand to fill its parent's height
             className={className} // Pass parent's className to DataTable's root div
             
-            gridColsClass={cn(
-                "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,auto]", // Base 6 data columns + 1 actions column
-                tableLogic.columnVisibility.actions === false && "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr]" // If actions hidden (6 data columns)
-            )}
+             gridColsClass={calculatedGridColsClass}
+
             headerTitle="CRM BOQs"
             noResultsMessage="No BOQs found."
             // NEW SLOT: Tabs appear above search box

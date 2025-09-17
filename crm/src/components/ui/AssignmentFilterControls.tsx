@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReactSelect from 'react-select';
 import { CRMUsers } from '@/types/NirmaanCRM/CRMUsers';
+import { formatRoleName } from '@/pages/MyTeam/MemberList';
 
 type FrappeFilter = [string, string, string | string[]];
 
@@ -31,11 +32,12 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
     const [selectedEstimationUsers, setSelectedEstimationUsers] = useState<{ label: string; value: string }[]>([]);
 
     const { data: salesUsers, isLoading: salesLoading } = useFrappeGetDocList<CRMUsers>("CRM Users", {
-        fields: ["name", "full_name"],
+        fields: ["name", "full_name","nirmaan_role_name"],
         filters: {
             "nirmaan_role_name": ["in", [
                 "Nirmaan Sales User Profile",
                 "Nirmaan Admin User Profile",
+                "Nirmaan Estimations User Profile"
             ]]
         },
         limit: 0,
@@ -48,7 +50,16 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
     }, "estimation-users-list");
 
     const salesUserOptions = useMemo(() => {
-        const users = salesUsers?.map(user => ({ label: user.full_name, value: user.name })) || [];
+        const users = salesUsers?.map(user => ({ label: ( // Change label to return JSX
+                <>
+                    {user.full_name}
+                    (
+                    <span className="text-red-500"> {/* Apply Tailwind CSS class for red color */}
+                        {formatRoleName(user.nirmaan_role_name)}
+                    </span>
+                    )
+                </>
+            ), value: user.name })) || [];
         return [UNASSIGNED_OPTION, ...users];
     }, [salesUsers]);
 
@@ -57,6 +68,10 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
         return [UNASSIGNED_OPTION, ...users];
     }, [estimationUsers]);
 
+
+
+
+    
     useEffect(() => {
         if (!user_id) return;
 

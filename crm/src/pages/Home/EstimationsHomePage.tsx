@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate, Link } from "react-router-dom";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import React, { useMemo, useEffect } from 'react';
-import { Plus, ChevronRight } from "lucide-react";
+import { Plus, ChevronRight,Calendar } from "lucide-react";
 import { useDialogStore } from '@/store/dialogStore';
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { formatDateWithOrdinal } from "@/utils/FormatDate";
@@ -65,7 +65,7 @@ export const PendingBOQs = () => {
     // --- Data Fetching for Pending BOQs ---
     const { data: pendingBoqs, isLoading: isPendingBoqsLoading, error } = useFrappeGetDocList<BOQ>('CRM BOQ', {
         fields: ["*"], // Fetch all necessary fields for display, filtering, and export
-        filters: [["boq_status", "in", ["New", "Revision Pending", "In-Progress"]]], // Specific filters for "Pending"
+        filters: [["boq_status", "in", ["New", "Revision Pending", "In-Progress","Partial BOQ Submitted"]]], // Specific filters for "Pending"
         limit: 0, // No pagination limit, fetch all
         orderBy: { field: 'modified', order: 'desc' } // Default sorting for data fetching
     }, "all-boqs-estimate-pending"); // Unique cache key for this specific data fetch
@@ -84,7 +84,7 @@ export const PendingBOQs = () => {
 
     const pendingStatusOptions = useMemo(() => {
         // These are the possible statuses for the filter tabs/dropdowns for Pending BOQs
-        return ['New', 'Revision Pending', 'In-Progress'].map(status => ({
+        return ['New', 'Revision Pending', 'In-Progress','Partial BOQ Submitted'].map(status => ({
             label: status,
             value: status
         }));
@@ -121,6 +121,9 @@ export const PendingBOQs = () => {
         return Array.from(salespersons.entries()).map(([email, name]) => ({ id: email, label: name, value: email }));
     }, [pendingBoqs, usersLoading, getUserFullNameByEmail]);
 
+
+
+      
 
     // --- Column Definitions for the Pending BOQs DataTable ---
     const columns = useMemo<DataTableColumnDef<BOQ>[]>(() => [
@@ -235,9 +238,9 @@ export const PendingBOQs = () => {
 
     // --- Effect for Dynamic Synchronization (Pending BOQs) ---
     useEffect(() => {
-        if (tableLogic.globalFilter !== '') {
-            tableLogic.setGlobalFilter('');
-        }
+        // if (tableLogic.globalFilter !== '') {
+        //     tableLogic.setGlobalFilter('');
+        // }
         tableLogic.table.setColumnFilters(initialTabFilter); // Ensure no tab-based filter is active
         tableLogic.setColumnVisibility(prev => ({
             ...prev,
@@ -482,13 +485,25 @@ export const AllBOQs = () => {
         initialSorting: [{ id: 'modified', desc: true }],
         initialColumnFilters: initialTabFilter,
         initialColumnVisibility: initialColumnVisibility,
+        customGlobalFilterFn: [
+            'boq_name',
+            'company',
+            'boq_status',
+            'boq_sub_status',
+            'owner',
+            'salesperson',
+            'assigned_sales',
+            'contact',
+            'city',
+            'remarks'
+        ],
     });
 
     // --- Effect for Dynamic Synchronization (All BOQs) ---
     useEffect(() => {
-        if (tableLogic.globalFilter !== '') {
-            tableLogic.setGlobalFilter('');
-        }
+        // if (tableLogic.globalFilter !== '') {
+        //     tableLogic.setGlobalFilter('');
+        // }
         tableLogic.table.setColumnFilters(initialTabFilter); // Ensure no tab-based filter is active
         tableLogic.setColumnVisibility(prev => ({
             ...prev,
@@ -598,14 +613,10 @@ export const AllBOQs = () => {
 // =============================================================================
 export const EstimationsHomePage = () => {
      const fullName = localStorage.getItem('fullName');
+    const navigate = useNavigate();
+
          const { isMobile } = useViewport();
      
-
-       const {
-            
-             openNewBoqDialog,
-             
-         } = useDialogStore();
 
     return (
         // <div className="space-y-2">
@@ -618,7 +629,7 @@ export const EstimationsHomePage = () => {
         //     <PendingBOQs />
         //     <AllBOQs />
         // </div>
-            <div className="flex flex-col h-full max-h-screen overflow-y-auto">
+        <div className="flex flex-col h-full max-h-screen overflow-y-auto">
       {/* 
         This is the fixed/sticky header section.
         - sticky top-0: Makes it stick to the top of its scrolling parent.
@@ -629,15 +640,17 @@ export const EstimationsHomePage = () => {
         - flex-shrink-0: Prevents it from shrinking if it's in a flex container.
       */}
       <div className="sticky top-0 z-20 bg-background px-4 py-2  flex-shrink-0">
-        <div className="flex flex-wrap gap-4 justify-between items-center">
-          <h1 className="text-2xl font-bold">Welcome, {fullName}!</h1>
-          {!isMobile &&(
-<Button className="h-9 px-4 py-2" onClick={openNewBoqDialog} >
-            <Plus className="mr-2 h-4 w-4" /> Create New BOQ
-          </Button>
-          )}
-          
-        </div>
+        <div className="flex justify-between items-center mb-2">
+                            <h1 className="text-md md:text-2xl font-bold">Welcome, {fullName}!</h1>
+                            <Button
+                                variant="outline"
+                                className="border-destructive text-destructive hover:bg-destructive/5 hover:text-destructive"
+                                onClick={() => navigate('/calendar')}
+                            >
+                                <Calendar className="w-4 h-4 mr-2" />
+                                Calendar
+                            </Button>
+                        </div>
       </div>
 
       {/* 
