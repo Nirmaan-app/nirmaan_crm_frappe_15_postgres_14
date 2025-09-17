@@ -11,7 +11,7 @@ import { EstimationsHomePage } from "../Home/EstimationsHomePage";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 export const HomePage = () => {
     // Fetch pending tasks for the top card]
-    const { role, isLoading } = useCurrentUser()
+    const { role,full_name, isLoading } = useCurrentUser()
 
     // const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]]
     // const homePageTaskSWR =  `all-tasks-${JSON.stringify(homePageTaskFilter)}`;
@@ -39,7 +39,7 @@ export const HomePage = () => {
     else if (role === "Nirmaan Estimations User Profile") {
         return (
             <div className="space-y-6">
-                <EstimationsHomePage />
+                <EstimationsHomePage FullName={full_name}/>
             </div>
         )
     }

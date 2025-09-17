@@ -613,7 +613,7 @@ export const AllBOQs = () => {
 // =============================================================================
 // Main component that assembles the page
 // =============================================================================
-export const EstimationsHomePage = () => {
+export const EstimationsHomePage = ({FullName}) => {
      const fullName = localStorage.getItem('fullName');
     const navigate = useNavigate();
 
@@ -643,7 +643,7 @@ export const EstimationsHomePage = () => {
       */}
       <div className="sticky top-0 z-20 bg-background px-4 py-2  flex-shrink-0">
         <div className="flex justify-between items-center mb-2">
-                            <h1 className="text-md md:text-2xl font-bold">Welcome, {fullName}!</h1>
+                            <h1 className="text-md md:text-2xl font-bold">Welcome, {FullName}!</h1>
                             <Button
                                 variant="outline"
                                 className="border-destructive text-destructive hover:bg-destructive/5 hover:text-destructive"
