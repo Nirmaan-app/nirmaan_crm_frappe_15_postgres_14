@@ -131,25 +131,25 @@ export const CompanyTableView = () => {
     },
     {
       accessorKey: "last_meeting",
-      meta: { title: "Last Meeting",filterVariant: 'date', enableSorting: true },
+      meta: { title: "Last Meeting", enableSorting: true, },
       cell: ({ row }) =>
         row.original.last_meeting
           ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
           : '--',
-           enableSorting: true,
-            filterFn: 'dateRange', 
+          //  enableSorting: true,
+          //   filterFn: 'dateRange', 
 
         
     },
     {
       accessorKey: "next_meeting_date",
-      meta: { title: "Next Meeting", enableSorting: true, filterVariant: "date" },
+      meta: { title: "Next Meeting", enableSorting: true, },
       cell: ({ row }) =>
         row.original.next_meeting_date
           ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
           : '--',
-           enableSorting: true,
-            filterFn: 'dateRange', 
+          //  enableSorting: true,
+          //   filterFn: 'dateRange', 
  
     },
     {
@@ -205,7 +205,7 @@ const initialSorting = [
 // MODIFIED: initialFilters should now be derived from the assignedSalesFilter state
 const initialFilters: ColumnFiltersState = useMemo(() => {
     const filters: ColumnFiltersState = [];
-    if (assignedSalesFilter && assignedSalesFilter.length > 0) {
+    if (assignedSalesFilter && assignedSalesFilter.length >= 0) {
         filters.push({
             id: 'assigned_sales', // This must match the accessorKey of your column
             value: assignedSalesFilter,
@@ -216,7 +216,7 @@ const initialFilters: ColumnFiltersState = useMemo(() => {
   const tableLogic = useDataTableLogic<CRMCompany>({
     data: companies,
     columns,
-    initialSorting,
+    initialSorting:initialSorting,
     initialColumnFilters: initialFilters,
     customGlobalFilterFn: ['company_name', 'company_city', 'assigned_sales', 'priority'],
   });

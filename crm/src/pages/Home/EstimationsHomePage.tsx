@@ -444,6 +444,8 @@ export const AllBOQs = () => {
                     {formatDateWithOrdinal(new Date(row.original.modified), 'dd-MMM-yyyy')}
                 </span>
             ),
+            enableSorting: true,
+            filterFn: 'dateRange',
        
         },
         {
