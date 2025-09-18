@@ -12,9 +12,9 @@ export const MemberDetails = ({ memberId }) => {
     // --- STEP 1: ON-DEMAND DATA FETCHING ---
 
     // Fetch the full member document to get their role and email.
-    const { data: member, isLoading: memberLoading } = useFrappeGetDoc("CRM Users", memberId);
+    const { data: member, isLoading: memberLoading } = useFrappeGetDoc("CRM Users", memberId,`user-${memberId}`);
     
-    // console.log("data member",member.email)
+    // console.log("data member",memberId,member)
     
     const memberEmail = member?.email;
     const memberRole = member?.nirmaan_role_name;
