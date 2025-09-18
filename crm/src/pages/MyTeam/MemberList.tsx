@@ -48,20 +48,24 @@ const MemberListItem = ({ member, onMemberSelect, activeMemberId }) => {
     // This item now fetches its own complete document to get the user_image.
     // This is very fast because it's a direct key lookup and runs for each item.
  const isActive = activeMemberId === member.name;
+    console.log("isActive",isActive)
+
 
 
     return (
         <Card
             role="button"
             onClick={() => onMemberSelect(member.name)}
-            className={`mb-2 p-3 cursor-pointer transition-colors ${
-                isActive ? "bg-mute ring-0 ring-blue" : "hover:bg-muted/50"
+           className={`mb-2 p-3 cursor-pointer transition-colors ${
+                isActive
+                    ? "bg-destructive text-destructive-foreground ring-2 ring-destructive ring-offset-1" // Corrected Tailwind classes
+                    : "hover:bg-muted/50"
             }`}
         >
             <div className="flex items-center justify-between">
                 
                 {/* Left Group */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center text-black gap-3">
                     <Avatar className="h-10 w-10">
                         <AvatarImage src={member.user_image} alt={member.full_name} />
                         <AvatarFallback>{generateFallback(member.full_name)}</AvatarFallback>
@@ -69,7 +73,7 @@ const MemberListItem = ({ member, onMemberSelect, activeMemberId }) => {
                     
                     <div>
                         <p className="font-semibold">{member.full_name}</p>
-                        <p className="text-xs text-muted-foreground"> {formatRoleName(member.nirmaan_role_name)}</p>
+                        <p className="text-xs text-black-foreground"> {formatRoleName(member.nirmaan_role_name)}</p>
                     </div>
                 </div>
 

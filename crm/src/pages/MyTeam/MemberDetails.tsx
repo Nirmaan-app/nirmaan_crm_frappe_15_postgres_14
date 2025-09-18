@@ -67,7 +67,7 @@ export const MemberDetails = ({ memberId }) => {
             case 'Nirmaan Admin User Profile':
                 return ['overview'];
             case 'Nirmaan Estimations User Profile':
-                return ['overview', 'boqs'];
+                return ['overview', 'boqs',"tasks"];
             case 'Nirmaan Sales User Profile':
                 return ['overview', 'contacts', 'tasks', 'boqs'];
             default:

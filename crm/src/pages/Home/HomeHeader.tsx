@@ -79,6 +79,7 @@ import { AllBOQs, PendingBOQs } from "./EstimationsHomePage"; // Assuming these 
 
 // --- shadcn/ui Tabs Imports ---
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TaskTableView } from "../Tasks/components/TaskTableView";
 // --- End shadcn/ui Tabs Imports ---
 
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
@@ -111,8 +112,16 @@ export const HomeHeader = () => {
     const fullName = localStorage.getItem('fullName'); // From your code
     const role = localStorage.getItem('role'); // From your code
 
+
+    const initialDefaultTab = useMemo(() => {
+        if (role === 'Nirmaan Estimates User Profile') { // Check for Estimates role
+            return 'estimations_review';
+        }
+        return 'sales_review'; // Default for Admin, Sales, or any other role
+    }, [role]); // Re-evaluate if role changes (though localStorage is usually static after login)
+
     // State for the active tab, synced with URL search parameters
-    const [activeTab, setActiveTab] = useStateSyncedWithParams<string>('homeTab', 'sales_review');
+    const [activeTab, setActiveTab] = useStateSyncedWithParams<string>('homeTab', "sales_review");
 
     // Determine if the current user is an Admin (using your exact logic)
     const isAdmin = role === 'Nirmaan Admin User Profile';
@@ -188,22 +197,31 @@ export const HomeHeader = () => {
 
             {/* Content area based on active tab, scrolls below fixed header */}
             <div className="flex-1 px-4"> {/* flex-1 allows this section to fill remaining space */}
-                {activeTab === 'sales_review' ? (
-                    <div className="space-y-6"> {/* Use space-y- to manage spacing between components */}
+                {activeTab === 'sales_review' && (
+                    <div className="space-y-2"> {/* Use space-y- to manage spacing between components */}
                          <div className="relative mt-0 mb-0 flex-shrink-0">
                            <GlobalSearchInput className="flex-1" />
                        </div>
-                        <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
+                       
+                       {isAdmin ? (
+                            // If Admin, show TaskTableView (e.g., all tasks)
+                            <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" />
+                        ) : (
+                            // If not Admin, show PendingTasks (original behavior)
+                            <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
+                        )}
                         <StatsGrid />
                     </div>
-                ) : (
-                    // This content is only relevant if activeTab is 'estimations_review' AND isAdmin is true
-                    // The Tab itself is already hidden if !isAdmin, so this conditional rendering still works.
-                    <div className="space-y-6">
+                )}
+
+
+{activeTab === 'estimations_review' &&(
+ <div className="space-y-6">
                         <PendingBOQs />
                         <AllBOQs />
                     </div>
-                )}
+)}
+                
             </div>
         </div>
     );

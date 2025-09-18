@@ -147,23 +147,24 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
     // 1. DYNAMIC FILTERS: Combine the assignment filters with a base filter
     // This ensures we only fetch tasks that are not completed, making the query more efficient.
 
-    // const allFilters = useMemo(() => {
-    //     const baseFilters = [['status', '!=', 'Completed']];
-    //     if (assignmentFilters && assignmentFilters.length > 0) {
-    //         return [...baseFilters, ...assignmentFilters];
-    //     }
-    //     return baseFilters;
-    // }, [assignmentFilters]);
-    // 2. DYNAMIC KEY: Create a dynamic SWR key. This is CRITICAL.
-    // It ensures that if the filters change, the hook will re-fetch the data.
-    const swrKey = `all-tasks-todays${JSON.stringify(assignmentFilters)}`;
+    console.log("assignmentFilters",assignmentFilters)
+
+    const allFilters = useMemo(() => {
+        const baseFilters = [['status', '!=', '']];
+        if (assignmentFilters && assignmentFilters.length > 0) {
+            return [...baseFilters, ...assignmentFilters];
+        }
+        return baseFilters;
+    }, [assignmentFilters]);
+
+    const swrKey = `all-tasks-todays${JSON.stringify(allFilters)}`;
 
     const { data: tasks, isLoading, error } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
         fields: [
             "name", "type", "start_date", "status", "contact", "company",
-            "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales", "creation","remarks","task_profile","boq"
+            "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales", "creation","remarks","task_profile","boq","task_profile"
         ],
-        // filters: assignmentFilters, // Use the combined filters
+        filters: allFilters, // Use the combined filters
         orderBy: { field: "start_date", order: "desc" },
         limit: 0,
 

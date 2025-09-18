@@ -1,6 +1,6 @@
 
 // src/components/table/hooks/useDataTableLogic.ts
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback,useMemo } from 'react';
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -9,8 +9,11 @@ import {
   SortingState,
   ColumnFiltersState,
   VisibilityState,
-  GlobalFilterFn, // NEW: Import GlobalFilterFn
+  GlobalFilterFn,
+   Row, // Added Row import
+  ColumnDef, // Added ColumnDef import for the inline default filter logic // NEW: Import GlobalFilterFn
 } from '@tanstack/react-table';
+import { createGlobalFilterFn } from '../utils/global-filters';
 
 import { DataTableColumnDef, dateRangeFilterFn, facetedFilterFn } from '../utils/table-filters';
 
@@ -22,46 +25,46 @@ interface UseDataTableLogicProps<TData> {
   initialColumnVisibility?: VisibilityState;
   // NEW: Allow a custom global filter function to be passed,
   // or define a robust default one here.
-  customGlobalFilterFn?: GlobalFilterFn<TData>;
+  customGlobalFilterFn?: string[];
 }
 
 
 // src/components/table/utils/global-filters.ts
 
 
-export const createGlobalFilterFn = <TData extends Record<string, any>>(
-  searchableKeys: string[]
-): GlobalFilterFn<TData> => {
-  return (row: Row<TData>, columnId: string, filterValue: string): boolean => {
-    if (!filterValue || searchableKeys.length === 0) {
-      return true; // No filter applied or no searchable keys provided
-    }
+// export const createGlobalFilterFn = <TData extends Record<string, any>>(
+//   customGlobalFilterFn: string[]
+// ): GlobalFilterFn<TData> => {
+//   return (row: Row<TData>, columnId: string, filterValue: string): boolean => {
+//     if (!filterValue || customGlobalFilterFn?.length === 0) {
+//       return true; // No filter applied or no searchable keys provided
+//     }
 
-    const search = filterValue.toLowerCase();
-    const rowData = row.original;
+//     const search = filterValue.toLowerCase();
+//     const rowData = row.original;
 
-    // Helper to safely get a string value from a potentially nested object
-    const getStringValue = (obj: any, key: string): string => {
-      if (!obj) return '';
-      const keys = key.split('.');
-      let value = obj;
-      for (const k of keys) {
-        if (value && typeof value === 'object' && k in value) {
-          value = value[k];
-        } else {
-          return '';
-        }
-      }
-      return String(value || '');
-    };
+//     // Helper to safely get a string value from a potentially nested object
+//     const getStringValue = (obj: any, key: string): string => {
+//       if (!obj) return '';
+//       const keys = key.split('.');
+//       let value = obj;
+//       for (const k of keys) {
+//         if (value && typeof value === 'object' && k in value) {
+//           value = value[k];
+//         } else {
+//           return '';
+//         }
+//       }
+//       return String(value || '');
+//     };
 
-    // Search through the specified fields
-    const fieldsToSearch = searchableKeys.map(key => getStringValue(rowData, key));
+//     // Search through the specified fields
+//     const fieldsToSearch = customGlobalFilterFn.map(key => getStringValue(rowData, key));
     
-    // Check if any of the field values include the search term
-    return fieldsToSearch.some(field => field.toLowerCase().includes(search));
-  };
-};
+//     // Check if any of the field values include the search term
+//     return fieldsToSearch.some(field => field.toLowerCase().includes(search));
+//   };
+// };
 
 // NEW: Define a default, robust global filter function
 const defaultGlobalFilterFn = <TData extends Record<string, any>>(
@@ -119,9 +122,10 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
   initialSorting = [],
   initialColumnFilters = [],
   initialColumnVisibility = {},
-  customGlobalFilterFn, // NEW: Destructure custom global filter function
+  customGlobalFilterFn:searchableKeys, // NEW: Destructure custom global filter function
 }: UseDataTableLogicProps<TData>) {
   const defaultSortingRef = useRef(initialSorting);
+
 
   useEffect(() => {
     if (JSON.stringify(initialSorting) !== JSON.stringify(defaultSortingRef.current)) {
@@ -133,6 +137,59 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(initialColumnFilters);
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(initialColumnVisibility);
+
+  const activeGlobalFilterFn = useMemo<GlobalFilterFn<TData>>(() => {
+    // If custom searchable keys are provided and not empty, use the factory function
+    if (searchableKeys && searchableKeys?.length > 0) {
+      return createGlobalFilterFn(searchableKeys);
+    }
+
+    // Otherwise, define a robust default global filter function inline.
+    // This default function conforms to the GlobalFilterFn signature:
+    // (row: Row<TData>, columnId: string, filterValue: any) => boolean
+    return (row: Row<TData>, columnId: string, filterValue: string): boolean => {
+      if (!filterValue) return true; // No filter applied
+
+      const search = filterValue.toLowerCase();
+      const rowData = row.original;
+
+      // Helper to safely get a string value from a potentially nested object
+      const getStringValue = (obj: any, key: string): string => {
+        if (!obj) return '';
+        const keys = key.split('.');
+        let value = obj;
+        for (const k of keys) {
+          if (value && typeof value === 'object' && k in value) {
+            value = value[k];
+          } else {
+            return '';
+          }
+        }
+        return String(value || '');
+      };
+
+      // Define default searchable fields if no custom ones are provided.
+      // These should be fields from your BOQ interface that are likely candidates for global search.
+      const defaultSearchableFields = [
+        'boq_name',
+        'company',
+        'boq_status',
+        'boq_sub_status',
+        'owner',
+        'salesperson',
+        'assigned_sales',
+        'contact',
+        'city',
+        'remarks',
+      ];
+
+      // Check if any of the default searchable field values include the search term
+      return defaultSearchableFields.some(fieldKey =>
+        getStringValue(rowData, fieldKey).toLowerCase().includes(search)
+      );
+    };
+  }, [searchableKeys]); // Re-run this memo if searchableKeys change
+
 
   const table = useReactTable({
     data,
@@ -155,7 +212,7 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
       faceted: facetedFilterFn,
     },
     // NEW: Use the custom global filter function or our robust default
-    globalFilterFn: createGlobalFilterFn(customGlobalFilterFn) || defaultGlobalFilterFn,
+    globalFilterFn: activeGlobalFilterFn,
   });
 
   const hasActiveFilters = columnFilters.length > 0 || globalFilter !== '';
@@ -176,7 +233,7 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
     setGlobalFilter,
     resetFilters,
     hasActiveFilters,
-    filteredRowsCount: table.getFilteredRowModel().rows.length,
+    filteredRowsCount: table.getFilteredRowModel().rows?.length,
     columnVisibility,
     setColumnVisibility,
   };

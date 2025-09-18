@@ -14,6 +14,8 @@ import { useNavigate } from "react-router-dom";
 import { useViewport } from "@/hooks/useViewPort"; // 1. IMPORT THE HOOK
 import { TaskStatusIcon } from "@/components/ui/TaskStatusIcon";
 import {taskClick} from "@/utils/LinkNavigate"
+import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
+import { Skeleton } from '@/components/ui/skeleton'; // <--- 
 
 export const TaskCalendar = () => {
   const { isMobile } = useViewport(); // 2. GET THE MOBILE STATE
@@ -26,7 +28,7 @@ export const TaskCalendar = () => {
 
   const [tasksData, setTasksData] = React.useState<any>([]);
 
-  const { data, isLoading } = useFrappeGetDocList(
+  const { data, isLoading:isTasksLoading } = useFrappeGetDocList(
     "CRM Task",
     {
       fields: ["*"],
@@ -254,6 +256,23 @@ export const TaskCalendar = () => {
   //     </div>
   //   </div>
   // );
+  const isOverallLoading = isTasksLoading || contactsListLoading || companiesListLoading;
+
+// if(isOverallLoading){
+// return (
+//   <div className="w-full">
+//           {/* Skeleton to mimic the calendar shape */}
+//           <Skeleton className="h-[350px] w-full rounded-md" />
+//           <div className="flex justify-between mt-4">
+//             <Skeleton className="h-8 w-20 rounded-md" />
+//             <Skeleton className="h-8 w-20 rounded-md" />
+//             <Skeleton className="h-8 w-20 rounded-md" />
+//           </div>
+//           <Skeleton className="h-10 w-full mt-4 rounded-md" /> {/* For the "Add New Task" button area if it were here */}
+//         </div>
+// )
+//   }
+  
   return (
     // On mobile (default): `flex-col`. From the `md` breakpoint upwards: `flex-row`
     // `h-full` assumes the parent container of TaskCalendar has a defined height.
@@ -261,7 +280,7 @@ export const TaskCalendar = () => {
       
       {/* ===== CALENDAR COLUMN ===== */}
       {/* On desktop (`md:`), it takes half the width. On mobile, it's full-width by default. */}
-      <div className="min-h-[48vh] md:w-1/2">
+      {/* <div className="min-h-[48vh] md:w-1/2">
         
 
         <Calendar
@@ -278,7 +297,35 @@ export const TaskCalendar = () => {
         }}
       />
         
-      </div>
+      </div> */}
+       <div className="min-h-[48vh] md:w-1/2">
+      {isOverallLoading ? ( // NEW: Conditional rendering for loading state
+        <div className="w-full">
+          {/* Skeleton to mimic the calendar shape */}
+          <Skeleton className="h-[350px] w-full rounded-md" />
+          <div className="flex justify-between mt-4">
+            <Skeleton className="h-8 w-20 rounded-md" />
+            <Skeleton className="h-8 w-20 rounded-md" />
+            <Skeleton className="h-8 w-20 rounded-md" />
+          </div>
+          <Skeleton className="h-10 w-full mt-4 rounded-md" /> {/* For the "Add New Task" button area if it were here */}
+        </div>
+      ) : (
+        <Calendar
+          mode="single"
+          showOutsideDays={false}
+          timeZone="Asia/Calcutta"
+          className="min-w-full"
+          selected={selectedDate}
+          onDayClick={(day) => handleDateChange(format(day, "yyyy-MM-dd"))}
+          modifiers={{ hasTask: isTaskDate }}
+          modifiersClassNames={{
+            hasTask:
+              "border-b border-[#000399] dark:border-primary dark:text-primary text-[#000399]",
+          }}
+        />
+      )}
+    </div>
 
       {/* ===== TASK LIST COLUMN ===== */}
       {/* On mobile: takes half the height (`h-1/2`).
@@ -299,6 +346,8 @@ const TaskList = ({ tasks, selectedDate, hasTasksOnAnyDate }) => {
   const navigate = useNavigate();
   const { openNewTaskDialog } = useDialogStore();
   const { isMobile } = useViewport(); // 2. GET THE MOBILE STATE
+  const handleCreateTask = useTaskCreationHandler();
+  
 
 
   const title = selectedDate ? `Tasks for ${format(new Date(selectedDate), 'MMM dd')}` : 'Tasks';
@@ -327,8 +376,10 @@ const TaskList = ({ tasks, selectedDate, hasTasksOnAnyDate }) => {
                       <div className="flex">
                         <TaskStatusIcon status={task.status} className="mr-1 flex-shrink-0"/>
                         <div>
-                      {task?.type} with {task?.contact?.first_name}{" "}
-                      {task?.contact?.last_name} from {task?.company?.company_name} 
+                          {task.task_profile==="Sales"?( <span>{task?.type} with {task?.contact?.first_name}{" "}
+                      {task?.contact?.last_name} from {task?.company?.company_name} </span>):( <span>{task?.type} for {task?.boq} </span>)}
+                         
+                      
                       {/* <p className="text-xs inline-block text-muted-foreground p-0 m-0">
                         {formatTime12Hour(task.time)}
                     </p> */}
@@ -368,7 +419,7 @@ const TaskList = ({ tasks, selectedDate, hasTasksOnAnyDate }) => {
       <CardFooter className="p-2 border-t">
         <Button
           className="w-full bg-destructive"
-          onClick={() => openNewTaskDialog({})}
+          onClick={() => handleCreateTask()}
         >
           Add New Task
         </Button>
