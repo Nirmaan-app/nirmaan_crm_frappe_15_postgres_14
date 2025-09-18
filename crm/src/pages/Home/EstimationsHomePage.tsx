@@ -631,7 +631,7 @@ export const EstimationsHomePage = ({FullName}) => {
         //     <PendingBOQs />
         //     <AllBOQs />
         // </div>
-        <div className="flex flex-col h-full max-h-screen overflow-y-auto">
+        <div className="flex flex-col h-full max-h-screen">
       {/* 
         This is the fixed/sticky header section.
         - sticky top-0: Makes it stick to the top of its scrolling parent.
