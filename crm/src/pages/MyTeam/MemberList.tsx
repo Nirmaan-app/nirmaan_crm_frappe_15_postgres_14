@@ -48,9 +48,6 @@ const MemberListItem = ({ member, onMemberSelect, activeMemberId }) => {
     // This item now fetches its own complete document to get the user_image.
     // This is very fast because it's a direct key lookup and runs for each item.
  const isActive = activeMemberId === member.name;
-    console.log("isActive",isActive)
-
-
 
     return (
         <Card

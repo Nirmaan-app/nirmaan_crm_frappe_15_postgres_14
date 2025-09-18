@@ -214,7 +214,6 @@ export const Tasks = () => {
         { key: 'assigned_to', defaultValue: '[]' }, 
     ]);
     const { id, from, to ,assigned_to} = params;
-    console.log("params",params)
     // console.log("params", params)
     // const { openNewTaskDialog } = useDialogStore();
 
