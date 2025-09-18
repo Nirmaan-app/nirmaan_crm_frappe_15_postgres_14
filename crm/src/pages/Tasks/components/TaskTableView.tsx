@@ -222,17 +222,17 @@ export const TaskTableView = ({
             enableSorting: true,
             filterFn: 'dateRange',
         },
-        // {
-        //     accessorKey: "status",
-        //     meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: taskStatusOptions },
-        //     cell: ({ row }) => (
-        //         <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getTaskStatusClass(row.original.status)}`}>
-        //             {row.original.status}
-        //         </span>
-        //     ),
-        //     filterFn: 'faceted',
-        //     enableSorting: true,
-        // },
+        {
+            accessorKey: "status",
+            meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: taskStatusOptions },
+            cell: ({ row }) => (
+                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getTaskStatusClass(row.original.status)}`}>
+                    {row.original.status}
+                </span>
+            ),
+            filterFn: 'faceted',
+            enableSorting: true,
+        },
         {
              accessorKey: "remarks",
              meta: { title: "Remark" , enableSorting: false},
@@ -404,7 +404,7 @@ export const TaskTableView = ({
             className={className}
             containerClassName={tableContainerClassName}
             // Adjusted gridColsClass for 9 data columns
-            gridColsClass="md:grid-cols-[1fr,1fr,1.5fr,1.5fr,1fr,1.5fr,1.2fr]"
+            gridColsClass="md:grid-cols-[1fr,1fr,1.5fr,1.5fr,1fr,1fr,1fr,1fr]"
             headerTitle="Sales Task"
             noResultsMessage="No tasks found."
             // renderToolbarActions={(filteredData) => (

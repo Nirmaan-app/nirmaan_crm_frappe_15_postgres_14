@@ -66,6 +66,10 @@ export const BoqTableView = ({
     const navigate = useNavigate();
     const getBoqStatusClass = useStatusStyles("boq");
     const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+      const role = localStorage.getItem('role');
+
+      const showAssignedSalesColumn = role !== "Nirmaan Sales User Profile"
+
 
     // Use useStateSyncedWithParams for activeTabStatus to persist in URL
     const [activeTabStatus, setActiveTabStatus] = useStateSyncedWithParams<string>('statusTab', 'All');
@@ -128,6 +132,20 @@ export const BoqTableView = ({
             value: status
         }));
     }, [boqs]);
+     const salespersonOptions = useMemo(() => {
+            if (!boqs ) return [];
+            const salespersons = new Map<string, string>();
+            boqs.forEach(boq => {
+                if (boq.assigned_sales) {
+                    const fullName = getUserFullNameByEmail(boq.assigned_sales);
+                    if (fullName) {
+                        salespersons.set(boq.assigned_sales, fullName);
+                    }
+                }
+            });
+            return Array.from(salespersons.entries()).map(([email, name]) => ({ id: email, label: name, value: email }));
+        }, [boqs, usersLoading, getUserFullNameByEmail]);
+    
 
       const boqSubmissionDateColumn: DataTableColumnDef<BOQ> = {
             accessorKey: "boq_submission_date",
@@ -243,6 +261,13 @@ export const BoqTableView = ({
                 filterFn: 'faceted',
                 enableSorting: true,
             },
+        //      {
+        //     accessorKey: "assigned_sales",
+        //     meta: { title: "Salesperson", filterVariant: 'select', filterOptions: salespersonOptions, enableSorting: true },
+        //     cell: ({ row }) => <span className="text-center text-sm">{getUserFullNameByEmail(row.original.assigned_sales) || "--"}</span>,
+         
+        // },
+        
             {
                 accessorKey: "boq_status",
                 meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: statusOptions },
@@ -293,6 +318,17 @@ export const BoqTableView = ({
             },
         ];
 
+         // Conditionally insert the 'assigned_sales' column based on user roles
+        if (showAssignedSalesColumn) {
+            // Insert after 'company' column (which is at index 1)
+            baseColumns.splice(2, 0, {
+                accessorKey: "assigned_sales",
+                meta: { title: "Salesperson", filterVariant: 'select', filterOptions: salespersonOptions, enableSorting: true },
+                cell: ({ row }) => <span className="text-center text-sm">{getUserFullNameByEmail(row.original.assigned_sales) || "--"}</span>,
+            });
+        }
+
+
         // Conditionally add the boq_submission_date column
         const statusesWithSubmissionDate = ['New', 'In-Progress', 'Revision Pending'];
         if (statusesWithSubmissionDate.includes(activeTabStatus)) {
@@ -302,7 +338,7 @@ export const BoqTableView = ({
 
         return baseColumns;
 
-    }, [boqs, companyOptions, projectNamesOptions, statusOptions, dealStatusOptions, subStatusOptions, getBoqStatusClass, activeTabStatus]); // IMPORTANT: Add activeTabStatus to dependencies
+    }, [boqs, companyOptions,showAssignedSalesColumn, projectNamesOptions, statusOptions, dealStatusOptions, subStatusOptions, getBoqStatusClass, activeTabStatus]); // IMPORTANT: Add activeTabStatus to dependencies
 
 
     if (error) return <div className="text-red-500">Error loading BOQs.</div>;
@@ -372,7 +408,8 @@ export const BoqTableView = ({
         tableLogic.setGlobalFilter, // To clear global filter
         tableLogic.table, // To set column filters
         initialColumnFilters, // To ensure latest filters are applied
-        tableLogic.setColumnVisibility // To update visibility
+        tableLogic.setColumnVisibility, // To update visibility
+        
     ]);
 
 
@@ -451,23 +488,25 @@ const calculatedGridColsClass = useMemo(() => {
     if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
         // 7 data columns + Actions
         // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1.5fr,1fr,1fr,auto]";
+        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1.5fr,1fr,1fr,auto]";
     } else if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
         // 7 data columns, no Actions
         // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status)
-        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1.5fr,1fr,1fr]";
+        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1.5fr,1fr,1fr]";
     } else if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
         // 6 data columns + Actions
         // (boq_name, company, boq_status, boq_sub_status, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,auto]";
+        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,1fr,auto]";
     } else { // !isSubmissionDateColumnVisible && !isActionsColumnVisible
         // 6 data columns, no Actions
         // (boq_name, company, boq_status, boq_sub_status, modified, deal_status)
-        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr]";
+        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,1fr]";
     }
 
     return gridTemplate;
-}, [activeTabStatus, tableLogic.columnVisibility.actions]); // Dependencies for this memo
+}, [activeTabStatus, tableLogic.columnVisibility.actions,showAssignedSalesColumn]); // Dependencies for this memo
+    // NEW: Calculate gridColsClass dynamically based on visible columns
+  
 
     return (
         <DataTable
