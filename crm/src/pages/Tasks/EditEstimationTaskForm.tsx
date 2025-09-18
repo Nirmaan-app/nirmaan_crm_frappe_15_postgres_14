@@ -27,7 +27,7 @@ const editEstimationTaskSchema = z.object({
     remarks: z.string().optional(), // Add remarks field
     status: z.string().optional(),
     reschedule: z.boolean().optional(),
-     assigned_sales: z.string().optional(),
+    assigned_sales: z.string().optional(),
     // Core identifiers
     boq: z.string().optional(),
     task_profile: z.string().default("Estimates"),
@@ -60,6 +60,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
     // --- CHANGE 2: Get mode from context and access dialog controls ---
     const { editEstimationTask, openEditEstimationTaskDialog } = useDialogStore();
     const { taskData, mode } = editEstimationTask.context;
+    console.log(taskData)
      const role = localStorage.getItem("role")
            const { estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
      
@@ -124,7 +125,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                 await updateDoc("CRM Task", taskData.name, {
                     type: values.type,
                     start_date: values.start_date,
-                    remarks: values.remarks,
+                    remarks: values.remarks||taskData.remarks,
                     assigned_sales:values.assigned_sales
                 });
                 toast({ title: "Success!", description: "Estimation task updated." });

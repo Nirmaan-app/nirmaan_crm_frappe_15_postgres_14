@@ -39,8 +39,9 @@ export const AppLayout = () => {
 			</div>
 		);
 	}
-
+if (isLoading) return <div>LOADING</div>
 	// --- DESKTOP LAYOUT (SIMPLIFIED) ---
+
 	return (
 		<div className="flex flex-col h-dvh bg-background overflow-hidden">
 			<nav className="fixed top-0 left-0 right-0 h-[var(--navbar-height)] border-b cardBorder z-10">

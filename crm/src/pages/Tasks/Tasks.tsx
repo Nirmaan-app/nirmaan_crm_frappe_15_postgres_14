@@ -211,14 +211,27 @@ export const Tasks = () => {
         { key: 'id', defaultValue: '' }, // Default to no selection
         { key: 'from', defaultValue: format(subDays(new Date(), 30), 'yyyy-MM-dd') },
         { key: 'to', defaultValue: format(new Date(), 'yyyy-MM-dd') },
+        { key: 'assigned_to', defaultValue: '[]' }, 
     ]);
-    const { id, from, to } = params;
+    const { id, from, to ,assigned_to} = params;
+    console.log("params",params)
     // console.log("params", params)
     // const { openNewTaskDialog } = useDialogStore();
+
+        // Parse assignment_filters from string to array for useTaskData
+    const parsedAssignmentFilters = useMemo(() => {
+        try {
+            return assigned_to ? JSON.parse(assigned_to) : [];
+        } catch (e) {
+            console.error("Error parsing assigned_to from URL:", e);
+            return [];
+        }
+    }, [assigned_to]);
+
     const handleCreateTask = useTaskCreationHandler();
 
 
-    const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks, upcoming7DaysTasks } = useTaskData();
+    const { isLoading, error, todayTasks, tomorrowTasks, createdTodayTasks, upcoming7DaysTasks } = useTaskData(parsedAssignmentFilters);
 
     // console.log(upcoming7DaysTasks)
     // --- THE FIX IS HERE ---

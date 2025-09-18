@@ -88,6 +88,9 @@ const reasonOptions = [
 export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { editTask, closeEditTaskDialog, openEditTaskDialog } = useDialogStore();
   const { taskData, mode } = editTask.context;
+
+  // console.log("taskDatasales",taskData)
+  
   const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
   const role = localStorage.getItem("role")
 
@@ -176,7 +179,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       if (mode === 'edit') {
         // console.log("dataTask",taskData)
-        await updateDoc("CRM Task", taskData.name, { type: values.type, start_date:values.start_date, assigned_sales: values.assigned_sales,remarks:values.remarks});
+        await updateDoc("CRM Task", taskData.name, { type: values.type, start_date:values.start_date, assigned_sales: values.assigned_sales,remarks:values.remarks||taskData.remarks});
         toast({ title: "Success", description: "Task Updated." });
       } else if (mode === 'updateStatus') {
         if (!values.status) {
@@ -187,7 +190,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     form.setError('remarks', { message: 'Remarks is required.' });
                     return;
                 }
-        await updateDoc("CRM Task", taskData.name, { status: values.status, assigned_sales: values.assigned_sales,remarks:values.remarks, reason: values.reason || ''});
+        await updateDoc("CRM Task", taskData.name, { status: values.status,remarks:values.remarks, reason: values.reason || ''});
         toast({ title: "Success", description: "Task status updated." });
 
         // --- THIS IS THE KEY LOGIC CHANGE ---
@@ -205,6 +208,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           status: 'Scheduled',
           contact: taskData.contact,
           company: taskData.company,
+          task_profile:"Sales",
           assigned_sales: values.assigned_sales||taskData.assigned_sales,
           boq: taskData.boq,
           remarks:values.remarks || taskData.remarks,
@@ -327,17 +331,19 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             )}
 
             {/* Always render Remarks, but add asterisk conditionally */}
-            {/* {selectedStatus &&
-              <>
-                <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks{isRequired("remarks") && <sup className="text-destructive">*</sup>}</FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem>)} />
-
-                <FormField name="reschedule" control={form.control} render={({ field }) => (<FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><div className="space-y-1 leading-none"><FormLabel>{selectedStatus === "Incomplete" ? "Re-schedule this task?" : "Schedule a follow-up?"} </FormLabel></div></FormItem>)} />
-              </>
-            } */}
+           
           </>
         )}
 
         <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks {selectedStatus!=="Scheduled" &&(<sup>*</sup>)}</FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem>)} />
+
+         {selectedStatus &&
+              <>
+                {/* <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks{isRequired("remarks") && <sup className="text-destructive">*</sup>}</FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem>)} /> */}
+
+                <FormField name="reschedule" control={form.control} render={({ field }) => (<FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><div className="space-y-1 leading-none"><FormLabel>{selectedStatus === "Incomplete" ? "Re-schedule this task?" : "Schedule a follow-up?"} </FormLabel></div></FormItem>)} />
+              </>
+            }
 
         <div className="flex gap-2 justify-end pt-4">
           <Button type="button" variant="outline" className="border-destructive text-destructive" onClick={closeEditTaskDialog}>Cancel</Button>

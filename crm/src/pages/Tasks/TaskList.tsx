@@ -644,7 +644,7 @@ export const TaskDashboardRow = ({ task, context, onTaskSelect }: { task: Enrich
                         </div>):( <div>
                             <span className="font-semibold">{task?.type}</span> for {" "}  
                             
-                            {task?.boq}
+                            {task?.boq||"--"}
                             <p className="text-xs inline-block text-muted-foreground p-0 m-0">
                                 {(context === "createdToday" || context === 'upcoming7Days') && (`on ${formatCasualDate(task.start_date)} `)}
                                 {/* {formatCasualDate(task.start_date)}   */}
@@ -734,7 +734,7 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
     const swrkey = `all-tasks-${allFilters}`
 
     const { data: tasks, taskisLoading } = useFrappeGetDocList<EnrichedTask>("CRM Task", {
-        fields: ["name", "type", "start_date", "time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales","boq"],
+        fields: ["name", "type", "start_date", "time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "assigned_sales","boq","task_profile"],
         filters: allFilters,
         limit: 0,
         orderBy: { field: "start_date", order: "desc" }
@@ -767,8 +767,8 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
     // console.log(dateRange.from, dateRange.to)
 
     useEffect(() => {
-        onTaskSelect({ from: dateRange.from, to: dateRange.to });
-    }, [dateRange])
+        onTaskSelect({ from: dateRange.from, to: dateRange.to,assigned_to: JSON.stringify(assignmentFilters), });
+    }, [dateRange,assignmentFilters])
 
     // if (taskisLoading) { return <div className="text-center p-4">Loading Tasks...</div>; }
 
@@ -813,6 +813,41 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
             onTaskSelect({ id: path, from: dateRange.from, to: dateRange.to, assigned_to: params.get('assigned_to') });
         }
     };
+
+        const handleDesktopTaskClick = (path: string) => { // path can be 'todays', 'tomorrow', 'upcoming7Days', etc.
+        const params = new URLSearchParams({
+            from: dateRange.from,
+            to: dateRange.to,
+        });
+
+        let assignedToString = '';
+        if (assignmentFilters && assignmentFilters.length > 0) {
+            const assignedUsers = assignmentFilters[0][2];
+            if (assignedUsers && assignedUsers.length > 0) {
+                assignedToString = assignedUsers.join(',');
+                params.set('assigned_to', assignedToString); // Set in URLSearchParams for mobile navigation
+            }
+        }
+
+        const queryString = params.toString();
+
+        if (isMobile) {
+            navigate(`/tasks/${path}?${queryString}`);
+        } else {
+            if (onTaskSelect) {
+                onTaskSelect({
+                    id: path,
+                    from: dateRange.from,
+                    to: dateRange.to,
+                    // REMOVED: assigned_to: assignedToString, // No longer passing directly to setParams
+                    assigned_to: JSON.stringify(assignmentFilters),
+                });
+            }
+        }
+    };
+
+
+
 
 
     return (
@@ -906,13 +941,17 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                     title="Today"
                     count={todayTasks.length}
                     isActive={activeTaskId === 'todays'}
-                    onClick={() => onTaskSelect({ id: 'todays' })}
+                    // onClick={() => onTaskSelect({ id: 'todays' })}
+                    onClick={() => handleDesktopTaskClick("todays")}
+
                 />
                 <DesktopTaskCategoryRow
                     title="Tomorrow"
                     count={tomorrowTasks.length}
                     isActive={activeTaskId === 'tomorrow'}
-                    onClick={() => onTaskSelect({ id: 'tomorrow' })}
+                    // onClick={() => onTaskSelect({ id: 'tomorrow' })}
+                    onClick={() => handleDesktopTaskClick("tomorrow")}
+
                 />
                 {/* <DesktopTaskCategoryRow
                     title="Tasks Created Today"
@@ -929,7 +968,9 @@ export const TaskList = ({ onTaskSelect, activeTaskId }: TaskListProps) => {
                     // --- FIX HERE: Use 'upcoming7Days' for activeTaskId comparison ---
                     isActive={activeTaskId === 'upcoming7Days'}
                     // --- FIX HERE: Pass 'upcoming7Days' as the ID ---
-                    onClick={() => onTaskSelect({ id: 'upcoming7Days' })}
+                    // onClick={() => onTaskSelect({ id: 'upcoming7Days' })}
+                    onClick={() => handleDesktopTaskClick("upcoming7Days")}
+
                 />
 
             </div>)}
