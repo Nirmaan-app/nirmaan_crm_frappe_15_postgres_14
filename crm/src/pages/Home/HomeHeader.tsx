@@ -148,8 +148,8 @@ export const HomeHeader = () => {
     }, [tasksData]);
 
     return (
-        <div className="flex flex-col h-full max-h-screen overflow-y-auto"> {/* Main scroll container for Home */}
-            <div className="sticky top-0 z-20 bg-background px-4 flex-shrink-0"> {/* Fixed header section */}
+        <div className="flex flex-col h-full max-h-screen "> {/* Main scroll container for Home */}
+            <div className="sticky top-0 z-20 bg-background px-4 mt-0 flex-shrink-0"> {/* Fixed header section */}
                 <div className="flex justify-between items-center mb-2">
                     <h1 className="text-md md:text-2xl font-bold">Welcome, {fullName}!</h1>
                     <Button
@@ -216,7 +216,7 @@ export const HomeHeader = () => {
 
 
 {activeTab === 'estimations_review' &&(
- <div className="space-y-6">
+ <div className="space-y-6 mb-4">
                         <PendingBOQs />
                         <AllBOQs />
                     </div>

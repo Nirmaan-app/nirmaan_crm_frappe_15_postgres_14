@@ -27,7 +27,7 @@ const estimationTaskFormSchema = z.object({
     company: z.string().optional(),
     contact: z.string().optional(),
     task_profile: z.string().default("Estimates"),
-    remarks: z.string().optional(),
+    remarks: z.string().min(1,"Remark is required")
 });
 
 type EstimationTaskFormValues = z.infer<typeof estimationTaskFormSchema>;
@@ -182,7 +182,7 @@ export const NewEstimationTaskForm = ({ onSuccess }: NewEstimationTaskFormProps)
                         </FormItem>
                     )}
                 />
-                <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks</FormLabel><FormControl><Textarea placeholder="e.g. vendor call pending" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks<sup>*</sup></FormLabel><FormControl><Textarea placeholder="e.g. vendor call pending" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <div className="flex gap-2 justify-end pt-4">
                     <Button type="button" variant="outline" onClick={onSuccess}>Cancel</Button>
                     <Button type="submit" className="bg-destructive hover:bg-destructive/90" disabled={loading}>

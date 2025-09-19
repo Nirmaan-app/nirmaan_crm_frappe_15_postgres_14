@@ -44,28 +44,32 @@ const DetailDisplayItem = ({ label, value, href, onEditClick, className }: {
             );
         }
     } else {
-        mainContent = <p className="font-semibold">{value}</p>;
+        mainContent = <p className="text-md md:text-lg font-semibold">{value}</p>;
     }
 
     
 
     return (
         <div className={className}>
-            <p className="text-xs text-muted-foreground">{label}</p>
-            <div className="flex items-center gap-2"> {/* Flex container for value and icon */}
-                {mainContent}
-                {/* Conditionally render the edit icon */}
-                {onEditClick && !isNA && ( // Show icon only if onEditClick is provided and value is not "N/A"
+            <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground">{label}</p>
+   
+                {onEditClick && !isNA && (
                     <Button
-                        variant="ghost" // Subtle button style
-                        size="icon"     // Small, icon-only size
-                        className="h-6 w-6 text-muted-foreground hover:text-primary" // Adjust size/color
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-primary p-0" // Added p-0 to make the button truly icon-only
                         onClick={onEditClick}
-                        aria-label={`Edit ${label}`} // Accessibility
+                        aria-label={`Edit ${label}`}
                     >
                         <SquarePen className="w-3.5 h-3.5" />
                     </Button>
                 )}
+            </div>
+            <div className="flex items-center gap-2"> {/* Flex container for value and icon */}
+                {mainContent}
+                {/* Conditionally render the edit icon */}
+               
             </div>
         </div>
     );
@@ -93,7 +97,7 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
         <div>
             
             <div className="bg-background p-4 rounded-lg border shadow-sm space-y-4">
-                <div className="grid grid-cols-2 gap-y-4 gap-x-20">
+                <div className="grid grid-cols-2 gap-y-4 gap-x-40">
                     <DetailDisplayItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} />
                     <DetailDisplayItem label="Contact Type" value={contact?.mobile?"Mobile":"Email"} />
                     
@@ -114,7 +118,7 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
                      <DetailDisplayItem label="Assigned Sales" value={getUserFullNameByEmail(contact?.assigned_sales)||"--"}  />
 
                 </div>
-                <div className="grid grid-cols-2 gap-y-4 gap-x-20 border-t pt-4">
+                <div className="grid grid-cols-2 gap-y-4 gap-x-40 border-t pt-4">
                     <DetailDisplayItem label="Company Name" value={company?.company_name || 'N/A'} href={company?.name ? `/companies/company?id=${company.name}` : undefined} />
                     <DetailDisplayItem label="Location" value={company?.company_city || 'N/A'} />
                     <DetailDisplayItem label="Department" value={contact?.department || 'N/A'} />

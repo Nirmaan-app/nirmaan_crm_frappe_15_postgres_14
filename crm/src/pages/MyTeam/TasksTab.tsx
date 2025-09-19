@@ -16,6 +16,7 @@ export const TasksTab = ({ tasks }) => {
                     <TableRow>
                         <TableHead>Contact</TableHead>
                         <TableHead>Company</TableHead>
+                        <TableHead>BOQ</TableHead>
                         <TableHead>Task</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Status</TableHead>
@@ -25,16 +26,32 @@ export const TasksTab = ({ tasks }) => {
                     {tasks.length > 0 ? tasks.map(task => (
                         <TableRow key={task.name}>
                             <TableCell>
-                                <Link to={`/contacts/contact?id=${task.contact}`} className="text-red-600 underline font-medium">
+                                {
+                                  task.contact?(<Link to={`/contacts/contact?id=${task.contact}`} className="text-red-600 underline font-medium">
                                     {task.contact||"--"} 
-                                </Link>
+                                </Link>) :("--") 
+                                }
+                                
                             </TableCell>
                             <TableCell>
-                                <Link to={`/companies/company?id=${task.company}`} className="text-red-600 underline">
+                                {task.company?(
+<Link to={`/companies/company?id=${task?.company}`} className="text-red-600 underline">
                                     {task["company.company_name"] || task.company||"--"}
                                 </Link>
+                                ):"--"}
+                                
                             </TableCell>
-                            <TableCell>{task.type}</TableCell>
+                            <TableCell>
+                                {task.boq?(<Link to={`/boqs/boq?id=${task?.name}`} className="text-red-600 underline font-medium">
+                                    {task.boq}
+                                </Link>):("--")}
+                                
+                            </TableCell>
+                            <TableCell>{task.type?(
+<Link to={`/tasks/task?id=${task?.name}`} className="text-red-600 underline">
+                                    {task.type||"--"}
+                                </Link>
+                                ):"--"}</TableCell>
                             <TableCell>{formatDateWithOrdinal(task.start_date)}</TableCell>
                             <TableCell>
                                 <span className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${getTaskStatusClass(task.status)}`}>

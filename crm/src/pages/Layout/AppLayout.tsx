@@ -54,7 +54,7 @@ if (isLoading) return <div>LOADING</div>
 
 				{/* --- THIS IS THE KEY CHANGE --- */}
 				{/* The main content area now only accounts for the sidebar's width. */}
-				<main className={`overflow-y-auto max-h-[calc(100vh-var(--navbar-height))] px-10 py-2 flex-1 ml-[var(--sidebar-width)]`}>
+				<main className={`overflow-y-auto max-h-[calc(100vh-var(--navbar-height))] px-10 my-2 flex-1 ml-[var(--sidebar-width)]`}>
 					{/* The header inside the main content is removed as pages like Companies/BOQs now control their own titles and buttons */}
 					<Outlet />
 				</main>

@@ -10,12 +10,12 @@ import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon'; // Import the status icon
-
+import { RemarksDisplayItem } from "../BOQS/BOQ";
 import { StatusPill } from "./TasksVariantPage";
 import { formatDate, formatTime12Hour, formatDateWithOrdinal, formatCasualDate } from "@/utils/FormatDate";
 import { useViewport } from "@/hooks/useViewPort";
 import * as z from "zod";
-
+import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
 import { useTaskEditor } from "@/hooks/useTaskEditor"; // --- CHANGE 1: Import the new hook ---
 
 
@@ -113,7 +113,8 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${getTaskStatusClass(task.status)}`}>{task.status}</span>
                 </div>
                 <DetailItem label="Date" className="text-sm" value={`${formatDateWithOrdinal(task?.start_date)}`} />
-                <DetailItem label="Remarks" className="text-sm" value={task?.remarks || "--"} />
+                {/* <DetailItem label="Remarks" className="text-sm" value={task?.remarks || "--"} /> */}
+                                <RemarksDisplayItem label="Latest Remarks" value={boq?.remarks || 'N/A'} className="col-span-2" />
             </div>
         </div>
     );
@@ -286,7 +287,7 @@ export const Task = () => {
     // const { data: remarksList, isLoading: remarksLoading } = useFrappeGetDocList<CRMNote>("CRM Note", { filters: { reference_doctype: "CRM Task", reference_docname: id }, orderBy: {field: "creation", order: "desc"} });
 
     if (taskLoading || contactLoading || companyLoading) {
-        return <div>Loading Task Details...</div>
+        return <FullPageSkeleton/>
     }
 
     if (!taskData) {
@@ -309,7 +310,7 @@ export const Task = () => {
                 <div className="flex items-center gap-4"> {/* Added a container for back button and header */}
                                 <Button variant="ghost" size="icon" onClick={handleBackToTaskList} aria-label="Back to Company List" className="hidden md:inline-flex">
                                     <div className="bg-destructive text-black font-bold p-2 rounded-full">
-                                        <ArrowLeft className="w-8 h-8" />
+                                        <ArrowLeft color="#ffffff" className="w-8 h-8" />
                                     </div>
                                 </Button>
                                 <h1 className="text-md md:text-2xl font-bold ">Task Details</h1> {/* Main title for the page */}

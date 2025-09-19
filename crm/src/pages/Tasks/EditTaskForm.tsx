@@ -29,7 +29,7 @@ const editTaskSchema = z.object({
   // For 'updateStatus' mode
   status: z.string().optional(), // Status is always required in update mode
   reason: z.string().optional(),
-  remarks: z.string().optional(),
+  remarks: z.string().min(1, "Remark is required"),
   reschedule: z.boolean().optional(),
   assigned_sales: z.string().optional(),
 }).superRefine((data, ctx) => {
@@ -335,7 +335,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           </>
         )}
 
-        <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks {selectedStatus!=="Scheduled" &&(<sup>*</sup>)}</FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem>)} />
+        <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks (<sup>*</sup>)</FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem>)} />
 
          {selectedStatus &&
               <>

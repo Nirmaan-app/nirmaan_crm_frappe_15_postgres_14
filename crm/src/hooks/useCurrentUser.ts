@@ -34,7 +34,6 @@ export const useCurrentUser = () => {
     const { data: crmUserDoc, isLoading: isCrmUserLoading, error, mutate } = useFrappeGetDoc(
         'CRM Users',
         currentUser,
-      
     );
 
     // --- 2. ADD THIS useEffect HOOK ---

@@ -20,28 +20,30 @@ export const ProjectsTab = ({ boqs }) => {
                         <TableHead>Company Name</TableHead>
                         <TableHead>BOQ Link</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Start Date</TableHead>
+                        <TableHead>Submission Deadline</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {boqs.length > 0 ? boqs.map(boq => (
                         <TableRow key={boq.name}>
                             <TableCell>
-                                <Link to={boqClick(boq.name)} className="text-red-600 underline font-medium">
+                                {boq.name?(<Link to={`/boqs/boq?id=${boq?.name}`} className="text-red-600 underline font-medium">
                                     {boq.boq_name || boq.name}
-                                </Link>
+                                </Link>):("--")}
+                                
                             </TableCell>
                             <TableCell>
-                                <Link to={companyClick(boq.company)} className="text-red-600 underline">
+                                {boq.company?( <Link to={`/companies/company?id=${boq.company}`} className="text-red-600 underline">
                                     {boq["company.company_name"] || boq.company}
-                                </Link>
+                                </Link>):("--")}
+                               
                             </TableCell>
                             <TableCell>
                                 {boq.boq_link?(
 <a href={boq.boq_link} target="_blank" rel="noopener noreferrer" className="text-red-600 underline">
                                     {boq.boq_link && 'View BOQ'}
                                 </a>
-                                ):"N/A"}
+                                ):"--"}
                                 
                             </TableCell>
                             <TableCell>

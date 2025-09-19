@@ -24,7 +24,7 @@ import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 const editEstimationTaskSchema = z.object({
     type: z.string().optional(),
     start_date: z.string().optional(),
-    remarks: z.string().optional(), // Add remarks field
+    remarks: z.string().min(1, "Remark is required"), // Add remarks field
     status: z.string().optional(),
     reschedule: z.boolean().optional(),
     assigned_sales: z.string().optional(),
@@ -252,7 +252,7 @@ export const EditEstimationTaskForm = ({ onSuccess }: EditEstimationTaskFormProp
                             control={form.control}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Remarks</FormLabel>
+                                    <FormLabel>Remarks<sup>*</sup></FormLabel>
                                     <FormControl>
                                         <Textarea placeholder="Add any relevant remarks..." {...field} />
                                     </FormControl>

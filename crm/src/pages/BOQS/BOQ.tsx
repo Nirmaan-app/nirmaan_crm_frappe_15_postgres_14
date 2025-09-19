@@ -24,6 +24,7 @@ import { parse, isValid } from 'date-fns';
 import { BoqDealStatusCard } from "./components/BoqDealStatusCard";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
+import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
 
 // ============================================================================================
 // START OF CHANGES: Implementing the new Task Creation Handler and Role-Based Filtering
@@ -199,7 +200,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                 <div>
                     {/* <p className="text-sm text-muted-foreground">BOQ Name</p> */}
                     <div className="flex items-center gap-2">
-                        <p className="text-sm text-muted-foreground">BOQ Name</p>
+                        <p className="text-xs text-muted-foreground">BOQ Name</p>
 
                         <Button
                             variant="ghost" // Use a ghost variant for a subtle, icon-only button
@@ -211,11 +212,11 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                             <SquarePen className="w-4 h-4" /> {/* Pencil icon */}
                         </Button>
                     </div>
-                    <h1 className="text-lg font-bold">{boq?.boq_name || 'N/A'}</h1>
+                    <h1 className="text-md md:text-lg font-bold">{boq?.boq_name || 'N/A'}</h1>
 
                 </div>
                 <div>
-                    <p className="text-sm text-muted-foreground">BOQ Link</p>
+                    <p className="text-xs text-muted-foreground">BOQ Link</p>
                     {/* Display a link if it exists, otherwise 'N/A' */}
                     {boq?.boq_link ? (
                         <a href={boq.boq_link} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
@@ -226,7 +227,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                     )}
                 </div>
                 <div>
-                    <p className="text-sm text-muted-foreground">Assigned Sales</p>
+                    <p className="text-xs text-muted-foreground">Assigned Sales</p>
                     <h1 className="text-sm font-bold">{getUserFullNameByEmail(boq?.assigned_sales) || 'N/A'}</h1>
                 </div>
                 {/* <div>
@@ -238,7 +239,7 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
             {/* Right Section */}
             <div className="flex flex-col items-end space-y-2">
                 <div>
-                    <p className="text-sm text-muted-foreground text-right mb-1">Status</p>
+                    <p className="text-xs text-muted-foreground text-right mb-1">Status</p>
                     <span className={`text-sm font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(boq.boq_status)}`}>
                         {boq.boq_status || 'N/A'}
                     </span>
@@ -446,10 +447,24 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
     );
 };
 
+   export  const RemarksDisplayItem = ({ label, value, className }) => {
+    const isNA = value === 'N/A' || !value;
+
+    return (
+        <div className={className}>
+            <p className="text-xs text-muted-foreground">{label}</p>
+            
+            <div className="mt-1 p-3 rounded-md bg-gray-50 border border-gray-200 text-gray-800 text-sm whitespace-pre-wrap break-words">
+                {isNA ? 'N/A' : value}
+            </div>
+        </div>
+    );
+};
 // --- SUB-COMPONENT 4: Other Details ---
 const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany }) => {
     const { openEditBoqDialog } = useDialogStore();
     const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+
 
     // --- UPDATED: DetailItem component to use <Link> for internal paths ---
     const DetailItem = ({ label, value, href }: { label: string; value: string | React.ReactNode; href?: string }) => {
@@ -505,7 +520,10 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 <DetailItem label="Recevied on" value={formatDateWithOrdinal(boq?.creation)} />
                 <DetailItem label="Created by" value={getUserFullNameByEmail(boq?.owner) || "Administrator"} />
 
-                <DetailItem label="Latest Remarks" value={boq?.remarks || 'N/A'} />
+                <DetailItem label="" value={""} />
+                <RemarksDisplayItem label="Latest Remarks" value={boq?.remarks || 'N/A'} className="col-span-2" />
+
+                
             </div>
 
             <Separator />
@@ -834,7 +852,7 @@ export const BOQ = () => {
     }, role != 'Nirmaan Sales User Profile' ? `all-boqs-filterbyBoq-id${id}` : null);
 
     if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
-        return <div>Loading BOQ Details...</div>;
+        return <FullPageSkeleton/>
     }
     if (!boqData) {
         return <div>BOQ not found.</div>;
@@ -860,7 +878,7 @@ export const BOQ = () => {
                         className="hidden md:inline-flex" // Hide on mobile, show on desktop
                     >
                         <div className="bg-destructive text-black font-bold p-2 rounded-full">
-                            <ArrowLeft className="w-8 h-8" />
+                            <ArrowLeft color="#ffffff" className="w-8 h-8" />
                         </div>
                     </Button>
 

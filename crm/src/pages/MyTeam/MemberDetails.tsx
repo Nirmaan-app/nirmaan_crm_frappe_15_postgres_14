@@ -7,14 +7,14 @@ import { OverviewTab } from "./OverviewTab";
 import { ContactsTab } from "./ContactsTab";
 import { TasksTab } from "./TasksTab";
 import { ProjectsTab } from "./ProjectTab"; // The file is named ProjectsTab
-
+import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
 export const MemberDetails = ({ memberId }) => {
     // --- STEP 1: ON-DEMAND DATA FETCHING ---
 
     // Fetch the full member document to get their role and email.
-    const { data: member, isLoading: memberLoading } = useFrappeGetDoc("CRM Users", memberId);
+    const { data: member, isLoading: memberLoading } = useFrappeGetDoc("CRM Users", memberId,`user-${memberId}`);
     
-    // console.log("data member",member.email)
+    // console.log("data member",memberId,member)
     
     const memberEmail = member?.email;
     const memberRole = member?.nirmaan_role_name;
@@ -53,7 +53,7 @@ export const MemberDetails = ({ memberId }) => {
     const isLoading = memberLoading || tasksLoading || contactsLoading || boqsLoading;
     
     if (isLoading) {
-        return <Skeleton className="h-full w-full rounded-lg" />;
+        return <FullPageSkeleton/>
     }
     
     if (!member) {

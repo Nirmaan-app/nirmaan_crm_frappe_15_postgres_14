@@ -16,7 +16,7 @@ export const ContactsTab = ({ contacts }) => {
                         <TableHead>Company</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Date Added</TableHead>
-                        <TableHead>Last Task</TableHead>
+                        <TableHead>Last Meeting</TableHead>
                         <TableHead>Update Date</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -24,19 +24,20 @@ export const ContactsTab = ({ contacts }) => {
                     {contacts.length > 0 ? contacts.map(contact => (
                         <TableRow key={contact.name}>
                             <TableCell>
-                                <Link to={contactClick(contact.name)} className="text-red-600 underline font-medium">
+                                {contact?.name?(<Link to={`/contacts/contact?id=${contact.name}`} className="text-red-600 underline font-medium">
                                     {contact.first_name} {contact.last_name}
-                                </Link>
+                                </Link>):("--")}
+                                
                             </TableCell>
                             <TableCell>
-                                <Link to={companyClick(contact.company)} className="text-red-600 underline">
+                               {contact?.company?( <Link to={`/companies/company?id=${contact.company}`} className="text-red-600 underline">
                                     {contact["company.company_name"] || contact.company}
-                                </Link>
+                                </Link>):("--")}
                             </TableCell>
                             <TableCell>{contact.mobile || 'N/A'}</TableCell>
                             <TableCell>{formatDateWithOrdinal(contact.creation)}</TableCell>
 
-                            <TableCell className="text-red-600  font-medium cursor-pointer">
+                            <TableCell className="font-medium cursor-pointer">
                                {formatDateWithOrdinal(contact.last_meeting)||'--'}
                             </TableCell>
 

@@ -214,56 +214,70 @@ export const TaskTableView = ({
         {
             accessorKey: "start_date",
             meta: { title: "Schedule Date", filterVariant: 'date', enableSorting: true },
-            cell: ({ row }) =>
-                   row.original.start_date
+            cell: ({ row }) =>(
+                <span className="text-sm text-muted-foreground">{row.original.start_date
                      ? formatDateWithOrdinal(new Date(row.original.start_date), 'dd-MMM-yyyy')
-                     : '--',
+                     : '--'}</span>
+            ),
+                   
                      
             enableSorting: true,
             filterFn: 'dateRange',
         },
-        // {
-        //     accessorKey: "status",
-        //     meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: taskStatusOptions },
-        //     cell: ({ row }) => (
-        //         <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getTaskStatusClass(row.original.status)}`}>
-        //             {row.original.status}
-        //         </span>
-        //     ),
-        //     filterFn: 'faceted',
-        //     enableSorting: true,
-        // },
         {
+            accessorKey: "status",
+            meta: { title: "Status", filterVariant: 'select',filterOptions: taskStatusOptions },
+            cell: ({ row }) => (
+                <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${getTaskStatusClass(row.original.status)}`}>
+                    {row.original.status}
+                </span>
+            ),
+            filterFn: 'faceted',
+            // enableSorting: true,
+        },
+                   {
              accessorKey: "remarks",
-             meta: { title: "Remark" , enableSorting: false},
+             meta: { title: "Remarks" , enableSorting: false},
              cell: ({ row }) => {
                const remarks = row.original.remarks;
+
                if (!remarks) {
-                 return <span>--</span>;
+                 return  ( <div className="flex gap-1 justify-center">
+                          <span className="text-sm ">{"--"}</span>
+                 </div>)
                }
-       
+
+               // If remarks are 30 characters or less, display directly
+               if (remarks.length <= 30) {
+                 return ( <div className="flex gap-1 justify-center">
+                          <span className="text-xs ">{remarks}</span>
+                 </div>)
+               }
+
+               // If remarks are longer than 30 characters, truncate and show with tooltip
+               const truncatedRemarks = `${remarks.substring(0, 20)}...`;
+
                return (
-                 <div className="flex gap-1 text-right">
+                 <div className="flex gap-1 justify-center">
                    <TooltipProvider>
-                  
                        <Tooltip>
                          <TooltipTrigger asChild>
-                           <div className="flex items-center justify-center h-5 w-85 p-2 rounded-full bg-red-500 text-white text-xs cursor-pointer">
-                             {"Remark"}
+                           {/* Display truncated remarks with a destructive background */}
+                           <div className="flex items-center justify-center h-auto min-h-[24px] w-auto px-2 py-1 rounded-full bg-destructive text-destructive-foreground text-xs cursor-pointer text-center max-w-[220px] break-words">
+                             {truncatedRemarks}
                            </div>
                          </TooltipTrigger>
                          <TooltipContent className="max-w-[220px] text-wrap break-words">
-                           <p>{remarks}</p>
+                           <p>{remarks}</p> {/* Tooltip shows full original remarks */}
                          </TooltipContent>
-       
                        </Tooltip>
-                   
                    </TooltipProvider>
                  </div>
                );
              },
-             enableSorting: true,
+             enableSorting: false,
            }
+
     ], [tasks, companyOptions, contactOptions, taskProfileOptions, taskStatusOptions, taskTypeOptions, assignedSalesOptions,BoqOptions, getTaskStatusClass, getUserFullNameByEmail]);
 
 
@@ -404,7 +418,7 @@ export const TaskTableView = ({
             className={className}
             containerClassName={tableContainerClassName}
             // Adjusted gridColsClass for 9 data columns
-            gridColsClass="md:grid-cols-[1fr,1fr,1.5fr,1.5fr,1fr,1.5fr,1.2fr]"
+            gridColsClass="md:grid-cols-[1fr,1fr,1.5fr,1.5fr,1fr,1fr,1fr,1.2fr]"
             headerTitle="Sales Task"
             noResultsMessage="No tasks found."
             // renderToolbarActions={(filteredData) => (
