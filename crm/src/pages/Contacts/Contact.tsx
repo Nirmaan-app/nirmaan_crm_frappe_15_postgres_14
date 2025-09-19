@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDialogStore } from "@/store/dialogStore";
 import { ArrowLeft, SquarePen, ChevronRight, Plus } from "lucide-react";
+import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
 
 
 
@@ -57,7 +58,7 @@ export const Contact = () => {
     };
     
     if (contactLoading || companyLoading || boqsLoading || tasksLoading) {
-        return <div>Loading Contact Details...</div>;
+        return <FullPageSkeleton />
     }
 
      const handleBackToCompanysList = () => {
@@ -76,7 +77,7 @@ export const Contact = () => {
                                         <div className="flex items-center gap-4"> {/* Added a container for back button and header */}
                                             <Button variant="ghost" size="icon" onClick={handleBackToCompanysList} aria-label="Back to Company List" className="hidden md:inline-flex">
                                                 <div className="bg-destructive text-black font-bold p-2 rounded-full">
-                                                    <ArrowLeft className="w-8 h-8" />
+                                                    <ArrowLeft color="#ffffff" className="w-8 h-8" />
                                                 </div>
                                             </Button>
                                             <h1 className="text-md md:text-2xl font-bold ">{`${contactData?.first_name || ''} ${contactData?.last_name || ''}`}Details</h1> {/* Main title for the page */}

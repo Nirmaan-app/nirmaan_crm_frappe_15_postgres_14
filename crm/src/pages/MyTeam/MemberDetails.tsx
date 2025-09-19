@@ -7,7 +7,7 @@ import { OverviewTab } from "./OverviewTab";
 import { ContactsTab } from "./ContactsTab";
 import { TasksTab } from "./TasksTab";
 import { ProjectsTab } from "./ProjectTab"; // The file is named ProjectsTab
-
+import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
 export const MemberDetails = ({ memberId }) => {
     // --- STEP 1: ON-DEMAND DATA FETCHING ---
 
@@ -53,7 +53,7 @@ export const MemberDetails = ({ memberId }) => {
     const isLoading = memberLoading || tasksLoading || contactsLoading || boqsLoading;
     
     if (isLoading) {
-        return <Skeleton className="h-full w-full rounded-lg" />;
+        return <FullPageSkeleton/>
     }
     
     if (!member) {

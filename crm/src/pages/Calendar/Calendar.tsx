@@ -295,7 +295,7 @@ export const TaskCalendar = () => {
                                      className="hidden md:inline-flex" // Hide on mobile, show on desktop
                                  >
                                      <div className="bg-destructive text-black font-bold p-2 rounded-full">
-                                         <ArrowLeft className="w-8 h-8" />
+                                         <ArrowLeft color="#ffffff" className="w-8 h-8" />
                                      </div>
                                  </Button>
              

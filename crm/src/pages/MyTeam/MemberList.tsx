@@ -55,28 +55,28 @@ const MemberListItem = ({ member, onMemberSelect, activeMemberId }) => {
             onClick={() => onMemberSelect(member.name)}
            className={`mb-2 p-3 cursor-pointer transition-colors ${
                 isActive
-                    ? "bg-destructive text-destructive-foreground ring-2 ring-destructive ring-offset-1" // Corrected Tailwind classes
-                    : "hover:bg-muted/50"
+                    ? "bg-destructive text-white text-destructive-foreground ring-2 ring-destructive ring-offset-1" // Corrected Tailwind classes
+                    : "hover:bg-muted/50 text-[#0a0a0a]"
             }`}
         >
             <div className="flex items-center justify-between">
                 
                 {/* Left Group */}
-                <div className="flex items-center text-black gap-3">
-                    <Avatar className="h-10 w-10">
+                <div className="flex items-center  gap-3">
+                    <Avatar className="h-10 w-10 text-black">
                         <AvatarImage src={member.user_image} alt={member.full_name} />
                         <AvatarFallback>{generateFallback(member.full_name)}</AvatarFallback>
                     </Avatar>
                     
                     <div>
                         <p className="font-semibold">{member.full_name}</p>
-                        <p className="text-xs text-black-foreground"> {formatRoleName(member.nirmaan_role_name)}</p>
+                        <p className="text-xs"> {formatRoleName(member.nirmaan_role_name)}</p>
                     </div>
                 </div>
 
                 {/* Right Group (Chevron) */}
                 <div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    <ChevronRight color={isActive?"#ffffff":"#0a0a0a"} className="w-5 h-5" />
                 </div>
             </div>
         </Card>
