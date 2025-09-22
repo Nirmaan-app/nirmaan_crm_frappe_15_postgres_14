@@ -78,6 +78,16 @@ export const TaskTableView = ({
     orderBy: { field: 'start_date', order: 'desc' },
 }, "all-tasks-view");
 
+const INACTIVE_STATUSES = ['Won', 'Lost', 'Dropped'];
+
+const { data: activeBoqs, isLoading: boqsLoading, error: boqsError } = useFrappeGetDocList<CRMBOQ>('CRM BOQ', {
+  fields: ["name", "company", "boq_status"],
+  filters: [
+    ["boq_status", "not in", INACTIVE_STATUSES]
+  ],
+  limit: 0,
+}, "active-boqs-data");
+
     // Initialize tasks from tasksData. This is a regular variable, not a hook.
     // It must be derived after tasksData is available from useFrappeGetDocList.
     const tasks=taskData||[]
@@ -181,33 +191,33 @@ export const TaskTableView = ({
             filterFn: 'faceted',
             enableSorting: true,
         },
-        {
-            id: "contact",
-            meta: { title: "Contact", filterVariant: 'select', enableSorting: true, filterOptions: contactOptions },
-            cell: ({ row }) => {
-                const fullName = `${row.original.first_name || ''}`.trim();
-                return row.original.contact
-                    ? <Link to={`/contacts/contact?id=${row.original.contact}`} className="text-primary hover:underline">{fullName || row.original.contact}</Link>
-                    : '--';
-            },
-            filterFn: 'faceted',
-            enableSorting: true,
-        },
-        {
-            accessorKey: "boq",
-            meta: { title: "BOQ", enableSorting: true , filterVariant: 'select',filterOptions:BoqOptions},
-            cell: ({ row }) => (
-                row.original.boq
-                    ? <Link to={`/boqs/boq?id=${row.original.boq}`} className="text-primary hover:underline">{row.original.boq}</Link>
-                    : '--'
-            ),
-            filterFn:'faceted',
-            enableSorting: true,
-        },
+        // {
+        //     id: "contact",
+        //     meta: { title: "Contact", filterVariant: 'select', enableSorting: true, filterOptions: contactOptions },
+        //     cell: ({ row }) => {
+        //         const fullName = `${row.original.first_name || ''}`.trim();
+        //         return row.original.contact
+        //             ? <Link to={`/contacts/contact?id=${row.original.contact}`} className="text-primary hover:underline">{fullName || row.original.contact}</Link>
+        //             : '--';
+        //     },
+        //     filterFn: 'faceted',
+        //     enableSorting: true,
+        // },
+        // {
+        //     accessorKey: "boq",
+        //     meta: { title: "BOQ", enableSorting: true , filterVariant: 'select',filterOptions:BoqOptions},
+        //     cell: ({ row }) => (
+        //         row.original.boq
+        //             ? <Link to={`/boqs/boq?id=${row.original.boq}`} className="text-primary hover:underline">{row.original.boq}</Link>
+        //             : '--'
+        //     ),
+        //     filterFn:'faceted',
+        //     enableSorting: true,
+        // },
         {
             accessorKey: "assigned_sales",
             meta: { title: "Sales Person", filterVariant: 'select', enableSorting: true, filterOptions: assignedSalesOptions },
-            cell: ({ row }) => <span className="text-center text-sm">{getUserFullNameByEmail(row.original.assigned_sales) || "--"}</span>,
+            cell: ({ row }) => <span className="text-sm px-4 py-1">{getUserFullNameByEmail(row.original.assigned_sales) ||"--"}</span>,
             filterFn: 'faceted',
             enableSorting: true,
         },
@@ -224,6 +234,46 @@ export const TaskTableView = ({
             enableSorting: true,
             filterFn: 'dateRange',
         },
+        {
+              id: "active_boq_count",
+              meta: { title: "Active BOQs", enableSorting: false },
+              cell: ({ row }) => {
+               const taskCompanyName = row.original.company;
+    
+    // Find BOQs associated with the current task's company
+              const relevantBoqs = activeBoqs?.filter(boq => boq.company === taskCompanyName) || [];
+                if (relevantBoqs.length === 0) {
+                  return <span className='px-4'>--</span>;
+                }
+                return (
+                  <div className="flex gap-1 px-4">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white  text-xs cursor-pointer">
+                        {relevantBoqs.length}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[220px] text-wrap break-words ">
+                      {relevantBoqs.map((r, i) => (
+                        <ol key={i} className="p-1 m-1  rounded-md list-disc">
+        <li>
+                         <Link to={`/boqs/boq?id=${r.name}`} className="block border-gray-300 font-semibold hover:underline">
+          {r.name}
+        </Link></li>
+                          {/* <p className="text-[8px] mt-0 pt-0 ">
+                            Created: {formatDateWithOrdinal(r.creation)}
+                          </p> */}
+                        </ol>
+                      ))}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+        
+                );
+              },
+            },
         {
             accessorKey: "status",
             meta: { title: "Status", filterVariant: 'select',filterOptions: taskStatusOptions },
@@ -418,7 +468,7 @@ export const TaskTableView = ({
             className={className}
             containerClassName={tableContainerClassName}
             // Adjusted gridColsClass for 9 data columns
-            gridColsClass="md:grid-cols-[1fr,1fr,1.5fr,1.5fr,1fr,1fr,1fr,1.2fr]"
+            gridColsClass="md:grid-cols-[1.5fr,1fr,1.5fr,1.5fr,1fr,1fr,1fr,auto]"
             headerTitle="Sales Task"
             noResultsMessage="No tasks found."
             // renderToolbarActions={(filteredData) => (

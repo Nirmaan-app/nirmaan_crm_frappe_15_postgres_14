@@ -80,6 +80,7 @@ import { AllBOQs, PendingBOQs } from "./EstimationsHomePage"; // Assuming these 
 // --- shadcn/ui Tabs Imports ---
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskTableView } from "../Tasks/components/TaskTableView";
+import { SalesPerformanceTable } from "./components/SalesPerformanceTable";
 // --- End shadcn/ui Tabs Imports ---
 
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
@@ -204,8 +205,12 @@ export const HomeHeader = () => {
                        </div>
                        
                        {isAdmin ? (
+                        <>
+                        <SalesPerformanceTable className="mt-8 border-t border-gray-200 pt-4"/>
+                         <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" />
+                        </>
                             // If Admin, show TaskTableView (e.g., all tasks)
-                            <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" />
+                           
                         ) : (
                             // If not Admin, show PendingTasks (original behavior)
                             <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />

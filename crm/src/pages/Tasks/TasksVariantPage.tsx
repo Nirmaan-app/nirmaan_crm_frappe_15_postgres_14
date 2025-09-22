@@ -17,9 +17,9 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { useStatesSyncedWithParams } from "@/hooks/useSearchParamsManager";
-type EnrichedCRMTask = CRMTask & { 
-    contact_name?: string; 
-    company_name?: string; 
+type EnrichedCRMTask = CRMTask & {
+    contact_name?: string;
+    company_name?: string;
     "contact.first_name"?: string;
     "contact.last_name"?: string;
     "company.company_name"?: string;
@@ -77,22 +77,22 @@ const AssignedUsersDisplay = ({ assignedUsersString }: { assignedUsersString: st
 
 export const TasksVariantPage = ({ variant, from: fromProp, to: toProp }: TasksVariantPageProps) => {
     const navigate = useNavigate();
-    
+
     const { isMobile } = useViewport();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState("By Contact"); // Default filter type
-    
- // This hook will read `from` and `to` from the URL query string.
-       const [params, setParams] = useStatesSyncedWithParams([
+
+    // This hook will read `from` and `to` from the URL query string.
+    const [params, setParams] = useStatesSyncedWithParams([
         { key: 'from', defaultValue: format(subDays(new Date(), 30), 'yyyy-MM-dd') },
         { key: 'to', defaultValue: format(new Date(), 'yyyy-MM-dd') },
         { key: 'assigned_to', defaultValue: '' },
     ]);
 
-     const finalFrom = fromProp || params.from;
+    const finalFrom = fromProp || params.from;
     const finalTo = toProp || params.to;
-const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user2@email.com'
+    const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user2@email.com'
 
     // const filters = useMemo(() => {
     //     const today = new Date().toISOString().slice(0, 10);
@@ -121,7 +121,7 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
 
         // Start with the mandatory filters (status and date)
         const mandatoryFilters = [
-            ['status', statusFilter[0], statusFilter[1]], 
+            ['status', statusFilter[0], statusFilter[1]],
             ['start_date', 'between', [finalFrom, finalTo]]
         ];
 
@@ -141,14 +141,14 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
 
     }, [variant, finalFrom, finalTo, assignedToFilter]); // Add the new dependency
 
- const swrKey = `all-tasks-todays${JSON.stringify(filters)}`;
+    const swrKey = `all-tasks-todays${JSON.stringify(filters)}`;
 
     const { data: tasksData, isLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-        fields: ["name", "status","start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name","creation","remarks","boq","task_profile"],
+        fields: ["name", "status", "start_date", "type", "modified", "company", "contact.first_name", "contact.last_name", "company.company_name", "creation", "remarks", "boq", "task_profile"],
         filters: filters,
         limit: 0,
         orderBy: { field: "start_date", order: "desc" }
-    },swrKey);
+    }, swrKey);
 
     const filteredTasks = useMemo(() => {
         const enriched = tasksData?.map(task => ({
@@ -156,7 +156,7 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
             contact_name: `${task.first_name || ''} ${task.last_name || ''}`.trim() || 'N/A',
             company_name: task["company.company_name"] || task.company || 'N/A'
         })) || [];
-        
+
         const lowercasedQuery = searchQuery.toLowerCase().trim();
         if (!lowercasedQuery) return enriched;
 
@@ -172,7 +172,7 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
                 return enriched;
         }
     }, [tasksData, searchQuery, filterType]); // Add filterType as a dependency
-    
+
     const title = `${variant.charAt(0).toUpperCase() + variant.slice(1)} Tasks - ${filteredTasks.length}`;
 
     if (isLoading) { return <div>Loading tasks...</div>; }
@@ -188,8 +188,8 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
                 {/* Bottom Row: Assigned users list (only shows if filters are active) */}
                 <AssignedUsersDisplay assignedUsersString={assignedToFilter} />
             </div>
-            
-            <TaskListHeader 
+
+            <TaskListHeader
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 filterType={filterType}
@@ -197,7 +197,7 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
                 onDateRangeChange={handleDateRangeChange}
                 dateRange={{ from: finalFrom, to: finalTo }}
             />
-            
+
             {/* 5. RESPONSIVE TABLE DESIGN */}
             <Card className="mt-4 p-0">
                 <CardContent className="p-0">
@@ -206,17 +206,17 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
                             <TableRow>
                                 {/* This column is visible on all screen sizes */}
                                 <TableHead>Task Details</TableHead>
-                                
+
                                 {/* These columns will ONLY appear on desktop (md screens and up) */}
                                 {/* <TableHead className="hidden md:table-cell">Company</TableHead>
                                 <TableHead className="hidden md:table-cell">Status</TableHead> */}
-                                  <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
-                                 
-                                                          <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
-                                                                                         
-                                                                                         
-                                 
-                                
+                                <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
+
+                                <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
+
+
+
+
                                 {/* Chevron column */}
                                 <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
                             </TableRow>
@@ -224,57 +224,57 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
                         <TableBody>
                             {filteredTasks.length > 0 ? (
                                 filteredTasks.map((task) => (
-                                    <TableRow key={task.name} onClick={() => isMobile?navigate(`/tasks/task?id=${task.name}`):navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
-                                        
+                                    <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
+
                                         {/* --- MOBILE & DESKTOP: Combined Cell --- */}
                                         <TableCell>
-                                           {isMobile?
-                                                                                                      (<div className="flex items-center gap-3">
-                                                                                                                                                                     <TaskStatusIcon status={task.status} className=" flex-shrink-0"/>
-                                                                                                                                                                     <div className="flex flex-col">
-                                                                                                                                                                         {
-                                                                                                                                                                            task.task_profile==="Sales"?(<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}            
-                                                                                                      
-                                                                                                                                                                           
-                                                                                                                                                                                                                             </span>):(<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}            
-                                                                                            </span>)
-                                                                                                                                                                         }
-                                                                                                                                                                                 {task.remarks &&(                                                                <span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
-                                                                                                                                                                             Remarks: {task.remarks}
-                                                                                                                                                                         </span>)}
-                                                                                                                                                                         {/* On mobile, show the date here. Hide it on larger screens. */}
-                                                                                                                                                                          <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                                                                                                                                             Scheduled for: {formatDateWithOrdinal(task.start_date)}
-                                                                                                                                                                         </span>
-                                                                                                                                                                     </div>
-                                                                                                                                                                 </div>): (<div className="flex items-center gap-3">
-                                                                                                                                                  <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                                                                                                                                  <div >
-                                                                                                                                                      {/* <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`}</span> */}
-                                    {
-                                                                                                                                                                            task.task_profile==="Sales"?(<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}            
-                                                                                                      
-                                                                                                                                                                           
-                                                                                                                                                                                                                             </span>):(<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}            
-                                                                                            </span>)
-                                                                                                                                                                         }       
-                                                                                                      
-                                                                                                                                                  </div>
-                                                                                                                                              </div>)}
+                                            {isMobile ?
+                                                (<div className="flex items-center gap-3">
+                                                    <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                    <div className="flex flex-col">
+                                                        {
+                                                            task.task_profile === "Sales" ? (<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}
+
+
+                                                            </span>) : (<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}
+                                                            </span>)
+                                                        }
+                                                        {task.remarks && (<span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
+                                                            Remarks: {task.remarks}
+                                                        </span>)}
+                                                        {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                        <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                            Scheduled for: {formatDateWithOrdinal(task.start_date)}
+                                                        </span>
+                                                    </div>
+                                                </div>) : (<div className="flex items-center gap-3">
+                                                    <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                    <div >
+                                                        {/* <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`}</span> */}
+                                                        {
+                                                            task.task_profile === "Sales" ? (<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}
+
+
+                                                            </span>) : (<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}
+                                                            </span>)
+                                                        }
+
+                                                    </div>
+                                                </div>)}
                                         </TableCell>
 
                                         {/* --- DESKTOP ONLY Cells --- */}
                                         {/* <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
                                         <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell> */}
-                                         <TableCell className="hidden md:table-cell text-center">{task.remarks || "--"}</TableCell>
-                                         
-                                          <TableCell className="hidden md:table-cell text-right">
-                                           <div className="flex flex-col items-center">
-                                             <span>{formatDateWithOrdinal(task.start_date)}</span>
-                                             
-                                           </div>
-                                         </TableCell>
-                                        
+                                        <TableCell className="hidden md:table-cell text-center">{task.remarks || "--"}</TableCell>
+
+                                        <TableCell className="hidden md:table-cell text-right">
+                                            <div className="flex flex-col items-center">
+                                                <span>{formatDateWithOrdinal(task.start_date)}</span>
+
+                                            </div>
+                                        </TableCell>
+
 
                                         <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
                                     </TableRow>
@@ -291,147 +291,3 @@ const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user
         </div>
     );
 };
-
-// import { Card, CardContent } from "@/components/ui/card";
-// import { Input } from "@/components/ui/input";
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-// import { EnrichedCRMTask } from "./Tasks";
-// import { formatDate } from "@/utils/FormatDate";
-// import { useFrappeGetDocList } from "frappe-react-sdk";
-// import { ChevronRight, Search } from "lucide-react";
-// import { useMemo, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { format, subDays } from "date-fns";
-// import { FilterControls } from "@/components/ui/FilterControls";
-// import { useStatusStyles } from "@/hooks/useStatusStyles";
-
-// type TaskVariant = 'all' | 'pending' | 'upcoming' | 'history';
-
-// const StatusPill = ({ status }: { status: string }) => {
-//     const getStatusClass = useStatusStyles("task");
-//     return (
-//         <span className={`text-xs font-semibold px-2 py-1 rounded-full border w-fit ${getStatusClass(status)}`}>
-//             {status}
-//         </span>
-//     );
-// };
-
-// export const TasksVariantPage = ({ variant }: { variant: TaskVariant }) => {
-//     const navigate = useNavigate();
-//     const [searchQuery, setSearchQuery] = useState("");
-//     const [dateRange, setDateRange] = useState({
-//         from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-//         to: format(new Date(), 'yyyy-MM-dd'),
-//     });
-
-//     // --- DYNAMIC FILTERS FOR DATA FETCHING ---
-//     const filters = useMemo(() => {
-//         const today = new Date().toISOString().slice(0, 10);
-//         let statusFilter;
-
-//         switch (variant) {
-//             // --- THE FIX IS HERE ---
-//             // The logic for 'pending' is now much simpler and more accurate.
-//             case 'pending':
-//                 statusFilter = ['!=', 'Completed'];
-//                 break;
-//             case 'upcoming':
-//                 return [
-//                     ['status', '=', 'Scheduled'],
-//                     ['start_date', '>=', today]
-//                 ];
-//             case 'history':
-//                 return [
-//                     ['start_date', '<', today]
-//                 ];
-//             case 'all':
-//             default:
-//                 statusFilter = ['!=', '']; // A way to get all statuses
-//                 break;
-//         }
-        
-//         return [
-//             ['status', statusFilter[0], statusFilter[1]],
-//             ['modified', 'between', [dateRange.from, dateRange.to]]
-//         ];
-
-//     }, [variant, dateRange]);
-
-//     const { data: tasksData, isLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-//         fields: ["name", "status", "type", "modified","company", "contact.first_name", "contact.last_name", "company.company_name"],
-//         filters: filters,
-//         limit: 1000,
-//         orderBy: { field: "modified", order: "desc" }
-//     });
-
-//     // --- CLIENT-SIDE SEARCH FILTERING ---
-//     const filteredTasks = useMemo(() => {
-//         const enriched = tasksData?.map(task => ({
-//             ...task,
-//             contact_name: `${task.first_name || ''} ${task.last_name || ''}`.trim() || 'N/A',
-//             company_name: task.company || 'N/A'
-//         })) || [];
-        
-//         const lowercasedQuery = searchQuery.toLowerCase().trim();
-//         if (!lowercasedQuery) return enriched;
-
-//         return enriched.filter(task => 
-//             task.contact_name.toLowerCase().includes(lowercasedQuery) ||
-//             task.company_name.toLowerCase().includes(lowercasedQuery) ||
-//             task.type.toLowerCase().includes(lowercasedQuery)
-//         );
-//     }, [tasksData, searchQuery]);
-    
-//     const title = `${variant.charAt(0).toUpperCase() + variant.slice(1)} Tasks - ${filteredTasks.length}`;
-
-//     if (isLoading) { return <div>Loading tasks...</div>; }
-
-//     return (
-//         <div className="space-y-4">
-//             <h1 className="text-xl font-bold">{title}</h1>
-            
-//             {/* <div className="flex gap-2">
-//                 <div className="relative flex-1">
-//                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//                     <Input placeholder="Search Contact, Company or Type..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-//                 </div>
-//             </div> */}
-//             {/* <FilterControls onDateRangeChange={setDateRange} /> */}
-
-//             <Card className="mt-4 p-0">
-//                 <CardContent className="p-0">
-//                     <Table>
-//                         <TableHeader>
-//                             <TableRow>
-//                                 <TableHead>Contact</TableHead>
-//                                 <TableHead>Company</TableHead>
-//                                 <TableHead>Task Type</TableHead>
-//                                 <TableHead>Status</TableHead>
-//                                 <TableHead className="text-right">Update Date</TableHead>
-//                                 <TableHead className="w-[5%]"></TableHead>
-//                             </TableRow>
-//                         </TableHeader>
-//                         <TableBody>
-//                             {filteredTasks.length > 0 ? (
-//                                 filteredTasks.map((task) => (
-//                                     <TableRow key={task.name} onClick={() => navigate(`/tasks/task?id=${task.name}`)} className="cursor-pointer">
-//                                         <TableCell className="font-medium">{task.contact_name}</TableCell>
-//                                         <TableCell>{task.company_name}</TableCell>
-//                                         <TableCell>{task.type}</TableCell>
-//                                         <TableCell><StatusPill status={task.status} /></TableCell>
-//                                         <TableCell className="text-right">{formatDate(task.modified)}</TableCell>
-//                                         <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
-//                                     </TableRow>
-//                                 ))
-//                             ) : (
-//                                 <TableRow>
-//                                     <TableCell colSpan={6} className="text-center h-24">No tasks found.</TableCell>
-//                                 </TableRow>
-//                             )}
-//                         </TableBody>
-//                     </Table>
-//                 </CardContent>
-//             </Card>
-//         </div>
-//     );
-// };
