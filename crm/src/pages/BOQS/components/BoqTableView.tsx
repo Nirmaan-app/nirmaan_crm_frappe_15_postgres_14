@@ -97,11 +97,14 @@ export const BoqTableView = ({
     }, [boqs]);
 
     const statusOptions = useMemo(() => {
-        return ['New', 'Revision Pending', 'In-Progress', 'Revision Submitted', 'Negotiation', 'Won', 'Lost', 'Hold'].map(status => ({
+        if (!boqs) return [];
+        const Statuses = new Set<string>();
+        boqs.forEach(boq => boq.boq_status && Statuses.add(boq.boq_status));
+        return Array.from(Statuses).sort().map(status => ({
             label: status,
             value: status
         }));
-    }, []);
+    }, [boqs]);
 
     // NEW: Options for Sub-Status Faceted Filter
     const subStatusOptions = useMemo(() => {
