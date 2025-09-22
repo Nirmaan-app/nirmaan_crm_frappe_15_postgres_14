@@ -10,6 +10,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DataTableExportButton } from '@/components/table/data-table-export-button';
 import { cn } from '@/lib/utils';
+
 // import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager"; // REMOVED
 
 interface CRMCompany {
@@ -23,8 +24,8 @@ interface CRMCompany {
   next_meeting_date?: string;
   next_meeting_id?: string;
   last_three_remarks_from_tasks?: string[];
-  active_boq?: number;
-  hot_boq?: number;
+  active_boq?: { }[];
+  hot_boq?: { }[];
 }
 
 export const CompanyTableView = () => {
@@ -117,9 +118,15 @@ export const CompanyTableView = () => {
       accessorKey: "last_meeting",
       meta: { title: "Last Meeting", filterVariant: "date", enableSorting: true, },
       cell: ({ row }) =>
-        row.original.last_meeting
-          ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
-          : '--',
+
+        (
+                        <span className="text-sm text-muted-foreground">{row.original.last_meeting
+                             ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
+                             : '--'}</span>
+                    ),
+        // row.original.last_meeting
+        //   ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
+        //   : '--',
       enableSorting: true,
       filterFn: 'dateRange',
     },
@@ -127,22 +134,102 @@ export const CompanyTableView = () => {
       accessorKey: "next_meeting_date",
       meta: { title: "Next Meeting", filterVariant: 'date', enableSorting: true, },
       cell: ({ row }) =>
-        row.original.next_meeting_date
-          ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
-          : '--',
+         (
+                        <span className="text-sm text-muted-foreground">{row.original.next_meeting_date
+                             ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
+                             : '--'}</span>
+                    ),
+        // row.original.next_meeting_date
+        //   ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
+        //   : '--',
       enableSorting: true,
       filterFn: 'dateRange',
     },
-    {
+   {
       accessorKey: "active_boq",
-      meta: { title: "Active BOQs", enableSorting: true },
-      cell: ({ row }) => <span>{row.original.active_boq ?? 0}</span>,
+      meta: { title: "Active BOQs", enableSorting: false },
+      cell: ({ row }) => {
+        const active_boq = row.original.active_boq || [];
+        if (active_boq.length === 0) {
+          return <span>--</span>;
+        }
+        return (
+          <div className="flex gap-1">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs cursor-pointer">
+                {active_boq.length}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[220px] text-wrap break-words ">
+              {active_boq.map((r, i) => (
+                <ol key={i} className="p-1 m-1  rounded-md list-disc">
+<li>
+                 <Link to={`/boqs/boq?id=${r.name}`} className="block border-gray-300 font-semibold hover:underline">
+  {r.name}
+</Link></li>
+                  {/* <p className="text-[8px] mt-0 pt-0 ">
+                    Created: {formatDateWithOrdinal(r.creation)}
+                  </p> */}
+                </ol>
+              ))}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+        );
+      },
     },
-    {
+     {
       accessorKey: "hot_boq",
-      meta: { title: "Hot BOQs", enableSorting: true },
-      cell: ({ row }) => <span>{row.original.hot_boq ?? 0}</span>,
+      meta: { title: "Hot BOQs", enableSorting: false },
+      cell: ({ row }) => {
+        const hot_boq = row.original.hot_boq || [];
+        if (hot_boq.length === 0) {
+          return <span>--</span>;
+        }
+        return (
+          <div className="flex gap-1">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs cursor-pointer">
+                {hot_boq.length}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[220px] text-wrap break-words">
+               {hot_boq.map((r, i) => (
+                <ol key={i} className="p-1 m-1  rounded-md list-disc">
+<li>
+                 <Link to={`/boqs/boq?id=${r.name}`} className="block border-gray-300 font-semibold hover:underline">
+  {r.name}
+</Link></li>
+                  {/* <p className="text-[8px] mt-0 pt-0 ">
+                    Created: {formatDateWithOrdinal(r.creation)}
+                  </p> */}
+                </ol>
+              ))}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+        );
+      },
     },
+    
+    // {
+    //   accessorKey: "active_boq",
+    //   meta: { title: "Active BOQs", enableSorting: true },
+    //   cell: ({ row }) => <span>{row.original.active_boq ?? 0}</span>,
+    // },
+    // {
+    //   accessorKey: "hot_boq",
+    //   meta: { title: "Hot BOQs", enableSorting: true },
+    //   cell: ({ row }) => <span>{row.original.hot_boq ?? 0}</span>,
+    // },
     {
       accessorKey: "last_three_remarks_from_tasks",
       meta: { title: "Last 3 Remarks", enableSorting: false },
@@ -210,8 +297,8 @@ export const CompanyTableView = () => {
         </div>
         <div className="flex flex-col items-end text-xs gap-1 text-gray-500">
           <span className="font-bold text-red-500">Priority: {row.original.priority || '--'}</span>
-          <span>Active BOQs: {row.original.active_boq || 0}</span>
-          <span>Hot BOQs: {row.original.hot_boq || 0}</span>
+          {/* <span>Active BOQs: {row.original.active_boq || 0}</span>
+          <span>Hot BOQs: {row.original.hot_boq || 0}</span> */}
         </div>
       </div>
       <p className="text-xs text-gray-400 mt-2">

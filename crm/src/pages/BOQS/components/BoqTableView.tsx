@@ -272,7 +272,7 @@ export const BoqTableView = ({
                 accessorKey: "boq_status",
                 meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: statusOptions },
                 cell: ({ row }) => (
-                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(row.original.boq_status)}`}>
+                    <span className={`text-xs font-semibold px-0 py-1 rounded-full ${getBoqStatusClass(row.original.boq_status)}`}>
                         {row.original.boq_status}
                     </span>
                 ),
@@ -284,19 +284,30 @@ export const BoqTableView = ({
                 meta: { title: "Sub-Status", filterVariant: 'select', enableSorting: true, filterOptions: subStatusOptions },
                 cell: ({ row }) => (
                     row.original.boq_sub_status ? (
-                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(row.original.boq_sub_status)}`}>
+                        <span className={`text-[10px] font-semibold px-0 py-0.5 rounded-full ${getBoqStatusClass(row.original.boq_sub_status)}`}>
                             {row.original.boq_sub_status}
                         </span>
-                    ) : '--'
+                    ) : (<span className='px-4 py-0.5'>{'--'}</span>)
                 ),
                 filterFn: 'faceted',
                 enableSorting: true,
             },
             {
+                accessorKey: "creation",
+                meta: { title: "Added Date", filterVariant: 'date', enableSorting: true },
+                cell: ({ row }) => (
+                    <span className="text-sm text-muted-foreground">
+                        {formatDateWithOrdinal(new Date(row.original.creation), 'dd-MMM-yyyy')}
+                    </span>
+                ),
+                enableSorting: true,
+                filterFn: 'dateRange',
+            },
+            {
                 accessorKey: "modified",
                 meta: { title: "Last Updated", filterVariant: 'date', enableSorting: true },
                 cell: ({ row }) => (
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm  text-muted-foreground">
                         {formatDateWithOrdinal(new Date(row.original.modified), 'dd-MMM-yyyy')}
                     </span>
                 ),
@@ -308,10 +319,10 @@ export const BoqTableView = ({
                 meta: { title: "Deal Status", filterVariant: 'select', enableSorting: true, filterOptions: dealStatusOptions },
                 cell: ({ row }) => (
                     row.original.deal_status ? (
-                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBoqStatusClass(row.original.deal_status)}`}>
+                        <span className={`text-xs  font-semibold px-4 py-0.5 rounded-full ${getBoqStatusClass(row.original.deal_status)}`}>
                             {row.original.deal_status}
                         </span>
-                    ) : '--'
+                    ) :(<span className='px-4 py-0.5'>{'--'}</span>) 
                 ),
                 filterFn: 'faceted',
                 enableSorting: true,
@@ -488,19 +499,19 @@ const calculatedGridColsClass = useMemo(() => {
     if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
         // 7 data columns + Actions
         // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1.5fr,1fr,1fr,auto]";
+        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr,auto]";
     } else if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
         // 7 data columns, no Actions
         // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status)
-        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1.5fr,1fr,1fr]";
+        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr]";
     } else if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
         // 6 data columns + Actions
         // (boq_name, company, boq_status, boq_sub_status, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,1fr,auto]";
+        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1fr,1fr,auto,1fr]";
     } else { // !isSubmissionDateColumnVisible && !isActionsColumnVisible
         // 6 data columns, no Actions
         // (boq_name, company, boq_status, boq_sub_status, modified, deal_status)
-        gridTemplate = "md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,1fr]";
+        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1fr,1fr,1fr]";
     }
 
     return gridTemplate;

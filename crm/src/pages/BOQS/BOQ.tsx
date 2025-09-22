@@ -41,6 +41,38 @@ import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
  * A new, reusable component to render a list of tasks with a title and an "Add Task" button.
  * This will be used by all user roles to display their relevant tasks.
  */
+const DetailItem = ({ label, value, href }: { label: string; value: string | React.ReactNode; href?: string }) => {
+    const isNA = value === "N/A" || value === "--"; // Check for both "N/A" and "--"
+    let content: React.ReactNode;
+
+    if (isNA) {
+        content = <p className="font-semibold">{value}</p>;
+    } else if (href) {
+        if (href.startsWith('/') || href.startsWith('.')) { // Internal path check
+            content = (
+                <Link to={href} className="font-semibold text-blue-600 underline">
+                    {value}
+                </Link>
+            );
+        } else { // External path (mailto, tel, http, https)
+            content = (
+                <a href={href} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
+                    {value}
+                </a>
+            );
+        }
+    } else {
+        content = <p className="font-semibold">{value}</p>;
+    }
+
+    return (
+        <div>
+            <p className="text-xs text-muted-foreground">{label}</p>
+            {content}
+        </div>
+    );
+};
+
 const TaskListSection = ({ title, tasks, boqId, companyId, contactId, taskProfile, disableTaskCreate }: {
     title: string;
     tasks: CRMTask[];
@@ -75,7 +107,7 @@ const TaskListSection = ({ title, tasks, boqId, companyId, contactId, taskProfil
                     <TableBody>
                         {tasks.length > 0 ? (
                             tasks.map((task) => (
-                                <TableRow key={task.name} onClick={() =>  navigate(`/tasks/task?id=${task.name}`)} className="cursor-pointer">
+                                <TableRow key={task.name} onClick={() => navigate(`/tasks/task?id=${task.name}`)} className="cursor-pointer">
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <TaskStatusIcon status={task.status} className="flex-shrink-0" />
@@ -150,7 +182,7 @@ const BoqTaskDetails = ({ allTasks, boqId, companyId, contactId }: { allTasks: C
 // Make sure useStatusStyles is imported at the top of the file
 
 // --- THIS IS THE UPDATED HEADER COMPONENT ---
-const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
+const BoqDetailsHeader = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany }) => {
     const { openEditBoqDialog, openAssignBoqDialog, openRenameBoqNameDialog } = useDialogStore();
     const { updateDoc, loading } = useFrappeUpdateDoc();
     const { mutate } = useSWRConfig();
@@ -194,80 +226,81 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
 
 
     return (
-        <div className="bg-background p-6 rounded-lg border shadow-sm flex justify-between items-start">
-            {/* Left Section */}
-            <div className="space-y-4">
-                <div>
-                    {/* <p className="text-sm text-muted-foreground">BOQ Name</p> */}
-                    <div className="flex items-center gap-2">
-                        <p className="text-xs text-muted-foreground">BOQ Name</p>
+        <div className="bg-background p-6 rounded-lg border shadow-sm">
+            <div className="flex justify-between items-start">
+                {/* Left Section */}
+                <div className="space-y-4">
+                    <div>
+                        {/* <p className="text-sm text-muted-foreground">BOQ Name</p> */}
+                        <div className="flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground">BOQ Name</p>
 
-                        <Button
-                            variant="ghost" // Use a ghost variant for a subtle, icon-only button
-                            size="icon"     // Make it a small, icon-only button
-                            className="h-7 w-7 text-muted-foreground hover:text-primary" // Adjust size/color
-                            onClick={handleRenameBoqClick}
-                            aria-label="Rename BOQ" // Accessibility
-                        >
-                            <SquarePen className="w-4 h-4" /> {/* Pencil icon */}
-                        </Button>
+                            <Button
+                                variant="ghost" // Use a ghost variant for a subtle, icon-only button
+                                size="icon"     // Make it a small, icon-only button
+                                className="h-7 w-7 text-muted-foreground hover:text-primary" // Adjust size/color
+                                onClick={handleRenameBoqClick}
+                                aria-label="Rename BOQ" // Accessibility
+                            >
+                                <SquarePen className="w-4 h-4" /> {/* Pencil icon */}
+                            </Button>
+                        </div>
+                        <h1 className="text-md md:text-lg font-bold">{boq?.boq_name || 'N/A'}</h1>
+
                     </div>
-                    <h1 className="text-md md:text-lg font-bold">{boq?.boq_name || 'N/A'}</h1>
-
-                </div>
-                <div>
-                    <p className="text-xs text-muted-foreground">BOQ Link</p>
-                    {/* Display a link if it exists, otherwise 'N/A' */}
-                    {boq?.boq_link ? (
-                        <a href={boq.boq_link} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
-                            View BOQ
-                        </a>
-                    ) : (
-                        <p className="font-semibold">N/A</p>
-                    )}
-                </div>
-                <div>
-                    <p className="text-xs text-muted-foreground">Assigned Sales</p>
-                    <h1 className="text-sm font-bold">{getUserFullNameByEmail(boq?.assigned_sales) || 'N/A'}</h1>
-                </div>
-                {/* <div>
+                    <div>
+                        <p className="text-xs text-muted-foreground">BOQ Link</p>
+                        {/* Display a link if it exists, otherwise 'N/A' */}
+                        {boq?.boq_link ? (
+                            <a href={boq.boq_link} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
+                                View BOQ
+                            </a>
+                        ) : (
+                            <p className="font-semibold">N/A</p>
+                        )}
+                    </div>
+                    <div>
+                        <p className="text-xs text-muted-foreground">Assigned Sales</p>
+                        <h1 className="text-sm font-bold">{getUserFullNameByEmail(boq?.assigned_sales) || 'N/A'}</h1>
+                    </div>
+                    {/* <div>
                     <p className="text-sm text-muted-foreground">Assigned Estimates</p>
                     <h1 className="text-sm font-bold">{getUserFullNameByEmail(boq?.assigned_estimations) || 'N/A'}</h1>
                 </div> */}
-            </div>
-
-            {/* Right Section */}
-            <div className="flex flex-col items-end space-y-2">
-                <div>
-                    <p className="text-xs text-muted-foreground text-right mb-1">Status</p>
-                    <span className={`text-sm font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(boq.boq_status)}`}>
-                        {boq.boq_status || 'N/A'}
-                    </span>
                 </div>
 
-                {/* Conditionally render the sub-status only if it has a value */}
-                {boq.boq_sub_status ? (
-                    <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
-                        {boq.boq_sub_status}
-                    </span>
-                ) : <span className="px-2 py-1">{" "}</span>}
+                {/* Right Section */}
+                <div className="flex flex-col items-end space-y-2">
+                    <div>
+                        <p className="text-xs text-muted-foreground text-right mb-1">Status</p>
+                        <span className={`text-sm font-semibold px-3 py-1 rounded-full ${getBoqStatusClass(boq.boq_status)}`}>
+                            {boq.boq_status || 'N/A'}
+                        </span>
+                    </div>
 
-                <Button
-                    onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })}
-                    className="bg-destructive hover:bg-destructive/90 mt-2" // Added margin for spacing
-                >
-                    Update BOQ Status
-                </Button>
-                {role == "Nirmaan Admin User Profile" && (
+                    {/* Conditionally render the sub-status only if it has a value */}
+                    {boq.boq_sub_status ? (
+                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+                            {boq.boq_sub_status}
+                        </span>
+                    ) : <span className="px-2 py-1">{" "}</span>}
+
                     <Button
-                        onClick={() => openAssignBoqDialog({ boqData: boq })}
-                        className="bg-destructive hover:bg-destructive/90 mt-4" // Added margin for spacing
+                        onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })}
+                        className="bg-destructive hover:bg-destructive/90 mt-2" // Added margin for spacing
                     >
-                        Edit Assigned
+                        Update BOQ Status
                     </Button>
-                )}
+                    {role == "Nirmaan Admin User Profile" && (
+                        <Button
+                            onClick={() => openAssignBoqDialog({ boqData: boq })}
+                            className="bg-destructive hover:bg-destructive/90 mt-4" // Added margin for spacing
+                        >
+                            Edit Assigned
+                        </Button>
+                    )}
 
-                {/* {role === "Nirmaan Estimations User Profile" && !boq.assigned_estimations && (
+                    {/* {role === "Nirmaan Estimations User Profile" && !boq.assigned_estimations && (
                     <Button
                         // 5. The button now just opens the local dialog
                         onClick={() => setIsConfirmOpen(true)}
@@ -278,15 +311,36 @@ const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
                     </Button>
                 )} */}
 
-                <ReusableAlertDialog
-                    open={isConfirmOpen}
-                    onOpenChange={setIsConfirmOpen}
-                    title="Assign to Me"
-                    children={`Are you sure you want to assign this BOQ (${boq.boq_name}) to yourself?`}
-                    onConfirm={handleConfirmAssign}
-                />
+
+                    <ReusableAlertDialog
+                        open={isConfirmOpen}
+                        onOpenChange={setIsConfirmOpen}
+                        title="Assign to Me"
+                        children={`Are you sure you want to assign this BOQ (${boq.boq_name}) to yourself?`}
+                        onConfirm={handleConfirmAssign}
+                    />
+                </div>
             </div>
+
+            <div className="my-2">
+                <Separator />
+                {/* Contact & Company Details Section */}
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                    {/* Row 1 */}
+                    <div className="flex justify-between gap-x-4">
+                        <DetailItem label="Contact Name" value={contact?.first_name ? `${contact.first_name} ${contact.last_name}` : 'N/A'} isLink href={`/contacts/contact?id=${contact?.name}`} />
+                        <DetailItem label="Designation" value={contact?.designation || 'N/A'} />
+                    </div>
+                    {/* Row 2 */}
+                    <div className="flex justify-between gap-x-4 mt-2">
+                        <DetailItem label="Company Name" value={company?.name || 'N/A'} isLink href={`/companies/company?id=${company?.name}`} />
+                        <DetailItem label="Company City" value={company ? company?.company_city : 'N/A'} />
+                    </div>
+                </div>
+            </div>
+
         </div>
+
     );
 };
 
@@ -447,18 +501,19 @@ const BoqRemarks = ({ remarks, boqId }: { remarks: CRMNote[], boqId: CRMBOQ }) =
     );
 };
 
-   export  const RemarksDisplayItem = ({ label, value, className }) => {
+export const RemarksDisplayItem = ({ label, value, className }) => {
     const isNA = value === 'N/A' || !value;
 
     return (
         <div className={className}>
             <p className="text-xs text-muted-foreground">{label}</p>
-            
+
             <div className="mt-1 p-3 rounded-md bg-gray-50 border border-gray-200 text-gray-800 text-sm whitespace-pre-wrap break-words">
                 {isNA ? 'N/A' : value}
             </div>
         </div>
     );
+
 };
 // --- SUB-COMPONENT 4: Other Details ---
 const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany }) => {
@@ -467,37 +522,6 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
 
 
     // --- UPDATED: DetailItem component to use <Link> for internal paths ---
-    const DetailItem = ({ label, value, href }: { label: string; value: string | React.ReactNode; href?: string }) => {
-        const isNA = value === "N/A" || value === "--"; // Check for both "N/A" and "--"
-        let content: React.ReactNode;
-
-        if (isNA) {
-            content = <p className="font-semibold">{value}</p>;
-        } else if (href) {
-            if (href.startsWith('/') || href.startsWith('.')) { // Internal path check
-                content = (
-                    <Link to={href} className="font-semibold text-blue-600 underline">
-                        {value}
-                    </Link>
-                );
-            } else { // External path (mailto, tel, http, https)
-                content = (
-                    <a href={href} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 underline">
-                        {value}
-                    </a>
-                );
-            }
-        } else {
-            content = <p className="font-semibold">{value}</p>;
-        }
-
-        return (
-            <div>
-                <p className="text-xs text-muted-foreground">{label}</p>
-                {content}
-            </div>
-        );
-    };
 
     return (
         <div className="bg-background p-6 rounded-lg border shadow-sm space-y-6">
@@ -523,27 +547,19 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
                 <DetailItem label="" value={""} />
                 <RemarksDisplayItem label="Latest Remarks" value={boq?.remarks || 'N/A'} className="col-span-2" />
 
-                
+
             </div>
 
-            <Separator />
+            {/* <Separator />
 
-            {/* Contact & Company Details Section */}
             <div className="grid grid-cols-2 gap-y-5 gap-x-20">
                 <DetailItem label="Contact Name" value={contact?.first_name ? `${contact.first_name} ${contact.last_name}` : 'N/A'} isLink href={`/contacts/contact?id=${contact?.name}`} />
                 <DetailItem label="Designation" value={contact?.designation || 'N/A'} />
                 <DetailItem label="Company Name" value={company?.name || 'N/A'} isLink href={`/companies/company?id=${company?.name}`} />
                 <DetailItem label="Company City" value={company ? company?.company_city : 'N/A'} />
-            </div>
-
-            {/* <Separator />
-
-            <div className="flex justify-between items-center">
-                <DetailItem label="Additional Attachments" value="n/a" />
-                <Button variant="outline" size="sm" className="text-destructive border-destructive">
-                    <Plus className="w-4 h-4 mr-2" />ADD ATTACHMENTS
-                </Button>
             </div> */}
+
+
         </div>
     );
 };
@@ -852,7 +868,7 @@ export const BOQ = () => {
     }, role != 'Nirmaan Sales User Profile' ? `all-boqs-filterbyBoq-id${id}` : null);
 
     if (boqLoading || companyLoading || contactLoading || tasksLoading || remarksLoading) {
-        return <FullPageSkeleton/>
+        return <FullPageSkeleton />
     }
     if (!boqData) {
         return <div>BOQ not found.</div>;
@@ -901,11 +917,16 @@ export const BOQ = () => {
                 <h1 className="text-xl md:text-2xl font-bold ">{boqData.boq_name}</h1> 
             </div> */}
 
-            <BoqDetailsHeader boq={boqData} />
+            <BoqDetailsHeader boq={boqData}
+                contact={contactData}
+                company={companyData}
+            />
 
 
             {(role != "Nirmaan Estimations User Profile") && (
-                <BoqDealStatusCard boq={boqData} />
+                <BoqDealStatusCard boq={boqData}
+
+                />
             )}
 
             {/* {(role != "Nirmaan Estimations User Profile") && ( */}

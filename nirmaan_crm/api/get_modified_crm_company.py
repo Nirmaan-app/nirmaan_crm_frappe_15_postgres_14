@@ -76,27 +76,67 @@ def get_modified_crm_companies():
                 task.remarks for task in completed_tasks if task.remarks
             ]
 
-            # Get counts of active and hot BOQs
-            active_boq_count = frappe.db.count(
+            # # Get counts of active and hot BOQs
+            # active_boq_count = frappe.db.count(
+            #     "CRM BOQ",
+            #     filters={
+            #         "company": company.name,
+            #         "boq_status": ("not in", ["Won", "Lost", "Dropped"])
+            #     }
+            # )
+            # hot_boq_count = frappe.db.count(
+            #     "CRM BOQ",
+            #     filters={
+            #         "company": company.name,
+            #         "deal_status": "Hot" # Corrected filter key to 'deal_status'
+            #     }
+            # )
+            active_boqs_list = frappe.get_list(
                 "CRM BOQ",
                 filters={
                     "company": company.name,
                     "boq_status": ("not in", ["Won", "Lost", "Dropped"])
-                }
+                },
+                fields=[
+                    "name", 
+                    "boq_name",          # Requested field
+                    "boq_status", 
+                    "boq_sub_status",
+                    "boq_value", 
+                    "boq_submission_date", 
+                    "remarks",
+                    "creation"           # Requested field (creation date)
+                ],
+                limit=5 # Limit to a reasonable number for hover display
             )
-            hot_boq_count = frappe.db.count(
+            
+            # --- CRITICAL CHANGE: Get actual list of hot BOQs, not just count ---
+            hot_boqs_list = frappe.get_list(
                 "CRM BOQ",
                 filters={
                     "company": company.name,
-                    "deal_status": "Hot" # Corrected filter key to 'deal_status'
-                }
+                    "deal_status": "Hot"
+                },
+                fields=[
+                    "name", 
+                    "boq_name",          # Requested field
+                    "boq_status", 
+                    "boq_sub_status",
+                    "boq_value", 
+                    "boq_submission_date", 
+                    "remarks",
+                    "creation"           # Requested field (creation date)
+                ],
+                limit=5 # Limit to a reasonable number for hover display
             )
             # 6. Print the BOQ counts
-            print(f"  Active BOQs: {active_boq_count}, Hot BOQs: {hot_boq_count}")
+            print(f"  Active BOQs: {active_boqs_list}, Hot BOQs: {hot_boqs_list}")
             
             # Add the counts to the modified_company dictionary
-            modified_company["active_boq"] = active_boq_count
-            modified_company["hot_boq"] = hot_boq_count
+            # modified_company["active_boq"] = active_boq_count
+            # modified_company["hot_boq"] = hot_boq_count
+            modified_company["active_boq"] = active_boqs_list
+            modified_company["hot_boq"] = hot_boqs_list
 
             modified_companies.append(modified_company)
 

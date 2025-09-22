@@ -37,7 +37,7 @@ export const CompanyProgressCard = ({ company }: CompanyProgressCardProps) => {
             </span>
         </p>
         <p className="text-sm text-muted-foreground">
-            Expected BOQs: <span className="font-medium">{company.expected_boq_count ?? 'N/A'}</span>
+            Expected BOQs in 15 days: <span className="font-medium">{company.expected_boq_count ?? 'N/A'}</span>
         </p>
     </div>
 

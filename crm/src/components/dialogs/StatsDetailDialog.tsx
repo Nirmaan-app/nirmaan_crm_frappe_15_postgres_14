@@ -26,7 +26,7 @@ export const StatsDetailDialog = () => {
                 <span className="bg-destructive text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
                     {items?.length || "0"}
                 </span>
-                <h3 className="font-semibold text-lg text-foreground">{title}</h3>
+                <h3 className="font-semibold text-md text-foreground">{title}</h3> 
             </div>
             
             <div className="max-h-80 overflow-y-auto p-1 space-y-2">
