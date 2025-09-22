@@ -27,7 +27,7 @@ const taskFormSchema = z.object({
   contact: z.string().optional(),
   boq: z.string().optional(),
   assigned_sales: z.string().optional(),
-  remarks: z.string().optional(),
+  remarks: z.string().min(1, "Remark is required"),
   task_profile: z.string().default("Sales"), // Add task_profile
 }).refine(
   (data) => {
@@ -201,7 +201,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
           <ReactSelect options={boqOptions} isLoading={boqsLoading} value={boqOptions.find(b => b.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select BOQ (Optional)" isClearable isDisabled={!(selectedContactByUser || contactIdFromContext)} />
         </FormControl><FormMessage /></FormItem>)} />
 
-        <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks</FormLabel><FormControl><Textarea placeholder="e.g. Discuss Q3 results." {...field} /></FormControl><FormMessage /></FormItem>)} />
+        <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks<sup>*</sup></FormLabel><FormControl><Textarea placeholder="e.g. Discuss Q3 results." {...field} /></FormControl><FormMessage /></FormItem>)} />
 
         <div className="flex gap-2 justify-end pt-4">
           <Button type="button" variant="outline" onClick={closeNewTaskDialog}>Cancel</Button>

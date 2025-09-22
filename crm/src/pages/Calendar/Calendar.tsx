@@ -9,15 +9,16 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useDialogStore } from "@/store/dialogStore";
-import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useViewport } from "@/hooks/useViewPort"; // 1. IMPORT THE HOOK
 import { TaskStatusIcon } from "@/components/ui/TaskStatusIcon";
 import {taskClick} from "@/utils/LinkNavigate"
 import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
 import { Skeleton } from '@/components/ui/skeleton'; // <--- 
+import { ArrowLeft, SquarePen, ChevronRight, Plus } from "lucide-react";
 
 export const TaskCalendar = () => {
+
   const { isMobile } = useViewport(); // 2. GET THE MOBILE STATE
   const [searchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = React.useState<string | null>(
@@ -273,10 +274,36 @@ export const TaskCalendar = () => {
 // )
 //   }
   
+ const handleBackToHome = () => {
+        // Construct the path back to /boqs, including statusTab if it exists
+
+        navigate("/");
+    };
   return (
     // On mobile (default): `flex-col`. From the `md` breakpoint upwards: `flex-row`
     // `h-full` assumes the parent container of TaskCalendar has a defined height.
-    <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6 h-full">
+     <div className="flex flex-col h-full w-full p-2 md:p-2">
+            {/* Top row for the back button and optional title */}
+            
+             <div className="flex items-center gap-4"> {/* Container for back button and header text */}
+             
+                                 <Button
+                                     variant="ghost"
+                                     size="icon"
+                                     onClick={handleBackToHome}
+                                     aria-label="Back to Company List"
+                                     className="hidden md:inline-flex" // Hide on mobile, show on desktop
+                                 >
+                                     <div className="bg-destructive text-black font-bold p-2 rounded-full">
+                                         <ArrowLeft color="#ffffff" className="w-8 h-8" />
+                                     </div>
+                                 </Button>
+             
+                                 <h1 className="text-md hidden md:inline-flex md:text-2xl font-bold">{"Calendar Tasks"}</h1>
+                             </div>
+                                 
+    <div className="flex flex-col md:flex-row gap-6 p-4 md:p-2 h-full">
+     
       
       {/* ===== CALENDAR COLUMN ===== */}
       {/* On desktop (`md:`), it takes half the width. On mobile, it's full-width by default. */}
@@ -339,6 +366,7 @@ export const TaskCalendar = () => {
         />
       </div>
     </div>
+  </div>
   );
 };
 
