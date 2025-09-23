@@ -14,6 +14,7 @@ import { DynamicCompanyStats } from "./DynamicCompanyStats";
 import { CompanySubPages } from "./CompanySubPages";
 import {CompanyProgressCard} from "./components/CompanyProgressCard"
 import { useDialogStore } from "@/store/dialogStore";
+import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
 
 // Assume you have an EditCompanyForm component for the dialog
 // import { EditCompanyForm } from "./EditCompanyForm"; 
@@ -80,7 +81,7 @@ export const Company = () => {
     };
     
     if (companyLoading || contactsLoading || boqsLoading) {
-        return <div>Loading...</div>;
+        return <FullPageSkeleton />
     }
     const INACTIVE_STATUSES = ['Won', 'Lost','Dropped'];
 
@@ -115,7 +116,7 @@ const active=activeProjectsfilter()
                             <div className="flex items-center gap-4"> {/* Added a container for back button and header */}
                                 <Button variant="ghost" size="icon" onClick={handleBackToCompanysList} aria-label="Back to Company List" className="hidden md:inline-flex">
                                     <div className="bg-destructive text-black font-bold p-2 rounded-full">
-                                        <ArrowLeft className="w-8 h-8" />
+                                        <ArrowLeft color="#ffffff" className="w-8 h-8" />
                                     </div>
                                 </Button>
                                 <h1 className="text-md md:text-2xl font-bold ">{companyData.company_name}{" "}Details</h1> {/* Main title for the page */}

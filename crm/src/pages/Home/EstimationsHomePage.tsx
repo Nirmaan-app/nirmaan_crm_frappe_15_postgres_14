@@ -84,11 +84,14 @@ export const PendingBOQs = () => {
 
     const pendingStatusOptions = useMemo(() => {
         // These are the possible statuses for the filter tabs/dropdowns for Pending BOQs
-        return ['New', 'Revision Pending', 'In-Progress','Partial BOQ Submitted'].map(status => ({
+        if (!pendingBoqs) return [];
+        const Statuses = new Set<string>();
+        pendingBoqs.forEach(boq => boq.boq_status && Statuses.add(boq.boq_status));
+        return Array.from(Statuses).sort().map(status => ({
             label: status,
             value: status
         }));
-    }, []);
+    }, [pendingBoqs]);
 
     const pendingSubStatusOptions = useMemo(() => {
         if (!pendingBoqs) return [];
@@ -350,11 +353,14 @@ export const AllBOQs = () => {
     // --- Memoized Filter Options (derived from the fetched `allBoqs` data) ---
 
     const statusOptions = useMemo(() => {
-        return ['New', 'Revision Pending', 'In-Progress', 'Revision Submitted', 'Negotiation', 'Won', 'Lost', 'Hold'].map(status => ({
-            label: status,
-            value: status
-        }));
-    }, []);
+          if (!allBoqs) return [];
+          const Statuses = new Set<string>();
+          allBoqs.forEach(boq => boq.boq_status && Statuses.add(boq.boq_status));
+          return Array.from(Statuses).sort().map(status => ({
+              label: status,
+              value: status
+          }));
+      }, [allBoqs]);
 
     const subStatusOptions = useMemo(() => {
         if (!allBoqs) return [];
@@ -422,6 +428,8 @@ export const AllBOQs = () => {
                     {row.original.boq_status}
                 </span>
             ),
+            filterFn: 'faceted',
+                enableSorting: true,
         
         },
         {
@@ -434,7 +442,8 @@ export const AllBOQs = () => {
                     </span>
                 ) : '--'
             ),
-          
+           filterFn: 'faceted',
+                enableSorting: true,
         },
         {
             accessorKey: "modified",
@@ -631,7 +640,7 @@ export const EstimationsHomePage = ({FullName}) => {
         //     <PendingBOQs />
         //     <AllBOQs />
         // </div>
-        <div className="flex flex-col h-full max-h-screen overflow-y-auto">
+        <div className="flex flex-col h-full max-h-screen">
       {/* 
         This is the fixed/sticky header section.
         - sticky top-0: Makes it stick to the top of its scrolling parent.

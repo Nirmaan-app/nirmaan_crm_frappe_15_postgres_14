@@ -147,7 +147,7 @@ export const useTaskData = (assignmentFilters?: AssignmentFilter[]): UseTaskData
     // 1. DYNAMIC FILTERS: Combine the assignment filters with a base filter
     // This ensures we only fetch tasks that are not completed, making the query more efficient.
 
-    console.log("assignmentFilters",assignmentFilters)
+    // console.log("assignmentFilters",assignmentFilters)
 
     const allFilters = useMemo(() => {
         const baseFilters = [['status', '!=', '']];

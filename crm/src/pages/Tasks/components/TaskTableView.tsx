@@ -78,6 +78,16 @@ export const TaskTableView = ({
     orderBy: { field: 'start_date', order: 'desc' },
 }, "all-tasks-view");
 
+const INACTIVE_STATUSES = ['Won', 'Lost', 'Dropped'];
+
+const { data: activeBoqs, isLoading: boqsLoading, error: boqsError } = useFrappeGetDocList<CRMBOQ>('CRM BOQ', {
+  fields: ["name", "company", "boq_status"],
+  filters: [
+    ["boq_status", "not in", INACTIVE_STATUSES]
+  ],
+  limit: 0,
+}, "active-boqs-data");
+
     // Initialize tasks from tasksData. This is a regular variable, not a hook.
     // It must be derived after tasksData is available from useFrappeGetDocList.
     const tasks=taskData||[]
@@ -181,89 +191,143 @@ export const TaskTableView = ({
             filterFn: 'faceted',
             enableSorting: true,
         },
-        {
-            id: "contact",
-            meta: { title: "Contact", filterVariant: 'select', enableSorting: true, filterOptions: contactOptions },
-            cell: ({ row }) => {
-                const fullName = `${row.original.first_name || ''}`.trim();
-                return row.original.contact
-                    ? <Link to={`/contacts/contact?id=${row.original.contact}`} className="text-primary hover:underline">{fullName || row.original.contact}</Link>
-                    : '--';
-            },
-            filterFn: 'faceted',
-            enableSorting: true,
-        },
-        {
-            accessorKey: "boq",
-            meta: { title: "BOQ", enableSorting: true , filterVariant: 'select',filterOptions:BoqOptions},
-            cell: ({ row }) => (
-                row.original.boq
-                    ? <Link to={`/boqs/boq?id=${row.original.boq}`} className="text-primary hover:underline">{row.original.boq}</Link>
-                    : '--'
-            ),
-            filterFn:'faceted',
-            enableSorting: true,
-        },
+        // {
+        //     id: "contact",
+        //     meta: { title: "Contact", filterVariant: 'select', enableSorting: true, filterOptions: contactOptions },
+        //     cell: ({ row }) => {
+        //         const fullName = `${row.original.first_name || ''}`.trim();
+        //         return row.original.contact
+        //             ? <Link to={`/contacts/contact?id=${row.original.contact}`} className="text-primary hover:underline">{fullName || row.original.contact}</Link>
+        //             : '--';
+        //     },
+        //     filterFn: 'faceted',
+        //     enableSorting: true,
+        // },
+        // {
+        //     accessorKey: "boq",
+        //     meta: { title: "BOQ", enableSorting: true , filterVariant: 'select',filterOptions:BoqOptions},
+        //     cell: ({ row }) => (
+        //         row.original.boq
+        //             ? <Link to={`/boqs/boq?id=${row.original.boq}`} className="text-primary hover:underline">{row.original.boq}</Link>
+        //             : '--'
+        //     ),
+        //     filterFn:'faceted',
+        //     enableSorting: true,
+        // },
         {
             accessorKey: "assigned_sales",
             meta: { title: "Sales Person", filterVariant: 'select', enableSorting: true, filterOptions: assignedSalesOptions },
-            cell: ({ row }) => <span className="text-center text-sm">{getUserFullNameByEmail(row.original.assigned_sales) || "--"}</span>,
+            cell: ({ row }) => <span className="text-sm px-4 py-1">{getUserFullNameByEmail(row.original.assigned_sales) ||"--"}</span>,
             filterFn: 'faceted',
             enableSorting: true,
         },
         {
             accessorKey: "start_date",
             meta: { title: "Schedule Date", filterVariant: 'date', enableSorting: true },
-            cell: ({ row }) =>
-                   row.original.start_date
+            cell: ({ row }) =>(
+                <span className="text-sm text-muted-foreground">{row.original.start_date
                      ? formatDateWithOrdinal(new Date(row.original.start_date), 'dd-MMM-yyyy')
-                     : '--',
+                     : '--'}</span>
+            ),
+                   
                      
             enableSorting: true,
             filterFn: 'dateRange',
         },
-        // {
-        //     accessorKey: "status",
-        //     meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: taskStatusOptions },
-        //     cell: ({ row }) => (
-        //         <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getTaskStatusClass(row.original.status)}`}>
-        //             {row.original.status}
-        //         </span>
-        //     ),
-        //     filterFn: 'faceted',
-        //     enableSorting: true,
-        // },
         {
+              id: "active_boq_count",
+              meta: { title: "Active BOQs", enableSorting: false },
+              cell: ({ row }) => {
+               const taskCompanyName = row.original.company;
+    
+    // Find BOQs associated with the current task's company
+              const relevantBoqs = activeBoqs?.filter(boq => boq.company === taskCompanyName) || [];
+                if (relevantBoqs.length === 0) {
+                  return <span className='px-4'>--</span>;
+                }
+                return (
+                  <div className="flex gap-1 px-4">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white  text-xs cursor-pointer">
+                        {relevantBoqs.length}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[220px] text-wrap break-words ">
+                      {relevantBoqs.map((r, i) => (
+                        <ol key={i} className="p-1 m-1  rounded-md list-disc">
+        <li>
+                         <Link to={`/boqs/boq?id=${r.name}`} className="block border-gray-300 font-semibold hover:underline">
+          {r.name}
+        </Link></li>
+                          {/* <p className="text-[8px] mt-0 pt-0 ">
+                            Created: {formatDateWithOrdinal(r.creation)}
+                          </p> */}
+                        </ol>
+                      ))}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+        
+                );
+              },
+            },
+        {
+            accessorKey: "status",
+            meta: { title: "Status", filterVariant: 'select',filterOptions: taskStatusOptions },
+            cell: ({ row }) => (
+                <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${getTaskStatusClass(row.original.status)}`}>
+                    {row.original.status}
+                </span>
+            ),
+            filterFn: 'faceted',
+            // enableSorting: true,
+        },
+                   {
              accessorKey: "remarks",
-             meta: { title: "Remark" , enableSorting: false},
+             meta: { title: "Remarks" , enableSorting: false},
              cell: ({ row }) => {
                const remarks = row.original.remarks;
+
                if (!remarks) {
-                 return <span>--</span>;
+                 return  ( <div className="flex gap-1 justify-center">
+                          <span className="text-sm ">{"--"}</span>
+                 </div>)
                }
-       
+
+               // If remarks are 30 characters or less, display directly
+               if (remarks.length <= 30) {
+                 return ( <div className="flex gap-1 justify-center">
+                          <span className="text-xs ">{remarks}</span>
+                 </div>)
+               }
+
+               // If remarks are longer than 30 characters, truncate and show with tooltip
+               const truncatedRemarks = `${remarks.substring(0, 20)}...`;
+
                return (
-                 <div className="flex gap-1 text-right">
+                 <div className="flex gap-1 justify-center">
                    <TooltipProvider>
-                  
                        <Tooltip>
                          <TooltipTrigger asChild>
-                           <div className="flex items-center justify-center h-5 w-85 p-2 rounded-full bg-red-500 text-white text-xs cursor-pointer">
-                             {"Remark"}
+                           {/* Display truncated remarks with a destructive background */}
+                           <div className="flex items-center justify-center h-auto min-h-[24px] w-auto px-2 py-1 rounded-full bg-destructive text-destructive-foreground text-xs cursor-pointer text-center max-w-[220px] break-words">
+                             {truncatedRemarks}
                            </div>
                          </TooltipTrigger>
                          <TooltipContent className="max-w-[220px] text-wrap break-words">
-                           <p>{remarks}</p>
+                           <p>{remarks}</p> {/* Tooltip shows full original remarks */}
                          </TooltipContent>
-       
                        </Tooltip>
-                   
                    </TooltipProvider>
                  </div>
                );
              },
-             enableSorting: true,
+             enableSorting: false,
            }
+
     ], [tasks, companyOptions, contactOptions, taskProfileOptions, taskStatusOptions, taskTypeOptions, assignedSalesOptions,BoqOptions, getTaskStatusClass, getUserFullNameByEmail]);
 
 
@@ -404,7 +468,7 @@ export const TaskTableView = ({
             className={className}
             containerClassName={tableContainerClassName}
             // Adjusted gridColsClass for 9 data columns
-            gridColsClass="md:grid-cols-[1fr,1fr,1.5fr,1.5fr,1fr,1.5fr,1.2fr]"
+            gridColsClass="md:grid-cols-[1.5fr,1fr,1.5fr,1.5fr,1fr,1fr,1fr,auto]"
             headerTitle="Sales Task"
             noResultsMessage="No tasks found."
             // renderToolbarActions={(filteredData) => (

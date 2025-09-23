@@ -32,7 +32,7 @@ export const BOQs = () => {
         return <BoqList />;
     }
 
-    if (!isMobile && userRoleIsAdminOrSales) {
+    if (!isMobile) {
         return (
             <div className="flex flex-col h-[calc(100vh-var(--navbar-height)-80px)]">
                 {/* <div className="p-4 border-b bg-background rounded-t-lg flex items-center justify-between flex-shrink-0">

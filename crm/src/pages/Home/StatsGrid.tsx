@@ -58,11 +58,33 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
         </Card>
     );
 
-          export   const taskNameFormatter = (item) =>    <div className="flex p-1"><TaskStatusIcon status={item.status} className="mr-1 flex-shrink-0" /> 
+          export   const taskNameFormatter = (item) =>    <div className="flex p-1">
+            {/* <TaskStatusIcon status={item.status} className="mr-1 flex-shrink-0" /> 
           <div><span className="font-semibold">{item?.type}</span> with <span className="font-semibold">{item?.first_name}</span>{" "} from {item?.company_name} {" "}
           <p className="text-xs inline-block text-muted-foreground p-0 m-0">
                                          {formatCasualDate(item.start_date)} 
-                                      </p></div> <ChevronRight className="w-4 h-4 text-muted-foreground" /></div>;
+                                      </p></div> */}
+                                              <TaskStatusIcon status={item.status || 'Open'} className="flex-shrink-0 mt-1" /> {/* Adjusted margin-top */}
+        <div className="flex flex-col flex-grow"> {/* Use flex-col for stacked content */}
+            {item.task_profile === "Sales" ? (
+                // Sales Profile rendering
+                <span>
+                    <span className="font-semibold">{item?.type || 'Task'}</span> with <span className="font-semibold">{item.first_name || '--'}</span>{" "}from  {item.company || '--'} {" "}<span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                                                Scheduled for: {formatDateWithOrdinal(item.start_date)}
+                                                                            </span>
+                </span>
+            ) : (
+                // Non-Sales Profile rendering
+                <span>
+                    <span className="font-semibold">{item?.type || 'Task'}</span> for  <span className="font-semibold">{item?.boq || '--'}</span> {" "}<span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                                                Scheduled for: {formatDateWithOrdinal(item.start_date)}
+                                                                            </span>
+                </span>
+            )}
+            
+        </div>
+
+                                       <ChevronRight className="w-4 h-4 text-muted-foreground" /></div>;
 
           export  const formatItems = (data: any[], nameFormatter: (item: any) => string, type: 'Task' | 'BOQ'): StatItem[] => {
             return data.map(item => ({
@@ -93,7 +115,7 @@ export const StatsGrid = () => {
     const homeStatsGridBOQ=`all-boqs-hsgf${JSON.stringify(homeStatsGridFilterBOQS)}`
 
     const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
-        fields: ["name", "type", "start_date", "time" ,"status", "contact", "company","boq", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
+        fields: ["name", "type", "start_date", "time" ,"status", "contact", "company","boq", "contact.first_name", "contact.last_name", "company.company_name", "modified","task_profile"],
         filters: homeStatsGridFilterTasks,
         orderBy: { field: "start_date", order: "desc"},
         limit: 0

@@ -80,6 +80,7 @@ import { AllBOQs, PendingBOQs } from "./EstimationsHomePage"; // Assuming these 
 // --- shadcn/ui Tabs Imports ---
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskTableView } from "../Tasks/components/TaskTableView";
+import { SalesPerformanceTable } from "./components/SalesPerformanceTable";
 // --- End shadcn/ui Tabs Imports ---
 
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
@@ -148,8 +149,8 @@ export const HomeHeader = () => {
     }, [tasksData]);
 
     return (
-        <div className="flex flex-col h-full max-h-screen overflow-y-auto"> {/* Main scroll container for Home */}
-            <div className="sticky top-0 z-20 bg-background px-4 flex-shrink-0"> {/* Fixed header section */}
+        <div className="flex flex-col h-full max-h-screen "> {/* Main scroll container for Home */}
+            <div className="sticky top-0 z-20 bg-background px-4 mt-0 flex-shrink-0"> {/* Fixed header section */}
                 <div className="flex justify-between items-center mb-2">
                     <h1 className="text-md md:text-2xl font-bold">Welcome, {fullName}!</h1>
                     <Button
@@ -204,8 +205,12 @@ export const HomeHeader = () => {
                        </div>
                        
                        {isAdmin ? (
+                        <>
+                        <SalesPerformanceTable className="mt-8 border-t border-gray-200 pt-4"/>
+                         <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" />
+                        </>
                             // If Admin, show TaskTableView (e.g., all tasks)
-                            <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" />
+                           
                         ) : (
                             // If not Admin, show PendingTasks (original behavior)
                             <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
@@ -216,7 +221,7 @@ export const HomeHeader = () => {
 
 
 {activeTab === 'estimations_review' &&(
- <div className="space-y-6">
+ <div className="space-y-6 mb-4">
                         <PendingBOQs />
                         <AllBOQs />
                     </div>
