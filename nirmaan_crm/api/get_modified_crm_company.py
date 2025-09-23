@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import nowdate
+from frappe.utils import nowdate, add_days # Add add_days here
 
 @frappe.whitelist(allow_guest=False)
 def get_modified_crm_companies():
@@ -131,6 +131,31 @@ def get_modified_crm_companies():
             )
             # 6. Print the BOQ counts
             print(f"  Active BOQs: {active_boqs_list}, Hot BOQs: {hot_boqs_list}")
+            today = frappe.utils.get_datetime(nowdate()) # Get current date as datetime object
+            thirty_days_ago = add_days(today, -30) # Calculate date 30 days ago
+
+            last_30_days_boqs_list = frappe.get_list(
+                "CRM BOQ",
+                filters={
+                "company": company.name,
+                "creation": (">=", thirty_days_ago.strftime('%Y-%m-%d')) # Filter by creation date
+                },
+                fields=[
+                "name",
+                "boq_name",
+                "boq_status",
+                "boq_sub_status",
+                "boq_value",
+                "boq_submission_date",
+                "remarks",
+                "creation"
+                ],
+                limit=0 # Limit to a reasonable number for hover display
+            )
+            print(f"  Last 30 days BOQs for {company.name}: {last_30_days_boqs_list}")
+
+        # Add the new list to the modified_company dictionary
+            modified_company["last_30_days_boqs"] = last_30_days_boqs_list
             
             # Add the counts to the modified_company dictionary
             # modified_company["active_boq"] = active_boq_count

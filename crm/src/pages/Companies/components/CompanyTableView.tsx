@@ -26,6 +26,7 @@ interface CRMCompany {
   last_three_remarks_from_tasks?: string[];
   active_boq?: { }[];
   hot_boq?: { }[];
+  last_30_days_boqs:{}[];
 }
 
 export const CompanyTableView = () => {
@@ -145,6 +146,40 @@ export const CompanyTableView = () => {
       enableSorting: true,
       filterFn: 'dateRange',
     },
+
+    {
+  accessorKey: "last_30_days_boqs",
+  meta: { title: "BOQs (Last 30 Days)", enableSorting: false },
+  cell: ({ row }) => {
+    const last_30_days_boqs = row.original.last_30_days_boqs || [];
+    if (last_30_days_boqs.length === 0) {
+      return <div className="flex gap-1 px-3">--</div>;
+    }
+    return (
+      <div className="flex gap-1 px-3">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs cursor-pointer">
+                {last_30_days_boqs.length}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[220px] text-wrap break-words">
+               {last_30_days_boqs.map((r, i) => (
+                <ol key={i} className="p-1 m-1 rounded-md list-disc">
+<li>
+                 <Link to={`/boqs/boq?id=${r.name}`} className="block border-gray-300 font-semibold hover:underline">
+  {r.boq_name || r.name} {/* Use boq_name for display */}
+</Link></li>
+                </ol>
+              ))}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    );
+  },
+},
    {
       accessorKey: "active_boq",
       meta: { title: "Active BOQs", enableSorting: false },
@@ -191,7 +226,7 @@ export const CompanyTableView = () => {
           return <span>--</span>;
         }
         return (
-          <div className="flex gap-1">
+        <div className="flex gap-1">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -219,6 +254,8 @@ export const CompanyTableView = () => {
         );
       },
     },
+    // --- NEW: Last 30 Days BOQs Column --
+
     
     // {
     //   accessorKey: "active_boq",
@@ -335,8 +372,17 @@ export const CompanyTableView = () => {
         exportValue: (row) => row.next_meeting_date ? formatDateWithOrdinal(new Date(row.next_meeting_date), 'dd-MMM-yyyy') : ''
       }
     },
-    { accessorKey: "active_boq", meta: { exportHeaderName: "Active BOQs" } },
-    { accessorKey: "hot_boq", meta: { exportHeaderName: "Hot BOQs" } },
+        { accessorKey: "active_boq", meta: { exportHeaderName: "Active BOQs", exportValue: (row) => row.active_boq?.length || 0 } }, // Changed exportValue to count
+    { accessorKey: "hot_boq", meta: { exportHeaderName: "Hot BOQs", exportValue: (row) => row.hot_boq?.length || 0 } },         // Changed exportValue to count
+    // --- MODIFIED: Export count only for Last 30 Days BOQs ---
+    {
+      accessorKey: "last_30_days_boqs",
+      meta: {
+        exportHeaderName: "BOQs (Last 30 Days)",
+        exportValue: (row) => row.last_30_days_boqs?.length || 0 // Export the length (count)
+      }
+    },
+
     {
       accessorKey: "last_three_remarks_from_tasks",
       meta: {
@@ -356,7 +402,7 @@ export const CompanyTableView = () => {
       globalSearchPlaceholder="Search Companies..."
       className="h-full"
       shouldExpandHeight={true}
-      gridColsClass="md:grid-cols-[2fr,1.5fr,1.5fr,1.5fr,1.5fr,1.5fr,1fr,1fr,1fr]"
+      gridColsClass="md:grid-cols-[1.5fr,1.2fr,1.5fr,1.5fr,1.5fr,1.5fr,1fr,1fr,1fr,1fr]"
       renderToolbarActions={(filteredData) => (
         <DataTableExportButton
           data={filteredData}

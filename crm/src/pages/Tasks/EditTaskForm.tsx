@@ -335,7 +335,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           </>
         )}
 
-        <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks (<sup>*</sup>)</FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem>)} />
+        <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks <sup>*</sup></FormLabel><FormControl><Textarea placeholder="Enter Remarks" {...field} /></FormControl><FormMessage /></FormItem>)} />
 
          {selectedStatus &&
               <>
