@@ -273,7 +273,7 @@ export const SalesPerformanceTable: React.FC<SalesPerformanceTableProps> = ({ cl
 
     return (
         <div className={cn("sales-performance-container p-4 rounded-lg bg-card text-card-foreground border-2 shadow-sm", className)}>
-            <h2 className="text-lg font-semibold mb-4 text-destructive">Sales Performance</h2>
+            <h2 className="text-lg font-semibold mb-4 text-destructive"></h2>
             <div className="rounded-lg border bg-background dark:bg-gray-900 max-h-[270px] overflow-y-auto">
                 <div className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 rounded-t-lg"> {/* To contain the rounded corners */}
                     <table className="min-w-full table-fixed">

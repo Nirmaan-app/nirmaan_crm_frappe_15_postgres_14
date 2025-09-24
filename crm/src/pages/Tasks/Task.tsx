@@ -114,7 +114,7 @@ const TaskDetailsCard = ({ task, contact, company, boq }: { task: CRMTask, conta
                 </div>
                 <DetailItem label="Date" className="text-sm" value={`${formatDateWithOrdinal(task?.start_date)}`} />
                 {/* <DetailItem label="Remarks" className="text-sm" value={task?.remarks || "--"} /> */}
-                                <RemarksDisplayItem label="Latest Remarks" value={boq?.remarks || 'N/A'} className="col-span-2" />
+                                <RemarksDisplayItem label="Latest Remarks" value={task?.remarks || 'N/A'} className="col-span-2" />
             </div>
         </div>
     );

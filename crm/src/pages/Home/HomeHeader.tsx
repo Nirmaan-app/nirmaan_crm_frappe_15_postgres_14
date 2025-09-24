@@ -65,6 +65,7 @@
 //     );
 // };
 // src/pages/Home/HomeHeader.tsx - FINALIST COMPONENTS WITH SHADCN TABS
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, Search, Plus } from "lucide-react";
@@ -85,6 +86,8 @@ import { SalesPerformanceTable } from "./components/SalesPerformanceTable";
 
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 // import { useUserRoleLists } from '@/hooks/useUserRoleLists'; // Removed as you're using localStorage for role/fullName
+// --- NEW IMPORTS ---
+import { CollapsibleSection } from "@/components/common/CollapsibleSection"; // Import the new component
 
 // Define the interface for your EnrichedCRMTask
 interface EnrichedCRMTask {
@@ -204,7 +207,7 @@ export const HomeHeader = () => {
                            <GlobalSearchInput className="flex-1" />
                        </div>
                        
-                       {isAdmin ? (
+                       {/* {isAdmin ? (
                         <>
                         <SalesPerformanceTable className="mt-8 border-t border-gray-200 pt-4"/>
                          <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" />
@@ -214,16 +217,39 @@ export const HomeHeader = () => {
                         ) : (
                             // If not Admin, show PendingTasks (original behavior)
                             <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
+                        )} */}
+                          {isAdmin ? (
+                            <>
+                                {/* --- COLLAPSIBLE SALES PERFORMANCE TABLE --- */}
+                                <CollapsibleSection title="Sales Performance" defaultOpen={true}>
+                                    <SalesPerformanceTable className="border-none p-0 shadow-none" /> {/* Remove default styling from table here */}
+                                </CollapsibleSection>
+                                {/* --- COLLAPSIBLE TASK TABLE VIEW --- */}
+                                <CollapsibleSection title="Sales Tasks" defaultOpen={false}>
+                                    <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" className="border-none p-0 shadow-none" />
+                                </CollapsibleSection>
+                            </>
+                        ) : (
+                            // Non-Admin view retains PendingTasks
+                            <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
                         )}
+                        
                         <StatsGrid />
                     </div>
                 )}
 
 
 {activeTab === 'estimations_review' &&(
- <div className="space-y-6 mb-4">
-                        <PendingBOQs />
-                        <AllBOQs />
+ <div className="space-y-2 mb-4">
+     <CollapsibleSection title="Pending BOQs" defaultOpen={true}>
+                            <PendingBOQs className="border-none p-0 shadow-none" /> {/* Pass dateRange if PendingBOQs needs it */}
+                        </CollapsibleSection>
+                        {/* --- COLLAPSIBLE ALL BOQs --- */}
+                        <CollapsibleSection title="All BOQs" defaultOpen={false}>
+                            <AllBOQs className="border-none p-0 shadow-none" /> {/* Pass dateRange if AllBOQs needs it */}
+                        </CollapsibleSection>
+                        {/* <PendingBOQs />
+                        <AllBOQs /> */}
                     </div>
 )}
                 
