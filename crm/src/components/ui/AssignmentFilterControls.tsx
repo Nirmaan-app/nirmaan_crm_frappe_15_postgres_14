@@ -166,7 +166,7 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
         const salesFilterDropdown = (
             <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">Filter by User</label>
-                <ReactSelect isMulti options={salesUserOptions} isLoading={salesLoading} value={selectedSalesUsers} onChange={setSelectedSalesUsers} placeholder="All Sales Users" className="text-sm" menuPosition={'auto'} />
+                <ReactSelect isMulti options={salesUserOptions} isLoading={salesLoading} value={selectedSalesUsers} onChange={setSelectedSalesUsers} placeholder="All  Users" className="text-sm" menuPosition={'auto'} />
             </div>
         );
         // For BOQs, show both dropdowns.

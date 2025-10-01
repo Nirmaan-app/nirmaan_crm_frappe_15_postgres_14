@@ -111,7 +111,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const selectedStatus = form.watch("status");
   const selectedReason = form.watch("reason");
 
-  const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: { company: contactDoc.company  }, fields: ["name", "first_name", "last_name"], limit: 0 });
+  const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: [["company", "=", contactDoc?.company]], fields: ["name", "first_name", "last_name"], limit: 0 });
 
   const contactOptions = useMemo(() => contactsList?.map(c => ({ label: c.first_name, value: c.name })) || [], [contactsList]);
 
