@@ -46,11 +46,11 @@ export const GlobalSearchInput: React.FC<{ className?: string }> = ({ className 
   };
 
   const desktopBasePaths: { [key: string]: string } = {
-    "CRM Contacts": "/contacts",
-    "CRM Company": "/companies",
-    "CRM BOQ": "/boqs",
-    "CRM Task": "/tasks",
-    "CRM Users": "/team",
+    "CRM Contacts": "/contacts/contact",
+    "CRM Company": "/companies/company",
+    "CRM BOQ": "/boqs/boq",
+    "CRM Task": "/tasks/task",
+    "CRM Users": "/team/details",
   };
 
   const handleSelectResult = (item: SearchResultItem) => {

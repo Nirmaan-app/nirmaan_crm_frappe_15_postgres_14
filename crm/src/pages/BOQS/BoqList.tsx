@@ -15,6 +15,8 @@ import { Separator } from "@/components/ui/separator";
 import { useViewport } from "@/hooks/useViewPort";
 import { BoqListHeader } from "./BoqListHeader"; // Import the new header component
 import { AssignmentFilterControls } from "@/components/ui/AssignmentFilterControls";
+import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
+
 
 type EnrichedBoq = CRMBOQ & { "company.company_name"?: string; "contact.first_name"?: string; "contact.last_name"?: string; };
 interface BoqListProps { onBoqSelect?: (id: string) => void; activeBoqId?: string | null; }
@@ -40,6 +42,8 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
     const { openNewTaskDialog, openEditBoqDialog } = useDialogStore();
     const getBoqStatusClass = useStatusStyles("boq");
     const role = localStorage.getItem('role');
+      const handleCreateTask = useTaskCreationHandler();
+    
     return (
         <div className="py-4">
             <div className="flex justify-between items-center">
@@ -54,8 +58,10 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
 
                     {
                         (role != "Nirmaan Estimations User Profile") && (
-<Button variant="outline" size="sm" className="h-8 w-8 rounded-full border-destructive text-destructive" onClick={(e) => { e.stopPropagation(); openNewTaskDialog({ boqId: boq.name, companyId: boq.company, contactId: boq.contact }); }}>
+<Button variant="outline" size="sm" className="h-8 w-8 rounded-full border-destructive text-destructive" onClick={(e) => { e.stopPropagation();handleCreateTask({ boqId: boq.name, companyId: boq.company, contactId: boq.contact })  }}>
                         <Plus className="w-4 h-4 mr-0" /> 
+
+
                         {/* Add Task */}
 
                     </Button>
