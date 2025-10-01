@@ -62,7 +62,7 @@ const boqNameFormatter = (item: FrappeDoc) => (
     <Card className="w-full">
         <CardHeader className="p-3 pb-2">
             <CardTitle className="text-base font-bold text-primary truncate" title={item.name}>
-                {item.name}
+                {item.name}- <span className="text-sm text-200-red">({item.company})</span>
             </CardTitle>
         </CardHeader>
         <CardContent className="p-2 pt-0 flex justify-between items-center text-xs">
@@ -175,8 +175,8 @@ export const SalesPerformanceTable: React.FC<SalesPerformanceTableProps> = ({ cl
        
         const handleCellClick = () => {
             if (count > 0) {
-                  const date_range=`${items?.[0]?.date_to
-} to ${items?.[0]?.date_from} `
+                  const date_range=`${items?.[0]?.date_from
+} to ${items?.[0]?.date_to} `
                 const formattedItems = formatItemsForDialog(
                     items,
                     isBOQ ? boqNameFormatter : taskNameFormatter, // Use appropriate formatter

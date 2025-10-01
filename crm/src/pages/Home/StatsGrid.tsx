@@ -40,7 +40,7 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
         <Card className="w-full"> {/* Removed hover effects as it will be in a dialog */}
           <CardHeader className="p-3 pb-2">
             <CardTitle className="text-base font-bold text-primary truncate" title={item.name}>
-              {item.name}
+              {item.name} - <span className="text-sm text-200-red">({item.company})</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 pt-0 flex justify-between items-center text-xs">

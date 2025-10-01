@@ -8,11 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappeCreateDoc, useFrappeGetDoc, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDoc, useFrappeUpdateDoc, useSWRConfig,useFrappeGetDocList} from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from "react-select";
-import { useEffect } from "react";
+import { useEffect,useMemo } from "react";
 import { formatDate, formatTime12Hour,formatDateWithOrdinal } from "@/utils/FormatDate";
 import { Calendar, Clock } from "lucide-react"; // Import icons for a nicer UI
 import { salesTaskTypeOptions } from "@/constants/dropdownData";
@@ -26,6 +26,7 @@ const editTaskSchema = z.object({
   type: z.string().optional(),
   start_date: z.string().optional(),
   // time: z.string().optional(),
+  contact: z.string().optional(),
   // For 'updateStatus' mode
   status: z.string().optional(), // Status is always required in update mode
   reason: z.string().optional(),
@@ -110,12 +111,17 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const selectedStatus = form.watch("status");
   const selectedReason = form.watch("reason");
 
+  const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: { company: contactDoc.company  }, fields: ["name", "first_name", "last_name"], limit: 0 });
+
+  const contactOptions = useMemo(() => contactsList?.map(c => ({ label: c.first_name, value: c.name })) || [], [contactsList]);
+
   useEffect(() => {
     if (taskData) {
       form.reset({
         type: taskData.type || "",
         start_date: taskData.start_date?.split(" ")[0] || "",
         // time: taskData.time || "",
+        contact:taskData.contact||"",
         assigned_sales: taskData.assigned_sales || "",
         status:"",
         reschedule: false,
@@ -129,6 +135,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         type: taskData.type || "",
         start_date: "",
         // time: taskData.time || "",
+        contact:taskData.contact||"",
         assigned_sales: taskData.assigned_sales || "",
         status:"",
         reschedule: false,
@@ -206,7 +213,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           start_date:values.start_date,
           // time: values.time,
           status: 'Scheduled',
-          contact: taskData.contact,
+          contact: values.contact||taskData.contact,
           company: taskData.company,
           task_profile:"Sales",
           assigned_sales: values.assigned_sales||taskData.assigned_sales,
@@ -303,6 +310,15 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 )}
               />
             )}
+             {
+              mode=="scheduleNext"&&(
+                 <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact</FormLabel><FormControl>
+                      
+                        <ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("boq", ""); }} placeholder="Select Contact" menuPosition={'auto'}  />
+                      
+                    </FormControl><FormMessage /></FormItem>)} />
+              )
+             }
             <FormField name="start_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>Date<sup>*</sup></FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
 
             {/* <FormField name="time" control={form.control} render={({ field }) => (<FormItem><FormLabel>Time<sup>*</sup></FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>)} /> */}

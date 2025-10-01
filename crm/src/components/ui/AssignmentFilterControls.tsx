@@ -165,7 +165,7 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
     if (role === 'Nirmaan Admin User Profile') {
         const salesFilterDropdown = (
             <div className="space-y-1">
-                <label className="text-sm font-medium text-muted-foreground">Filter by Sales User</label>
+                <label className="text-sm font-medium text-muted-foreground">Filter by User</label>
                 <ReactSelect isMulti options={salesUserOptions} isLoading={salesLoading} value={selectedSalesUsers} onChange={setSelectedSalesUsers} placeholder="All Sales Users" className="text-sm" menuPosition={'auto'} />
             </div>
         );
