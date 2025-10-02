@@ -34,7 +34,7 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
 
 
     const { data: allTasks, isLoading: tasksLoading } = useFrappeGetDocList("CRM Task", {
-        fields: ["name", "type", "start_date","time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "modified"],
+        fields: ["name", "type", "start_date","time", "status", "contact", "company", "contact.first_name", "contact.last_name", "company.company_name", "modified","boq"],
         filters:companyStatsGridFilterTasks ,
         limit: 0
     },companyStatsGridTask);
