@@ -110,6 +110,7 @@ def get_sales_performance_metrics():
                     ["assigned_sales", "=", user_email],
                     ["contact", "is", "set"] # Ensure a contact is linked
                 ],
+                order_by="start_date desc",
                 fields=common_task_fields,
             )
             user_metrics["IPM_this_week"] = add_date_range_to_items(this_week_meetings_raw, this_week_date_from_str, this_week_date_to_str)
@@ -138,6 +139,7 @@ def get_sales_performance_metrics():
                     ["assigned_sales", "=", user_email],
                     ["contact", "is", "set"] # Ensure a contact is linked
                 ],
+                order_by="start_date desc",
                 fields=common_task_fields,
             )
             user_metrics["IPM_last_week"] = add_date_range_to_items(last_week_meetings_raw, last_week_date_from_str, last_week_date_to_str)
@@ -166,6 +168,7 @@ def get_sales_performance_metrics():
                     ["assigned_sales", "=", user_email],
                     ["contact", "is", "set"] # Ensure a contact is linked
                 ],
+                order_by="start_date desc",
                 fields=common_task_fields,
             )
             user_metrics["IPM_last_30_days"] = add_date_range_to_items(last_30_days_meetings_raw, last_30_days_date_from_str, last_30_days_date_to_str)
@@ -197,6 +200,7 @@ def get_sales_performance_metrics():
                     ["creation", "<=", this_week_end],
                     ["assigned_sales", "=", user_email]
                 ],
+                order_by="creation desc",
                 fields=common_boq_fields,
             )
             user_metrics["BOQR_this_week"] = add_date_range_to_items(this_week_boqs, this_week_date_from_str, this_week_date_to_str)
@@ -210,6 +214,7 @@ def get_sales_performance_metrics():
                     ["creation", "<=", last_week_end],
                     ["assigned_sales", "=", user_email]
                 ],
+                order_by="creation desc",
                 fields=common_boq_fields,
             )
             user_metrics["BOQR_last_week"] = add_date_range_to_items(last_week_boqs, last_week_date_from_str, last_week_date_to_str)
@@ -223,6 +228,7 @@ def get_sales_performance_metrics():
                     ["creation", "<=", last_30_days_end],
                     ["assigned_sales", "=", user_email]
                 ],
+                order_by="creation desc",
                 fields=common_boq_fields,
             )
             user_metrics["BOQR_last_30_days"] = add_date_range_to_items(last_30_days_boqs, last_30_days_date_from_str, last_30_days_date_to_str)

@@ -96,9 +96,9 @@ const taskNameFormatter = (item: FrappeDoc) => (
                         </span>
                     )}
 
-                    {item.start_date && (
+                    {item.start_date  &&(
                         <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 self-start">
-                             Scheduled for: {formatDateWithOrdinal(item.start_date)}
+                            On: {formatDateWithOrdinal(item.start_date)}
                         </span>
                     )}
 
@@ -278,7 +278,7 @@ console.log("period",period)
                     <thead className="bg-white">
                         <tr>
                             <th rowSpan={2} className="border border-red-500 px-4 py-2 text-red-700">User</th>
-                            <th colSpan={3} className="border border-red-500 px-4 py-2 text-red-700">Meetings</th>
+                            <th colSpan={3} className="border border-red-500 px-4 py-2 text-red-700">In Person Meetings</th>
                             <th colSpan={3} className="border border-red-500 px-4 py-2 text-red-700">BOQ</th>
                         </tr>
                         <tr>
@@ -331,7 +331,7 @@ console.log("period",period)
                 <thead className="bg-gray-100"> {/* Changed background to white */}
                     <tr>
                         <th rowSpan={2} className="border text-primary px-4 py-2 text-red-700">User</th>
-                        <th colSpan={3} className="border text-primary px-4 py-2 text-red-700">Meetings</th>
+                        <th colSpan={3} className="border text-primary px-4 py-2 text-red-700">In Person Meetings</th>
                         <th colSpan={3} className="border text-primary px-4 py-2 text-red-700">BOQ</th>
                     </tr>
                     <tr>

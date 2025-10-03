@@ -70,14 +70,16 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
                 // Sales Profile rendering
                 <span>
                     <span className="font-semibold">{item?.type || 'Task'}</span> with <span className="font-semibold">{item.first_name || '--'}</span>{" "}from  {item.company || '--'} {" "}<span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 self-start">
-                                                                                Scheduled for: {formatDateWithOrdinal(item.start_date)}
+                                                                                 {item.status=="Scheduled"?"Scheduled for":"On"}:  {formatDateWithOrdinal(item.start_date)}
                                                                             </span>
                 </span>
             ) : (
                 // Non-Sales Profile rendering
                 <span>
                     <span className="font-semibold">{item?.type || 'Task'}</span> for  <span className="font-semibold">{item?.boq || '--'}</span> {" "}<span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 self-start">
-                                                                                Scheduled for: {formatDateWithOrdinal(item.start_date)}
+             
+                                                                                {item.status=="Scheduled"?"Scheduled for":"On"}: {formatDateWithOrdinal(item.start_date)}
+
                                                                             </span>
                 </span>
             )}
