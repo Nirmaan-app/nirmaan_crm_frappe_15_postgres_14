@@ -64,7 +64,7 @@ const boqNameFormatter = (item: FrappeDoc) => (
     <Card className="w-full shadow-none border hover:shadow-md transition-shadow">
         <CardHeader className="p-3 pb-2">
             <CardTitle className="text-base font-bold text-primary truncate" title={item.name}>
-                {item.name}<span className=" block text-sm text-gray-400 font-light">({item.company})</span>
+                {item.name}<span className=" block text-sm text-gray-400 font-light">{item.company}</span>
             </CardTitle>
         </CardHeader>
         <CardContent className="px-2 pt-0 flex justify-between items-center text-xs">
@@ -206,10 +206,10 @@ const MeetingsCellContent: React.FC<{
     const baseCardClass = "flex justify-between items-center bg-gray-50 dark:bg-gray-800 rounded-md p-1";
 
     // Styles for the COUNT when it is > 0 (The RED CIRCLE/BUTTON)
-    const activeCountClass = "w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-base cursor-pointer hover:bg-red-600 transition-colors";
+    const activeCountClass = "min-w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-red-600 transition-colors shadow-red-500/70 shadow-sm p-1.5";
     
     // Styles for the COUNT when it is 0 (The standard gray text)
-    const inactiveCountClass = "text-gray-700 font-semibold dark:text-gray-300";
+    const inactiveCountClass = "text-sm text-gray-700 font-semibold dark:text-gray-300";
 
     // Helper function to create the count element
     const renderCount = (count: number, items: any[], type: 'IPM' | 'UMC') => {
@@ -254,7 +254,7 @@ console.log("period",period)
             <div className="flex items-center justify-center h-full text-sm">
                 {boqCount > 0 ? (
                     <div
-                        className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-base cursor-pointer hover:bg-red-600 transition-colors"
+                        className="min-w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-red-600 transition-colors shadow-red-500/70 shadow-sm p-1.5"
                         onClick={createDialogHandler(user, 'BOQ', period, boqItems, boqCount)}
                     >
                         {boqCount} 

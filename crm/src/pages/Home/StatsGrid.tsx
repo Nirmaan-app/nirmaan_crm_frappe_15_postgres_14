@@ -40,7 +40,7 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
         <Card className="w-full"> {/* Removed hover effects as it will be in a dialog */}
           <CardHeader className="p-3 pb-2">
             <CardTitle className="text-base font-bold text-primary truncate" title={item.name}>
-              {item.name} - <span className="text-sm text-200-red">({item.company})</span>
+              {item.name} <span className=" block text-sm text-gray-400 font-light">{item.company}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 pt-0 flex justify-between items-center text-xs">
@@ -58,7 +58,7 @@ export const StatCard = ({ title, value, isLoading = false, onClick }: StatCardP
         </Card>
     );
 
-          export   const taskNameFormatter = (item) =>    <div className="flex p-1">
+          export   const taskNameFormatter = (item) =>    <div className="flex p-1 items-center space-x-2 w-full">
             {/* <TaskStatusIcon status={item.status} className="mr-1 flex-shrink-0" /> 
           <div><span className="font-semibold">{item?.type}</span> with <span className="font-semibold">{item?.first_name}</span>{" "} from {item?.company_name} {" "}
           <p className="text-xs inline-block text-muted-foreground p-0 m-0">
