@@ -34,6 +34,7 @@ const BoqList = ({ boqs }: { boqs: CRMBOQ[] }) => {
                 <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Received Date</TableHead>
                     <TableHead className="text-right">Submission Deadline</TableHead>
                 </TableRow>
             </TableHeader>
@@ -54,6 +55,7 @@ const BoqList = ({ boqs }: { boqs: CRMBOQ[] }) => {
                                 {boq.boq_status || 'N/A'}
                             </span>
                         </TableCell>
+                        <TableCell className="text-right">{formatDateWithOrdinal(boq.creation)||"--"}</TableCell>
                         <TableCell className="text-right">{formatDateWithOrdinal(boq.boq_submission_date)||"--"}</TableCell>
                     </TableRow>
                 ))}
