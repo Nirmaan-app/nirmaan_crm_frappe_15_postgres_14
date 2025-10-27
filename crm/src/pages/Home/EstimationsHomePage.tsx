@@ -191,6 +191,17 @@ export const PendingBOQs = () => {
             filterFn: 'dateRange',
         },
         {
+            accessorKey: "creation",
+            meta: { title: "Date Added", filterVariant: 'date', enableSorting: true },
+            cell: ({ row }) => (
+                <span className="text-sm px-2 text-muted-foreground">
+                    {row.original.creation ? formatDateWithOrdinal(new Date(row.original.creation), 'dd-MMM-yyyy') : '--'}
+                </span>
+            ),
+            enableSorting: true,
+            filterFn: 'dateRange',
+        },
+        {
             id: 'actions',
             meta: { title: "Action", enableSorting: false, excludeFromExport: true }, // Not sortable/filterable, excluded from export
             cell: ({ row }) => (
@@ -289,6 +300,8 @@ export const PendingBOQs = () => {
         { accessorKey: "boq_type", meta: { exportHeaderName: "BOQ Type" } },
         { accessorKey: "boq_value", meta: { exportHeaderName: "BOQ Value", isCurrency: true } },
         { accessorKey: "boq_submission_date", meta: { exportHeaderName: "Submission Date" } },
+        { accessorKey: "creation", meta: { exportHeaderName: "Date Added" } },
+
         { accessorKey: "boq_link", meta: { exportHeaderName: "BOQ Link" } },
         { accessorKey: "city", meta: { exportHeaderName: "City" } },
         { accessorKey: "remarks", meta: { exportHeaderName: "Remarks" } },
@@ -312,7 +325,7 @@ export const PendingBOQs = () => {
             className="h-full" // Ensure DataTable's root div itself fills its parent container
             containerClassName="max-h-[300px]" // Apply fixed max-height to the scrollable table body
             // Grid columns for Pending BOQs (7 columns)
-            gridColsClass="md:grid-cols-[1.8fr,1.2fr,1fr,1fr,1.2fr,1.3fr,1fr]"
+            gridColsClass="md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1.2fr,1fr,1fr,1fr]"
             headerTitle="Pending BOQs"
             noResultsMessage="No pending BOQs found."
             // Render the export button in the toolbar actions slot
