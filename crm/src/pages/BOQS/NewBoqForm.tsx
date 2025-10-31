@@ -297,7 +297,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   // 3. Fetch the company document (for display in disabled input)
   const { data: companyDoc } = useFrappeGetDoc<CRMCompany>("CRM Company", companyId, { enabled: !!companyId });
   // 4. Fetch ALL companies (for the dropdown if no context)
-  const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", { fields: ["name", "company_name"], limit: 1000, enabled: !companyId });
+  const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", { fields: ["name", "company_name","assigned_sales"], limit: 1000, enabled: !companyId });
   
   // 5. Fetch the contact document (for display in disabled input)
   const { data: contactDoc } = useFrappeGetDoc<CRMContacts>("CRM Contacts", contactIdFromContext, { enabled: !!contactIdFromContext });
@@ -306,7 +306,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: { company: selectedCompany || companyId }, fields: ["name", "first_name", "last_name"], enabled: !!(selectedCompany || companyId) });
 
   // --- OPTIONS FOR DROPDOWNS ---
-  const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_name, value: c.name })) || [], [allCompanies]);
+  const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_name, value: c.name})) || [], [allCompanies]);
   const contactOptions = useMemo(() => contactsList?.map(c => ({ label: `${c.first_name} ${c.last_name}`, value: c.name })) || [], [contactsList]);
   
   // Effect to pre-fill the form with context
@@ -448,6 +448,41 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField name="boq_name" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Name<sup>*</sup></FormLabel><FormControl><Input placeholder="e.g. Zepto P1" {...field} /></FormControl><FormMessage /></FormItem> )} />
+
+                <FormField name="company" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Company<sup>*</sup></FormLabel><FormControl>
+            {contactIdFromContext ? (
+                <Input value={contactDoc?.company || "Loading..."} disabled />
+            ) : (
+                <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)}
+                 onChange={(val) => { 
+                  field.onChange(val?.value); form.setValue("contact", "");
+                  const selectedPerson=allCompanies?.find(comp=>comp.name===val?.value);
+                    if (selectedPerson) {
+                                            // Existing logic: Auto-select company and contact
+                                            // NEW LOGIC: Auto-set assigned_sales from BOQ data
+                                            if (selectedPerson.assigned_sales) {
+                                                form.setValue("assigned_sales", selectedPerson.assigned_sales, { shouldValidate: true });
+                                            } else {
+                                                // Clear if the selected BOQ has no assigned sales
+                                                form.setValue("assigned_sales", ""); 
+                                            }
+                                          }
+
+                }
+                } 
+                 
+                 menuPosition={'auto'} placeholder="Select Company"/>
+            )}
+        </FormControl><FormMessage /></FormItem> )} />
+        
+        {/* For test New validation  */}
+        <FormField name="contact" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Contact</FormLabel><FormControl>
+            {contactIdFromContext ? (
+                <Input value={contactDoc ? `${contactDoc.first_name} ${contactDoc.last_name}` : "Loading..."} disabled />
+            ) : (
+                <ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select Contact" isDisabled={!selectedCompany && !companyId} />
+            )}
+        </FormControl><FormMessage /></FormItem> )} />
                  {(role==="Nirmaan Admin User Profile"||role==="Nirmaan Estimations User Profile") &&(
                  <FormField
                             control={form.control}
@@ -592,22 +627,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                     />
                 )}
 
-        <FormField name="company" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Company<sup>*</sup></FormLabel><FormControl>
-            {contactIdFromContext ? (
-                <Input value={contactDoc?.company || "Loading..."} disabled />
-            ) : (
-                <ReactSelect options={companyOptions} isLoading={companiesLoading} value={companyOptions.find(c => c.value === field.value)} onChange={(val) => { field.onChange(val?.value); form.setValue("contact", ""); }} menuPosition={'auto'} placeholder="Select Company"/>
-            )}
-        </FormControl><FormMessage /></FormItem> )} />
-        
-        {/* For test New validation  */}
-        <FormField name="contact" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Contact</FormLabel><FormControl>
-            {contactIdFromContext ? (
-                <Input value={contactDoc ? `${contactDoc.first_name} ${contactDoc.last_name}` : "Loading..."} disabled />
-            ) : (
-                <ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select Contact" isDisabled={!selectedCompany && !companyId} />
-            )}
-        </FormControl><FormMessage /></FormItem> )} />
+
 
 {!isHidden("remarks")&&(
      <FormField name="remarks" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Remarks{isRequired("remarks")&&<sup>*</sup>}</FormLabel><FormControl><Textarea placeholder="e.g. Only use  products in this project." {...field} /></FormControl><FormMessage /></FormItem> )} />

@@ -63,14 +63,14 @@ export const CompanyProgressForm = ({
   useEffect(() => {
     if (isEditMode && initialData) {
       form.reset({
-        priority: initialData.priority ?? "",
+        priority: initialData.priority ?? "Meet Once Every 2 Weeks",
         expected_boq_count: initialData.expected_boq_count ?? undefined,
       });
     } else {
         // If not in edit mode (e.g., initialData is null), reset to empty defaults.
         // This form is primarily for editing, so this path might indicate an incorrect usage.
         form.reset({
-            priority: undefined,
+            priority: "Meet Once Every 2 Weeks",
             expected_boq_count: undefined,
         });
     }
