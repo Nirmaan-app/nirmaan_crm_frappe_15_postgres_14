@@ -10,14 +10,18 @@ export const StatsDetailDialog = () => {
     const navigate = useNavigate();
     const { statsDetail, closeStatsDetailDialog } = useDialogStore();
     const { title, items } = statsDetail.context;
-
+    console.log("StatsDetailDialog items",items);
     const handleItemClick = (item: StatItem) => {
+
         closeStatsDetailDialog();
         if (item.type === 'Task') {
             navigate(`/tasks/task?id=${item.id}`);
         } else if (item.type === 'BOQ') {
             navigate(`/boqs/boq?id=${item.id}`);
+        } else if (item.type === 'Company') {
+            navigate(`/companies/company?id=${item.id}`);
         }
+       
     };
 
     return (
@@ -48,6 +52,7 @@ export const StatsDetailDialog = () => {
                                 <>
                                     <div className="flex justify-between items-center p-3 hover:bg-muted rounded-md">
                                         <span className="text-sm">{item.name}</span>
+
                                         <ChevronRight className="w-4 h-4 text-muted-foreground" />
                                     </div>
                                     <Separator className="last:hidden"/>
