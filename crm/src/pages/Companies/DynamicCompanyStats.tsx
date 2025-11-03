@@ -94,7 +94,7 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
         { title: "Hot Deals", data: statsData?.hotDeals },
         { title: "Deals Won", data: statsData?.wonDeals },
         { title: "Pending Deals", data: statsData?.pendingBoq },
-        { title: "Total Meetings", data: statsData?.totalMeetings },
+        { title: "Total Task", data: statsData?.totalMeetings },
         { title: "Follow Up Meetings", data: statsData?.followUpMeetings },
 
         // { title: "Pending Tasks", data: statsData?.pendingTasks },

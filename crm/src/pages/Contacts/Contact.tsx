@@ -80,7 +80,7 @@ export const Contact = () => {
                                                     <ArrowLeft color="#ffffff" className="w-8 h-8" />
                                                 </div>
                                             </Button>
-                                            <h1 className="text-md md:text-2xl font-bold ">{`${contactData?.first_name || ''} ${contactData?.last_name || ''}`}Details</h1> {/* Main title for the page */}
+                                            <h1 className="text-md md:text-2xl font-bold ">Contact Details</h1> {/* Main title for the page */}
                                         </div>
                         
                                         <Button variant="ghost" size="sm" className="text-destructive" onClick={() => openEditContactDialog({ contactData: contactData })}>

@@ -898,7 +898,7 @@ export const BOQ = () => {
                         </div>
                     </Button>
 
-                    <h1 className="text-md md:text-2xl font-bold">{boqData.boq_name}</h1>
+                    <h1 className=" hidden md:block text-md md:text-2xl font-bold">BOQ Details</h1>
                 </div>
             </div>
             {/* 

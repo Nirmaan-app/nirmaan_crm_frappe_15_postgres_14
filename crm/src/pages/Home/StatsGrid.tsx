@@ -215,7 +215,7 @@ export const StatsGrid = () => {
     const isLoading = tasksLoading || boqsLoading;
 
     const statCards = [
-        { title: "Total Meetings", data: statsData?.totalMeetings },
+        { title: "Total Task", data: statsData?.totalMeetings },
         { title: "Unique Meetings", data: statsData?.uniqueMeetings },
         { title: "Pending Task", data: statsData?.pendingTasks },
         { title: "Pending BOQ", data: statsData?.pendingBoq },
