@@ -16,6 +16,18 @@ def on_meeting_update(doc, method):
         # --- USE f-string print FOR DEBUGGING ---
         print(f"--- Task Completed Hook ---")
         print(f"Task '{doc.name}' status changed to Completed. Attempting to update last_meeting.")
+        if doc.company:
+            try:
+                company = frappe.get_doc("CRM Company", doc.company)
+                company.last_meeting = doc.start_date
+                company.save(ignore_permissions=True)
+                
+                print(f"Successfully updated last_meeting for Company '{company.name}'.")
+
+            except Exception:
+                # For production, it's better to log the full error
+                print(f"ERROR: Failed to update Company '{doc.company}' for Task '{doc.name}'.")
+                frappe.log_error(frappe.get_traceback(), "Task Completed Hook Error")
 
         if doc.contact:
             try:
@@ -24,18 +36,6 @@ def on_meeting_update(doc, method):
                 contact.save(ignore_permissions=True)
                 
                 print(f"Successfully updated last_meeting for Contact '{contact.name}'.")
-
-                if contact.company:
-                    try:
-                        company = frappe.get_doc("CRM Company", contact.company)
-                        company.last_meeting = doc.start_date
-                        company.save(ignore_permissions=True)
-                        
-                        print(f"Successfully updated last_meeting for Company '{company.name}'.")
-                    except Exception:
-                        # For production, it's better to log the full error
-                        print(f"ERROR: Failed to update Company '{contact.company}' for Contact '{contact.name}'.")
-                        frappe.log_error(frappe.get_traceback(), "Task Completed Hook Error")
 
             except Exception:
                 print(f"ERROR: Failed to update Contact '{doc.contact}' for Task '{doc.name}'.")

@@ -66,6 +66,7 @@
 // };
 // src/pages/Home/HomeHeader.tsx - FINALIST COMPONENTS WITH SHADCN TABS
 
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, Search, Plus } from "lucide-react";
@@ -82,6 +83,8 @@ import { AllBOQs, PendingBOQs } from "./EstimationsHomePage"; // Assuming these 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskTableView } from "../Tasks/components/TaskTableView";
 import { SalesPerformanceTable } from "./components/SalesPerformanceTable";
+import { ExceptionReportForCompanies } from "./components/ExceptionReportForCompanies";
+
 // --- End shadcn/ui Tabs Imports ---
 
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
@@ -220,10 +223,15 @@ export const HomeHeader = () => {
                         )} */}
                           {isAdmin ? (
                             <>
+                            
                                 {/* --- COLLAPSIBLE SALES PERFORMANCE TABLE --- */}
                                 <CollapsibleSection title="Sales Performance" defaultOpen={true}>
                                     <SalesPerformanceTable className="border-none p-0 shadow-none" /> {/* Remove default styling from table here */}
                                 </CollapsibleSection>
+                                <CollapsibleSection title="Exception Report for Companies" defaultOpen={false}>
+                                    <ExceptionReportForCompanies />
+                                </CollapsibleSection>
+
                                 {/* --- COLLAPSIBLE TASK TABLE VIEW --- */}
                                 <CollapsibleSection title="Sales Tasks" defaultOpen={false}>
                                     <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" className="border-none p-0 shadow-none" />
