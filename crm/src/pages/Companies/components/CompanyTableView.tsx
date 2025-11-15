@@ -51,7 +51,7 @@ export const CompanyTableView = () => {
     const set = new Set<string>();
     companies.forEach(c => c.assigned_sales && set.add(c.assigned_sales));
     return Array.from(set).map(email => ({
-      label: getUserFullNameByEmail(email) || email,
+      label: getUserFullNameByEmail(email)?.split(" ")[0] || email,
       value: email,
     }));
   }, [companies, getUserFullNameByEmail]);
@@ -105,7 +105,7 @@ export const CompanyTableView = () => {
       },
       cell: ({ row }) =>
         row.original.assigned_sales
-          ? getUserFullNameByEmail(row.original.assigned_sales) || row.original.assigned_sales
+          ? getUserFullNameByEmail(row.original.assigned_sales)?.split(" ")[0] || row.original.assigned_sales
           : '--',
       filterFn: 'faceted',
       enableSorting: true,
