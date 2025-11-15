@@ -29,11 +29,9 @@ const contactFormSchema = z.object({
   designation: z.string().optional(),
   visiting_card: z.any().optional(),
   assigned_sales: z.string().optional(),
-  
+  linkedin_profile: z.string().url("Enter a valid URL").optional().or(z.literal("")),
     // Add a new field for the "Other" department input
   other_department: z.string().optional(), 
-
-
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -111,6 +109,7 @@ const allCompanies = allCompaniesData || [];
       department: "",
       designation: "",
       other_department: "",
+      linkedin_profile: "",
     },
   });
    // --- 2. WATCH THE DEPARTMENT FIELD ---
@@ -134,6 +133,7 @@ const allCompanies = allCompaniesData || [];
         other_department: isOther ? initialDept : "",
         designation: initialData.designation || "",
         assigned_sales:initialData.assigned_sales|| "",
+        linkedin_profile: initialData.linkedin_profile || "", // *** NEW: Pre-fill LinkedIn ***
 
       });
     } else {
@@ -146,6 +146,7 @@ const allCompanies = allCompaniesData || [];
         email: "",
         department: "",
         designation: "",
+        linkedin_profile: "", // *** NEW: Reset LinkedIn ***
       });
     }
   }, [isEditMode, initialData, newContact.context, form]);
@@ -385,6 +386,21 @@ const dataToSave={
             </FormItem>
           )}
         />
+
+         <FormField
+          control={form.control}
+          name="linkedin_profile"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>LinkedIn Profile URL</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. https://linkedin.com/in/..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
          <FormField
   control={form.control}
   name="visiting_card"
