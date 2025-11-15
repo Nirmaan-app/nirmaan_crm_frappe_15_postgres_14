@@ -275,7 +275,7 @@ export const BoqTableView = ({
                 accessorKey: "boq_status",
                 meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: statusOptions },
                 cell: ({ row }) => (
-                    <span className={`text-xs font-semibold px-0 py-1 rounded-full ${getBoqStatusClass(row.original.boq_status)}`}>
+                    <span className={`text-xs font-semibold p-1 rounded-full ${getBoqStatusClass(row.original.boq_status)}`}>
                         {row.original.boq_status}
                     </span>
                 ),
@@ -287,7 +287,7 @@ export const BoqTableView = ({
                 meta: { title: "Sub-Status", filterVariant: 'select', enableSorting: true, filterOptions: subStatusOptions },
                 cell: ({ row }) => (
                     row.original.boq_sub_status ? (
-                        <span className={`text-[10px] font-semibold px-0 py-0.5 rounded-full ${getBoqStatusClass(row.original.boq_sub_status)}`}>
+                        <span className={`text-[10px] font-semibold p-1 rounded-full ${getBoqStatusClass(row.original.boq_sub_status)}`}>
                             {row.original.boq_sub_status}
                         </span>
                     ) : (<span className='px-4 py-0.5'>{'--'}</span>)

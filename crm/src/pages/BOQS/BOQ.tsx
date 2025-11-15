@@ -882,7 +882,7 @@ export const BOQ = () => {
     };
 
     return (
-        <div className="flex flex-col h-full max-h-screen overflow-y-auto space-y-2">
+        <div className="flex flex-col h-full max-h-screen overflow-y-auto space-y-2 mb-6">
             <div className="sticky top-0 z-20 bg-background p-2  flex-shrink-0">
                 <div className="flex items-center gap-4"> {/* Container for back button and header text */}
 

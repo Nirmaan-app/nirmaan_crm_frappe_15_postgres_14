@@ -14,8 +14,15 @@ import { useMemo } from "react";
 // 1. Zod schema for form validation
 const newUserSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
-  first_name: z.string().min(2, "Name is required."),
+  first_name: z.string().min(2, "First Name is required."),
+  last_name: z.string().min(2, "Last Name is required."),
   role_profile_name: z.string().min(1, "Role Profile is required."),
+  mobile_no: z.string()
+    .min(10, "Mobile Number must be 10 digits.")
+    .max(10, "Mobile Number must be 10 digits.")
+    .regex(/^\d+$/, "Mobile Number must contain only digits.")
+    
+      
 });
 
 type NewUserFormValues = z.infer<typeof newUserSchema>;
@@ -38,7 +45,7 @@ export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
 
   const form = useForm<NewUserFormValues>({
     resolver: zodResolver(newUserSchema),
-    defaultValues: { email: "", first_name: "", role_profile_name: "" },
+    defaultValues: { email: "", first_name: "", last_name: "", role_profile_name: "" ,mobile_no:""},
   });
 
   // 3. onSubmit function that calls the backend
@@ -47,6 +54,8 @@ export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
       await call({
         email: values.email,
         first_name: values.first_name,
+        last_name: values.last_name,
+        mobile_no: values.mobile_no,
         role_profile_name: values.role_profile_name,
       });
       toast({
@@ -69,22 +78,56 @@ export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <FormField
+                            control={form.control}
+                            name="first_name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>First Name<sup>*</sup></FormLabel>
+                                    <FormControl><Input placeholder="e.g. Jane" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="last_name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Last Name<sup>*</sup></FormLabel>
+                                    <FormControl><Input placeholder="e.g. Doe" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                                <FormField
           control={form.control}
-          name="first_name"
+          name="mobile_no"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl><Input placeholder="e.g. Jane Doe" {...field} /></FormControl>
+              <FormLabel>Mobile Number<sup>*</sup></FormLabel>
+              <FormControl>
+                {/* Use type="tel" for better mobile input experience, and ensure value is string */}
+                <Input 
+                    type="tel" 
+                    placeholder="e.g. 9876543210" 
+                    {...field} 
+                    onChange={(e) => {
+                        // Keep value as string for Zod validation to work correctly
+                        field.onChange(e.target.value); 
+                    }}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel>Email Address<sup>*</sup></FormLabel>
               <FormControl><Input type="email" placeholder="e.g. jane.doe@example.com" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -95,7 +138,7 @@ export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
           name="role_profile_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Role Profile</FormLabel>
+              <FormLabel>Role Profile<sup>*</sup></FormLabel>
               <FormControl>
                 <ReactSelect
                   options={roleProfileOptions}
