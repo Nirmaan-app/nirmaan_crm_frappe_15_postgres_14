@@ -259,7 +259,7 @@ const dataToSave={
           name="first_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name*</FormLabel>
+              <FormLabel>Name<sup>*</sup></FormLabel>
               <FormControl><Input placeholder="e.g. John Doe" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -270,7 +270,7 @@ const dataToSave={
           name="mobile"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Mobile*</FormLabel>
+              <FormLabel>Mobile<sup>*</sup></FormLabel>
               <FormControl><Input type="tel" placeholder="e.g. 9876543210" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -281,7 +281,7 @@ const dataToSave={
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email*</FormLabel>
+              <FormLabel>Email<sup>*</sup></FormLabel>
               <FormControl><Input type="email" placeholder="e.g. john.doe@example.com" {...field} disabled={isEditMode} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -292,7 +292,7 @@ const dataToSave={
           name="company"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company*</FormLabel>
+              <FormLabel>Company<sup>*</sup></FormLabel>
               <FormControl>
                 {/* {companyIdFromContext ? (
                   // If context exists, show a disabled input with the company name.
