@@ -10,6 +10,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DataTableExportButton } from '@/components/table/data-table-export-button';
 import { cn } from '@/lib/utils';
+import { MeetingStatusCell } from '@/pages/Home/components/ExceptionReportForCompanies';
 
 // import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager"; // REMOVED
 
@@ -50,7 +51,7 @@ export const CompanyTableView = () => {
     const set = new Set<string>();
     companies.forEach(c => c.assigned_sales && set.add(c.assigned_sales));
     return Array.from(set).map(email => ({
-      label: getUserFullNameByEmail(email) || email,
+      label: getUserFullNameByEmail(email)?.split(" ")[0] || email,
       value: email,
     }));
   }, [companies, getUserFullNameByEmail]);
@@ -87,13 +88,13 @@ export const CompanyTableView = () => {
       ),
       filterFn: "faceted"
     },
-    {
-      accessorKey: "company_city",
-      meta: { title: "City", filterVariant: "select", enableSorting: true, filterOptions: companyCityOptions },
-      cell: ({ row }) => <span>{row.original.company_city || '--'}</span>,
-      filterFn: 'faceted',
-      enableSorting: true,
-    },
+    // {
+    //   accessorKey: "company_city",
+    //   meta: { title: "City", filterVariant: "select", enableSorting: true, filterOptions: companyCityOptions },
+    //   cell: ({ row }) => <span>{row.original.company_city || '--'}</span>,
+    //   filterFn: 'faceted',
+    //   enableSorting: true,
+    // },
     {
       accessorKey: "assigned_sales",
       meta: {
@@ -104,14 +105,14 @@ export const CompanyTableView = () => {
       },
       cell: ({ row }) =>
         row.original.assigned_sales
-          ? getUserFullNameByEmail(row.original.assigned_sales) || row.original.assigned_sales
+          ? getUserFullNameByEmail(row.original.assigned_sales)?.split(" ")[0] || row.original.assigned_sales
           : '--',
       filterFn: 'faceted',
       enableSorting: true,
     },
     {
       accessorKey: "priority",
-      meta: { title: "Priority", enableSorting: true, filterVariant: "select", filterOptions: companyPriorityOptions },
+      meta: { title: "Priority", enableSorting: false, filterVariant: "select", filterOptions: companyPriorityOptions },
       cell: ({ row }) => <span className='text-xs'>{row.original.priority || '--'}</span>,
       filterFn: 'faceted',
     },
@@ -121,7 +122,7 @@ export const CompanyTableView = () => {
       cell: ({ row }) =>
 
         (
-                        <span className="text-sm text-muted-foreground">{row.original.last_meeting
+                        <span className="text-xs text-muted-foreground">{row.original.last_meeting
                              ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
                              : '--'}</span>
                     ),
@@ -136,7 +137,7 @@ export const CompanyTableView = () => {
       meta: { title: "Next Meeting", filterVariant: 'date', enableSorting: true, },
       cell: ({ row }) =>
          (
-                        <span className="text-sm text-muted-foreground">{row.original.next_meeting_date
+                        <span className="text-xs text-muted-foreground">{row.original.next_meeting_date
                              ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
                              : '--'}</span>
                     ),
@@ -146,6 +147,48 @@ export const CompanyTableView = () => {
       enableSorting: true,
       filterFn: 'dateRange',
     },
+     {
+      accessorKey: "last_meeting_in_7_days",
+      meta: { title: "Meeting Done in Last Week", filterVariant: 'date', enableSorting: false, },
+      cell: ({ row }) =>
+         (
+                    
+                        <div className=' text-xs'>
+                          <MeetingStatusCell 
+                                                                                status={row.original.last_meeting_in_7_days? 'YES' : 'NO'} 
+                                                                                date={row.original.last_meeting_in_7_days}
+                                                                                tooltipTitle="Last Meeting Done"
+                                                                            />
+                        </div>
+                         
+                    ),
+        // row.original.next_meeting_date
+        //   ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
+        //   : '--',
+      filterFn: 'dateRange',
+    },
+    {
+      accessorKey: "next_meeting_in_14_days",
+      meta: { title: "Meeting Scheduled for next 2 weeks", filterVariant: 'date', enableSorting: false, },
+      cell: ({ row }) =>{
+        return (
+                    
+                        <div className=' text-xs'>
+                          <MeetingStatusCell 
+                                                                                status={row.original.next_meeting_in_14_days? 'YES' : 'NO'} 
+                                                                                date={row.original.next_meeting_in_14_days}
+                                                                                tooltipTitle="Next Meeting Scheduled"
+                                                                            />
+                        </div>
+                         
+                    );
+      },
+         
+        // row.original.next_meeting_date
+        //   ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
+        //   : '--',
+      filterFn: 'dateRange',
+    },
 
     {
   accessorKey: "last_30_days_boqs",
@@ -153,10 +196,10 @@ export const CompanyTableView = () => {
   cell: ({ row }) => {
     const last_30_days_boqs = row.original.last_30_days_boqs || [];
     if (last_30_days_boqs.length === 0) {
-      return <div className="flex gap-1 px-3">--</div>;
+      return <div className="flex gap-1 justify-center">--</div>;
     }
     return (
-      <div className="flex gap-1 px-3">
+      <div className="flex gap-1 justify-center">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -186,10 +229,10 @@ export const CompanyTableView = () => {
       cell: ({ row }) => {
         const active_boq = row.original.active_boq || [];
         if (active_boq.length === 0) {
-          return <span>--</span>;
+          return <span className='flex gap-1 justify-center'>--</span>;
         }
         return (
-          <div className="flex gap-1">
+          <div className="flex gap-1 justify-center">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -223,10 +266,10 @@ export const CompanyTableView = () => {
       cell: ({ row }) => {
         const hot_boq = row.original.hot_boq || [];
         if (hot_boq.length === 0) {
-          return <span>--</span>;
+          return <span className='flex gap-1 justify-center'>--</span>;
         }
         return (
-        <div className="flex gap-1">
+        <div className="flex gap-1 justify-center">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -273,10 +316,10 @@ export const CompanyTableView = () => {
       cell: ({ row }) => {
         const remarks = row.original.last_three_remarks_from_tasks || [];
         if (remarks.length === 0) {
-          return <span>--</span>;
+          return <span className='flex gap-1 justify-center'>--</span>;
         }
         return (
-          <div className="flex gap-1">
+          <div className="flex gap-1 justify-center">
             <TooltipProvider>
               {remarks.map((r, i) => (
                 <Tooltip key={i}>
@@ -402,7 +445,7 @@ export const CompanyTableView = () => {
       globalSearchPlaceholder="Search Companies..."
       className="h-full"
       shouldExpandHeight={true}
-      gridColsClass="md:grid-cols-[1.5fr,1.2fr,1.5fr,1.5fr,1.5fr,1.5fr,1fr,1fr,1fr,1fr]"
+      gridColsClass="grid-cols-[1.5fr,1.2fr,1.5fr,1.5fr,1.5fr,1.5fr,1fr,1fr,1fr,1fr,1fr]"
       renderToolbarActions={(filteredData) => (
         <DataTableExportButton
           data={filteredData}

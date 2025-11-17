@@ -9,6 +9,10 @@ def get_modified_crm_companies():
     """
     try:
         # 1. Print before the main frappe.get_list call
+          # --- 1. Define Date Ranges (REQUIRED FOR NEW LOGIC) ---
+        today = nowdate() # datetime.date object
+        date_7_days_ago = add_days(today, -7) # datetime.date object
+        date_14_days_ahead = add_days(today, 14) # datetime.date object
         print("--- Starting get_modified_crm_companies ---")
         
         companies = frappe.get_list(
@@ -26,7 +30,38 @@ def get_modified_crm_companies():
         )
         
         # 2. Print after the main frappe.get_list call to see how many companies were fetched
+        company_names = [c.name for c in companies]
         print(f"Fetched {len(companies)} CRM companies.")
+                # 2a. Query for Last Meeting (Completed, Last 7 Days)
+        last7_past_tasks = frappe.get_list(
+            "CRM Task",
+            filters=[
+            ["type", "=", "In Person Meeting"],
+            ["status", "=", "Completed"],
+            ["start_date", ">=", date_7_days_ago],
+            ["start_date", "<=", today], # Only up to today
+            ["company", "in", company_names] 
+        ],
+            fields=["company", "start_date", "remarks"], # Get remarks for the task remarks section
+            limit=0,
+            order_by="start_date desc" # Sort by newest first
+        )
+
+        # 2b. Query for Next Meeting (Pending/Scheduled, From Today to Next 14 Days)
+        all_upcoming2week_tasks = frappe.get_list(
+            "CRM Task",
+            filters=[
+            ["type", "=", "In Person Meeting"],
+            ["status", "in", ["Pending", "Scheduled"]],
+            ["start_date", ">=", today], # From today onwards
+            ["start_date", "<=", date_14_days_ahead],
+            ["company", "in", company_names] 
+        ],
+            fields=["company", "start_date"],
+            limit=0,
+            order_by="start_date asc" # Sort by oldest first
+        )
+
 
         modified_companies = []
 
@@ -35,6 +70,30 @@ def get_modified_crm_companies():
             
             # 3. Print for each company to trace the loop
             print(f"Processing company: {company.name}")
+                        # --- A. NEW LOGIC: LAST MEETING IN 7 DAYS ---
+            # Filter the global list by the current company name
+            past_tasks_for_company = [t for t in last7_past_tasks if t.company == company.name]
+            
+            # The list is already sorted by start_date desc (newest first) from the query.
+            if past_tasks_for_company:
+                # The first item is the most recent completed meeting in the last 7 days
+                modified_company["last_meeting_in_7_days"] = past_tasks_for_company[0].start_date.strftime('%Y-%m-%d')
+            else:
+                modified_company["last_meeting_in_7_days"] = None
+
+            upcoming_tasks_for_company = [t for t in all_upcoming2week_tasks if t.company == company.name]
+
+            # The list is already sorted by start_date asc (oldest first) from the query.
+            if upcoming_tasks_for_company:
+                # The first item is the next scheduled meeting in the next 14 days
+                modified_company["next_meeting_in_14_days"] = upcoming_tasks_for_company[0].start_date.strftime('%Y-%m-%d')
+                
+                # Use this for next meeting date field, as it's more accurate than the previous query
+                # Note: The original logic fetched ALL statuses, this is filtered for In Person Meeting
+            else:
+                modified_company["next_meeting_in_14_days"] = None
+                
+
 
             # Get next meeting date and ID
             next_meeting_task = frappe.get_list(

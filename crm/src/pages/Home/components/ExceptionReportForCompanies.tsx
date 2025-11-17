@@ -189,7 +189,7 @@ interface MeetingStatusCellProps {
     tooltipTitle: string;
 }
 
-const MeetingStatusCell: React.FC<MeetingStatusCellProps> = ({ status, date, tooltipTitle }) => {
+export const MeetingStatusCell: React.FC<MeetingStatusCellProps> = ({ status, date, tooltipTitle }) => {
     const isYes = status === 'YES';
     
     return (
