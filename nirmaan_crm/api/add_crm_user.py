@@ -5,7 +5,7 @@ from frappe.utils import random_string
 
 # This decorator is crucial. It exposes the function as a public API endpoint.
 @frappe.whitelist()
-def create_crm_user(email, first_name, role_profile_name):
+def create_crm_user(email, first_name, last_name, role_profile_name,mobile_no):
     """
     Creates a new System User and assigns a Role Profile.
     Only users with the 'Nirmaan Admin User' role can call this.
@@ -25,6 +25,8 @@ def create_crm_user(email, first_name, role_profile_name):
             "doctype": "User",
             "email": email,
             "first_name": first_name,
+            "last_name": last_name,
+            "mobile_no": mobile_no,
             "role_profile_name": role_profile_name,
             "send_welcome_email": True,
             # Frappe will generate and send a password reset link in the welcome email.

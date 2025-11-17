@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 
 nirmaan_crm.patches.v0_0.task_profile_patch
+nirmaan_crm.patches.v0_0.user_crmuser_name_fix #10

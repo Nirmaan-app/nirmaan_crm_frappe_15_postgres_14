@@ -1,6 +1,7 @@
 // src/pages/MyTeam/OverviewTab.tsx
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // Import Input component
+import { toast } from "@/hooks/use-toast";
 
 import React, { useState, useMemo, useEffect } from "react"; // Added useEffect
 import { format, subDays } from "date-fns";
@@ -14,12 +15,36 @@ import { useFrappeUpdateDoc,useSWRConfig } from "frappe-react-sdk";
 // Assuming 'member' type to help with intellisense
 interface Member {
     full_name: string;
+    first_name:string;
+    last_name:string;
     name: string; // Frappe ID, often email for user profiles
     mobile_no?: string;
     nirmaan_role_name?: string;
     creation?: string; // Add creation for filterByCreationPeriod if applicable to member
     // Add other fields from your CRM BOQ and CRM Task if needed for filtering/display
 }
+
+// Manual validation logic
+const validateEditForm = (firstName: string, lastName: string, mobileNo: string) => {
+    const errors: { [key: string]: string } = {};
+
+    if (!firstName.trim() || firstName.trim().length < 2) {
+        errors.first_name = "First Name is required and must be at least 2 characters.";
+    }
+
+    // You can add validation for last_name if it is required
+    // if (!lastName.trim()) {
+    //     errors.last_name = "Last Name is required.";
+    // }
+
+    // Validation for Mobile Number (must be 10 digits if a value is provided)
+    const trimmedMobileNo = mobileNo.trim();
+    if (trimmedMobileNo && !/^\d{10}$/.test(trimmedMobileNo)) {
+        errors.mobile_no = "Mobile Number must be 10 digits.";
+    }
+
+    return errors;
+};
 
 export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member; tasks: any[]; contacts: any[]; boqs: any[] }) => {
     const { openStatsDetailDialog } = useDialogStore();
@@ -31,12 +56,16 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
     // State for edit mode
     const [isEditing, setIsEditing] = useState(false);
     // State for edited values, initialized from member prop
-    const [editedFullName, setEditedFullName] = useState(member?.full_name || "");
+    const [editedFirstName, setEditedFirstName] = useState(member?.first_name || "");
+    const [editedLastName, setEditedLastName] = useState(member?.last_name || "");
     const [editedMobileNo, setEditedMobileNo] = useState(member?.mobile_no || "");
+
+    const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
 
     // Sync edited fields when 'member' prop changes (e.g., when viewing a different member)
     useEffect(() => {
-        setEditedFullName(member?.full_name || "");
+        setEditedFirstName(member?.first_name || "");
+        setEditedLastName(member?.last_name || "");
         setEditedMobileNo(member?.mobile_no || "");
     }, [member]);
 
@@ -131,10 +160,25 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
 
     const handleSave = async () => {
         // --- Implement your Frappe update logic here ---
+          // --- 1. RUN VALIDATION ---
+        const errors = validateEditForm(editedFirstName, editedLastName, editedMobileNo);
+        setValidationErrors(errors);
+
+        console.log("Validation Errors:", errors); // For debugging
+        if (Object.keys(errors).length > 0) {
+            toast({
+                title: "Form Validation Error",
+                description: `${errors.mobile_no ? errors.mobile_no : "First Name is required and must be at least 2 characters."} Please correct the highlighted fields.`,
+                variant: "destructive",
+            });
+            return; // STOP save process if errors exist
+        }
+
         // Example: Using useFrappeUpdateDoc (you would need to import and initialize it)
         try {
             await updateDoc('User', member.name, {
-                first_name: editedFullName,
+                first_name: editedFirstName,
+                last_name: editedLastName,
                 mobile_no: editedMobileNo,
             });
              mutate(key => typeof key === 'string' && key.startsWith('all-members'));
@@ -151,14 +195,16 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
         }
 
         // For now, just log and exit edit mode
-        console.log("Saving changes:", { full_name: editedFullName, mobile_no: editedMobileNo });
+        console.log("Saving changes:", { first_name: editedFirstName, mobile_no: editedMobileNo });
         setIsEditing(false); // Exit edit mode
     };
 
-    const handleCancel = () => {
+     const handleCancel = () => {
         // Revert changes and exit edit mode
-        setEditedFullName(member?.full_name || "");
+        setEditedFirstName(member?.first_name || "");
+        setEditedLastName(member?.last_name || "");
         setEditedMobileNo(member?.mobile_no || "");
+        setValidationErrors({}); // Clear validation errors
         setIsEditing(false);
     };
 
@@ -171,15 +217,37 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
             <div className="bg-background p-6 rounded-lg border shadow-sm">
                 <div className="grid grid-cols-2 gap-y-6 items-center">
                     <div>
-                        <p className="text-xs text-muted-foreground">User Name</p>
                         {isEditing ? (
-                            <Input
-                                value={editedFullName}
-                                onChange={(e) => setEditedFullName(e.target.value)}
-                                className="mt-1"
-                            />
+                            <>
+                              {/* Label for Edited First Name */}
+        <label htmlFor="edit-first-name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mt-4 block">
+            First Name
+        </label>
+        <Input
+            id="edit-first-name" // <-- Linked to the label
+            value={editedFirstName}
+            onChange={(e) => setEditedFirstName(e.target.value)}
+            className="mt-1"
+        />
+
+        {/* Label for Edited Last Name */}
+        <label htmlFor="edit-last-name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mt-4 block">
+            Last Name
+        </label>
+        <Input
+            id="edit-last-name" // <-- Linked to the label
+            value={editedLastName}
+            onChange={(e) => setEditedLastName(e.target.value)}
+            className="mt-1"
+        />
+                            </>
+                           
                         ) : (
+                            <>
+                        <p className="text-xs text-muted-foreground">User Name</p>
+
                             <p className="text-md font-bold text-destructive">{member?.full_name}</p>
+                            </>
                         )}
                     </div>
                     <div className="text-right">
@@ -195,6 +263,8 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
                         {isEditing ? (
                             <Input
                                 value={editedMobileNo}
+                                type="number"
+                                
                                 onChange={(e) => setEditedMobileNo(e.target.value)}
                                 className="mt-1 text-right" // Align text to right
                             />

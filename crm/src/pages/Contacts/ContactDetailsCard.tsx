@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { useDialogStore } from "@/store/dialogStore";
 import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
-import { SquarePen } from "lucide-react";
-import { Link } from "react-router-dom";
+import { SquarePen,Linkedin } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { FileLink } from "@/components/common/FileLink";
 import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 import { toast } from "@/hooks/use-toast"; // Added toast for error handling
@@ -15,7 +15,7 @@ interface ContactDetailsCardProps {
 }
 
 
-const DetailDisplayItem = ({ label, value, href, onEditClick, className }: {
+const DetailDisplayItem = ({ label, value, href, onEditClick, className, icon }: {
     label: string,
     value: string | React.ReactNode,
     href?: string,
@@ -60,9 +60,9 @@ const DetailDisplayItem = ({ label, value, href, onEditClick, className }: {
                         size="icon"
                         className="h-6 w-6 text-muted-foreground hover:text-primary p-0" // Added p-0 to make the button truly icon-only
                         onClick={onEditClick}
-                        aria-label={`Edit ${label}`}
+                        // aria-label={`Edit ${label}`}
                     >
-                        <SquarePen className="w-3.5 h-3.5" />
+                        {icon}
                     </Button>
                 )}
             </div>
@@ -80,6 +80,7 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
     // Destructure openEditContactDialog and openRenameContactNameDialog
     const { openEditContactDialog, openRenameContactNameDialog } = useDialogStore();
     const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
+    const nav = useNavigate();
     
     // Handler for the Email rename/edit icon click
     const handleRenameContactEmailClick = () => {
@@ -98,14 +99,38 @@ export const ContactDetailsCard = ({ contact, company }: ContactDetailsCardProps
             
             <div className="bg-background p-4 rounded-lg border shadow-sm space-y-4">
                 <div className="grid grid-cols-2 gap-y-4 gap-x-40">
-                    <DetailDisplayItem label="Name" value={`${contact?.first_name || ''} ${contact?.last_name || ''}`} />
+                    {/* <DetailDisplayItem label="Name" value={`${contact?.first_name || ''}`} /> */}
+                    <DetailDisplayItem 
+                        label="Name" 
+                        value={
+                            <div className="flex items-center gap-2">
+                                <p className="text-md md:text-lg font-semibold">{contact?.first_name || 'N/A'}</p>
+                                {/* Conditionally render the LinkedIn icon and link */}
+                                {contact?.linkedin_profile && (
+                                    <a 
+                                        href={contact.linkedin_profile} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                                        title="View LinkedIn Profile"
+                                        onClick={(e) => e.stopPropagation()} // Prevent any parent click handlers from firing
+                                    >
+                                        <Linkedin className="w-4 h-4" />
+                                    </a>
+                                )}
+                            </div>
+                        } 
+                    />
+                    {/* <DetailDisplayItem label="Contact Type" value={contact?.mobile?"Mobile":"Email"} /> */}
                     <DetailDisplayItem label="Contact Type" value={contact?.mobile?"Mobile":"Email"} />
+
                     
                     {/* --- ADDED EDIT ICON FOR EMAIL --- */}
                     <DetailDisplayItem
                         label="Email"
                         value={contact?.email || 'N/A'} // Ensure 'N/A' if null/undefined
                         href={contact?.email ? `mailto:${contact.email}` : undefined} // Only provide href if email exists
+                        icon={<SquarePen className="w-3.5 h-3.5" />}
                         onEditClick={handleRenameContactEmailClick} // Pass the click handler
                     />
                     
