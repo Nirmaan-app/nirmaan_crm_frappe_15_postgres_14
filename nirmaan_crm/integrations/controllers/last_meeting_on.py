@@ -8,7 +8,7 @@ def on_meeting_update(doc, method):
     date on the linked Contact and Company documents.
     """
     doc_before_save = doc.get_doc_before_save()
-    if not doc_before_save:
+    if not doc_before_save or doc.type != "In Person Meeting":
         return
 
     if doc.status == "Completed" and doc_before_save.status != "Completed":

@@ -100,6 +100,7 @@ def get_modified_crm_companies():
                 "CRM Task",
                 filters={
                     "company": company.name,
+                    "type": "In Person Meeting",
                     "status": ("not in", ["Completed", "Incomplete"]),
                     "start_date": (">=", nowdate())
                 },
