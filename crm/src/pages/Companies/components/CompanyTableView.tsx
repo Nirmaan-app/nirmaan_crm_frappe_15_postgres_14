@@ -12,7 +12,73 @@ import { DataTableExportButton } from '@/components/table/data-table-export-butt
 import { cn } from '@/lib/utils';
 import { MeetingStatusCell } from '@/pages/Home/components/ExceptionReportForCompanies';
 
+// Define the shape of the options for better type safety
+interface SelectOption {
+    label: string;
+    value: string;
+}
+
 // import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager"; // REMOVED
+interface CompanyTableOptions {
+    assignedSalesOptions: SelectOption[];
+    companyCityOptions: SelectOption[];
+    companyPriorityOptions: SelectOption[];
+    getUserFullNameByEmail: (email: string) => string | undefined;
+}
+
+export const useCompanyTableOptions = (companies: CRMCompany[]): CompanyTableOptions => {
+    const { getUserFullNameByEmail } = useUserRoleLists();
+
+    const options = useMemo(() => {
+        if (!companies || companies.length === 0) {
+            return {
+                assignedSalesOptions: [],
+                companyCityOptions: [],
+                companyPriorityOptions: [],
+            };
+        }
+
+        const uniqueValues: { [key: string]: Set<string> } = {
+            assigned_sales: new Set(),
+            company_city: new Set(),
+            priority: new Set(),
+        };
+
+        // Single loop to gather all unique values
+        companies.forEach(c => {
+            c.assigned_sales && uniqueValues.assigned_sales.add(c.assigned_sales);
+            c.company_city && uniqueValues.company_city.add(c.company_city);
+            c.priority && uniqueValues.priority.add(c.priority);
+        });
+
+        // Map Sets to the final SelectOption arrays
+        const assignedSalesOptions = Array.from(uniqueValues.assigned_sales).map(email => ({
+            label: getUserFullNameByEmail(email)?.split(" ")[0] || email,
+            value: email,
+        }));
+
+        const companyCityOptions = Array.from(uniqueValues.company_city).map(name => ({
+            label: name,
+            value: name,
+        }));
+
+        const companyPriorityOptions = Array.from(uniqueValues.priority).map(name => ({
+            label: name,
+            value: name,
+        }));
+
+        return {
+            assignedSalesOptions,
+            companyCityOptions,
+            companyPriorityOptions,
+        };
+    }, [companies, getUserFullNameByEmail]); // Only re-run when companies or the user list changes
+
+    return {
+        ...options,
+        getUserFullNameByEmail, // Also return this utility function for the main component's use
+    };
+};
 
 interface CRMCompany {
   name: string;
@@ -31,7 +97,7 @@ interface CRMCompany {
 }
 
 export const CompanyTableView = () => {
-  const { getUserFullNameByEmail } = useUserRoleLists();
+  // const { getUserFullNameByEmail } = useUserRoleLists();
   const currentUserEmail = localStorage.getItem('userId');
   const role = localStorage.getItem('role');
 
@@ -46,15 +112,15 @@ export const CompanyTableView = () => {
   // REMOVED: useStateSyncedWithParams is no longer used
   // const [assignedSalesFilter, setAssignedSalesFilter] = useStateSyncedWithParams<string[]>...
 
-  const assignedSalesOptions = useMemo(() => {
-    if (!companies || !Array.isArray(companies)) return [];
-    const set = new Set<string>();
-    companies.forEach(c => c.assigned_sales && set.add(c.assigned_sales));
-    return Array.from(set).map(email => ({
-      label: getUserFullNameByEmail(email)?.split(" ")[0] || email,
-      value: email,
-    }));
-  }, [companies, getUserFullNameByEmail]);
+  // const assignedSalesOptions = useMemo(() => {
+  //   if (!companies || !Array.isArray(companies)) return [];
+  //   const set = new Set<string>();
+  //   companies.forEach(c => c.assigned_sales && set.add(c.assigned_sales));
+  //   return Array.from(set).map(email => ({
+  //     label: getUserFullNameByEmail(email)?.split(" ")[0] || email,
+  //     value: email,
+  //   }));
+  // }, [companies, getUserFullNameByEmail]);
 
   const companyNameOptions = useMemo(() => {
     if (!companies || !Array.isArray(companies)) return [];
@@ -63,19 +129,29 @@ export const CompanyTableView = () => {
     return Array.from(set).map(name => ({ label: name, value: name }));
   }, [companies]);
 
-  const companyCityOptions = useMemo(() => {
-    if (!companies || !Array.isArray(companies)) return [];
-    const set = new Set<string>();
-    companies.forEach(c => c.company_city && set.add(c.company_city));
-    return Array.from(set).map(name => ({ label: name, value: name }));
-  }, [companies]);
+  // const companyCityOptions = useMemo(() => {
+  //   if (!companies || !Array.isArray(companies)) return [];
+  //   const set = new Set<string>();
+  //   companies.forEach(c => c.company_city && set.add(c.company_city));
+  //   return Array.from(set).map(name => ({ label: name, value: name }));
+  // }, [companies]);
 
-  const companyPriorityOptions = useMemo(() => {
-    if (!companies || !Array.isArray(companies)) return [];
-    const set = new Set<string>();
-    companies.forEach(c => c.priority && set.add(c.priority));
-    return Array.from(set).map(name => ({ label: name, value: name }));
-  }, [companies]);
+  // const companyPriorityOptions = useMemo(() => {
+  //   if (!companies || !Array.isArray(companies)) return [];
+  //   const set = new Set<string>();
+  //   companies.forEach(c => c.priority && set.add(c.priority));
+  //   return Array.from(set).map(name => ({ label: name, value: name }));
+  // }, [companies]);
+
+
+  // --- 💡 CENTRALIZED HOOK REPLACEMENT ---
+  
+  const { 
+    assignedSalesOptions, 
+    companyCityOptions, 
+    companyPriorityOptions, 
+    getUserFullNameByEmail // Destructured from the new hook
+  } = useCompanyTableOptions(companies);
 
   const columns = useMemo<DataTableColumnDef<CRMCompany>[]>(() => [
     {
@@ -149,7 +225,9 @@ export const CompanyTableView = () => {
     },
      {
       accessorKey: "last_meeting_in_7_days",
-      meta: { title: "Meeting Done in Last Week", filterVariant: 'date', enableSorting: false, },
+      meta: { title: "Meeting Done in Last Week",
+        //  filterVariant: 'date', 
+         enableSorting: true, },
       cell: ({ row }) =>
          (
                     
@@ -169,7 +247,9 @@ export const CompanyTableView = () => {
     },
     {
       accessorKey: "next_meeting_in_14_days",
-      meta: { title: "Meeting Scheduled for next 2 weeks", filterVariant: 'date', enableSorting: false, },
+      meta: { title: "Meeting Scheduled for next 2 weeks",
+        //  filterVariant: 'date', 
+         enableSorting: true, },
       cell: ({ row }) =>{
         return (
                     
