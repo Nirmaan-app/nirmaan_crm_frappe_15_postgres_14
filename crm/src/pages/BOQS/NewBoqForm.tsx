@@ -18,8 +18,8 @@ import { LocationOptions } from "@/constants/dropdownData";
 
 // Schema based on your Frappe Doctype and UI Mockup
 const boqFormSchema = z.object({
-  boq_name: z.string() .min(1, "BOQ name is required")
-    .regex(/^[a-zA-Z0-9\s-]/, "Only letters, numbers, spaces, and hyphens are allowed."),
+  boq_name: z.string().min(1, "BOQ name is required")
+    .regex(/^[a-zA-Z0-9\s]+$/, "Only letters, numbers, and spaces are allowed."),
    boq_size: z.coerce
       .number({
           // This message will be shown if the input cannot be converted to a number (e.g., "abc").
@@ -447,7 +447,22 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField name="boq_name" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Name<sup>*</sup></FormLabel><FormControl><Input placeholder="e.g. Zepto P1" {...field} /></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="boq_name" control={form.control} render={({ field }) => ( 
+          <FormItem>
+            <FormLabel>BOQ Name<sup>*</sup></FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="e.g. Zepto P1" 
+                {...field} 
+                onChange={(e) => {
+                  const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+                  field.onChange(sanitizedValue);
+                }} 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem> 
+        )} />
 
                 <FormField name="company" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Company<sup>*</sup></FormLabel><FormControl>
             {contactIdFromContext ? (

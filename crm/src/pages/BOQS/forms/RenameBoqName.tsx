@@ -15,7 +15,8 @@ import { useNavigate } from "react-router-dom";
 
 // --- 1. Zod Schema for Validation ---
 const renameBoqSchema = z.object({
-  newName: z.string().min(1, "New BOQ name is required."),
+  newName: z.string().min(1, "New BOQ name is required.")
+  .regex(/^[a-zA-Z0-9\s]+$/, "Only letters, numbers, and spaces are allowed."),
 });
 
 type RenameBoqFormValues = z.infer<typeof renameBoqSchema>;
@@ -211,7 +212,14 @@ console.log("currentDocName",currentDocName)
             <FormItem>
               <FormLabel>New BOQ Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter new BOQ name" {...field} />
+                <Input 
+                  placeholder="Enter new BOQ name" 
+                  {...field} 
+                  onChange={(e) => {
+                    const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+                    field.onChange(sanitizedValue);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

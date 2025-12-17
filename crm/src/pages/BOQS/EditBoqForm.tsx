@@ -259,7 +259,26 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
 
         {mode === 'details' && (
           <>
-            <FormField name="boq_name" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Name<sup>*</sup></FormLabel><FormControl><Input {...field} disabled={boqData} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField 
+              name="boq_name" 
+              control={form.control} 
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>BOQ Name<sup>*</sup></FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      disabled={boqData} 
+                      onChange={(e) => {
+                        const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+                        field.onChange(sanitizedValue);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} 
+            />
 
             {/* <FormField name="city" control={form.control} render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} /> */}
 

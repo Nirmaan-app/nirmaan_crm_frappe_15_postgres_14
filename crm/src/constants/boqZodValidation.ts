@@ -3,7 +3,7 @@ import * as z from "zod";
 
 export const boqFormSchema = z.object({
   boq_name: z.string().min(1, "BOQ name is required")
-    .regex(/^[a-zA-Z0-9\s-]/, "Only letters, numbers, spaces, and hyphens are allowed."),
+    .regex(/^[a-zA-Z0-9\s]+$/, "Only letters, numbers, and spaces are allowed."),
   boq_size: z.coerce
     .number({
       // This message will be shown if the input cannot be converted to a number (e.g., "abc").
