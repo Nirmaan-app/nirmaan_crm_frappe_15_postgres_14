@@ -15,11 +15,11 @@ import { useMemo, useEffect } from "react";
 import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 import { BOQmainStatusOptions,BOQsubStatusOptions } from "@/constants/dropdownData";
 import { LocationOptions } from "@/constants/dropdownData";
+import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 
 // Schema based on your Frappe Doctype and UI Mockup
 const boqFormSchema = z.object({
-  boq_name: z.string().min(1, "BOQ name is required")
-    .regex(/^[a-zA-Z0-9\s]+$/, "Only letters, numbers, and spaces are allowed."),
+  boq_name: nameValidationSchema,
    boq_size: z.coerce
       .number({
           // This message will be shown if the input cannot be converted to a number (e.g., "abc").
@@ -455,7 +455,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                 placeholder="e.g. Zepto P1" 
                 {...field} 
                 onChange={(e) => {
-                  const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+                  const sanitizedValue = e.target.value.replace(INVALID_NAME_CHARS_REGEX, "");
                   field.onChange(sanitizedValue);
                 }} 
               />

@@ -17,6 +17,7 @@ import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { BOQmainStatusOptions, BOQsubStatusOptions } from "@/constants/dropdownData";
 import { boqFormSchema } from "@/constants/boqZodValidation"
 import { LocationOptions } from "@/constants/dropdownData";
+import { INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 
 type EditBoqFormValues = z.infer<typeof boqFormSchema>;
 
@@ -270,7 +271,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                       {...field} 
                       disabled={boqData} 
                       onChange={(e) => {
-                        const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+                        const sanitizedValue = e.target.value.replace(INVALID_NAME_CHARS_REGEX, "");
                         field.onChange(sanitizedValue);
                       }}
                     />

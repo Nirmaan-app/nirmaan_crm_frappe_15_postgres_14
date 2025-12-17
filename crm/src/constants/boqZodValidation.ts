@@ -1,9 +1,8 @@
-// Schema based on your Frappe Doctype and UI Mockup
 import * as z from "zod";
+import { nameValidationSchema } from "./nameValidation";
 
 export const boqFormSchema = z.object({
-  boq_name: z.string().min(1, "BOQ name is required")
-    .regex(/^[a-zA-Z0-9\s]+$/, "Only letters, numbers, and spaces are allowed."),
+  boq_name: nameValidationSchema,
   boq_size: z.coerce
     .number({
       // This message will be shown if the input cannot be converted to a number (e.g., "abc").
