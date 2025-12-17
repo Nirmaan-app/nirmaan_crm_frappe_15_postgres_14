@@ -284,3 +284,46 @@ export const remarkBoqSchema = z.object({
 });
 export type RemarkBoqFormValues = z.infer<typeof remarkBoqSchema>;
 
+export const boqDetailsSchema = z.object({
+  boq_name: nameValidationSchema,
+  boq_size: z.coerce
+    .number({
+      invalid_type_error: "Please enter a valid number for size.",
+    })
+    .nonnegative({ message: "Size must be a positive number." })
+    .nullable()
+    .optional(),
+  boq_sub_status: z.string().optional(),
+  boq_status: z.string().optional(),
+  other_city: z.string().optional(),
+  boq_value: z.coerce
+    .number({
+      invalid_type_error: "Please enter a valid number for value.",
+    })
+    .nonnegative({ message: "Value must be a positive number." })
+    .nullable()
+    .optional(),
+  boq_type: z.string().optional(),
+  boq_submission_date: z.string().optional(),
+  boq_link: z.string().optional(),
+  city: z.string().optional(),
+  company: z.string().min(1, "Company is required"),
+  contact: z.string().optional(),
+  remarks: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (!data.company || data.company.trim() === "") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Company is required.",
+      path: ['company'],
+    });
+  }
+  if (data.city === "Others" && (!data.other_city || data.other_city.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify the city.",
+      path: ['other_city'],
+    });
+  }
+});
+
