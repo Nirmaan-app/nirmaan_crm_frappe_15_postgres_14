@@ -198,31 +198,31 @@ export const CompanyTableView = () => {
         enableSorting: true
       },
       cell: ({ row }) =>
-        row.original.assigned_sales
-          ? getUserFullNameByEmail(row.original.assigned_sales)?.split(" ")[0] || row.original.assigned_sales
-          : '--',
+        <div className="whitespace-normal">
+          {row.original.assigned_sales
+            ? getUserFullNameByEmail(row.original.assigned_sales)?.split(" ")[0] || row.original.assigned_sales
+            : '--'}
+        </div>,
       filterFn: 'faceted',
       enableSorting: true,
     },
     {
       accessorKey: "priority",
       meta: { title: "Priority", enableSorting: false, filterVariant: "select", filterOptions: companyPriorityOptions },
-      cell: ({ row }) => <span className='text-xs'>{row.original.priority || '--'}</span>,
+      cell: ({ row }) => <span className='text-xs whitespace-normal'>{row.original.priority || '--'}</span>,
       filterFn: 'faceted',
     },
     {
       accessorKey: "last_meeting",
       meta: { title: "Last Meeting", filterVariant: "date", enableSorting: true, },
       cell: ({ row }) =>
-
         (
-                        <span className="text-xs text-muted-foreground">{row.original.last_meeting
-                             ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
-                             : '--'}</span>
-                    ),
-        // row.original.last_meeting
-        //   ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
-        //   : '--',
+          <span className="text-xs text-muted-foreground whitespace-normal">
+            {row.original.last_meeting
+              ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM')
+              : '--'}
+          </span>
+        ),
       enableSorting: true,
       filterFn: 'dateRange',
     },
@@ -230,20 +230,19 @@ export const CompanyTableView = () => {
       accessorKey: "next_meeting_date",
       meta: { title: "Next Meeting", filterVariant: 'date', enableSorting: true, },
       cell: ({ row }) =>
-         (
-                        <span className="text-xs text-muted-foreground">{row.original.next_meeting_date
-                             ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
-                             : '--'}</span>
-                    ),
-        // row.original.next_meeting_date
-        //   ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
-        //   : '--',
+        (
+          <span className="text-xs text-muted-foreground whitespace-normal">
+            {row.original.next_meeting_date
+              ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM')
+              : '--'}
+          </span>
+        ),
       enableSorting: true,
       filterFn: 'dateRange',
     },
-     {
+    {
       accessorKey: "last_meeting_in_7_days",
-      meta: { title: "Meeting Done in Last Week",
+      meta: { title: "Meeting Done (Last Week)", // Shortened
         //  filterVariant: 'date', 
          enableSorting: true, },
       cell: ({ row }) =>
@@ -265,7 +264,7 @@ export const CompanyTableView = () => {
     },
     {
       accessorKey: "next_meeting_in_14_days",
-      meta: { title: "Meeting Scheduled for next 2 weeks",
+      meta: { title: "Meeting Scheduled (Next 2 Weeks)", // Shortened
         //  filterVariant: 'date', 
          enableSorting: true, },
       cell: ({ row }) =>{
@@ -290,7 +289,7 @@ export const CompanyTableView = () => {
 
     {
   accessorKey: "last_30_days_boqs",
-  meta: { title: "BOQs (Last 30 Days)", enableSorting: false },
+  meta: { title: "BOQs (30 Days)", enableSorting: false }, // Shortened
   cell: ({ row }) => {
     const last_30_days_boqs = row.original.last_30_days_boqs || [];
     if (last_30_days_boqs.length === 0) {
@@ -417,7 +416,7 @@ export const CompanyTableView = () => {
           return <span >--</span>;
         }
         return (
-          <div className="flex gap-1 justify-start">
+          <div className="flex gap-1 justify-start pl-2">
             <TooltipProvider>
               {remarks.map((r, i) => (
                 <Tooltip key={i}>
@@ -460,7 +459,7 @@ export const CompanyTableView = () => {
     columns,
     initialSorting: initialSorting,
     initialColumnFilters: initialFilters,
-    customGlobalFilterFn: ['company_name', 'company_city', 'assigned_sales', 'priority'],
+      customGlobalFilterFn: ['company_name', 'company_city', 'assigned_sales', 'priority'],
   });
 
   if (error) return <div className="text-center text-red-500 font-semibold p-4">An error occurred while loading companies.</div>;
@@ -544,8 +543,8 @@ export const CompanyTableView = () => {
       globalSearchPlaceholder="Search Companies..."
       className="h-full"
       shouldExpandHeight={true}
-      gridColsClass="grid-cols-[200px,125px,200px,150px,150px,150px,150px,150px,100px,100px,100px,300px]"
-      minWidth="1850px"
+      gridColsClass="grid-cols-[minmax(150px,1fr),minmax(110px,1fr),minmax(110px,1fr),80px,95px,95px,80px,80px,90px,90px,70px,minmax(100px,1fr)]"
+      minWidth="1400px"
       renderToolbarActions={(filteredData) => (
         <DataTableExportButton
           data={filteredData}

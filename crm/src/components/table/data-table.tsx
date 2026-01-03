@@ -106,7 +106,7 @@ export function DataTable<TData>({
       <div className="flex items-center gap-2 justify-start h-full w-full">
         <span
           className={cn(
-            "min-w-0 whitespace-normal break-words leading-snug", // Removed flex-1 to keep icons close
+            "min-w-0 whitespace-normal leading-snug", // Removed flex-1 to keep icons close
             columnDef.meta?.enableSorting ? "cursor-pointer hover:text-foreground" : ""
           )}
           onClick={columnDef.meta?.enableSorting ? () => header.column.toggleSorting(header.column.getIsSorted() === "asc") : undefined}
@@ -167,7 +167,7 @@ export function DataTable<TData>({
             containerClassName
           )}
         >
-          <div style={{ minWidth: minWidth ?? '100%' }} className="mx-auto w-fit">
+          <div style={{ minWidth: minWidth ?? '100%' }} className="">
             {/* Desktop Table Header - Sticky */}
             <div className={cn(
               "hidden md:grid gap-4 font-medium text-sm text-muted-foreground py-2 border-b min-h-10 items-center sticky top-0 z-10 bg-background mb-2",
