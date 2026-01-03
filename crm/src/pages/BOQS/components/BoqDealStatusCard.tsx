@@ -24,6 +24,18 @@ const getDealStatusClass = (status?: string) => {
     }
 };
 
+// Helper to get a status class for client status
+const getClientStatusClass = (status?: string) => {
+    switch (status) {
+        case 'Converted':
+            return 'bg-blue-100 text-blue-800';
+        case 'Tender':
+            return 'bg-blue-700 text-white';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+};
+
 export const BoqDealStatusCard = ({ boq }: BoqDealStatusCardProps) => {
     const { openEditDealStatusDialog } = useDialogStore(); // Access the new dialog opener
     
@@ -42,10 +54,12 @@ export const BoqDealStatusCard = ({ boq }: BoqDealStatusCardProps) => {
         <div className="bg-background p-4 rounded-lg border shadow-sm flex justify-between items-center">
             {/* Left side: Deal Status */}
             <div>
-                <p className="text-sm text-muted-foreground">Deal Status : <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getDealStatusClass(boq.deal_status)}`}>
+                <p className="text-sm text-muted-foreground mb-2">Deal Status : <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getDealStatusClass(boq.deal_status)}`}>
                     {boq.deal_status||"N/A"}
                 </span></p>
-                
+                <p className="text-sm text-muted-foreground">Client Deal Status : <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getClientStatusClass(boq.client_deal_status)}`}>
+                    {boq.client_deal_status||"N/A"}
+                </span></p>
             </div>
 
             {/* Right side: Update Button */}
@@ -56,7 +70,7 @@ export const BoqDealStatusCard = ({ boq }: BoqDealStatusCardProps) => {
                 onClick={handleUpdateDealStatusClick}
             >
                 <SquarePen className="w-4 h-4 mr-2" />
-                Update Deal Status
+                Update 
             </Button>
         </div>
     );
