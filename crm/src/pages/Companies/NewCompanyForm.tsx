@@ -23,15 +23,14 @@ import { useViewport } from "@/hooks/useViewPort"; // --- NEW: Import useViewpor
 import { Edit, Plus } from "lucide-react"; // --- NEW: Import Plus icon ---
 import { TeamSizeOptions } from "@/constants/dropdownData";
 import {CompanyProgressPriorityOptions} from "@/constants/dropdownData";
+import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 
 
 
 
 // Zod Schema based on your Frappe Doctype and UI Mockup
 const companyFormSchema = z.object({
-  company_name: z.string()
-    .min(1, "Company name is required")
-    .regex(/^[a-zA-Z0-9\s-]/, "Only letters, numbers, spaces, and hyphens are allowed."),
+  company_name: nameValidationSchema,
 
   company_city: z.string().min(1, "Location is required"),
   other_company_city: z.string().optional(),
@@ -247,8 +246,17 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Company Name<sup>*</sup></FormLabel>
-                <FormControl><Input placeholder="e.g. Zepto" {...field} disabled={isEditMode}
-                /></FormControl>
+                <FormControl>
+                  <Input 
+                    placeholder="e.g. Zepto" 
+                    {...field} 
+                    disabled={isEditMode}
+                    onChange={(e) => {
+                      const sanitizedValue = e.target.value.replace(INVALID_NAME_CHARS_REGEX, "");
+                      field.onChange(sanitizedValue);
+                    }}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

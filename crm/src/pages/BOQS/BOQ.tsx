@@ -289,7 +289,7 @@ const BoqDetailsHeader = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CR
                         onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })}
                         className="bg-destructive hover:bg-destructive/90 mt-2" // Added margin for spacing
                     >
-                        Update BOQ Status
+                        Update
                     </Button>
                     {role == "Nirmaan Admin User Profile" && (
                         <Button

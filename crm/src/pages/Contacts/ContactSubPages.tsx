@@ -258,16 +258,26 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
   }, [boqs]);
 
   // Boq Columns for Desktop (DataTable)
-  const boqColumns = useMemo<DataTableColumnDef<CRMBOQ>[]>(() => [{
+  const boqColumns = useMemo<DataTableColumnDef<CRMBOQ>[]>(() => [
+    
+    {
     accessorKey: "boq_name",
     meta: { title: "Name", enableSorting: true },
     cell: ({ row }) => (<span className="font-medium text-blue-600 underline"> {row.original.boq_name}</span>)
   }, {
+    accessorKey: "boq_value",
+    meta: { title: "Value", enableSorting: true },
+    cell: ({ row }) => (<span className="font-medium"> {row.original.boq_value} L</span>)
+  },
+   {
     accessorKey: "boq_status",
     meta: { title: "Status", enableSorting: true, filterVariant: "select", filterOptions: boqStatusOptions },
     cell: ({ row }) => (<span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${getBoqStatusClass(row.original.boq_status)}`}> {row.original.boq_status || 'N/A'}</span>),
     filterFn: 'faceted',
-  }, {
+  },
+  
+  
+  {
     accessorKey: "creation",
     meta: { title: "Received Date", filterVariant: "date", enableSorting: true },
     cell: ({ row }) => <span>{formatDateWithOrdinal(row.original.creation) || '--'}</span>,
@@ -363,7 +373,7 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
       globalSearchPlaceholder="Search BOQs by name or status..."
       className="h-full"
       shouldExpandHeight={true}
-      gridColsClass="md:grid-cols-[2fr,1.5fr,1.5fr,1.5fr]"
+      gridColsClass="md:grid-cols-[1.5fr,1.5fr,1.5fr,1.5fr,1.5fr]"
       onRowClick={(row) => navigate(`/boqs/boq?id=${row.original.name}`)}
     />
   );

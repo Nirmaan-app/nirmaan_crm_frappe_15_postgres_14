@@ -467,6 +467,7 @@ const { data: activeBoqs, isLoading: boqsLoading, error: boqsError } = useFrappe
             shouldExpandHeight={true}
             className={className}
             containerClassName={tableContainerClassName}
+            minWidth="1200px"
             // Adjusted gridColsClass for 9 data columns
             gridColsClass="md:grid-cols-[1.5fr,1fr,1.5fr,1.5fr,1fr,1fr,1fr,auto]"
             headerTitle="Sales Task"

@@ -12,10 +12,11 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 
 // --- 1. Zod Schema for Validation ---
 const renameBoqSchema = z.object({
-  newName: z.string().min(1, "New BOQ name is required."),
+  newName: nameValidationSchema,
 });
 
 type RenameBoqFormValues = z.infer<typeof renameBoqSchema>;
@@ -211,7 +212,14 @@ console.log("currentDocName",currentDocName)
             <FormItem>
               <FormLabel>New BOQ Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter new BOQ name" {...field} />
+                <Input 
+                  placeholder="Enter new BOQ name" 
+                  {...field} 
+                  onChange={(e) => {
+                    const sanitizedValue = e.target.value.replace(INVALID_NAME_CHARS_REGEX, "");
+                    field.onChange(sanitizedValue);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

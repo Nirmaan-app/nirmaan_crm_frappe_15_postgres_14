@@ -23,7 +23,8 @@
   "boq_sub_status",
   "assigned_sales",
   "assigned_estimations",
-  "deal_status"
+  "deal_status",
+  "client_deal_status"
  ],
  "fields": [
   {
@@ -115,12 +116,17 @@
    "fieldname": "deal_status",
    "fieldtype": "Data",
    "label": "Deal Status"
+  },
+  {
+   "fieldname": "client_deal_status",
+   "fieldtype": "Data",
+   "label": "Client Deal Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-12 13:44:43.519344",
+ "modified": "2026-01-03 13:55:59.233482",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM BOQ",

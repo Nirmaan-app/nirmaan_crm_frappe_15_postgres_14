@@ -14,7 +14,8 @@ import React, { useEffect } from "react";
 
 // --- Zod Schema for Validation ---
 const editDealStatusSchema = z.object({
-  deal_status: z.string().min(1, "Deal status is required."),
+  deal_status: z.string().optional(),
+  client_deal_status: z.string().optional(),
 });
 
 type EditDealStatusFormValues = z.infer<typeof editDealStatusSchema>;
@@ -24,6 +25,11 @@ const dealStatusOptions = [
   { label: "Hot", value: "Hot" },
   { label: "Warm", value: "Warm" },
   { label: "Cold", value: "Cold" },
+];
+
+const clientDealStatusOptions = [
+  { label: "Converted", value: "Converted" },
+  { label: "Tender", value: "Tender" },
 ];
 
 // --- Component Props ---
@@ -40,6 +46,7 @@ export const EditDealStatusForm = ({ onSuccess, boqData }: EditDealStatusFormPro
     resolver: zodResolver(editDealStatusSchema),
     defaultValues: {
       deal_status: boqData.deal_status || "", // Pre-fill with current status
+      client_deal_status: boqData.client_deal_status || "",
     },
   });
 
@@ -47,6 +54,7 @@ export const EditDealStatusForm = ({ onSuccess, boqData }: EditDealStatusFormPro
   useEffect(() => {
     form.reset({
       deal_status: boqData.deal_status || "",
+      client_deal_status: boqData.client_deal_status || "",
     });
   }, [boqData, form]);
 
@@ -55,10 +63,10 @@ export const EditDealStatusForm = ({ onSuccess, boqData }: EditDealStatusFormPro
 
   const onSubmit = async (values: EditDealStatusFormValues) => {
     // Prevent updating to the same status
-    if (values.deal_status === boqData.deal_status) {
+    if (values.deal_status === boqData.deal_status && values.client_deal_status === boqData.client_deal_status) {
       toast({
         title: "No Change",
-        description: "The selected status is the same as the current status.",
+        description: "The selected statuses are the same as current.",
         variant: "info",
       });
       onSuccess?.(); // Close dialog if no change needed
@@ -69,11 +77,12 @@ export const EditDealStatusForm = ({ onSuccess, boqData }: EditDealStatusFormPro
       // Update the CRM BOQ document
       await updateDoc("CRM BOQ", boqData.name, {
         deal_status: values.deal_status,
+        client_deal_status: values.client_deal_status,
       });
 
       toast({
         title: "Success",
-        description: `Deal status for BOQ "${boqData.boq_name}" updated to "${values.deal_status}".`,
+        description: `Statuses for BOQ "${boqData.boq_name}" updated.`,
         variant: "success",
       });
 
@@ -88,7 +97,7 @@ export const EditDealStatusForm = ({ onSuccess, boqData }: EditDealStatusFormPro
     } catch (error: any) {
       console.error("Update Deal Status Error:", error);
       toast({
-        title: "Error updating deal status",
+        title: "Error updating status",
         description: error.message || "An unknown error occurred.",
         variant: "destructive",
       });
@@ -97,28 +106,49 @@ export const EditDealStatusForm = ({ onSuccess, boqData }: EditDealStatusFormPro
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
-        <p className="text-sm text-muted-foreground">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* <p className="text-sm text-muted-foreground">
           Current Deal Status: <span className={`font-semibold text-gray-800 dark:text-gray-200 ${getDealStatusClass(boqData.deal_status)}`}>
             {boqData.deal_status || 'N/A'}
           </span>
-        </p>
+        </p> */}
 
         <FormField
           control={form.control}
           name="deal_status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New Deal Status<sup>*</sup></FormLabel>
+              <FormLabel>Deal Status</FormLabel>
               <FormControl>
                 <ReactSelect
                   options={dealStatusOptions}
                   value={dealStatusOptions.find(opt => opt.value === field.value) || null}
                   onChange={val => field.onChange(val?.value)}
-                  placeholder="Select new status"
+                  placeholder="Select deal status"
+                  className="text-sm"
+                  menuPosition={'auto'} 
+                  isClearable
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+         <FormField
+          control={form.control}
+          name="client_deal_status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Client Status</FormLabel>
+              <FormControl>
+                <ReactSelect
+                  options={clientDealStatusOptions}
+                  value={clientDealStatusOptions.find(opt => opt.value === field.value) || null}
+                  onChange={val => field.onChange(val?.value)}
+                  placeholder="Select client status"
                   className="text-sm"
                   menuPosition={'auto'}
-                 
                   isClearable
                 />
               </FormControl>

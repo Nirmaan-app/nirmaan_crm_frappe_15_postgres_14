@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from "@/components/ui/input";
 import { FilterControls } from "@/components/ui/FilterControls";
 import { ChevronDown, Search } from "lucide-react";
+import ReactSelect from 'react-select'; // Import ReactSelect
 
 // Define the props this component will accept from its parent
 interface BoqListHeaderProps {
@@ -15,6 +16,10 @@ interface BoqListHeaderProps {
     onDateRangeChange: (range: { from: string; to: string }) => void;
     dateRange: { from: string; to: string };
     isMobile: boolean; // To handle slight layout differences
+    // NEW Props for Multi Select
+    selectedBoqs?: string[];
+    setSelectedBoqs?: (value: string[]) => void;
+    boqOptions?: { label: string; value: string }[];
 }
 
 
@@ -25,14 +30,18 @@ export const BoqListHeader = ({
     setFilterType,
     onDateRangeChange,
     dateRange, // Receive as `dateRange`
-    isMobile
+    isMobile,
+    selectedBoqs = [], // Default empty array
+    setSelectedBoqs,
+    boqOptions = [] // Default empty options
 }: BoqListHeaderProps) => {
-const role = localStorage.getItem("role")
-let filterOptions = ["By Name", "By Company", "By Contact", "By Package","By Status"];
+    const role = localStorage.getItem("role")
+    // Ensure "By BOQ" is consistently used
+    let filterOptions = ["By BOQ", "By Company", "By Contact", "By Package", "By Status"];
 
-if(role =="Nirmaan Estimations User Profile"){
-    filterOptions=["By Name", "By Company", "By Type"]
-}
+    if (role == "Nirmaan Estimations User Profile") {
+        filterOptions = ["By BOQ", "By Company", "By Type"]
+    }
 
 
     return (
@@ -49,8 +58,38 @@ if(role =="Nirmaan Estimations User Profile"){
                     </DropdownMenuContent>
                 </DropdownMenu>
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                    {filterType === 'By BOQ' ? (
+                        <div className="w-full">
+                            <ReactSelect
+                                isMulti
+                                options={boqOptions}
+                                value={boqOptions.filter(opt => selectedBoqs.includes(opt.value))} // Map selected values back to options
+                                onChange={(selectedOptions) => {
+                                    const values = selectedOptions ? selectedOptions.map(opt => opt.value) : [];
+                                    setSelectedBoqs && setSelectedBoqs(values);
+                                }}
+                                placeholder="Select BOQs..."
+                                className="text-sm"
+                                menuPosition="fixed"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        minHeight: '36px', // Match button height
+                                        borderColor: 'hsl(var(--input))',
+                                    }),
+                                    menu: (base) => ({
+                                        ...base,
+                                        zIndex: 50
+                                    })
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <>
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input placeholder="Search..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                        </>
+                    )}
                 </div>
             </div>
             <FilterControls onDateRangeChange={onDateRangeChange} dateRange={dateRange} />

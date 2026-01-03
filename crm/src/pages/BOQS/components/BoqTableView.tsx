@@ -350,9 +350,30 @@ export const BoqTableView = ({
             baseColumns.splice(5, 0, boqSubmissionDateColumn); // Insert at index 5
         }
 
+        // Add Actions Column
+        baseColumns.push({
+            id: 'actions',
+            meta: { title: "Action", enableSorting: false, excludeFromExport: true },
+            cell: ({ row }) => (
+                <div className="flex justify-center">
+                    <Button variant="ghost" size="icon" onClick={() => {
+                         if (isStandalonePage) {
+                            navigate(`/boqs/boq?id=${row.original.name}`);
+                        } else {
+                            onBoqSelect?.(row.original.name);
+                        }
+                    }}>
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
+            ),
+            enableSorting: false,
+            enableColumnFilter: false,
+        });
+
         return baseColumns;
 
-    }, [boqs, companyOptions,showAssignedSalesColumn, projectNamesOptions, statusOptions, dealStatusOptions, subStatusOptions, getBoqStatusClass, activeTabStatus]); // IMPORTANT: Add activeTabStatus to dependencies
+    }, [boqs, companyOptions,showAssignedSalesColumn, projectNamesOptions, statusOptions, dealStatusOptions, subStatusOptions, getBoqStatusClass, activeTabStatus, isStandalonePage, navigate, onBoqSelect]);
 
 
     if (error) return <div className="text-red-500">Error loading BOQs.</div>;
@@ -502,7 +523,7 @@ const calculatedGridColsClass = useMemo(() => {
     if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
         // 7 data columns + Actions
         // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr,auto]";
+        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr,60px]";
     } else if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
         // 7 data columns, no Actions
         // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status)
@@ -510,7 +531,7 @@ const calculatedGridColsClass = useMemo(() => {
     } else if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
         // 6 data columns + Actions
         // (boq_name, company, boq_status, boq_sub_status, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1fr,1fr,auto,1fr]";
+        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1fr,1fr,60px,1fr]";
     } else { // !isSubmissionDateColumnVisible && !isActionsColumnVisible
         // 6 data columns, no Actions
         // (boq_name, company, boq_status, boq_sub_status, modified, deal_status)
@@ -537,7 +558,7 @@ const calculatedGridColsClass = useMemo(() => {
             globalSearchPlaceholder="Search BOQs..."
             shouldExpandHeight={true} // BoqTableView always tells DataTable to expand to fill its parent's height
             className={className} // Pass parent's className to DataTable's root div
-            
+            minWidth="1200px"
              gridColsClass={calculatedGridColsClass}
 
             headerTitle="CRM BOQs"

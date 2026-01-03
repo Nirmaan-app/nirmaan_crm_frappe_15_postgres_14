@@ -8,3 +8,4 @@
 nirmaan_crm.patches.v0_0.task_profile_patch
 nirmaan_crm.patches.v0_0.user_crmuser_name_fix #10
 nirmaan_crm.patches.v0_0.update_last_meeting_for_contacts_and_companies
+nirmaan_crm.patches.v0_0.update_deal_status_for_closed_boqs
