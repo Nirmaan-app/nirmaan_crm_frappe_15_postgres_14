@@ -23,6 +23,7 @@ interface CompanyTableOptions {
     assignedSalesOptions: SelectOption[];
     companyCityOptions: SelectOption[];
     companyPriorityOptions: SelectOption[];
+    companyTypeOptions: SelectOption[];
     getUserFullNameByEmail: (email: string) => string | undefined;
 }
 
@@ -34,6 +35,7 @@ export const useCompanyTableOptions = (companies: CRMCompany[]): CompanyTableOpt
             return {
                 assignedSalesOptions: [],
                 companyCityOptions: [],
+                companyTypeOptions: [],
                 companyPriorityOptions: [],
             };
         }
@@ -41,6 +43,7 @@ export const useCompanyTableOptions = (companies: CRMCompany[]): CompanyTableOpt
         const uniqueValues: { [key: string]: Set<string> } = {
             assigned_sales: new Set(),
             company_city: new Set(),
+            company_type: new Set(),
             priority: new Set(),
         };
 
@@ -48,6 +51,7 @@ export const useCompanyTableOptions = (companies: CRMCompany[]): CompanyTableOpt
         companies.forEach(c => {
             c.assigned_sales && uniqueValues.assigned_sales.add(c.assigned_sales);
             c.company_city && uniqueValues.company_city.add(c.company_city);
+            c.company_type && uniqueValues.company_type.add(c.company_type);
             c.priority && uniqueValues.priority.add(c.priority);
         });
 
@@ -62,6 +66,11 @@ export const useCompanyTableOptions = (companies: CRMCompany[]): CompanyTableOpt
             value: name,
         }));
 
+        const companyTypeOptions = Array.from(uniqueValues.company_type).map(name => ({
+            label: name,
+            value: name,
+        }));
+
         const companyPriorityOptions = Array.from(uniqueValues.priority).map(name => ({
             label: name,
             value: name,
@@ -70,6 +79,7 @@ export const useCompanyTableOptions = (companies: CRMCompany[]): CompanyTableOpt
         return {
             assignedSalesOptions,
             companyCityOptions,
+            companyTypeOptions,
             companyPriorityOptions,
         };
     }, [companies, getUserFullNameByEmail]); // Only re-run when companies or the user list changes
@@ -84,6 +94,7 @@ interface CRMCompany {
   name: string;
   company_name: string;
   company_city?: string;
+  company_type?: string;
   website?: string;
   assigned_sales?: string;
   priority?: string;
@@ -150,6 +161,7 @@ export const CompanyTableView = () => {
     assignedSalesOptions, 
     companyCityOptions, 
     companyPriorityOptions, 
+    companyTypeOptions,
     getUserFullNameByEmail // Destructured from the new hook
   } = useCompanyTableOptions(companies);
 
@@ -163,6 +175,12 @@ export const CompanyTableView = () => {
         </Link>
       ),
       filterFn: "faceted"
+    },
+    {
+      accessorKey: "company_type",
+      meta: { title: "Company Type", filterVariant: "select", enableSorting: true, filterOptions: companyTypeOptions },
+      cell: ({ row }) => <span className='text-xs'>{row.original.company_type || '--'}</span>,
+      filterFn: 'faceted',
     },
     // {
     //   accessorKey: "company_city",
@@ -396,10 +414,10 @@ export const CompanyTableView = () => {
       cell: ({ row }) => {
         const remarks = row.original.last_three_remarks_from_tasks || [];
         if (remarks.length === 0) {
-          return <span className='flex gap-1 justify-center'>--</span>;
+          return <span >--</span>;
         }
         return (
-          <div className="flex gap-1 justify-center">
+          <div className="flex gap-1 justify-start">
             <TooltipProvider>
               {remarks.map((r, i) => (
                 <Tooltip key={i}>
@@ -472,6 +490,7 @@ export const CompanyTableView = () => {
   const companyExportFields = useMemo<DataTableColumnDef<CRMCompany>[]>(() => ([
     { accessorKey: "name", meta: { exportHeaderName: "Company ID" } },
     { accessorKey: "company_name", meta: { exportHeaderName: "Company Name" } },
+    { accessorKey: "company_type", meta: { exportHeaderName: "Company Type" } },
     { accessorKey: "company_city", meta: { exportHeaderName: "City" } },
     {
       accessorKey: "assigned_sales",
@@ -525,13 +544,13 @@ export const CompanyTableView = () => {
       globalSearchPlaceholder="Search Companies..."
       className="h-full"
       shouldExpandHeight={true}
-      gridColsClass="grid-cols-[1.5fr,1.2fr,1.5fr,1.5fr,1.5fr,1.5fr,1fr,1fr,1fr,1fr,1fr]"
+      gridColsClass="grid-cols-[200px,125px,200px,150px,150px,150px,150px,150px,100px,100px,100px,300px]"
+      minWidth="1850px"
       renderToolbarActions={(filteredData) => (
         <DataTableExportButton
           data={filteredData}
           columns={companyExportFields}
           fileName="Companies_List_Export"
-          label="Export Companies List"
         />
       )}
     />

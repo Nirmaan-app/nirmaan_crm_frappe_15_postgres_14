@@ -324,8 +324,9 @@ export const PendingBOQs = () => {
             shouldExpandHeight={false} // Explicitly NOT expanding height (fixed 350px max-height)
             className="h-full" // Ensure DataTable's root div itself fills its parent container
             containerClassName="max-h-[300px]" // Apply fixed max-height to the scrollable table body
+            minWidth="1200px"
             // Grid columns for Pending BOQs (7 columns)
-            gridColsClass="md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1.2fr,1fr,1fr,1fr]"
+            gridColsClass="md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1.2fr,1fr,1fr,160px]"
             headerTitle="Pending BOQs"
             noResultsMessage="No pending BOQs found."
             // Render the export button in the toolbar actions slot
@@ -614,10 +615,11 @@ export const AllBOQs = () => {
             onRowClick={(row) => navigate(`/boqs/boq?id=${row.original.name}`)}
             renderMobileRow={renderBoqMobileRow}
             globalSearchPlaceholder="Search project name, company, salesperson..."
-            shouldExpandHeight={false} // AllBOQs will have a fixed height (not flex-1)
+            shouldExpandHeight={true} // Allow table to expand to fill parent
             className="h-full" // The DataTable's root div itself should fill its parent
-            containerClassName="max-h-[300px]" // Explicitly set max-height for the scrollable table body
-            gridColsClass="md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,auto]" // 7 columns for AllBOQs
+            minWidth="1200px"
+             containerClassName="max-h-[300px]"
+            gridColsClass="md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,60px]" // 7 columns for AllBOQs
             headerTitle="All BOQs"
             
             renderToolbarActions={(filteredData) => (
