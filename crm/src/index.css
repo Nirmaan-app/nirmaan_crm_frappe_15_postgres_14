@@ -151,3 +151,78 @@ body, html {
 .cardBorder {
     @apply border-gray-300;
 }
+
+/* ============================================
+   Calendar Fixed Container
+   Prevents layout shift when navigating months
+   ============================================ */
+.calendar-fixed-container {
+    /* Fixed height ensures no layout shift between months with different week counts */
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.calendar-fixed-container .rdp {
+    /* Ensure calendar fills the container and respects boundaries */
+    flex: 1;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.calendar-fixed-container .rdp-month {
+    /* Fixed month container prevents shifting */
+    width: 100%;
+}
+
+.calendar-fixed-container .rdp-month_grid {
+    /* Consistent grid sizing */
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Ensure calendar caption and nav don't overflow */
+.calendar-fixed-container .rdp-caption {
+    width: 100%;
+}
+
+.calendar-fixed-container .rdp-nav {
+    width: auto;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+    .calendar-fixed-container {
+        min-height: 340px;
+    }
+}
+
+/* ============================================
+   Date Filter Component Enhancements
+   ============================================ */
+
+/* Smooth transitions for filter states */
+.date-filter-trigger {
+    transition: all 0.2s ease;
+}
+
+/* Active filter badge styling */
+.date-filter-active {
+    @apply bg-destructive/10 text-destructive;
+}
+
+/* Calendar day hover states - more subtle */
+.rdp-day_button:hover:not([disabled]):not(.rdp-day_selected) {
+    @apply bg-muted;
+}
+
+/* Range selection middle days */
+.rdp-day_range_middle {
+    @apply bg-destructive/10;
+}
+
+/* Today indicator - subtle ring instead of heavy border */
+.rdp-day_today:not(.rdp-day_selected) .rdp-day_button {
+    @apply ring-1 ring-destructive/50 ring-offset-1;
+}

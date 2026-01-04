@@ -2,60 +2,100 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { useDialogStore } from "@/store/dialogStore";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DateRange } from "react-day-picker";
-import React, { useEffect } from "react";
-
+import { format } from "date-fns";
+import { CalendarDays, X } from "lucide-react";
 
 export const DateRangePickerDialog = () => {
-    // Get the context and the close action from the Zustand store
     const { dateRangePicker, closeDateRangePickerDialog } = useDialogStore();
-    
-    // Local state to manage the selected date range within the dialog
     const [date, setDate] = useState<DateRange | undefined>();
 
     const handleConfirm = () => {
-        // Ensure both a 'from' and 'to' date have been selected
         if (date?.from && date?.to) {
-            // Call the onConfirm function that was passed in the context from the trigger component
             dateRangePicker.context.onConfirm(date);
-            // Close the dialog after confirming
             closeDateRangePickerDialog();
         }
     };
 
-    return (
-        <div className="flex flex-col min-h-[60vh]">
-            {/* <Calendar
-                mode="range" // Set the calendar to range selection mode
-            
-                selected={date}
-                onSelect={setDate}
-                className="rounded-md p-0"
-                
-            /> */}
+    const handleClear = () => {
+        setDate(undefined);
+    };
 
-       <div className="flex flex-col">
-            <Calendar
-        mode="range"
-        // defaultMonth={date}
-        selected={date}
-        onSelect={setDate}
-          className="min-w-full"
-        // captionLayout={dropdown}
-        // className="rounded-lg"
-      />
-       </div>
-           <div className="flex justify-end gap-2 pt-4 mt-auto"> 
-                <Button variant="outline" className="flex-1 border-destructive text-destructive" onClick={closeDateRangePickerDialog}>
+    // Format selected range for display
+    const selectionSummary = useMemo(() => {
+        if (!date?.from) return null;
+        const fromStr = format(date.from, "MMM d, yyyy");
+        const toStr = date.to ? format(date.to, "MMM d, yyyy") : "Select end date";
+        return { from: fromStr, to: toStr };
+    }, [date]);
+
+    const hasValidRange = date?.from && date?.to;
+
+    return (
+        <div className="flex flex-col">
+            {/* Selection Summary */}
+            <div className="mb-4 pb-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                            From
+                        </span>
+                        <p className={`text-sm font-medium truncate ${date?.from ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {selectionSummary?.from || "Select start date"}
+                        </p>
+                    </div>
+                    <div className="w-8 flex justify-center">
+                        <div className="w-4 h-px bg-border" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                            To
+                        </span>
+                        <p className={`text-sm font-medium truncate ${date?.to ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {selectionSummary?.to || "Select end date"}
+                        </p>
+                    </div>
+                    {date?.from && (
+                        <button
+                            onClick={handleClear}
+                            className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                            aria-label="Clear selection"
+                        >
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Calendar - Fixed height container to prevent shifting */}
+            <div className="calendar-fixed-container flex justify-center">
+                <Calendar
+                    mode="range"
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={1}
+                    fixedWeeks
+                    showOutsideDays
+                    className="!w-full"
+                />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 mt-4 border-t border-border">
+                <Button
+                    variant="ghost"
+                    className="flex-1 h-10 text-sm font-medium text-muted-foreground hover:text-foreground"
+                    onClick={closeDateRangePickerDialog}
+                >
                     Cancel
                 </Button>
-                <Button 
-                    className="flex-1 bg-destructive hover:bg-destructive/90" 
-                    onClick={handleConfirm} 
-                    // Disable the confirm button until a full range is selected
-                    disabled={!date?.from || !date?.to}
+                <Button
+                    className="flex-1 h-10 text-sm font-medium bg-destructive hover:bg-destructive/90 transition-all duration-200 disabled:opacity-40"
+                    onClick={handleConfirm}
+                    disabled={!hasValidRange}
                 >
+                    <CalendarDays className="h-4 w-4 mr-2" />
                     Confirm
                 </Button>
             </div>

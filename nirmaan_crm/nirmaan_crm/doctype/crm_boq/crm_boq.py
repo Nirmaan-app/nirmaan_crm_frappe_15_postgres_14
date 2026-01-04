@@ -6,6 +6,10 @@ from frappe.model.document import Document
 
 
 class CRMBOQ(Document):
+	def validate(self):
+		if self.boq_status in ["Won", "Lost"]:
+			self.deal_status = "Cold"
+
 	def before_insert(self):
 		user = frappe.session.user
 		if user == "Administrator":

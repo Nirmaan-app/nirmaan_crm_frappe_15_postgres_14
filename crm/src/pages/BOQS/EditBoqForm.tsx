@@ -1,5 +1,3 @@
-
-
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -7,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { CRMCompany } from "@/types/NirmaanCRM/CRMCompany";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
@@ -15,8 +14,9 @@ import ReactSelect from "react-select";
 import { useEffect, useMemo } from "react";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { BOQmainStatusOptions, BOQsubStatusOptions } from "@/constants/dropdownData";
-import { boqFormSchema } from "@/constants/boqZodValidation"
+import { boqFormSchema, boqDetailsSchema } from "@/constants/boqZodValidation"
 import { LocationOptions } from "@/constants/dropdownData";
+import { INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 
 type EditBoqFormValues = z.infer<typeof boqFormSchema>;
 
@@ -37,25 +37,35 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>(
     "CRM Company",
 
-    { fields: ["name", "company_name"],     limit: 0, }
+    { fields: ["name", "company_name"], limit: 0, }
   );
 
-  const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>(
-    "CRM Contacts",
-    { filters: { company: boqData?.company }, fields: ["name", "first_name", "last_name"],limit: 0,  enabled: !!boqData?.company }
-  );
 
-  const contactOptions = useMemo(() => contactsList?.map(c => ({ label: `${c.first_name} ${c.last_name}`, value: c.name })) || [], [contactsList]);
+
 
   const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_name, value: c.name })) || [], [allCompanies]);
 
   const form = useForm<EditBoqFormValues>({
-    resolver: zodResolver(boqFormSchema),
+    resolver: zodResolver(mode === 'status' ? boqFormSchema : boqDetailsSchema),
     defaultValues: {},
   });
 
   const watchedBoqStatus = form.watch("boq_status");
   const selectedCity = form.watch("city");
+  const selectedCompany = form.watch("company"); // Watch the company field for changes
+
+  const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>(
+    "CRM Contacts",
+    // Use selectedCompany for filtering, falling back to boqData?.company only initially if needed (though form.watch usually handles init via defaultValues/reset)
+    {
+      filters: { company: selectedCompany || boqData?.company },
+      fields: ["name", "first_name", "last_name"],
+      limit: 0,
+      enabled: !!(selectedCompany || boqData?.company)
+    }
+  );
+
+  const contactOptions = useMemo(() => contactsList?.map(c => ({ label: `${c.first_name} ${c.last_name}`, value: c.name })) || [], [contactsList]);
 
 
   // --- STEP 2: PRE-FILL ALL FIELDS ---
@@ -114,12 +124,15 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         }
       }
 
-      const valueNotRequiredStatuses = ["In Progress", "Revision Pending", "Negotiation", "Won", "Lost", "Dropped", "Hold"];
-      if (valueNotRequiredStatuses.includes(status || "")) {
-        if (form.getValues("boq_value") !== "") {
-          form.setValue("boq_value", "", { shouldValidate: true });
-          form.clearErrors("boq_value");
+      if (mode === 'status') {
+        const valueNotRequiredStatuses = ["In Progress", "Revision Pending", "Negotiation", "Lost", "Dropped", "Hold"];
+        if (valueNotRequiredStatuses.includes(status || "")) {
+          if (form.getValues("boq_value") !== "") {
+            form.setValue("boq_value", "", { shouldValidate: true });
+            form.clearErrors("boq_value");
+          }
         }
+
       }
 
       // Clear remarks if status makes them optional/not required AND it currently has a value
@@ -133,7 +146,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     };
 
     clearFieldsBasedOnStatus(watchedBoqStatus);
-  }, [watchedBoqStatus, form]);
+  }, [watchedBoqStatus, form, mode]);
 
 
 
@@ -169,7 +182,11 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       }
       if (mode === 'details') {
         // --- STEP 4: UPDATE ALL FIELDS ON SUBMIT ---
-        await updateDoc("CRM BOQ", boqData.name, { ...dataToSave, boq_link: dataToSave.boq_link || boqData.boq_link, remarks: dataToSave?.remarks || boqData.remarks,     boq_value: dataToSave?.boq_value || boqData.boq_value});
+        await updateDoc("CRM BOQ", boqData.name, {
+          ...dataToSave, boq_link: dataToSave.boq_link || boqData.boq_link, remarks: dataToSave?.remarks || boqData.remarks,
+          //  boq_value: dataToSave?.boq_value || boqData.boq_value
+          boq_value: (dataToSave?.boq_value !== undefined && dataToSave?.boq_value !== null) ? dataToSave.boq_value : boqData.boq_value
+        });
         toast({ title: "Success", description: "BOQ details updated." });
       } else if (mode === 'status') {
         console.log("boqData", boqData)
@@ -181,6 +198,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
           boq_submission_date: dataToSave.boq_submission_date,
           remarks: dataToSave?.remarks || boqData.remarks,
           boq_value: dataToSave?.boq_value || boqData.boq_value
+          //  boq_value: (dataToSave?.boq_value !== undefined && dataToSave?.boq_value !== null) ? dataToSave.boq_value : boqData.boq_value
         });
 
         toast({ title: "Success", description: "Status updated." });
@@ -259,7 +277,26 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
 
         {mode === 'details' && (
           <>
-            <FormField name="boq_name" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Name<sup>*</sup></FormLabel><FormControl><Input {...field} disabled={boqData} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField
+              name="boq_name"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>BOQ Name<sup>*</sup></FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={boqData}
+                      onChange={(e) => {
+                        const sanitizedValue = e.target.value.replace(INVALID_NAME_CHARS_REGEX, "");
+                        field.onChange(sanitizedValue);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* <FormField name="city" control={form.control} render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} /> */}
 
@@ -281,7 +318,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                       }}
                       placeholder="Select City"
                       menuPosition={'auto'}
-               
+
                     />
                   </FormControl>
                   <FormMessage />
@@ -309,6 +346,8 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
 
             <FormField name="boq_size" control={form.control} render={({ field }) => (<FormItem><FormLabel>Size(Sqft)<sup>*</sup></FormLabel><FormControl><div className="relative"><Input type="number"  {...field} /><span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Sq.ft.</span></div></FormControl><FormMessage /></FormItem>)} />
 
+            <FormField name="boq_value" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Value <span className="text-[10px] text-muted-foreground ">(IN Lakhs)</span></FormLabel><FormControl><Input type="number" placeholder="e.g. 5 Lakhs" {...field} /></FormControl><FormMessage /></FormItem>)} />
+
             <FormField
               name="company"
               control={form.control}
@@ -333,15 +372,15 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 </FormItem>
               )}
             />
-            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact </FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading}  value={contactOptions.find(c => c.value === field.value) || ""} // Ensure it's explicitly null if not found
-          onChange={val => field.onChange(val ? val.value : "")} // Explicitly set to null when clearedmenuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value} 
+            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact </FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value) || ""} // Ensure it's explicitly null if not found
+              onChange={val => field.onChange(val ? val.value : "")} // Explicitly set to null when clearedmenuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value} 
             /></FormControl><FormMessage /></FormItem>)} />
           </>
         )}
 
 
-        {/* Status-only mode is also correct */}
-        {(mode === 'status' || mode === "details") && (
+        {/* ONLY RENDER STATUS FIELDS IF MODE IS 'status' */}
+        {mode === 'status' && (
           <>
             <FormField name="boq_status" control={form.control} render={({ field }) => (
               <FormItem><FormLabel>Update Status</FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}
@@ -393,44 +432,9 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
               <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks{isRequired("remarks") && <sup>*</sup>}</FormLabel><FormControl><Textarea placeholder="e.g. Only use  products in this project." {...field} /></FormControl><FormMessage /></FormItem>)} />
             )}
 
-            {/* <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Deadline<sup>*</sup></FormLabel><FormControl><Input type="date"  {...field} /></FormControl><FormMessage /></FormItem>)} /> */}
-
-            {/* <FormField name="boq_link" control={form.control} render={({ field }) => (
-              <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem>)} /> */}
-
-            {/* <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks</FormLabel><FormControl><Input type="text" {...field} /></FormControl><FormMessage /></FormItem>)} /> */}
-
           </>
 
         )}
-        {/*        
-        {['In-Progress', 'Revision Pending'].includes(watchedBoqStatus) && (
-                <FormField
-                  name="boq_sub_status"
-                  control={form.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sub Status</FormLabel>
-                      <FormControl>
-                        <ReactSelect
-                          options={BOQsubStatusOptions}
-                          value={BOQsubStatusOptions.find(s => s.value === field.value)}
-                          onChange={val => field.onChange(val?.value)}
-                          placeholder="Select Sub Status"
-                          menuPosition={'auto'}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-            )}
- <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-
-  <FormField name="boq_link" control={form.control} render={({ field }) => (
- <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
-
- <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>remarks</FormLabel><FormControl><Input type="text" {...field} /></FormControl><FormMessage /></FormItem>)} /> */}
 
 
         <div className="flex justify-end gap-2 pt-4">

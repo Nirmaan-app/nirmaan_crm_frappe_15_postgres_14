@@ -33,6 +33,7 @@ interface DataTableProps<TData> {
   renderToolbarActions?: (filteredData: TData[], columns: DataTableColumnDef<TData>[]) => React.ReactNode;
   renderTopToolbarActions?: React.ReactNode; // NEW PROP: Slot for content above search/reset
   shouldExpandHeight?: boolean;
+  minWidth?: string; // NEW: Optional minimum width for the table content
 }
 
 export function DataTable<TData>({
@@ -49,6 +50,7 @@ export function DataTable<TData>({
   renderToolbarActions,
   renderTopToolbarActions, // NEW: Destructure new prop
   shouldExpandHeight = false,
+  minWidth, // Destructure minWidth
 }: DataTableProps<TData>) {
   const { table, globalFilter, setGlobalFilter, resetFilters, hasActiveFilters, filteredRowsCount } = tableLogic;
 
@@ -101,14 +103,18 @@ export function DataTable<TData>({
     };
 
     return (
-      <div className="flex items-center gap-1 justify-between h-full">
+      <div className="flex items-center gap-2 justify-start h-full w-full">
         <span
-          className={columnDef.meta?.enableSorting ? "cursor-pointer" : ""}
+          className={cn(
+            "min-w-0 whitespace-normal leading-snug", // Removed flex-1 to keep icons close
+            columnDef.meta?.enableSorting ? "cursor-pointer hover:text-foreground" : ""
+          )}
           onClick={columnDef.meta?.enableSorting ? () => header.column.toggleSorting(header.column.getIsSorted() === "asc") : undefined}
+          title={typeof title === 'string' ? title : undefined} // Add tooltip for truncated text
         >
           {title}
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-shrink-0 bg-background"> 
             {renderSorting}
             {renderFilter()}
         </div>
@@ -152,67 +158,80 @@ export function DataTable<TData>({
         </div>
       </div>
 
-      {/* Desktop Table Header */}
-      <div className={cn("hidden md:grid gap-4 font-medium text-sm text-muted-foreground px-2 py-2 border-b min-h-10 items-center flex-shrink-0", gridColsClass)}>
-        {table.getHeaderGroups().map(headerGroup => (
-          <React.Fragment key={headerGroup.id}>
-            {headerGroup.headers.map(header => {
-              if (header.isPlaceholder) return null;
-              return (
-                <div
-                  key={header.id}
-                  className="flex items-center justify-between h-full"
-                >
-                  {renderColumnHeader(header)}
-                </div>
-              );
-            })}
-          </React.Fragment>
-        ))}
-      </div>
-
-      {/* Table Body (Desktop and Mobile) */}
-      <div className={cn(
-          "overflow-y-auto pr-2 min-h-0",
-          shouldExpandHeight ? "flex-1" : "max-h-[300px]",
-          containerClassName
-      )}>
-        <div className="space-y-4 md:space-y-0 pb-2">
-          {isLoading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
-
-          {!isLoading && table.getRowModel().rows.map(row => (
-            <div key={row.id}>
-              <div className="md:hidden">
-                {renderMobileRow ? (
-                  <div onClick={() => onRowClick?.(row)} className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                    {renderMobileRow(row)}
-                  </div>
-                ) : (
-                  <div onClick={() => onRowClick?.(row)} className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
-                    <p className="font-semibold text-primary">{Object.values(row.original as any).find(v => typeof v === 'string' && v.length > 0) || 'Unnamed Item'}</p>
-                    <p className="text-sm text-muted-foreground">Click for details</p>
-                  </div>
-                )}
-              </div>
-
-              <div
-                onClick={() => onRowClick?.(row)}
-                className={cn("hidden md:grid md:items-center md:p-0 md:py-2 md:px-2 md:border-none md:border-b md:rounded-none cursor-pointer hover:bg-muted/50 transition-colors", gridColsClass)}
-              >
-                {row.getVisibleCells().map(cell => (
-                  <div key={cell.id} className="text-left">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {!isLoading && table.getRowModel().rows.length === 0 && (
-            <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
-              <p>{noResultsMessage}</p>
-            </div>
+      {/* Scrollable Container for Header and Width Control */}
+      <div className={cn("overflow-hidden flex flex-col", shouldExpandHeight ? "flex-1" : "")}>
+        <div 
+          className={cn(
+            "overflow-auto px-2", 
+            shouldExpandHeight ? "flex-1" : "max-h-[300px]",
+            containerClassName
           )}
+        >
+          <div style={{ minWidth: minWidth ?? '100%' }} className="">
+            {/* Desktop Table Header - Sticky */}
+            <div className={cn(
+              "hidden md:grid gap-4 font-medium text-sm text-muted-foreground py-2 border-b min-h-10 items-center sticky top-0 z-10 bg-background mb-2",
+              gridColsClass
+            )}>
+              {table.getHeaderGroups().map(headerGroup => (
+                <React.Fragment key={headerGroup.id}>
+                  {headerGroup.headers.map(header => {
+                    if (header.isPlaceholder) return null;
+                    return (
+                      <div
+                        key={header.id}
+                        className="flex items-center justify-between h-full min-w-0 overflow-hidden" 
+                      >
+                        {renderColumnHeader(header)}
+                      </div>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Table Rows */}
+            <div className="space-y-4 md:space-y-0 pb-2">
+              {isLoading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+
+              {!isLoading && table.getRowModel().rows.map(row => (
+                <div key={row.id}>
+                  <div className="md:hidden">
+                    {renderMobileRow ? (
+                      <div onClick={() => onRowClick?.(row)} className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                        {renderMobileRow(row)}
+                      </div>
+                    ) : (
+                      <div onClick={() => onRowClick?.(row)} className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
+                        <p className="font-semibold text-primary">{Object.values(row.original as any).find(v => typeof v === 'string' && v.length > 0) || 'Unnamed Item'}</p>
+                        <p className="text-sm text-muted-foreground">Click for details</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => onRowClick?.(row)}
+                    className={cn(
+                      "hidden md:grid md:items-center md:py-2 md:border-b md:rounded-none cursor-pointer hover:bg-muted/50 transition-colors gap-4", 
+                      gridColsClass
+                    )}
+                  >
+                    {row.getVisibleCells().map(cell => (
+                      <div key={cell.id} className="text-left overflow-hidden text-ellipsis">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {!isLoading && table.getRowModel().rows.length === 0 && (
+                <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
+                  <p>{noResultsMessage}</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

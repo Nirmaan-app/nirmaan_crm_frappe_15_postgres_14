@@ -11,10 +11,11 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 
 // --- 1. Zod Schema for Validation ---
 const renameCompanySchema = z.object({
-  newName: z.string().min(1, "New company name is required."),
+  newName: nameValidationSchema,
 });
 
 type RenameCompanyFormValues = z.infer<typeof renameCompanySchema>;
@@ -206,7 +207,14 @@ export const RenameCompanyName = ({ onSuccess, currentDoctype, currentDocName }:
             <FormItem>
               <FormLabel>New Document ID</FormLabel>
               <FormControl>
-                <Input placeholder="Enter new company document ID" {...field} />
+                <Input 
+                  placeholder="Enter new company document ID" 
+                  {...field} 
+                  onChange={(e) => {
+                    const sanitizedValue = e.target.value.replace(INVALID_NAME_CHARS_REGEX, "");
+                    field.onChange(sanitizedValue);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

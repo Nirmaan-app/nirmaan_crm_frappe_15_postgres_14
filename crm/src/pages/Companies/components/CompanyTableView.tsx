@@ -12,12 +12,89 @@ import { DataTableExportButton } from '@/components/table/data-table-export-butt
 import { cn } from '@/lib/utils';
 import { MeetingStatusCell } from '@/pages/Home/components/ExceptionReportForCompanies';
 
+// Define the shape of the options for better type safety
+interface SelectOption {
+    label: string;
+    value: string;
+}
+
 // import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager"; // REMOVED
+interface CompanyTableOptions {
+    assignedSalesOptions: SelectOption[];
+    companyCityOptions: SelectOption[];
+    companyPriorityOptions: SelectOption[];
+    companyTypeOptions: SelectOption[];
+    getUserFullNameByEmail: (email: string) => string | undefined;
+}
+
+export const useCompanyTableOptions = (companies: CRMCompany[]): CompanyTableOptions => {
+    const { getUserFullNameByEmail } = useUserRoleLists();
+
+    const options = useMemo(() => {
+        if (!companies || companies.length === 0) {
+            return {
+                assignedSalesOptions: [],
+                companyCityOptions: [],
+                companyTypeOptions: [],
+                companyPriorityOptions: [],
+            };
+        }
+
+        const uniqueValues: { [key: string]: Set<string> } = {
+            assigned_sales: new Set(),
+            company_city: new Set(),
+            company_type: new Set(),
+            priority: new Set(),
+        };
+
+        // Single loop to gather all unique values
+        companies.forEach(c => {
+            c.assigned_sales && uniqueValues.assigned_sales.add(c.assigned_sales);
+            c.company_city && uniqueValues.company_city.add(c.company_city);
+            c.company_type && uniqueValues.company_type.add(c.company_type);
+            c.priority && uniqueValues.priority.add(c.priority);
+        });
+
+        // Map Sets to the final SelectOption arrays
+        const assignedSalesOptions = Array.from(uniqueValues.assigned_sales).map(email => ({
+            label: getUserFullNameByEmail(email)?.split(" ")[0] || email,
+            value: email,
+        }));
+
+        const companyCityOptions = Array.from(uniqueValues.company_city).map(name => ({
+            label: name,
+            value: name,
+        }));
+
+        const companyTypeOptions = Array.from(uniqueValues.company_type).map(name => ({
+            label: name,
+            value: name,
+        }));
+
+        const companyPriorityOptions = Array.from(uniqueValues.priority).map(name => ({
+            label: name,
+            value: name,
+        }));
+
+        return {
+            assignedSalesOptions,
+            companyCityOptions,
+            companyTypeOptions,
+            companyPriorityOptions,
+        };
+    }, [companies, getUserFullNameByEmail]); // Only re-run when companies or the user list changes
+
+    return {
+        ...options,
+        getUserFullNameByEmail, // Also return this utility function for the main component's use
+    };
+};
 
 interface CRMCompany {
   name: string;
   company_name: string;
   company_city?: string;
+  company_type?: string;
   website?: string;
   assigned_sales?: string;
   priority?: string;
@@ -31,7 +108,7 @@ interface CRMCompany {
 }
 
 export const CompanyTableView = () => {
-  const { getUserFullNameByEmail } = useUserRoleLists();
+  // const { getUserFullNameByEmail } = useUserRoleLists();
   const currentUserEmail = localStorage.getItem('userId');
   const role = localStorage.getItem('role');
 
@@ -46,15 +123,15 @@ export const CompanyTableView = () => {
   // REMOVED: useStateSyncedWithParams is no longer used
   // const [assignedSalesFilter, setAssignedSalesFilter] = useStateSyncedWithParams<string[]>...
 
-  const assignedSalesOptions = useMemo(() => {
-    if (!companies || !Array.isArray(companies)) return [];
-    const set = new Set<string>();
-    companies.forEach(c => c.assigned_sales && set.add(c.assigned_sales));
-    return Array.from(set).map(email => ({
-      label: getUserFullNameByEmail(email)?.split(" ")[0] || email,
-      value: email,
-    }));
-  }, [companies, getUserFullNameByEmail]);
+  // const assignedSalesOptions = useMemo(() => {
+  //   if (!companies || !Array.isArray(companies)) return [];
+  //   const set = new Set<string>();
+  //   companies.forEach(c => c.assigned_sales && set.add(c.assigned_sales));
+  //   return Array.from(set).map(email => ({
+  //     label: getUserFullNameByEmail(email)?.split(" ")[0] || email,
+  //     value: email,
+  //   }));
+  // }, [companies, getUserFullNameByEmail]);
 
   const companyNameOptions = useMemo(() => {
     if (!companies || !Array.isArray(companies)) return [];
@@ -63,19 +140,30 @@ export const CompanyTableView = () => {
     return Array.from(set).map(name => ({ label: name, value: name }));
   }, [companies]);
 
-  const companyCityOptions = useMemo(() => {
-    if (!companies || !Array.isArray(companies)) return [];
-    const set = new Set<string>();
-    companies.forEach(c => c.company_city && set.add(c.company_city));
-    return Array.from(set).map(name => ({ label: name, value: name }));
-  }, [companies]);
+  // const companyCityOptions = useMemo(() => {
+  //   if (!companies || !Array.isArray(companies)) return [];
+  //   const set = new Set<string>();
+  //   companies.forEach(c => c.company_city && set.add(c.company_city));
+  //   return Array.from(set).map(name => ({ label: name, value: name }));
+  // }, [companies]);
 
-  const companyPriorityOptions = useMemo(() => {
-    if (!companies || !Array.isArray(companies)) return [];
-    const set = new Set<string>();
-    companies.forEach(c => c.priority && set.add(c.priority));
-    return Array.from(set).map(name => ({ label: name, value: name }));
-  }, [companies]);
+  // const companyPriorityOptions = useMemo(() => {
+  //   if (!companies || !Array.isArray(companies)) return [];
+  //   const set = new Set<string>();
+  //   companies.forEach(c => c.priority && set.add(c.priority));
+  //   return Array.from(set).map(name => ({ label: name, value: name }));
+  // }, [companies]);
+
+
+  // --- 💡 CENTRALIZED HOOK REPLACEMENT ---
+  
+  const { 
+    assignedSalesOptions, 
+    companyCityOptions, 
+    companyPriorityOptions, 
+    companyTypeOptions,
+    getUserFullNameByEmail // Destructured from the new hook
+  } = useCompanyTableOptions(companies);
 
   const columns = useMemo<DataTableColumnDef<CRMCompany>[]>(() => [
     {
@@ -87,6 +175,12 @@ export const CompanyTableView = () => {
         </Link>
       ),
       filterFn: "faceted"
+    },
+    {
+      accessorKey: "company_type",
+      meta: { title: "Company Type", filterVariant: "select", enableSorting: true, filterOptions: companyTypeOptions },
+      cell: ({ row }) => <span className='text-xs'>{row.original.company_type || '--'}</span>,
+      filterFn: 'faceted',
     },
     // {
     //   accessorKey: "company_city",
@@ -104,31 +198,31 @@ export const CompanyTableView = () => {
         enableSorting: true
       },
       cell: ({ row }) =>
-        row.original.assigned_sales
-          ? getUserFullNameByEmail(row.original.assigned_sales)?.split(" ")[0] || row.original.assigned_sales
-          : '--',
+        <div className="whitespace-normal">
+          {row.original.assigned_sales
+            ? getUserFullNameByEmail(row.original.assigned_sales)?.split(" ")[0] || row.original.assigned_sales
+            : '--'}
+        </div>,
       filterFn: 'faceted',
       enableSorting: true,
     },
     {
       accessorKey: "priority",
       meta: { title: "Priority", enableSorting: false, filterVariant: "select", filterOptions: companyPriorityOptions },
-      cell: ({ row }) => <span className='text-xs'>{row.original.priority || '--'}</span>,
+      cell: ({ row }) => <span className='text-xs whitespace-normal'>{row.original.priority || '--'}</span>,
       filterFn: 'faceted',
     },
     {
       accessorKey: "last_meeting",
       meta: { title: "Last Meeting", filterVariant: "date", enableSorting: true, },
       cell: ({ row }) =>
-
         (
-                        <span className="text-xs text-muted-foreground">{row.original.last_meeting
-                             ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
-                             : '--'}</span>
-                    ),
-        // row.original.last_meeting
-        //   ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM-yyyy')
-        //   : '--',
+          <span className="text-xs text-muted-foreground whitespace-normal">
+            {row.original.last_meeting
+              ? formatDateWithOrdinal(new Date(row.original.last_meeting), 'dd-MMM')
+              : '--'}
+          </span>
+        ),
       enableSorting: true,
       filterFn: 'dateRange',
     },
@@ -136,20 +230,21 @@ export const CompanyTableView = () => {
       accessorKey: "next_meeting_date",
       meta: { title: "Next Meeting", filterVariant: 'date', enableSorting: true, },
       cell: ({ row }) =>
-         (
-                        <span className="text-xs text-muted-foreground">{row.original.next_meeting_date
-                             ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
-                             : '--'}</span>
-                    ),
-        // row.original.next_meeting_date
-        //   ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM-yyyy')
-        //   : '--',
+        (
+          <span className="text-xs text-muted-foreground whitespace-normal">
+            {row.original.next_meeting_date
+              ? formatDateWithOrdinal(new Date(row.original.next_meeting_date), 'dd-MMM')
+              : '--'}
+          </span>
+        ),
       enableSorting: true,
       filterFn: 'dateRange',
     },
-     {
+    {
       accessorKey: "last_meeting_in_7_days",
-      meta: { title: "Meeting Done in Last Week", filterVariant: 'date', enableSorting: false, },
+      meta: { title: "Meeting Done (Last Week)", // Shortened
+        //  filterVariant: 'date', 
+         enableSorting: true, },
       cell: ({ row }) =>
          (
                     
@@ -169,7 +264,9 @@ export const CompanyTableView = () => {
     },
     {
       accessorKey: "next_meeting_in_14_days",
-      meta: { title: "Meeting Scheduled for next 2 weeks", filterVariant: 'date', enableSorting: false, },
+      meta: { title: "Meeting Scheduled (Next 2 Weeks)", // Shortened
+        //  filterVariant: 'date', 
+         enableSorting: true, },
       cell: ({ row }) =>{
         return (
                     
@@ -192,7 +289,7 @@ export const CompanyTableView = () => {
 
     {
   accessorKey: "last_30_days_boqs",
-  meta: { title: "BOQs (Last 30 Days)", enableSorting: false },
+  meta: { title: "BOQs (30 Days)", enableSorting: false }, // Shortened
   cell: ({ row }) => {
     const last_30_days_boqs = row.original.last_30_days_boqs || [];
     if (last_30_days_boqs.length === 0) {
@@ -316,10 +413,10 @@ export const CompanyTableView = () => {
       cell: ({ row }) => {
         const remarks = row.original.last_three_remarks_from_tasks || [];
         if (remarks.length === 0) {
-          return <span className='flex gap-1 justify-center'>--</span>;
+          return <span >--</span>;
         }
         return (
-          <div className="flex gap-1 justify-center">
+          <div className="flex gap-1 justify-start pl-2">
             <TooltipProvider>
               {remarks.map((r, i) => (
                 <Tooltip key={i}>
@@ -362,7 +459,7 @@ export const CompanyTableView = () => {
     columns,
     initialSorting: initialSorting,
     initialColumnFilters: initialFilters,
-    customGlobalFilterFn: ['company_name', 'company_city', 'assigned_sales', 'priority'],
+      customGlobalFilterFn: ['company_name', 'company_city', 'assigned_sales', 'priority'],
   });
 
   if (error) return <div className="text-center text-red-500 font-semibold p-4">An error occurred while loading companies.</div>;
@@ -392,6 +489,7 @@ export const CompanyTableView = () => {
   const companyExportFields = useMemo<DataTableColumnDef<CRMCompany>[]>(() => ([
     { accessorKey: "name", meta: { exportHeaderName: "Company ID" } },
     { accessorKey: "company_name", meta: { exportHeaderName: "Company Name" } },
+    { accessorKey: "company_type", meta: { exportHeaderName: "Company Type" } },
     { accessorKey: "company_city", meta: { exportHeaderName: "City" } },
     {
       accessorKey: "assigned_sales",
@@ -445,13 +543,13 @@ export const CompanyTableView = () => {
       globalSearchPlaceholder="Search Companies..."
       className="h-full"
       shouldExpandHeight={true}
-      gridColsClass="grid-cols-[1.5fr,1.2fr,1.5fr,1.5fr,1.5fr,1.5fr,1fr,1fr,1fr,1fr,1fr]"
+      gridColsClass="grid-cols-[minmax(150px,1fr),minmax(110px,1fr),minmax(110px,1fr),80px,95px,95px,80px,80px,90px,90px,70px,minmax(100px,1fr)]"
+      minWidth="1400px"
       renderToolbarActions={(filteredData) => (
         <DataTableExportButton
           data={filteredData}
           columns={companyExportFields}
           fileName="Companies_List_Export"
-          label="Export Companies List"
         />
       )}
     />

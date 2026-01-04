@@ -83,9 +83,12 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
           const role = localStorage.getItem('role');
     
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterType, setFilterType] = useState("By Name");
+    const [filterType, setFilterType] = useState("By BOQ"); // Changed default to "By BOQ"
     const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });
     const [assignmentFilters, setAssignmentFilters] = useState([]);
+    
+    // NEW: Multi-select state
+    const [selectedBoqs, setSelectedBoqs] = useState<string[]>([]);
 
     const allFilters = useMemo(() => {
         // REMOVED: No more default filters for Sales User. Backend handles it.
@@ -101,9 +104,23 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         limit: 0,
         orderBy: { field: "modified", order: "desc" }
     },swrKey);
+
+    // NEW: Compute unique BOQ options for the dropdown
+    const boqOptions = useMemo(() => {
+        if (!boqs) return [];
+        return boqs.map(b => ({ label: b.boq_name || b.name, value: b.boq_name || b.name }));
+        // Ensure uniqueness if needed, but boq.name should be unique. boq_name might not be?
+        // Using map directly for now. If boq_name is not unique, might need filtering.
+    }, [boqs]);
     
     const filteredBoqs = useMemo(() => {
         if (!boqs) return [];
+        
+        // Handle "By BOQ" multi-select filter
+        if (filterType === 'By BOQ' && selectedBoqs.length > 0) {
+             return boqs.filter(boq => boq.boq_name && selectedBoqs.includes(boq.boq_name));
+        }
+
         const lowercasedQuery = searchQuery.toLowerCase().trim();
         if (!lowercasedQuery) return boqs;
 
@@ -114,14 +131,14 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
                 case 'By Contact':
                     const contactName = `${boq?.first_name || ''} ${boq?.last_name || ''}`.toLowerCase();
                     return contactName.includes(lowercasedQuery);
-                case 'By Name': return boq.boq_name?.toLowerCase().includes(lowercasedQuery);
+                case 'By BOQ': return boq.boq_name?.toLowerCase().includes(lowercasedQuery); // Fallback for text search if no multi-select used (though UI hides input)
                 case 'By Package': return boq.boq_type?.toLowerCase().includes(lowercasedQuery);
                 case 'By Status': return boq.boq_status?.toLowerCase().includes(lowercasedQuery);
 
                 default: return true;
             }
         });
-    }, [boqs, searchQuery, filterType]);
+    }, [boqs, searchQuery, filterType, selectedBoqs]); // Added selectedBoqs dependency
 
     // if (isLoading) { return <div className="p-4 text-center">Loading BOQs...</div>; }
     
@@ -134,6 +151,9 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         onDateRangeChange: setDateRange,
          dateRange: dateRange, // Use camelCase `dateRange`
         isMobile,
+        selectedBoqs,    // Pass prop
+        setSelectedBoqs, // Pass prop
+        boqOptions       // Pass prop
     };
 
     return (

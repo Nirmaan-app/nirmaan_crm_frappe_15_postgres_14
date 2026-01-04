@@ -24,6 +24,7 @@ def get_modified_crm_companies():
                 "assigned_sales",
                 "priority",
                 "last_meeting",
+                "company_type",
             ],
             filters={},
             order_by="last_meeting desc"

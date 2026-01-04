@@ -40,4 +40,6 @@ export interface CRMBOQ{
 	assigned_estimations?: string
 	/**	Deal Status : Data	*/
 	deal_status?: string
+	/**	Client Deal Status : Data	*/
+	client_deal_status?: string
 }
