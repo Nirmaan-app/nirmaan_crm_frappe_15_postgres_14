@@ -84,7 +84,8 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState("By BOQ"); // Changed default to "By BOQ"
-    const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });
+    // const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
+ 
     const [assignmentFilters, setAssignmentFilters] = useState([]);
     
     // NEW: Multi-select state
@@ -93,17 +94,17 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
-    const allFilters = useMemo(() => {
-        // REMOVED: No more default filters for Sales User. Backend handles it.
-        const dateFilters = [['modified', 'between', [dateRange.from, dateRange.to]]];
-        return [...dateFilters, ...assignmentFilters];
-    }, [dateRange, assignmentFilters]);
+    // const allFilters = useMemo(() => {
+    //     const dateFilters = dateRange ? [['modified', 'between', [dateRange.from, dateRange.to]]] : [];
+    //     return [...dateFilters, ...assignmentFilters];
+    // }, [dateRange, assignmentFilters]);
 
-    const swrKey = `all-boqs-${JSON.stringify(allFilters)}`;
+    // const swrKey = `all-boqs-${JSON.stringify(allFilters)}`;
+    const swrKey = `all-boqs-${JSON.stringify(assignmentFilters)}`;
 
     const { data: boqs, isLoading } = useFrappeGetDocList<EnrichedBoq>("CRM BOQ", {
         fields: ["name", "boq_name", "boq_status","city","boq_sub_status","boq_submission_date", "boq_type","boq_value", "company", "contact", "boq_size","company.company_name", "contact.first_name","boq_link", "contact.last_name", "modified","assigned_sales"],
-        filters: allFilters,
+        filters: assignmentFilters,
         limit: 0,
         orderBy: { field: "modified", order: "desc" }
     },swrKey);
@@ -185,8 +186,8 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         setSearchQuery,
         filterType,
         setFilterType,
-        onDateRangeChange: setDateRange,
-        dateRange: dateRange, // Use camelCase `dateRange`
+        // onDateRangeChange: setDateRange,
+        // dateRange: dateRange, // Use camelCase `dateRange`
         isMobile,
         selectedBoqs,    // Pass prop
         setSelectedBoqs, // Pass prop

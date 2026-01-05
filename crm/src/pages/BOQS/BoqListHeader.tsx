@@ -13,8 +13,8 @@ interface BoqListHeaderProps {
     setSearchQuery: (value: string) => void;
     filterType: string;
     setFilterType: (value: string) => void;
-    onDateRangeChange: (range: { from: string; to: string }) => void;
-    dateRange: { from: string; to: string };
+    onDateRangeChange?: (range: { from: string; to: string }) => void; // Made Optional
+    dateRange?: { from: string; to: string }; // Made Optional
     isMobile: boolean; // To handle slight layout differences
     // NEW Props for Multi Select
     selectedBoqs?: string[];
@@ -137,7 +137,7 @@ export const BoqListHeader = ({
                     )}
                 </div>
             </div>
-            <FilterControls onDateRangeChange={onDateRangeChange} dateRange={dateRange} />
+            {/* <FilterControls onDateRangeChange={onDateRangeChange} dateRange={dateRange} /> */}
         </div>
     );
 
