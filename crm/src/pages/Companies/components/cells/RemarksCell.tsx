@@ -1,19 +1,26 @@
 // src/pages/Companies/components/cells/RemarksCell.tsx
-// Clean remarks preview with expandable tooltip
+// Clean remarks preview with expandable tooltip showing dates
 // Touch-friendly: tap to see all remarks on mobile
 
 import React from 'react';
 import { TouchTooltip } from '@/components/ui/touch-tooltip';
+import { formatDateWithOrdinal } from '@/utils/FormatDate';
 import { MessageSquareText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface RemarkItem {
+  remarks: string;
+  modified: string | null;
+}
+
 interface RemarksCellProps {
-  remarks?: string[];
+  remarks?: RemarkItem[];
 }
 
 /**
  * Remarks Cell
  * Shows a preview of the latest remark with full history on hover/tap
+ * Each remark displays its last updated date
  * Touch-friendly: tap to see all remarks
  */
 export const RemarksCell: React.FC<RemarksCellProps> = ({ remarks = [] }) => {
@@ -21,10 +28,15 @@ export const RemarksCell: React.FC<RemarksCellProps> = ({ remarks = [] }) => {
     return <span className="text-muted-foreground text-xs">—</span>;
   }
 
-  const latestRemark = remarks[0];
+  const latestRemark = remarks[0].remarks;
   const truncated = latestRemark.length > 40
     ? latestRemark.slice(0, 40) + '…'
     : latestRemark;
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return 'No date';
+    return formatDateWithOrdinal(new Date(dateStr), 'dd MMM yyyy');
+  };
 
   const tooltipContent = (
     <div className="space-y-3 min-w-[240px] max-w-[320px]">
@@ -37,7 +49,7 @@ export const RemarksCell: React.FC<RemarksCellProps> = ({ remarks = [] }) => {
 
       {/* Remarks list */}
       <ul className="space-y-3">
-        {remarks.map((remark, i) => (
+        {remarks.map((item, i) => (
           <li
             key={i}
             className={cn(
@@ -47,12 +59,10 @@ export const RemarksCell: React.FC<RemarksCellProps> = ({ remarks = [] }) => {
                 : 'border-muted text-muted-foreground'
             )}
           >
-            {remark}
-            {i === 0 && (
-              <span className="block text-[10px] text-muted-foreground mt-1">
-                Most recent
-              </span>
-            )}
+            {item.remarks}
+            <span className="block text-[10px] text-muted-foreground mt-1">
+              {formatDate(item.modified)}
+            </span>
           </li>
         ))}
       </ul>

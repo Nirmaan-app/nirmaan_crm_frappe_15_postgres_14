@@ -124,13 +124,15 @@ export function DataTable<TData>({
       }
     };
 
+    const hasFilter = !!columnDef.meta?.filterVariant;
+
     return (
-      <div className="flex items-center gap-1 h-full w-full group">
+      <div className="relative flex items-center h-full w-full group">
         {/* Clickable header text with sort indicator */}
         <button
           type="button"
           className={cn(
-            "flex items-center text-left min-w-0 py-1 -ml-1 px-1 rounded transition-colors",
+            "flex items-center text-left py-1 rounded transition-colors",
             isSortable
               ? "cursor-pointer hover:bg-muted/60 hover:text-foreground"
               : "cursor-default"
@@ -139,19 +141,18 @@ export function DataTable<TData>({
           disabled={!isSortable}
           title={typeof title === 'string' ? title : undefined}
         >
-          <span className="truncate text-xs font-medium uppercase tracking-wide">
+          <span className="text-[11px] font-medium uppercase tracking-wide whitespace-nowrap">
             {title}
           </span>
           <SortIndicator />
         </button>
 
-        {/* Filter icon - appears on hover or when active */}
-        <div className={cn(
-          "flex-shrink-0 transition-opacity",
-          columnDef.meta?.filterVariant ? "opacity-100" : "opacity-0"
-        )}>
-          {renderFilter()}
-        </div>
+        {/* Filter icon - absolutely positioned to not affect layout */}
+        {hasFilter && (
+          <div className="absolute -right-1 top-1/2 -translate-y-1/2">
+            {renderFilter()}
+          </div>
+        )}
       </div>
     );
   };
@@ -227,7 +228,7 @@ export function DataTable<TData>({
                     return (
                       <div
                         key={header.id}
-                        className="flex items-center h-full min-w-0"
+                        className="flex items-center h-full overflow-visible"
                       >
                         {renderColumnHeader(header)}
                       </div>

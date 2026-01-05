@@ -29,6 +29,11 @@ interface BOQItem {
   boq_name?: string;
 }
 
+interface RemarkItem {
+  remarks: string;
+  modified: string | null;
+}
+
 interface CRMCompany {
   name: string;
   company_name: string;
@@ -42,7 +47,7 @@ interface CRMCompany {
   next_meeting_id?: string;
   last_meeting_in_7_days?: string;
   next_meeting_in_14_days?: string;
-  last_three_remarks_from_tasks?: string[];
+  last_three_remarks_from_tasks?: RemarkItem[];
   active_boq?: BOQItem[];
   hot_boq?: BOQItem[];
   last_30_days_boqs?: BOQItem[];
@@ -162,11 +167,11 @@ export const CompanyTableView = () => {
         filterFn: 'faceted',
       },
 
-      // 2. Owner (Assigned Sales - first name only)
+      // 2. Sales (Assigned Sales - first name only)
       {
         accessorKey: 'assigned_sales',
         meta: {
-          title: 'Owner',
+          title: 'Sales',
           filterVariant: 'select',
           filterOptions: assignedSalesOptions,
           enableSorting: true,
@@ -175,7 +180,7 @@ export const CompanyTableView = () => {
           <span className="text-sm">
             {row.original.assigned_sales
               ? getUserFullNameByEmail(row.original.assigned_sales)?.split(' ')[0] ||
-                row.original.assigned_sales
+              row.original.assigned_sales
               : '—'}
           </span>
         ),
@@ -186,7 +191,7 @@ export const CompanyTableView = () => {
       {
         accessorKey: 'priority',
         meta: {
-          title: 'Frequency',
+          title: 'Freq',
           filterVariant: 'select',
           filterOptions: companyPriorityOptions,
           enableSorting: false,
@@ -198,7 +203,7 @@ export const CompanyTableView = () => {
       // 4. Last Meeting (separate column with date filter)
       {
         accessorKey: 'last_meeting',
-        meta: { title: 'Last Meeting', enableSorting: true, filterVariant: 'date' },
+        meta: { title: 'Last Met', enableSorting: true, filterVariant: 'date' },
         cell: ({ row }) => (
           <MeetingStatusBadge
             date={row.original.last_meeting}
@@ -212,7 +217,7 @@ export const CompanyTableView = () => {
       // 5. Next Meeting (separate column with date filter)
       {
         accessorKey: 'next_meeting_date',
-        meta: { title: 'Next Meeting', enableSorting: true, filterVariant: 'date' },
+        meta: { title: 'Next Meet', enableSorting: true, filterVariant: 'date' },
         cell: ({ row }) => (
           <MeetingStatusBadge
             date={row.original.next_meeting_date}
@@ -229,8 +234,8 @@ export const CompanyTableView = () => {
         accessorFn: (row) => {
           // Return total count for sorting
           return (row.active_boq?.length || 0) +
-                 (row.hot_boq?.length || 0) +
-                 (row.last_30_days_boqs?.length || 0);
+            (row.hot_boq?.length || 0) +
+            (row.last_30_days_boqs?.length || 0);
         },
         meta: { title: 'BOQs', enableSorting: true },
         cell: ({ row }) => (
@@ -334,7 +339,7 @@ export const CompanyTableView = () => {
         accessorKey: 'last_three_remarks_from_tasks',
         meta: {
           exportHeaderName: 'Last 3 Remarks',
-          exportValue: row => row.last_three_remarks_from_tasks?.join('; ') || '',
+          exportValue: row => row.last_three_remarks_from_tasks?.map(r => r.remarks).join('; ') || '',
         },
       },
     ],
@@ -368,7 +373,7 @@ export const CompanyTableView = () => {
       <div className="flex items-center justify-between pt-2 border-t border-border/50">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>
-            Owner:{' '}
+            Sales:{' '}
             <span className="text-foreground font-medium">
               {getUserFullNameByEmail(row.original.assigned_sales)?.split(' ')[0] || '—'}
             </span>
@@ -392,14 +397,14 @@ export const CompanyTableView = () => {
       {(row.original.active_boq?.length ||
         row.original.hot_boq?.length ||
         row.original.last_30_days_boqs?.length) && (
-        <div className="pt-2 border-t border-border/50">
-          <BOQsCell
-            recentBOQs={row.original.last_30_days_boqs}
-            activeBOQs={row.original.active_boq}
-            hotBOQs={row.original.hot_boq}
-          />
-        </div>
-      )}
+          <div className="pt-2 border-t border-border/50">
+            <BOQsCell
+              recentBOQs={row.original.last_30_days_boqs}
+              activeBOQs={row.original.active_boq}
+              hotBOQs={row.original.hot_boq}
+            />
+          </div>
+        )}
     </div>
   );
 
@@ -429,7 +434,7 @@ export const CompanyTableView = () => {
       globalSearchPlaceholder="Search companies..."
       className="h-full"
       shouldExpandHeight={true}
-      // Grid: Company | Owner | Frequency | Last Meeting | Next Meeting | BOQs | Remarks
+      // Grid: Company | Sales | Freq | Last Met | Next Meet | BOQs | Remarks
       gridColsClass="grid-cols-[minmax(160px,2fr),80px,90px,120px,120px,minmax(140px,1.2fr),minmax(160px,1.5fr)]"
       minWidth="950px"
       renderToolbarActions={filteredData => (
