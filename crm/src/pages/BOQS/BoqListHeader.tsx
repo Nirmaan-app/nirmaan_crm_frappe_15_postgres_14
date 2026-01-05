@@ -20,6 +20,18 @@ interface BoqListHeaderProps {
     selectedBoqs?: string[];
     setSelectedBoqs?: (value: string[]) => void;
     boqOptions?: { label: string; value: string }[];
+
+    selectedCompanies?: string[];
+    setSelectedCompanies?: (value: string[]) => void;
+    companyOptions?: { label: string; value: string }[];
+
+    selectedContacts?: string[];
+    setSelectedContacts?: (value: string[]) => void;
+    contactOptions?: { label: string; value: string }[];
+
+    selectedStatuses?: string[];
+    setSelectedStatuses?: (value: string[]) => void;
+    statusOptions?: { label: string; value: string }[];
 }
 
 
@@ -33,7 +45,19 @@ export const BoqListHeader = ({
     isMobile,
     selectedBoqs = [], // Default empty array
     setSelectedBoqs,
-    boqOptions = [] // Default empty options
+    boqOptions = [], // Default empty options
+    
+    selectedCompanies = [],
+    setSelectedCompanies,
+    companyOptions = [],
+
+    selectedContacts = [],
+    setSelectedContacts,
+    contactOptions = [],
+
+    selectedStatuses = [],
+    setSelectedStatuses,
+    statusOptions = []
 }: BoqListHeaderProps) => {
     const role = localStorage.getItem("role")
     // Ensure "By BOQ" is consistently used
@@ -42,6 +66,37 @@ export const BoqListHeader = ({
     if (role == "Nirmaan Estimations User Profile") {
         filterOptions = ["By BOQ", "By Company", "By Type"]
     }
+
+    const renderMultiSelect = (
+        options: { label: string; value: string }[],
+        selectedValues: string[],
+        setSelectedValues: ((value: string[]) => void) | undefined,
+        placeholder: string
+    ) => (
+        <ReactSelect
+            isMulti
+            options={options}
+            value={options.filter(opt => selectedValues.includes(opt.value))}
+            onChange={(selectedOptions) => {
+                const values = selectedOptions ? selectedOptions.map(opt => opt.value) : [];
+                setSelectedValues && setSelectedValues(values);
+            }}
+            placeholder={placeholder}
+            className="text-sm"
+            menuPosition="fixed"
+            styles={{
+                control: (base) => ({
+                    ...base,
+                    minHeight: '36px',
+                    borderColor: 'hsl(var(--input))',
+                }),
+                menu: (base) => ({
+                    ...base,
+                    zIndex: 50
+                })
+            }}
+        />
+    );
 
 
     return (
@@ -60,29 +115,19 @@ export const BoqListHeader = ({
                 <div className="relative flex-1">
                     {filterType === 'By BOQ' ? (
                         <div className="w-full">
-                            <ReactSelect
-                                isMulti
-                                options={boqOptions}
-                                value={boqOptions.filter(opt => selectedBoqs.includes(opt.value))} // Map selected values back to options
-                                onChange={(selectedOptions) => {
-                                    const values = selectedOptions ? selectedOptions.map(opt => opt.value) : [];
-                                    setSelectedBoqs && setSelectedBoqs(values);
-                                }}
-                                placeholder="Select BOQs..."
-                                className="text-sm"
-                                menuPosition="fixed"
-                                styles={{
-                                    control: (base) => ({
-                                        ...base,
-                                        minHeight: '36px', // Match button height
-                                        borderColor: 'hsl(var(--input))',
-                                    }),
-                                    menu: (base) => ({
-                                        ...base,
-                                        zIndex: 50
-                                    })
-                                }}
-                            />
+                           {renderMultiSelect(boqOptions, selectedBoqs, setSelectedBoqs, "Select BOQs...")}
+                        </div>
+                    ) : filterType === 'By Company' ? (
+                        <div className="w-full">
+                            {renderMultiSelect(companyOptions, selectedCompanies, setSelectedCompanies, "Select Companies...")}
+                        </div>
+                    ) : filterType === 'By Contact' ? (
+                        <div className="w-full">
+                            {renderMultiSelect(contactOptions, selectedContacts, setSelectedContacts, "Select Contacts...")}
+                        </div>
+                    ) : filterType === 'By Status' ? (
+                        <div className="w-full">
+                            {renderMultiSelect(statusOptions, selectedStatuses, setSelectedStatuses, "Select Statuses...")}
                         </div>
                     ) : (
                         <>
