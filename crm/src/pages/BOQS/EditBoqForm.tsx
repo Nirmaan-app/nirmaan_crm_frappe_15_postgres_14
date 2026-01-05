@@ -124,16 +124,15 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         }
       }
 
-      if (mode === 'status') {
-        const valueNotRequiredStatuses = ["In Progress", "Revision Pending", "Negotiation", "Lost", "Dropped", "Hold"];
-        if (valueNotRequiredStatuses.includes(status || "")) {
-          if (form.getValues("boq_value") !== "") {
-            form.setValue("boq_value", "", { shouldValidate: true });
-            form.clearErrors("boq_value");
-          }
-        }
-
-      }
+      // if (mode === 'status') {
+      //   const valueNotRequiredStatuses = ["In Progress", "Revision Pending", "Negotiation", "Lost", "Dropped", "Hold"];
+      //   if (valueNotRequiredStatuses.includes(status || "")) {
+      //     if (form.getValues("boq_value") !== "") {
+      //       form.setValue("boq_value", "", { shouldValidate: true });
+      //       form.clearErrors("boq_value");
+      //     }
+      //   }
+      // }
 
       // Clear remarks if status makes them optional/not required AND it currently has a value
       // Specifically for "Won" where remarks become optional from being required in other states
@@ -146,7 +145,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     };
 
     clearFieldsBasedOnStatus(watchedBoqStatus);
-  }, [watchedBoqStatus, form, mode]);
+  }, [watchedBoqStatus, form]);
 
 
 
