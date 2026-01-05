@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 
 // --- 1. Zod Schema for Validation ---
 const renameContactSchema = z.object({
-  newName: z.string().min(1, "New contact name is required."),
+  newName:  z.string().email("Enter a valid email address"),
 });
 
 type RenameContactFormValues = z.infer<typeof renameContactSchema>;
