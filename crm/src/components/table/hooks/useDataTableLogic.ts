@@ -215,7 +215,15 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
     globalFilterFn: activeGlobalFilterFn,
   });
 
-  const hasActiveFilters = columnFilters.length > 0 || globalFilter !== '';
+  // Memoize hasActiveFilters to prevent recalculation on every render
+  const hasActiveFilters = useMemo(() => {
+    return columnFilters.length > 0 || globalFilter !== '';
+  }, [columnFilters.length, globalFilter]);
+
+  // Memoize filtered rows count - only recalculate when table state changes
+  const filteredRowsCount = useMemo(() => {
+    return table.getFilteredRowModel().rows?.length ?? 0;
+  }, [table.getFilteredRowModel().rows?.length]);
 
   const resetFilters = useCallback(() => {
     setColumnFilters(initialColumnFilters);
@@ -227,14 +235,24 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
     table.setSorting(defaultSortingRef.current);
   }, [table, initialColumnFilters]);
 
-  return {
+  // Memoize the return object to prevent unnecessary re-renders in consumers
+  return useMemo(() => ({
     table,
     globalFilter,
     setGlobalFilter,
     resetFilters,
     hasActiveFilters,
-    filteredRowsCount: table.getFilteredRowModel().rows?.length,
+    filteredRowsCount,
     columnVisibility,
     setColumnVisibility,
-  };
+  }), [
+    table,
+    globalFilter,
+    setGlobalFilter,
+    resetFilters,
+    hasActiveFilters,
+    filteredRowsCount,
+    columnVisibility,
+    setColumnVisibility,
+  ]);
 }

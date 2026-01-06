@@ -1,8 +1,9 @@
 // src/components/table/active-filters-display.tsx
 // Displays active column filters as subtle inline chips
 // Design: Industrial minimalism - informative but unobtrusive
+// Performance: Memoized to prevent unnecessary re-renders
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ColumnFiltersState, Table } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
 import { DataTableColumnDef } from './utils/table-filters';
@@ -117,55 +118,62 @@ function getFilterVariant<TData>(
   return columnDef.meta?.filterVariant;
 }
 
-export function ActiveFiltersDisplay<TData>({
+function ActiveFiltersDisplayInner<TData>({
   table,
   columnFilters,
   className,
 }: ActiveFiltersDisplayProps<TData>) {
+  // Memoize active filters calculation to prevent recalculation on every render
+  const activeFilters = useMemo(() => {
+    if (!columnFilters || columnFilters.length === 0) {
+      return [];
+    }
+
+    return columnFilters.filter(filter => {
+      if (Array.isArray(filter.value)) {
+        return filter.value.length > 0;
+      }
+      if (typeof filter.value === 'object' && filter.value !== null) {
+        return true; // Date filters are always considered active if present
+      }
+      return filter.value !== '' && filter.value !== undefined;
+    });
+  }, [columnFilters]);
+
+  // Memoize formatted filter items
+  const formattedFilters = useMemo(() => {
+    return activeFilters.map((filter) => {
+      const title = getColumnTitle(table, filter.id);
+      const filterVariant = getFilterVariant(table, filter.id);
+      const formattedValue = formatFilterValue(filter.value, filterVariant);
+      return { id: filter.id, title, formattedValue };
+    }).filter(item => item.formattedValue);
+  }, [activeFilters, table]);
+
   // Don't render if no filters
-  if (!columnFilters || columnFilters.length === 0) {
-    return null;
-  }
-
-  // Filter out empty filter values
-  const activeFilters = columnFilters.filter(filter => {
-    if (Array.isArray(filter.value)) {
-      return filter.value.length > 0;
-    }
-    if (typeof filter.value === 'object' && filter.value !== null) {
-      return true; // Date filters are always considered active if present
-    }
-    return filter.value !== '' && filter.value !== undefined;
-  });
-
-  if (activeFilters.length === 0) {
+  if (formattedFilters.length === 0) {
     return null;
   }
 
   return (
     <div className={cn("flex items-center gap-1.5 flex-wrap", className)}>
-      {activeFilters.map((filter) => {
-        const title = getColumnTitle(table, filter.id);
-        const filterVariant = getFilterVariant(table, filter.id);
-        const formattedValue = formatFilterValue(filter.value, filterVariant);
-
-        if (!formattedValue) return null;
-
-        return (
-          <span
-            key={filter.id}
-            className={cn(
-              "inline-flex items-center gap-1",
-              "text-[11px] text-muted-foreground",
-              "transition-colors"
-            )}
-          >
-            <span className="text-muted-foreground/50">·</span>
-            <span className="font-medium text-foreground/70">{title}:</span>
-            <span className="text-primary/80">{formattedValue}</span>
-          </span>
-        );
-      })}
+      {formattedFilters.map((filter) => (
+        <span
+          key={filter.id}
+          className={cn(
+            "inline-flex items-center gap-1",
+            "text-[11px] text-muted-foreground",
+            "transition-colors"
+          )}
+        >
+          <span className="text-muted-foreground/50">·</span>
+          <span className="font-medium text-foreground/70">{filter.title}:</span>
+          <span className="text-primary/80">{filter.formattedValue}</span>
+        </span>
+      ))}
     </div>
   );
 }
+
+// Export memoized component to prevent re-renders when parent re-renders
+export const ActiveFiltersDisplay = React.memo(ActiveFiltersDisplayInner) as typeof ActiveFiltersDisplayInner;

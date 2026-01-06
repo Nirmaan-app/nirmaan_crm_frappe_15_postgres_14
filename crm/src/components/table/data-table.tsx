@@ -1,11 +1,13 @@
 // src/components/table/data-table.tsx
 // Refined with cleaner, minimalist header styling
+// PERFORMANCE: Uses row virtualization for large datasets
 
 import * as React from "react";
 import {
   flexRender,
   Row,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -39,6 +41,10 @@ interface DataTableProps<TData> {
   minWidth?: string;
 }
 
+// Row height constants for virtualization
+const DESKTOP_ROW_HEIGHT = 52; // py-3 (12px * 2) + content (~28px)
+const MOBILE_ROW_HEIGHT = 100; // Approximate height for mobile cards
+
 export function DataTable<TData>({
   tableLogic,
   isLoading,
@@ -57,16 +63,48 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const { table, globalFilter, setGlobalFilter, resetFilters, hasActiveFilters, filteredRowsCount } = tableLogic;
 
+  // Ref for the scrollable container (needed for virtualization)
+  const parentRef = React.useRef<HTMLDivElement>(null);
+
+  // Track if we're on mobile (for rendering the correct row type)
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Get current filter state for dependency tracking
+  const currentGlobalFilter = table.getState().globalFilter;
+  const currentColumnFilters = table.getState().columnFilters;
+
+  // Memoize filtered data - only recalculate when filter state actually changes
   const filteredRowsData = React.useMemo(() => {
     return table.getFilteredRowModel().rows.map(row => row.original);
-  }, [table.getState().globalFilter, table.getState().columnFilters, table.getRowModel().rows]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentGlobalFilter, currentColumnFilters, filteredRowsCount]);
 
+  // Get all rows for virtualization
+  const { rows } = table.getRowModel();
+
+  // PERFORMANCE: Row virtualizer - only renders visible rows
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => isMobile ? MOBILE_ROW_HEIGHT : DESKTOP_ROW_HEIGHT,
+    overscan: 10, // Render 10 extra rows above/below viewport for smooth scrolling
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
 
   // ─────────────────────────────────────────────────────────────────────────
   // Minimalist Column Header Renderer
   // ─────────────────────────────────────────────────────────────────────────
 
-  const renderColumnHeader = (header: any) => {
+  const renderColumnHeader = React.useCallback((header: any) => {
     const columnDef = header.column.columnDef as DataTableColumnDef<TData>;
     const title = columnDef.meta?.title || String(columnDef.header) || header.id;
     const isSortable = columnDef.meta?.enableSorting;
@@ -156,7 +194,7 @@ export function DataTable<TData>({
         )}
       </div>
     );
-  };
+  }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Render
@@ -222,6 +260,7 @@ export function DataTable<TData>({
       {/* Table Container */}
       <div className={cn("overflow-hidden flex flex-col", shouldExpandHeight ? "flex-1" : "")}>
         <div
+          ref={parentRef}
           className={cn(
             "overflow-auto",
             shouldExpandHeight ? "flex-1" : "max-h-[400px]",
@@ -256,57 +295,84 @@ export function DataTable<TData>({
               ))}
             </div>
 
-            {/* Table Body */}
-            <div className="space-y-3 md:space-y-0">
+            {/* Table Body - VIRTUALIZED */}
+            <div className="md:space-y-0">
               {/* Loading skeleton */}
               {isLoading && Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-14 w-full rounded" />
+                <Skeleton key={i} className="h-14 w-full rounded mb-3 md:mb-0" />
               ))}
 
-              {/* Data rows */}
-              {!isLoading && table.getRowModel().rows.map(row => (
-                <div key={row.id}>
-                  {/* Mobile row */}
-                  <div className="md:hidden">
-                    {renderMobileRow ? (
+              {/* Virtualized rows container */}
+              {!isLoading && rows.length > 0 && (
+                <div
+                  style={{
+                    height: `${totalSize}px`,
+                    width: '100%',
+                    position: 'relative',
+                  }}
+                >
+                  {/* Only render visible rows */}
+                  {virtualRows.map((virtualRow) => {
+                    const row = rows[virtualRow.index];
+                    return (
                       <div
-                        onClick={() => onRowClick?.(row)}
-                        className="p-3 bg-card border border-border/40 rounded-lg cursor-pointer hover:border-border hover:shadow-sm transition-all"
+                        key={row.id}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: `${virtualRow.size}px`,
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
                       >
-                        {renderMobileRow(row)}
+                        {/* Mobile row - only rendered on mobile */}
+                        {isMobile ? (
+                          <div className="p-1.5">
+                            {renderMobileRow ? (
+                              <div
+                                onClick={() => onRowClick?.(row)}
+                                className="p-3 bg-card border border-border/40 rounded-lg cursor-pointer hover:border-border hover:shadow-sm transition-all"
+                              >
+                                {renderMobileRow(row)}
+                              </div>
+                            ) : (
+                              <div
+                                onClick={() => onRowClick?.(row)}
+                                className="p-3 border border-border/40 rounded-lg cursor-pointer hover:bg-muted/50"
+                              >
+                                <p className="font-medium text-primary">
+                                  {Object.values(row.original as any).find(v => typeof v === 'string' && v.length > 0) || 'Item'}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          /* Desktop row - only rendered on desktop */
+                          <div
+                            onClick={() => onRowClick?.(row)}
+                            className={cn(
+                              "grid items-center py-3 px-1 border-b border-border/30 cursor-pointer",
+                              "hover:bg-muted/30 transition-colors gap-4",
+                              gridColsClass
+                            )}
+                            style={{ height: `${virtualRow.size}px` }}
+                          >
+                            {row.getVisibleCells().map(cell => (
+                              <div key={cell.id} className="text-left overflow-hidden">
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div
-                        onClick={() => onRowClick?.(row)}
-                        className="p-3 border border-border/40 rounded-lg cursor-pointer hover:bg-muted/50"
-                      >
-                        <p className="font-medium text-primary">
-                          {Object.values(row.original as any).find(v => typeof v === 'string' && v.length > 0) || 'Item'}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Desktop row */}
-                  <div
-                    onClick={() => onRowClick?.(row)}
-                    className={cn(
-                      "hidden md:grid items-center py-3 px-1 border-b border-border/30 cursor-pointer",
-                      "hover:bg-muted/30 transition-colors gap-4",
-                      gridColsClass
-                    )}
-                  >
-                    {row.getVisibleCells().map(cell => (
-                      <div key={cell.id} className="text-left overflow-hidden">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
 
               {/* Empty state */}
-              {!isLoading && table.getRowModel().rows.length === 0 && (
+              {!isLoading && rows.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <p className="text-muted-foreground text-sm">{noResultsMessage}</p>
                 </div>

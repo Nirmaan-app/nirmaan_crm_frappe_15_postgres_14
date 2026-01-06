@@ -429,30 +429,25 @@ export const BoqTableView = ({
     });
 
     // --- Effect for Dynamic Synchronization ---
+    // Note: Using minimal dependencies to prevent excessive re-runs
+    // tableLogic.table creates new references on each render, so we access it directly
     useEffect(() => {
         // Clear global search when a tab filter is applied/changed.
-        // This prevents confusing results where global search appears broken
-        // because it's operating on an already filtered (and possibly empty) subset.
-        tableLogic.setGlobalFilter(''); // Clear global search
+        tableLogic.setGlobalFilter('');
 
-        // Apply the tab-based status filter.
-        tableLogic.table.setColumnFilters(initialColumnFilters);
+        // Apply the tab-based status filter based on activeTabStatus
+        const newFilters = activeTabStatus !== 'All'
+            ? [{ id: 'boq_status', value: [activeTabStatus] }]
+            : [];
+        tableLogic.table.setColumnFilters(newFilters);
 
-        // Dynamically set 'actions' column visibility (boq_status is always visible now)
+        // Dynamically set 'actions' column visibility
         tableLogic.setColumnVisibility(prev => ({
             ...prev,
             actions: !isStandalonePage
         }));
-
-    }, [
-        activeTabStatus, // Trigger when tab changes
-        isStandalonePage, // Trigger when standalone mode changes
-        tableLogic.setGlobalFilter, // To clear global filter
-        tableLogic.table, // To set column filters
-        initialColumnFilters, // To ensure latest filters are applied
-        tableLogic.setColumnVisibility, // To update visibility
-        
-    ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTabStatus, isStandalonePage]);
 
 
     // --- Mobile Row Renderer ---
