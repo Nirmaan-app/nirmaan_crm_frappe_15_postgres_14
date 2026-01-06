@@ -1,13 +1,20 @@
-import React, { useState } from "react";
-import { useFrappeGetCall } from "frappe-react-sdk";
-// Assuming all these imports from your component library are correct
-import { Table, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, ChevronDown, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatDateWithOrdinal } from "@/utils/FormatDate"; 
+// src/pages/Home/components/ExceptionReportForCompanies.tsx
+// Redesigned with minimalist UI consistent with data-table design system
+// Responsive: Desktop table view + Mobile card view
 
-// --- Interfaces ---
+import React, { useState, useEffect } from "react";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import { ChevronDown, ChevronRight, Building2, CalendarCheck, CalendarX, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TouchTooltip } from "@/components/ui/touch-tooltip";
+import { formatDateWithOrdinal } from "@/utils/FormatDate";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface CompanyReportRow {
     company_name: string;
     last_meeting_status: 'YES' | 'NO';
@@ -25,24 +32,104 @@ interface ExceptionReportForCompaniesProps {
     className?: string;
 }
 
-/**
- * Renders an exception report for companies, grouped by user, with collapsible sections
- * and sticky headers.
- */
-export const ExceptionReportForCompanies = ({ className }: ExceptionReportForCompaniesProps) => {
-    
-    // Call the custom API method
-    const { 
-        data, 
-        isLoading, 
-        error 
-    } = useFrappeGetCall<UserReportGroup[]>(
+// ─────────────────────────────────────────────────────────────────────────────
+// Meeting Status Badge Component (matching Company Table pattern)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface MeetingStatusBadgeProps {
+    status: 'YES' | 'NO';
+    date: string | null;
+    variant: 'last' | 'next';
+}
+
+const MeetingStatusBadge: React.FC<MeetingStatusBadgeProps> = ({ status, date, variant }) => {
+    const isYes = status === 'YES';
+    const label = variant === 'last' ? 'Last Meeting' : 'Next Meeting';
+    const windowText = variant === 'last' ? 'Meeting done in last 7 days' : 'Meeting scheduled for next 2 weeks';
+
+    // NO status - show warning indicator
+    if (!isYes) {
+        const tooltipContent = (
+            <div className="flex items-start gap-2">
+                <CalendarX className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <div>
+                    <p className="text-xs font-semibold mb-0.5">{label}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400">
+                        {variant === 'last' ? 'No meeting in last 7 days' : 'No meeting scheduled'}
+                    </p>
+                </div>
+            </div>
+        );
+
+        return (
+            <TouchTooltip content={tooltipContent} side="bottom">
+                <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium cursor-default bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                >
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                    <span>NO</span>
+                </button>
+            </TouchTooltip>
+        );
+    }
+
+    // YES status - show success indicator with date
+    const tooltipContent = (
+        <div className="flex items-start gap-2">
+            <CalendarCheck className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+            <div>
+                <p className="text-xs font-semibold mb-0.5">{label}</p>
+                {date && (
+                    <p className="text-sm font-medium">
+                        {formatDateWithOrdinal(new Date(date), 'dd MMM yyyy')}
+                    </p>
+                )}
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">
+                    ✓ {windowText}
+                </p>
+            </div>
+        </div>
+    );
+
+    return (
+        <TouchTooltip content={tooltipContent} side="bottom">
+            <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium cursor-default bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+            >
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                {date ? (
+                    <span>{formatDateWithOrdinal(new Date(date), 'dd MMM')}</span>
+                ) : (
+                    <span>YES</span>
+                )}
+            </button>
+        </TouchTooltip>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const ExceptionReportForCompanies: React.FC<ExceptionReportForCompaniesProps> = ({ className }) => {
+    const [isMobile, setIsMobile] = useState(false);
+    const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set([0]));
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const { data, isLoading, error } = useFrappeGetCall<UserReportGroup[]>(
         "nirmaan_crm.api.users.get__exception_data.get_company_exception_report",
         {}
     );
 
-    // State to manage which user groups are open (store index)
-    const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set([0])); // Start with the first group open
+    const reportGroups = data?.message || [];
 
     const toggleGroup = (index: number) => {
         setExpandedGroups(prev => {
@@ -56,325 +143,295 @@ export const ExceptionReportForCompanies = ({ className }: ExceptionReportForCom
         });
     };
 
-    // --- Loading, Error, and Empty State Handling ---
+    // Calculate summary stats
+    const getTotalCompanies = () => reportGroups.reduce((sum, g) => sum + g.companies.length, 0);
+    const getExceptionCount = () => reportGroups.reduce((sum, g) =>
+        sum + g.companies.filter(c => c.last_meeting_status === 'NO' || c.next_meeting_status === 'NO').length, 0);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Loading State
+    // ─────────────────────────────────────────────────────────────────────────
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center p-8">
-                <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
-                <span className="text-muted-foreground ml-2">Loading Exception Report...</span>
+            <div className={cn("bg-background border border-border/60 rounded-lg p-4", className)}>
+                {isMobile ? (
+                    <div className="space-y-3">
+                        {Array.from({ length: 2 }).map((_, i) => (
+                            <Skeleton key={i} className="h-32 w-full rounded-lg" />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="space-y-2">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                    </div>
+                )}
             </div>
         );
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Error State
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (error) {
-        return <div className="p-4 text-red-500 border border-red-200 rounded-md bg-red-50">Error loading report: **{error.message}**</div>;
+        return (
+            <Alert variant="destructive" className={cn("", className)}>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error loading Exception Report</AlertTitle>
+                <AlertDescription>
+                    {error.message || "An unexpected error occurred while loading the report."}
+                </AlertDescription>
+            </Alert>
+        );
     }
 
-    const reportGroups = data?.message || []; 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Empty State
+    // ─────────────────────────────────────────────────────────────────────────
 
     if (reportGroups.length === 0) {
         return (
-            <div className="p-4 text-center text-muted-foreground border rounded-lg bg-white shadow-sm">
-                No relevant **Company/Task** data found for Sales Users.
+            <div className={cn("bg-card border border-border/60 rounded-lg p-8 text-center", className)}>
+                <Building2 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground text-sm">No exception data found for Sales Users.</p>
             </div>
         );
     }
 
-    // Define the sticky top positions
-    // User row sticks below the main table header
-    const USER_STICKY_CLASS = "sticky top-[50px] z-10 shadow-sm"; 
-    // Main header sticks to the very top
-    const HEADER_STICKY_CLASS = "sticky top-[0px] z-20";
+    // ─────────────────────────────────────────────────────────────────────────
+    // Mobile Card Component
+    // ─────────────────────────────────────────────────────────────────────────
 
-    // --- Main Component Render ---
+    const MobileUserCard: React.FC<{ group: UserReportGroup; index: number }> = ({ group, index }) => {
+        const isExpanded = expandedGroups.has(index);
+        const exceptionsInGroup = group.companies.filter(
+            c => c.last_meeting_status === 'NO' || c.next_meeting_status === 'NO'
+        ).length;
+
+        return (
+            <div className="bg-card border border-border/60 rounded-lg overflow-hidden">
+                {/* User Header */}
+                <button
+                    onClick={() => toggleGroup(index)}
+                    className="w-full p-4 flex items-center justify-between bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                    <div className="flex items-center gap-3">
+                        {isExpanded ? (
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        )}
+                        <span className="font-semibold text-primary">{group.user_full_name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                            {group.companies.length} companies
+                        </span>
+                        {exceptionsInGroup > 0 && (
+                            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                                {exceptionsInGroup}
+                            </span>
+                        )}
+                    </div>
+                </button>
+
+                {/* Companies List */}
+                {isExpanded && (
+                    <div className="divide-y divide-border/40">
+                        {group.companies.length === 0 ? (
+                            <div className="p-4 text-center text-muted-foreground text-sm italic">
+                                No company data found for this user.
+                            </div>
+                        ) : (
+                            group.companies.map((company, idx) => (
+                                <div key={idx} className="p-3 space-y-2">
+                                    <div className="font-medium text-sm">{company.company_name}</div>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                                Last Week
+                                            </span>
+                                            <MeetingStatusBadge
+                                                status={company.last_meeting_status}
+                                                date={company.last_meeting_date}
+                                                variant="last"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1 items-end">
+                                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                                Next 2 Weeks
+                                            </span>
+                                            <MeetingStatusBadge
+                                                status={company.next_meeting_status}
+                                                date={company.next_meeting_date}
+                                                variant="next"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Mobile View
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (isMobile) {
+        return (
+            <div className={cn("space-y-3", className)}>
+                {/* Summary Bar */}
+                <div className="flex items-center gap-4 px-1 text-xs text-muted-foreground">
+                    <span>{getTotalCompanies()} companies</span>
+                    <span className="text-primary font-medium">{getExceptionCount()} exceptions</span>
+                </div>
+
+                {reportGroups.map((group, index) => (
+                    <MobileUserCard key={index} group={group} index={index} />
+                ))}
+            </div>
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Desktop View
+    // ─────────────────────────────────────────────────────────────────────────
 
     return (
-        <TooltipProvider> 
-            <div className={cn("overflow-x-auto border rounded-lg", className)}>
-                {/* Fixed height and scrollable area */}
-                <div className="max-h-[500px] overflow-y-auto"> 
-                    <Table className="w-full">
-                        
-                        {/* 1. MAIN FIXED HEADER (Sticky at top: 0) */}
-                        <TableHeader className={cn("bg-gray-100")}> 
-                            <TableRow className="bg-gray-100">
-                                <TableHead className="w-[150px] border-r border-b text-primary px-4 py-2 font-bold text-red-700">User</TableHead>
-                                <TableHead className="w-[200px] border-r border-b text-primary px-4 py-2 font-bold text-red-700">Company</TableHead>
-                                <TableHead className="text-center border-r border-b text-primary px-4 py-2 font-bold text-red-700">Meeting Done in Last Week</TableHead>
-                                <TableHead className="text-center border-b text-primary px-4 py-2 font-bold text-red-700">Scheduled for Next 2 Weeks</TableHead>
-                            </TableRow>
-                        </TableHeader>
+        <div className={cn("bg-background border border-border/60 rounded-lg overflow-hidden", className)}>
+            <div className="overflow-x-auto">
+                <div className="min-w-[700px]">
+                    {/* Header */}
+                    <div className="grid grid-cols-[180px,1fr,160px,160px] border-b border-border/60 bg-muted/30">
+                        <div className="px-4 py-3">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                User
+                            </span>
+                        </div>
+                        <div className="px-4 py-3 border-l border-border/40">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                Company
+                            </span>
+                        </div>
+                        <div className="px-4 py-3 border-l border-border/40 text-center">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                Last Week
+                            </span>
+                        </div>
+                        <div className="px-4 py-3 border-l border-border/40 text-center">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                Next 2 Weeks
+                            </span>
+                        </div>
+                    </div>
 
-                        {/* 2. MULTIPLE TBODY FOR COLLAPSIBLE GROUPS */}
+                    {/* Data Rows */}
+                    <div className="max-h-[400px] overflow-y-auto">
                         {reportGroups.map((group, groupIndex) => {
                             const isExpanded = expandedGroups.has(groupIndex);
-                            const Icon = isExpanded ? ChevronDown : ChevronRight;
+                            const exceptionsInGroup = group.companies.filter(
+                                c => c.last_meeting_status === 'NO' || c.next_meeting_status === 'NO'
+                            ).length;
 
                             return (
-                                <tbody key={`group-body-${groupIndex}`} className="border-t border-primary/20"> 
-                                    
-                                    {/* 2a. COLLAPSIBLE USER HEADER ROW (Sticky at top: 50px) */}
-                                    <TableRow 
+                                <div key={groupIndex} className="border-b border-border/40 last:border-b-0">
+                                    {/* User Row (Collapsible Header) */}
+                                    <button
                                         onClick={() => toggleGroup(groupIndex)}
                                         className={cn(
-                                            "bg-muted/70 border-b border-primary/20 font-bold hover:bg-muted/80 cursor-pointer transition-colors",
-                                            USER_STICKY_CLASS // Apply the calculated sticky class
+                                            "w-full grid grid-cols-[180px,1fr,160px,160px] items-center",
+                                            "bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer"
                                         )}
-                                        // Ensure the key is on the outermost element of the map
-                                    > 
-                                        <TableCell colSpan={4} className="text-sm py-2 text-primary font-bold">
-                                            <div className="flex items-center space-x-2">
-                                                <Icon className="w-4 h-4 text-red-500" />
-                                                <span className="text-red-600">{group.user_full_name}</span>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
+                                    >
+                                        <div className="px-4 py-3 flex items-center gap-2">
+                                            {isExpanded ? (
+                                                <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                            ) : (
+                                                <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                            )}
+                                            <span className="font-semibold text-primary truncate">
+                                                {group.user_full_name}
+                                            </span>
+                                        </div>
+                                        <div className="px-4 py-3 border-l border-border/40 text-left">
+                                            <span className="text-xs text-muted-foreground">
+                                                {group.companies.length} companies
+                                            </span>
+                                        </div>
+                                        <div className="px-4 py-3 border-l border-border/40" />
+                                        <div className="px-4 py-3 border-l border-border/40 flex justify-center">
+                                            {exceptionsInGroup > 0 && (
+                                                <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                                                    {exceptionsInGroup}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </button>
 
-                                    {/* 2b. COMPANY ROWS (CONDITIONAL RENDERING) */}
-                                    {isExpanded && group.companies.length > 0 ? (
-                                        group.companies.map((row, rowIndex) => (
-                                            <TableRow 
-                                                key={`company-${groupIndex}-${rowIndex}`} 
-                                                className="hover:bg-gray-50 border-b border-gray-100"
-                                            >
-                                                {/* Empty Cell for User Column - ensures column alignment */}
-                                                <TableCell className="w-[150px] border-r"></TableCell> 
-                                                
-                                                {/* Company Name Cell */}
-                                                <TableCell className="font-medium text-xs w-[200px] border-r">
-                                                    {row.company_name}
-                                                </TableCell>
-                                                
-                                                {/* --- LAST MEETING CELL --- */}
-                                                <TableCell className="text-center text-xs border-r">
-                                                    <MeetingStatusCell 
-                                                        status={row.last_meeting_status} 
-                                                        date={row.last_meeting_date}
-                                                        tooltipTitle="Last Meeting Done"
-                                                    />
-                                                </TableCell>
-                                                
-                                                {/* --- NEXT MEETING CELL --- */}
-                                                <TableCell className="text-center text-xs">
-                                                    <MeetingStatusCell 
-                                                        status={row.next_meeting_status} 
-                                                        date={row.next_meeting_date}
-                                                        tooltipTitle="Next Meeting Scheduled"
-                                                    />
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : isExpanded && group.companies.length === 0 ? (
-                                        <TableRow key={`no-companies-${groupIndex}`}>
-                                            <TableCell colSpan={4} className="text-center text-muted-foreground italic text-xs py-3 bg-white">
-                                                No company meeting data found for this user in the current window.
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : null}
-                                </tbody>
+                                    {/* Company Rows */}
+                                    {isExpanded && (
+                                        <div className="bg-background">
+                                            {group.companies.length === 0 ? (
+                                                <div className="px-4 py-6 text-center text-muted-foreground text-sm italic">
+                                                    No company data found for this user.
+                                                </div>
+                                            ) : (
+                                                group.companies.map((company, companyIndex) => (
+                                                    <div
+                                                        key={companyIndex}
+                                                        className={cn(
+                                                            "grid grid-cols-[180px,1fr,160px,160px] items-center",
+                                                            "border-t border-border/20 hover:bg-muted/10 transition-colors"
+                                                        )}
+                                                    >
+                                                        {/* Empty user column */}
+                                                        <div className="px-4 py-2.5" />
+
+                                                        {/* Company name */}
+                                                        <div className="px-4 py-2.5 border-l border-border/40">
+                                                            <span className="text-sm font-medium">
+                                                                {company.company_name}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Last Meeting Status */}
+                                                        <div className="px-4 py-2.5 border-l border-border/40 flex justify-center">
+                                                            <MeetingStatusBadge
+                                                                status={company.last_meeting_status}
+                                                                date={company.last_meeting_date}
+                                                                variant="last"
+                                                            />
+                                                        </div>
+
+                                                        {/* Next Meeting Status */}
+                                                        <div className="px-4 py-2.5 border-l border-border/40 flex justify-center">
+                                                            <MeetingStatusBadge
+                                                                status={company.next_meeting_status}
+                                                                date={company.next_meeting_date}
+                                                                variant="next"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             );
                         })}
-                    </Table>
+                    </div>
                 </div>
             </div>
-        </TooltipProvider>
+        </div>
     );
 };
 
-// --- Helper Component for Status/Date Tooltip ---
-interface MeetingStatusCellProps {
-    status: 'YES' | 'NO';
-    date: string | null;
-    tooltipTitle: string;
-}
-
-export const MeetingStatusCell: React.FC<MeetingStatusCellProps> = ({ status, date, tooltipTitle }) => {
-    const isYes = status === 'YES';
-    
-    return (
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <span className={cn(
-                    isYes 
-                        ? 'text-green-600 font-bold cursor-pointer underline decoration-dotted'
-                        : 'text-red-600 font-bold' 
-                )}>
-                    {status}
-                </span>
-            </TooltipTrigger>
-            {isYes && date && (
-                <TooltipContent className="bg-primary text-primary-foreground border-primary text-xs p-2 rounded-lg shadow-lg">
-                    <p className="font-medium">{tooltipTitle}:</p>
-                    <p>{formatDateWithOrdinal(date)}</p>
-                </TooltipContent>
-            )}
-        </Tooltip>
-    );
-};
-
-// import React, { useState } from "react";
-// import { useFrappeGetCall } from "frappe-react-sdk";
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-// import { Loader2, ChevronDown, ChevronRight } from "lucide-react"; // Import Chevron icons
-// import { cn } from "@/lib/utils";
-// // Removed CollapsibleSection import
-
-// // Define the interface for a single company row
-// interface CompanyReportRow {
-//     company_name: string;
-//     last_meeting_status: 'YES' | 'NO';
-//     last_meeting_date: string | null;
-//     next_meeting_status: 'YES' | 'NO';
-//     next_meeting_date: string | null;
-// }
-
-// // Define the interface for the grouped user structure
-// interface UserReportGroup {
-//     user_full_name: string;
-//     companies: CompanyReportRow[];
-// }
-
-// interface ExceptionReportForCompaniesProps {
-//     className?: string;
-// }
-
-// export const ExceptionReportForCompanies = ({ className }: ExceptionReportForCompaniesProps) => {
-//     // Call the custom API method
-//     const { data, isLoading, error } = useFrappeGetCall<UserReportGroup[]>(
-//         "nirmaan_crm.api.users.get__exception_data.get_company_exception_report",
-//         {}
-//     );
-
-//     // State to manage which user groups are open (store user_full_name or index)
-//     const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set([0])); // Start with the first group open
-
-//     const toggleGroup = (index: number) => {
-//         setExpandedGroups(prev => {
-//             const newSet = new Set(prev);
-//             if (newSet.has(index)) {
-//                 newSet.delete(index);
-//             } else {
-//                 newSet.add(index);
-//             }
-//             return newSet;
-//         });
-//     };
-
-//     if (isLoading) {
-//         return (
-//             <div className="flex justify-center items-center p-8">
-//                 <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-//                 <span className="text-muted-foreground">Loading Exception Report...</span>
-//             </div>
-//         );
-//     }
-
-//     if (error) {
-//         return <div className="p-4 text-red-500 border border-red-200 rounded-md">Error loading report: {error.message}</div>;
-//     }
-
-//     const reportGroups = data?.message || []; 
-
-//     if (reportGroups.length === 0) {
-//         return (
-//             <div className="p-4 text-center text-muted-foreground border rounded-lg">
-//                 No relevant Company/Task data found for Sales Users.
-//             </div>
-//         );
-//     }
-
-//     return (
-//         <div className={cn("overflow-x-auto border rounded-lg", className)}>
-//             {/* Added max-height and overflow-y for scrollability */}
-//             <div className="max-h-[350px] overflow-y-auto"> 
-//                 <Table className="w-full">
-//                     {/* FIXED HEADER */}
-//                     <TableHeader className="bg-gray-100 sticky top-0 z-10"> 
-//                         <TableRow className="bg-gray-100">
-//                             <TableHead className="w-[150px] border-r border-b text-primary px-4 py-2 font-bold text-red-700">User</TableHead>
-//                             <TableHead className="w-[200px] border-r border-b text-primary px-4 py-2 font-bold text-red-700">Company</TableHead>
-//                             <TableHead className="text-center border-r border-b text-primary px-4 py-2 font-bold text-red-700">Meeting Done in Last Week</TableHead>
-//                             <TableHead className="text-center border-b text-primary px-4 py-2 font-bold text-red-700">Scheduled for Next 2 Weeks</TableHead>
-//                         </TableRow>
-//                     </TableHeader>
-
-//                     <TableBody>
-//                         {reportGroups.map((group, groupIndex) => {
-//                             const isExpanded = expandedGroups.has(groupIndex);
-//                             const Icon = isExpanded ? ChevronDown : ChevronRight;
-
-//                             return (
-//                                 <React.Fragment key={`group-${groupIndex}`}>
-//                                     {/* 1. COLLAPSIBLE USER HEADER ROW */}
-//                                     <TableRow 
-//                                         onClick={() => toggleGroup(groupIndex)}
-//                                         className="bg-muted/50 border-t border-b border-primary/20 font-bold hover:bg-muted/70 cursor-pointer transition-colors"
-//                                     > 
-//                                         <TableCell colSpan={4} className="text-sm py-2 text-primary font-bold">
-//                                             <div className="flex items-center space-x-2">
-//                                                 <Icon className="w-4 h-4 text-red-700" />
-//                                                 <span>{group.user_full_name}</span>
-//                                             </div>
-//                                         </TableCell>
-//                                     </TableRow>
-
-//                                     {/* 2. COMPANY ROWS (CONDITIONAL RENDERING) */}
-//                                     {isExpanded && group.companies.length > 0 ? (
-//                                         group.companies.map((row, rowIndex) => (
-//                                             <TableRow key={`company-${groupIndex}-${rowIndex}`} className="hover:bg-gray-50">
-//                                                 {/* Empty Cell for User Column */}
-//                                                 <TableCell className="w-[150px] border-r"></TableCell> 
-                                                
-//                                                 {/* Company Name Cell */}
-//                                                 <TableCell className="font-semibold text-xs w-[200px] border-r">
-//                                                     {row.company_name}
-//                                                 </TableCell>
-                                                
-//                                                 <TableCell className="text-center text-xs border-r">
-//                                                     <span className={cn(
-//                                                         row.last_meeting_status === 'NO' ? 'text-red-600 font-bold' : 'text-green-600'
-//                                                     )}>
-//                                                         {row.last_meeting_status}
-//                                                     </span>
-//                                                     {row.last_meeting_date && (
-//                                                         <div className="text-muted-foreground text-[10px] whitespace-nowrap">({row.last_meeting_date})</div>
-//                                                     )}
-//                                                 </TableCell>
-//                                                 <TableCell className="text-center text-xs">
-//                                                     <span className={cn(
-//                                                         row.next_meeting_status === 'NO' ? 'text-red-600 font-bold' : 'text-green-600'
-//                                                     )}>
-//                                                         {row.next_meeting_status}
-//                                                     </span>
-//                                                     {row.next_meeting_date && (
-//                                                         <div className="text-muted-foreground text-[10px] whitespace-nowrap">({row.next_meeting_date})</div>
-//                                                     )}
-//                                                 </TableCell>
-//                                             </TableRow>
-//                                         ))
-//                                     ) : isExpanded && group.companies.length === 0 ? (
-//                                         <TableRow>
-//                                             <TableCell colSpan={4} className="text-center text-muted-foreground italic text-xs py-2">
-//                                                 No company meeting data found for this user in the current window.
-//                                             </TableCell>
-//                                         </TableRow>
-//                                     ) : null}
-//                                 </React.Fragment>
-//                             );
-//                         })}
-                        
-//                         {/* Final check for no data if reportGroups is empty */}
-//                         {reportGroups.length === 0 && (
-//                             <TableRow>
-//                                 <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-//                                     No relevant Company/Task data found for Sales Users.
-//                                 </TableCell>
-//                             </TableRow>
-//                         )}
-//                     </TableBody>
-//                 </Table>
-//             </div>
-//         </div>
-//     );
-// };
+export default ExceptionReportForCompanies;

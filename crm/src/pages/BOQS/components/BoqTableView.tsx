@@ -19,6 +19,7 @@ import { formatDateWithOrdinal } from '@/utils/FormatDate'; // Your date formatt
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils'; // For combining Tailwind classes
 import { ChevronRight } from 'lucide-react';
+import { SlidingTabs } from '@/components/ui/sliding-tabs';
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 
 
@@ -337,8 +338,14 @@ export const BoqTableView = ({
             // Insert after 'company' column (which is at index 1)
             baseColumns.splice(2, 0, {
                 accessorKey: "assigned_sales",
-                meta: { title: "Salesperson", filterVariant: 'select', filterOptions: salespersonOptions, enableSorting: true },
-                cell: ({ row }) => <span className="text-center text-sm">{getUserFullNameByEmail(row.original.assigned_sales) || "--"}</span>,
+                meta: { title: "Sales", filterVariant: 'select', filterOptions: salespersonOptions, enableSorting: true },
+                cell: ({ row }) => (
+                    <span className="text-sm">
+                        {row.original.assigned_sales
+                            ? getUserFullNameByEmail(row.original.assigned_sales)?.split(' ')[0] || row.original.assigned_sales
+                            : '—'}
+                    </span>
+                ),
             });
         }
 
@@ -422,30 +429,25 @@ export const BoqTableView = ({
     });
 
     // --- Effect for Dynamic Synchronization ---
+    // Note: Using minimal dependencies to prevent excessive re-runs
+    // tableLogic.table creates new references on each render, so we access it directly
     useEffect(() => {
         // Clear global search when a tab filter is applied/changed.
-        // This prevents confusing results where global search appears broken
-        // because it's operating on an already filtered (and possibly empty) subset.
-        tableLogic.setGlobalFilter(''); // Clear global search
+        tableLogic.setGlobalFilter('');
 
-        // Apply the tab-based status filter.
-        tableLogic.table.setColumnFilters(initialColumnFilters);
+        // Apply the tab-based status filter based on activeTabStatus
+        const newFilters = activeTabStatus !== 'All'
+            ? [{ id: 'boq_status', value: [activeTabStatus] }]
+            : [];
+        tableLogic.table.setColumnFilters(newFilters);
 
-        // Dynamically set 'actions' column visibility (boq_status is always visible now)
+        // Dynamically set 'actions' column visibility
         tableLogic.setColumnVisibility(prev => ({
             ...prev,
             actions: !isStandalonePage
         }));
-
-    }, [
-        activeTabStatus, // Trigger when tab changes
-        isStandalonePage, // Trigger when standalone mode changes
-        tableLogic.setGlobalFilter, // To clear global filter
-        tableLogic.table, // To set column filters
-        initialColumnFilters, // To ensure latest filters are applied
-        tableLogic.setColumnVisibility, // To update visibility
-        
-    ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTabStatus, isStandalonePage]);
 
 
     // --- Mobile Row Renderer ---
@@ -561,37 +563,18 @@ const calculatedGridColsClass = useMemo(() => {
             minWidth="1200px"
              gridColsClass={calculatedGridColsClass}
 
-            headerTitle="CRM BOQs"
+            headerTitle={<span className="tracking-tight">BOQs</span>}
             noResultsMessage="No BOQs found."
-            // NEW SLOT: Tabs appear above search box
+            // Minimalist animated tabs with sliding indicator
             renderTopToolbarActions={
-                <div className="flex gap-2 p-1 bg-muted rounded-md text-sm whitespace-nowrap overflow-x-auto custom-scrollbar">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setActiveTabStatus('All')}
-className={cn(
-    "px-3 h-8 text-sm font-semibold rounded-md transition-colors",
-    activeTabStatus === 'All' ? "bg-destructive text-destructive-foreground shadow" : "text-muted-foreground hover:bg-destructive"
-)}
-                    >
-                        All
-                    </Button>
-                    {statusOptions.map(option => (
-                        <Button
-                            key={option.value}
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setActiveTabStatus(option.value)}
-                           className={cn(
-    "px-3 h-8 text-sm font-semibold rounded-md transition-colors",
-    activeTabStatus === option.value ? "bg-destructive text-destructive-foreground shadow" : "text-muted-foreground hover:bg-destructive"
-)}
-                        >
-                            {option.label}
-                        </Button>
-                    ))}
-                </div>
+                <SlidingTabs
+                    tabs={[
+                        { label: 'All', value: 'All' },
+                        ...statusOptions.map(opt => ({ label: opt.label, value: opt.value }))
+                    ]}
+                    activeTab={activeTabStatus}
+                    onTabChange={setActiveTabStatus}
+                />
             }
             renderToolbarActions={(filteredData) => (
                 <DataTableExportButton

@@ -134,7 +134,11 @@ def get_modified_crm_companies():
             print(f"  Completed tasks query result: {completed_tasks}")
 
             modified_company["last_three_remarks_from_tasks"] = [
-                task.remarks for task in completed_tasks if task.remarks
+                {
+                    "remarks": task.remarks,
+                    "modified": task.modified.strftime('%Y-%m-%d') if task.modified else None
+                }
+                for task in completed_tasks if task.remarks
             ]
 
             # # Get counts of active and hot BOQs

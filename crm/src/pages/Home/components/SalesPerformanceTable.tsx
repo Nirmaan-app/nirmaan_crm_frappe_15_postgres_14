@@ -1,23 +1,26 @@
-// src/pages/Home/SalesPerformanceTable.tsx
-import React from 'react';
+// src/pages/Home/components/SalesPerformanceTable.tsx
+// Redesigned with minimalist UI consistent with data-table design system
+// Responsive: Desktop table view + Mobile card view
+
+import React, { useState, useEffect } from 'react';
 import { useFrappeGetCall } from 'frappe-react-sdk';
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, ChevronRight } from "lucide-react";
+import { Terminal, ChevronRight, Users, Calendar, FileText } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-// --- Imports from StatsGrid.tsx for dialog functionality ---
 import { useDialogStore, StatItem } from "@/store/dialogStore";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { formatDateWithOrdinal } from "@/utils/FormatDate";
 import { TaskStatusIcon } from "@/components/ui/TaskStatusIcon";
-// --- End Imports from StatsGrid.tsx ---
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Define the interface for your API response data
 interface FrappeDoc {
     name: string;
     type?: string;
@@ -26,16 +29,18 @@ interface FrappeDoc {
     task_profile?: string;
     remarks?: string;
     boq_status?: string;
-    creation?: string; // Used for TAC/BOQ
+    creation?: string;
     boq?: string;
     "contact.first_name"?: string;
     "contact.last_name"?: string;
     "company.company_name"?: string;
     company?: string;
-    priority?: string; 
-    last_meeting?: string; 
-    date_from?: string; // Will be missing for TAC
+    company_name?: string;
+    priority?: string;
+    last_meeting?: string;
+    date_from?: string;
     date_to?: string;
+    first_name?: string;
     [key: string]: any;
 }
 
@@ -43,8 +48,6 @@ interface SalesPerformanceMetric {
     user_name: string;
     full_name: string;
     email?: string;
-    
-    // Time-based metrics
     IPM_this_week: FrappeDoc[];
     IPM_last_week: FrappeDoc[];
     IPM_last_30_days: FrappeDoc[];
@@ -54,156 +57,182 @@ interface SalesPerformanceMetric {
     BOQR_this_week: FrappeDoc[];
     BOQR_last_week: FrappeDoc[];
     BOQR_last_30_days: FrappeDoc[];
-
-    // --- TIME-BASED TAC METRICS (Cumulative Active Assigned Companies) ---
     TAC_this_week: FrappeDoc[];
     TAC_last_week: FrappeDoc[];
     TAC_last_30_days: FrappeDoc[];
-    // --- END NEW TAC METRICS ---
 }
 
 interface SalesPerformanceTableProps {
     className?: string;
 }
 
-// --- Re-usable formatters (unchanged) ---
+type Period = 'this_week' | 'last_week' | 'last_30_days';
+type MetricType = 'IPM' | 'UMC' | 'BOQ' | 'TAC';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Formatters for Dialog Items
+// ─────────────────────────────────────────────────────────────────────────────
+
 const getBoqStatusClass = useStatusStyles("boq");
-const getTaskStatusClass = useStatusStyles("task");
 
 const boqNameFormatter = (item: FrappeDoc) => (
-    <Card className="w-full shadow-none border hover:shadow-md transition-shadow">
+    <Card className="w-full shadow-none border border-border/60 hover:shadow-md transition-shadow">
         <CardHeader className="p-3 pb-2">
             <CardTitle className="text-base font-bold text-primary truncate" title={item.name}>
-                {item.name}<span className=" block text-sm text-gray-400 font-light">{item.company}</span>
+                {item.name}
+                <span className="block text-sm text-muted-foreground font-normal">{item.company}</span>
             </CardTitle>
         </CardHeader>
-        <CardContent className="px-2 pt-0 flex justify-between items-center text-xs">
-            <div>
-                <span className={`font-semibold px-2 py-1 rounded-full text-xs border ${getBoqStatusClass(item.boq_status || '')}`}>
-                    {item.boq_status || 'N/A'}
-                </span>
-            </div>
-            <div className="text-muted-foreground font-medium border p-2">
-                         <span>Received on</span><br></br>
-                          {formatDateWithOrdinal(item.creation)}
-                        </div>
+        <CardContent className="px-3 pt-0 pb-3 flex justify-between items-center text-xs">
+            <span className={cn(
+                "font-medium px-2 py-1 rounded-full text-xs border",
+                getBoqStatusClass(item.boq_status || '')
+            )}>
+                {item.boq_status || 'N/A'}
+            </span>
+            <span className="text-muted-foreground">
+                Received: {formatDateWithOrdinal(item.creation)}
+            </span>
         </CardContent>
     </Card>
 );
 
 const taskNameFormatter = (item: FrappeDoc) => (
-    <div className="flex p-1 items-center space-x-2 w-full">
+    <div className="flex items-center gap-3 w-full p-2">
         <TaskStatusIcon status={item.status || 'Open'} className="flex-shrink-0" />
-                <div className="flex flex-col flex-grow min-w-0">
-                    {item.task_profile === "Sales" ? (
-                        <span className='truncate text-sm'>
-                            <span className="font-semibold">{item?.type || 'Task'}</span> with <span className="font-semibold">{item.first_name || '--'}</span>{" "}
-                            from <span className='font-medium'>{item["company.company_name"] || item.company || '--'}</span>
-                        </span>
-                    ) : (
-                        <span className='truncate text-sm'>
-                            <span className="font-semibold">{item?.type || 'Task'}</span> for  <span className="font-semibold">{item?.boq || '--'}</span>
-                        </span>
-                    )}
-
-                    {item.start_date && (
-                        <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 self-start">
-                               On: {formatDateWithOrdinal(item.start_date)}
-                        </span>
-                    )}
-
-                </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 ml-2" />
-    </div>
-);
-
-
-// --- FORMATTER for Assigned Companies (for the dialog list) ---
-const companyNameFormatter = (item: FrappeDoc) => (
-    <div className="flex p-3 items-start space-x-3 w-full border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
         <div className="flex flex-col flex-grow min-w-0">
-            {/* Row 1: Company Name (Name is the ID/Link target) */}
-            <Link to={`/companies/company?id=${item.name}`} className="font-bold text-base text-blue-600 dark:text-blue-400 hover:underline">
-                {item.company_name || item.name || 'N/A'}
-            </Link>
-            
-            {/* Row 2: Priority Status */}
-            {item.priority && (
-                <div className="flex items-center mt-1 text-xs text-gray-700 dark:text-gray-300 space-x-2">
-                    <span className='font-medium'>
-                        Priority: 
-                        <span className={`ml-1 font-bold px-2 py-0.5 rounded-full text-xs border ${item.priority === 'Hold' ? 'bg-yellow-100 text-yellow-800 border-yellow-800' : 'bg-green-100 text-green-800 border-green-800'}`}>
-                            {item.priority}
-                        </span>
-                    </span>
-                </div>
+            {item.task_profile === "Sales" ? (
+                <span className="truncate text-sm">
+                    <span className="font-semibold">{item?.type || 'Task'}</span>
+                    {' with '}
+                    <span className="font-semibold">{item.first_name || '--'}</span>
+                    {' from '}
+                    <span className="font-medium">{item["company.company_name"] || item.company || '--'}</span>
+                </span>
+            ) : (
+                <span className="truncate text-sm">
+                    <span className="font-semibold">{item?.type || 'Task'}</span>
+                    {' for '}
+                    <span className="font-semibold">{item?.boq || '--'}</span>
+                </span>
             )}
-            
-            {/* Row 3: Creation Date (New for TAC) */}
-            {item.last_meeting && (
-                <span className="inline-block text-xs text-muted-foreground mt-1 self-start">
-                    Last Meeting On: {formatDateWithOrdinal(item.last_meeting)}
+            {item.start_date && (
+                <span className="text-xs text-muted-foreground mt-1">
+                    {formatDateWithOrdinal(item.start_date)}
                 </span>
             )}
         </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 ml-2 mt-1" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
     </div>
 );
-// --- End Company Formatter ---
 
+const companyNameFormatter = (item: FrappeDoc) => (
+    <div className="flex items-start gap-3 w-full p-3 border border-border/60 rounded-lg hover:shadow-md transition-shadow">
+        <div className="flex flex-col flex-grow min-w-0">
+            <Link
+                to={`/companies/company?id=${item.name}`}
+                className="font-semibold text-primary hover:underline"
+            >
+                {item.company_name || item.name || 'N/A'}
+            </Link>
+            {item.priority && (
+                <div className="flex items-center gap-2 mt-1 text-xs">
+                    <span className="text-muted-foreground">Priority:</span>
+                    <span className={cn(
+                        "font-medium px-2 py-0.5 rounded-full text-xs border",
+                        item.priority === 'Hold'
+                            ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800'
+                    )}>
+                        {item.priority}
+                    </span>
+                </div>
+            )}
+            {item.last_meeting && (
+                <span className="text-xs text-muted-foreground mt-1">
+                    Last Meeting: {formatDateWithOrdinal(item.last_meeting)}
+                </span>
+            )}
+        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
+    </div>
+);
 
-const formatItemsForDialog = (data: FrappeDoc[], nameFormatter: (item: FrappeDoc) => React.ReactNode, type: 'Task' | 'BOQ'|'Company'): StatItem[] => {
+const formatItemsForDialog = (
+    data: FrappeDoc[],
+    nameFormatter: (item: FrappeDoc) => React.ReactNode,
+    type: 'Task' | 'BOQ' | 'Company'
+): StatItem[] => {
     return data.map(item => ({
         name: nameFormatter(item),
         id: item.name,
-        type: type, 
+        type: type,
         data: item
     }));
 };
-// --- End Re-usable formatters ---
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Period Label Helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getPeriodLabel = (period: Period): string => {
+    const labels: Record<Period, string> = {
+        'this_week': 'This Week',
+        'last_week': 'Last Week',
+        'last_30_days': '30 Days'
+    };
+    return labels[period];
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────────────────────
 
 export const SalesPerformanceTable: React.FC<SalesPerformanceTableProps> = ({ className }) => {
     const { openStatsDetailDialog } = useDialogStore();
+    const [isMobile, setIsMobile] = useState(false);
 
-    // NOTE: Changed app path to match the new structure in the Python file
-        // NOTE: Changed app path to match the new structure in the Python file
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
     const { data, isLoading, error } = useFrappeGetCall<SalesPerformanceMetric[]>(
         "nirmaan_crm.api.users.get_sales_performance.get_sales_performance_metrics",
         []
     );
 
-    const navigate=useNavigate()
+    const performanceData = data?.message || [];
 
-    const performanceData = data?.message || []; // The response is the array of metrics, no `.message` is needed here anymore
+    // ─────────────────────────────────────────────────────────────────────────
+    // Dialog Handler
+    // ─────────────────────────────────────────────────────────────────────────
 
-
-     const createDialogHandler = (
+    const createDialogHandler = (
         user: SalesPerformanceMetric,
-        metricType: 'IPM' | 'UMC' | 'BOQ'|'TAC', // TAC added
-        period?: 'this_week' | 'last_week' | 'last_30_days', 
-        data?: FrappeDoc[], 
-        count?: number 
+        metricType: MetricType,
+        period: Period,
+        data?: FrappeDoc[],
+        count?: number
     ) => () => {
-        
         let titlePrefix = "";
-        let itemsToDisplay: FrappeDoc[] = data || []; 
+        let itemsToDisplay: FrappeDoc[] = data || [];
         let formatterToUse: (item: FrappeDoc) => React.ReactNode = taskNameFormatter;
-        let dialogItemType: 'Task' | 'BOQ' | 'Company' = 'Task'; 
-        let currentCount = count !== undefined ? count : itemsToDisplay.length;
+        let dialogItemType: 'Task' | 'BOQ' | 'Company' = 'Task';
+        const currentCount = count !== undefined ? count : itemsToDisplay.length;
 
-        // Determine metrics and data source
-        if (metricType === 'TAC') { // --- NEW TAC LOGIC ---
-            titlePrefix = "Active Companies"; 
-            itemsToDisplay = user[`TAC_${period!}`] as FrappeDoc[]; // Use period to get the correct list
-            currentCount = itemsToDisplay.length;
-            formatterToUse = companyNameFormatter; 
+        if (metricType === 'TAC') {
+            titlePrefix = "Active Companies";
+            itemsToDisplay = user[`TAC_${period}`] as FrappeDoc[];
+            formatterToUse = companyNameFormatter;
             dialogItemType = 'Company';
         } else if (metricType === 'IPM') {
             titlePrefix = "Total Meetings";
             dialogItemType = 'Task';
         } else if (metricType === 'UMC') {
-            titlePrefix = "Unique Meetings (by Company)"; 
+            titlePrefix = "Unique Meetings";
             dialogItemType = 'Task';
         } else if (metricType === 'BOQ') {
             titlePrefix = "BOQ Received";
@@ -212,44 +241,29 @@ export const SalesPerformanceTable: React.FC<SalesPerformanceTableProps> = ({ cl
         }
 
         if (currentCount > 0) {
-            const spacedPeriod = period ? period.replace(/_/g, ' ') : '';
-            const capitalizedPeriod = spacedPeriod.split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' '); 
-            
-            // const title = `${user.full_name} - ${titlePrefix} ${capitalizedPeriod} (${currentCount})`;
-            // const title = `${user.full_name} - ${titlePrefix} ${capitalizedPeriod}`;
+            const dateSourceKey =
+                metricType === 'BOQ' ? `BOQR_${period}` :
+                    (metricType === 'TAC' ? `TAC_${period}` : `IPM_${period}`);
 
-           
-            // Date Range logic for all time-based metrics
-            const dateSourceKey = 
-                metricType === 'BOQ' ? `BOQR_${period}` : 
-                (metricType === 'TAC' ? `TAC_${period}` : `IPM_${period}`);
+            const title = dateSourceKey.startsWith('TAC')
+                ? `${user.full_name} - ${titlePrefix}`
+                : `${user.full_name} - ${titlePrefix} (${getPeriodLabel(period)})`;
 
-            const title = (dateSourceKey.startsWith('TAC')) ? `${user.full_name} - ${titlePrefix}` : `${user.full_name} - ${titlePrefix} ${capitalizedPeriod}`;
-                
             const dateItemsForDialog = user[dateSourceKey as keyof SalesPerformanceMetric] as FrappeDoc[] || [];
-            
-            // Special handling for TAC date range since date_from is intentionally missing
-            const dateRange = (dateSourceKey.startsWith('TAC'))
-                ? `Up to ${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_to)} `
-                : (dateItemsForDialog?.length > 0) 
-                    ? `${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_from)} to ${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_to)} `
+
+            const dateRange = dateSourceKey.startsWith('TAC')
+                ? `Up to ${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_to)}`
+                : (dateItemsForDialog?.length > 0)
+                    ? `${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_from)} to ${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_to)}`
                     : "--";
 
-            const formattedItems = formatItemsForDialog(
-                itemsToDisplay, 
-                formatterToUse, 
-                dialogItemType
-            );
+            const formattedItems = formatItemsForDialog(itemsToDisplay, formatterToUse, dialogItemType);
 
             openStatsDetailDialog({
                 title: (
                     <div className="flex flex-col">
                         <span>{title}</span>
-                        <span className="text-xs text-muted-foreground font-normal">
-                            ({dateRange})
-                        </span>
+                        <span className="text-xs text-muted-foreground font-normal">({dateRange})</span>
                     </div>
                 ),
                 items: formattedItems,
@@ -257,151 +271,280 @@ export const SalesPerformanceTable: React.FC<SalesPerformanceTableProps> = ({ cl
         }
     };
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Metric Badge Component
+    // ─────────────────────────────────────────────────────────────────────────
 
-const MeetingsCellContent: React.FC<{
-    user: SalesPerformanceMetric;
-    period: 'this_week' | 'last_week' | 'last_30_days';
-    createDialogHandler: ReturnType<typeof createDialogHandler>; // Added handler prop
-}> = ({ user, period, createDialogHandler }) => { // Destructure handler
-    // Determine the data keys dynamically
-    const ipmKey = `IPM_${period}` as keyof SalesPerformanceMetric;
-    const umcKey = `UMC_${period}` as keyof SalesPerformanceMetric;
-    const tacKey = `TAC_${period}` as keyof SalesPerformanceMetric; // TAC Key
-
-    // Safely get the items, assuming they are arrays
-    const ipmItems = (user[ipmKey] as unknown as FrappeDoc[]) || [];
-    const umcItems = (user[umcKey] as unknown as FrappeDoc[]) || [];
-    const tacItems = (user[tacKey] as unknown as FrappeDoc[]) || []; // TAC Items
-
-    const ipmCount = ipmItems.length;
-    const umcCount = umcItems.length;
-    const tacCount = tacItems.length; // TAC Count
-    
-    // Base styles for the card-like containers
-    const baseCardClass = "flex justify-between items-center bg-gray-50 dark:bg-gray-800 rounded-md p-1";
-
-    // Styles for the COUNT when it is > 0 (The RED CIRCLE/BUTTON)
-    const activeCountClass = "min-w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-red-600 transition-colors shadow-red-500/70 shadow-sm p-1.5";
-    
-    // Styles for the COUNT when it is > 0 for TAC (The BLUE CIRCLE/BUTTON)
-    const tacCountClass = "min-w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-red-600 transition-colors shadow-red-500/70 shadow-sm p-1.5";
-    // Styles for the COUNT when it is 0 (The standard gray text)
-    const inactiveCountClass = "text-sm text-gray-700 font-semibold dark:text-gray-300";
-
-const renderCount = (count: number, items: FrappeDoc[], type: 'IPM' | 'UMC' | 'TAC') => { 
+    const MetricBadge: React.FC<{
+        count: number;
+        onClick?: () => void;
+        variant?: 'default' | 'muted';
+    }> = ({ count, onClick, variant = 'default' }) => {
         const isActive = count > 0;
-        let countClass = inactiveCountClass;
 
-        if (isActive) {
-            countClass = type === 'TAC' ? tacCountClass : activeCountClass;
+        if (!isActive) {
+            return (
+                <span className="text-sm font-medium text-muted-foreground tabular-nums">
+                    {count}
+                </span>
+            );
         }
-        
+
         return (
             <span
-                className={countClass}
-                // Call createDialogHandler for the respective metric
-                onClick={isActive ? createDialogHandler(user, type, period, items, count) : undefined} 
+                onClick={onClick}
+                className={cn(
+                    "inline-flex items-center justify-center",
+                    "min-w-[24px] h-6 px-2 rounded-full",
+                    "text-xs font-semibold tabular-nums",
+                    "cursor-pointer transition-all duration-200",
+                    variant === 'default'
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                        : "bg-foreground text-background hover:bg-foreground/90"
+                )}
             >
                 {count}
             </span>
         );
     };
-    
-    return (
-        <div className="flex flex-col items-stretch justify-center h-full text-sm space-y-1">
-            {/* IPM Card (Total) */}
-            <div className={baseCardClass}>
-                <span className="text-gray-700 font-medium dark:text-gray-300">Total:</span>
-                {renderCount(ipmCount, ipmItems, 'IPM')}
-            </div>
 
-            {/* UMC Card (Unique Company) */}
-            <div className={baseCardClass}>
-                <span className="text-gray-700 font-medium dark:text-gray-300">Unique:</span>
-                {renderCount(umcCount, umcItems, 'UMC')}
-            </div>
+    // ─────────────────────────────────────────────────────────────────────────
+    // Desktop Cell Components
+    // ─────────────────────────────────────────────────────────────────────────
 
-            {/* --- TAC Card (Cumulative Active Assigned) --- */}
-            <div className={baseCardClass}>
-                <span className="text-gray-700 font-medium dark:text-gray-300">Active Companies:</span>
-                {renderCount(tacCount, tacItems, 'TAC')} 
-            </div>
-             {/* ------------------------------------------- */}
-        </div>
-    );
-};
-    
-const BoqCellContent: React.FC<{
-    user: SalesPerformanceMetric;
-    period: 'this_week' | 'last_week' | 'last_30_days';
-    createDialogHandler: ReturnType<typeof createDialogHandler>; // Added handler prop
-}> = ({ user, period, createDialogHandler }) => { // Destructure handler
-    const boqItems = user[`BOQR_${period}`] || [];
-    const boqCount = boqItems.length;
+    const MeetingsCellContent: React.FC<{
+        user: SalesPerformanceMetric;
+        period: Period;
+    }> = ({ user, period }) => {
+        const ipmItems = (user[`IPM_${period}`] as FrappeDoc[]) || [];
+        const umcItems = (user[`UMC_${period}`] as FrappeDoc[]) || [];
+        const tacItems = (user[`TAC_${period}`] as FrappeDoc[]) || [];
 
-    return (
-        <div className="flex items-center justify-center h-full text-sm">
-            {boqCount > 0 ? (
-                <div
-                    className="min-w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-red-600 transition-colors shadow-red-500/70 shadow-sm p-1.5"
+        const metrics = [
+            { label: 'Total', count: ipmItems.length, items: ipmItems, type: 'IPM' as MetricType },
+            { label: 'Unique', count: umcItems.length, items: umcItems, type: 'UMC' as MetricType },
+            { label: 'Companies', count: tacItems.length, items: tacItems, type: 'TAC' as MetricType },
+        ];
+
+        return (
+            <div className="flex flex-col gap-1.5">
+                {metrics.map(({ label, count, items, type }) => (
+                    <div key={label} className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-muted/30">
+                        <span className="text-[11px] text-muted-foreground font-medium">{label}</span>
+                        <MetricBadge
+                            count={count}
+                            onClick={createDialogHandler(user, type, period, items, count)}
+                        />
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const BoqCellContent: React.FC<{
+        user: SalesPerformanceMetric;
+        period: Period;
+    }> = ({ user, period }) => {
+        const boqItems = user[`BOQR_${period}`] || [];
+        const boqCount = boqItems.length;
+
+        return (
+            <div className="flex items-center justify-center h-full">
+                <MetricBadge
+                    count={boqCount}
                     onClick={createDialogHandler(user, 'BOQ', period, boqItems, boqCount)}
-                >
-                    {boqCount} 
-                </div>
-            ) : (
-                <span className="text-gray-700 font-semibold">
-                    {boqCount}
-                </span>
-            )}
-        </div>
-    );
-};
+                />
+            </div>
+        );
+    };
 
-// TACCellContent component is no longer needed as the logic is in MeetingsCellContent
+    // ─────────────────────────────────────────────────────────────────────────
+    // Mobile Card Component
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const MobileUserCard: React.FC<{ user: SalesPerformanceMetric }> = ({ user }) => {
+        const periods: Period[] = ['this_week', 'last_week', 'last_30_days'];
+
+        // Calculate totals for quick overview
+        const totalMeetings = periods.reduce((sum, p) =>
+            sum + (user[`IPM_${p}`]?.length || 0), 0);
+        const totalBOQs = periods.reduce((sum, p) =>
+            sum + (user[`BOQR_${p}`]?.length || 0), 0);
+        const activeCompanies = user.TAC_last_30_days?.length || 0;
+
+        return (
+            <div className="bg-card border border-border/60 rounded-lg overflow-hidden">
+                {/* Header */}
+                <div className="p-4 border-b border-border/40">
+                    <div className="flex items-center justify-between">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link
+                                        to={`/team?memberId=${user.email}`}
+                                        className="font-semibold text-primary hover:underline"
+                                    >
+                                        {user.full_name}
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{user.email}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+
+                    {/* Quick Stats */}
+                    <div className="flex items-center gap-4 mt-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>{totalMeetings} meetings</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>{totalBOQs} BOQs</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Users className="w-3.5 h-3.5" />
+                            <span>{activeCompanies} active</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Metrics Grid */}
+                <div className="p-3">
+                    <div className="grid grid-cols-3 gap-2 text-center mb-2">
+                        {periods.map(period => (
+                            <span key={period} className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                {getPeriodLabel(period)}
+                            </span>
+                        ))}
+                    </div>
+
+                    {/* Meetings Row */}
+                    <div className="mb-3">
+                        <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-1.5 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" /> Meetings
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            {periods.map(period => {
+                                const ipmItems = user[`IPM_${period}`] || [];
+                                const umcItems = user[`UMC_${period}`] || [];
+                                return (
+                                    <div key={period} className="bg-muted/40 rounded-md p-2 space-y-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] text-muted-foreground">Total</span>
+                                            <MetricBadge
+                                                count={ipmItems.length}
+                                                onClick={createDialogHandler(user, 'IPM', period, ipmItems, ipmItems.length)}
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] text-muted-foreground">Unique</span>
+                                            <MetricBadge
+                                                count={umcItems.length}
+                                                onClick={createDialogHandler(user, 'UMC', period, umcItems, umcItems.length)}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* BOQ Row */}
+                    <div className="mb-3">
+                        <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-1.5 flex items-center gap-1">
+                            <FileText className="w-3 h-3" /> BOQ Received
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            {periods.map(period => {
+                                const boqItems = user[`BOQR_${period}`] || [];
+                                return (
+                                    <div key={period} className="bg-muted/40 rounded-md p-2 flex items-center justify-center">
+                                        <MetricBadge
+                                            count={boqItems.length}
+                                            onClick={createDialogHandler(user, 'BOQ', period, boqItems, boqItems.length)}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Active Companies Row */}
+                    <div>
+                        <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-1.5 flex items-center gap-1">
+                            <Users className="w-3 h-3" /> Active Companies
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            {periods.map(period => {
+                                const tacItems = user[`TAC_${period}`] || [];
+                                return (
+                                    <div key={period} className="bg-muted/40 rounded-md p-2 flex items-center justify-center">
+                                        <MetricBadge
+                                            count={tacItems.length}
+                                            onClick={createDialogHandler(user, 'TAC', period, tacItems, tacItems.length)}
+                                            variant="muted"
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Loading State
+    // ─────────────────────────────────────────────────────────────────────────
 
     if (isLoading) {
-        // --- UPDATED LOADING STATE: REVERTED TO 7 COLUMNS ---
         return (
-            <div className={cn("sales-performance-container overflow-x-auto p-4", className)}>
-                <table className="table-auto border-collapse border border-red-500 w-full text-center">
-                    <thead className="bg-white">
-                        <tr>
-                            <th rowSpan={2} className="border border-red-500 px-4 py-2 text-red-700">User</th>
-                            <th colSpan={3} className="border border-red-500 px-4 py-2 text-red-700">In Person Meetings</th> {/* Re-styled Header */}
-                            <th colSpan={3} className="border border-red-500 px-4 py-2 text-red-700">BOQ</th>
-                        </tr>
-                        <tr>
-                            <th className="border border-red-500 px-4 py-2 text-red-700">This Week</th>
-                            <th className="border border-red-500 px-4 py-2 text-red-700">Last Week</th>
-                            <th className="border border-red-500 px-4 py-2 text-red-700">30 Days</th>
-                            <th className="border border-red-500 px-4 py-2 text-red-700">This Week</th>
-                            <th className="border border-red-500 px-4 py-2 text-red-700">Last Week</th>
-                            <th className="border border-red-500 px-4 py-2 text-red-700">30 Days</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {Array.from({ length: 3 }).map((_, i) => (
-                            <tr key={i}>
-                                <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-4 w-24 mx-auto" /></td>
-                                <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-[75px] w-24 mx-auto" /></td> {/* Increased height for 3 cards */}
-                                <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-[75px] w-24 mx-auto" /></td>
-                                <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-[75px] w-24 mx-auto" /></td>
-                                <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-4 w-12 mx-auto" /></td>
-                                <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-4 w-12 mx-auto" /></td>
-                                <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-4 w-12 mx-auto" /></td>
-                            </tr>
+            <div className={cn("bg-background p-4 border border-border/60 rounded-lg", className)}>
+                {isMobile ? (
+                    <div className="space-y-3">
+                        {Array.from({ length: 2 }).map((_, i) => (
+                            <Skeleton key={i} className="h-48 w-full rounded-lg" />
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <div className="min-w-[900px]">
+                            <div className="grid grid-cols-[180px,repeat(6,1fr)] gap-4 py-3 border-b border-border/60">
+                                {Array.from({ length: 7 }).map((_, i) => (
+                                    <Skeleton key={i} className="h-4 w-full" />
+                                ))}
+                            </div>
+                            {Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="grid grid-cols-[180px,repeat(6,1fr)] gap-4 py-4 border-b border-border/30">
+                                    <Skeleton className="h-5 w-24" />
+                                    {Array.from({ length: 3 }).map((_, j) => (
+                                        <Skeleton key={j} className="h-20 w-full" />
+                                    ))}
+                                    {Array.from({ length: 3 }).map((_, j) => (
+                                        <Skeleton key={j} className="h-6 w-8 mx-auto" />
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Error State
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (error) {
         return (
-            <Alert variant="destructive" className={cn("mt-4", className)}>
+            <Alert variant="destructive" className={cn("", className)}>
                 <Terminal className="h-4 w-4" />
-                <AlertTitle>Error fetching Sales Performance</AlertTitle>
+                <AlertTitle>Error loading Sales Performance</AlertTitle>
                 <AlertDescription>
                     {error.message || "An unexpected error occurred while loading sales data."}
                 </AlertDescription>
@@ -409,38 +552,117 @@ const BoqCellContent: React.FC<{
         );
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Mobile View
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (isMobile) {
+        return (
+            <div className={cn("space-y-3", className)}>
+                {performanceData.length === 0 ? (
+                    <div className="bg-card border border-border/60 rounded-lg p-8 text-center">
+                        <p className="text-muted-foreground text-sm">No sales performance data found.</p>
+                    </div>
+                ) : (
+                    performanceData.map((user) => (
+                        <MobileUserCard key={user.user_name} user={user} />
+                    ))
+                )}
+            </div>
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Desktop View
+    // ─────────────────────────────────────────────────────────────────────────
+
     return (
-        <div className={cn("sales-performance-container overflow-x-auto p-4", className)}>
-            <div className="max-h-[300px] overflow-y-auto">
-                <table className="table-auto border-collapse border rounded-md border-gray-500 w-full text-center">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th rowSpan={2} className="border text-primary px-4 py-2 text-red-700">User</th>
-                            <th colSpan={3} className="border text-primary px-4 py-2 text-red-700">In Person Meetings</th> {/* Re-styled Header */}
-                            <th colSpan={3} className="border text-primary px-4 py-2 text-red-700">BOQ</th>
-                        </tr>
-                        <tr>
-                            <th className="border  px-4 py-2 text-primary">This Week</th>
-                            <th className="border  px-4 py-2 text-primary">Last Week</th>
-                            <th className="border  px-4 py-2 text-primary">30 Days</th>
-                            <th className="border  px-4 py-2 text-primary">This Week</th>
-                            <th className="border  px-4 py-2 text-primary">Last Week</th>
-                            <th className="border  px-4 py-2 text-primary">30 Days</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+        <div className={cn("bg-background border border-border/60 rounded-lg overflow-hidden", className)}>
+            <div className="overflow-x-auto">
+                <div className="min-w-[900px]">
+                    {/* Header Row */}
+                    <div className="grid grid-cols-[180px,repeat(6,1fr)] border-b border-border/60 bg-muted/30">
+                        {/* User Column Header */}
+                        <div className="px-4 py-3 flex items-end">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                User
+                            </span>
+                        </div>
+
+                        {/* In Person Meetings Group */}
+                        <div className="col-span-3 border-l border-border/40">
+                            <div className="px-4 py-2 border-b border-border/40">
+                                <span className="text-[11px] font-medium uppercase tracking-wide text-primary">
+                                    In Person Meetings
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-3">
+                                {(['this_week', 'last_week', 'last_30_days'] as Period[]).map((period, idx) => (
+                                    <div
+                                        key={period}
+                                        className={cn(
+                                            "px-3 py-2 text-center",
+                                            idx > 0 && "border-l border-border/40"
+                                        )}
+                                    >
+                                        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                            {getPeriodLabel(period)}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* BOQ Group */}
+                        <div className="col-span-3 border-l border-border/40">
+                            <div className="px-4 py-2 border-b border-border/40">
+                                <span className="text-[11px] font-medium uppercase tracking-wide text-primary">
+                                    BOQ Received
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-3">
+                                {(['this_week', 'last_week', 'last_30_days'] as Period[]).map((period, idx) => (
+                                    <div
+                                        key={period}
+                                        className={cn(
+                                            "px-3 py-2 text-center",
+                                            idx > 0 && "border-l border-border/40"
+                                        )}
+                                    >
+                                        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                            {getPeriodLabel(period)}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Data Rows */}
+                    <div className="max-h-[320px] overflow-y-auto">
                         {performanceData.length === 0 ? (
-                            <tr>
-                                <td colSpan={7} className="px-4 py-4 text-center text-gray-500">No sales performance data found.</td> {/* Reverted colspan to 7 */}
-                            </tr>
+                            <div className="px-4 py-12 text-center">
+                                <p className="text-muted-foreground text-sm">No sales performance data found.</p>
+                            </div>
                         ) : (
-                            performanceData.map((user) => (
-                                <tr key={user.user_name} className="hover:bg-gray-50">
-                                    <td className="border px-4 py-2 align-middle text-left bg-gray-100 font-semibold text-primary"> 
+                            performanceData.map((user, index) => (
+                                <div
+                                    key={user.user_name}
+                                    className={cn(
+                                        "grid grid-cols-[180px,repeat(6,1fr)] items-center",
+                                        "border-b border-border/30 last:border-b-0",
+                                        "hover:bg-muted/20 transition-colors"
+                                    )}
+                                >
+                                    {/* User Name */}
+                                    <div className="px-4 py-3 bg-muted/20">
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Link to={`/team?memberId=${user.email}`} className="text-primary hover:underline font-semibold">
+                                                    <Link
+                                                        to={`/team?memberId=${user.email}`}
+                                                        className="text-primary font-semibold hover:underline block truncate"
+                                                    >
                                                         {user.full_name}
                                                     </Link>
                                                 </TooltipTrigger>
@@ -449,623 +671,41 @@ const BoqCellContent: React.FC<{
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
-                                    </td>
-                                    
-                                    {/* Meetings & TAC Columns (Combined) */}
-                                    <td className="border px-4 py-2 align-middle">
-                                        <MeetingsCellContent user={user} period="this_week" createDialogHandler={createDialogHandler} />
-                                    </td>
-                                    <td className="border px-4 py-2 align-middle">
-                                        <MeetingsCellContent user={user} period="last_week" createDialogHandler={createDialogHandler} />
-                                    </td>
-                                    <td className="border px-4 py-2 align-middle">
-                                        <MeetingsCellContent user={user} period="last_30_days" createDialogHandler={createDialogHandler} />
-                                    </td>
+                                    </div>
+
+                                    {/* Meetings Columns */}
+                                    {(['this_week', 'last_week', 'last_30_days'] as Period[]).map((period, idx) => (
+                                        <div
+                                            key={`meetings-${period}`}
+                                            className={cn(
+                                                "px-3 py-3",
+                                                idx === 0 && "border-l border-border/40"
+                                            )}
+                                        >
+                                            <MeetingsCellContent user={user} period={period} />
+                                        </div>
+                                    ))}
 
                                     {/* BOQ Columns */}
-                                    <td className="border px-4 py-2 align-middle">
-                                        <BoqCellContent user={user} period="this_week" createDialogHandler={createDialogHandler} />
-                                    </td>
-                                    <td className="border px-4 py-2 align-middle">
-                                        <BoqCellContent user={user} period="last_week" createDialogHandler={createDialogHandler} />
-                                    </td>
-                                    <td className="border px-4 py-2 align-middle">
-                                        <BoqCellContent user={user} period="last_30_days" createDialogHandler={createDialogHandler} />
-                                    </td>
-                                </tr>
+                                    {(['this_week', 'last_week', 'last_30_days'] as Period[]).map((period, idx) => (
+                                        <div
+                                            key={`boq-${period}`}
+                                            className={cn(
+                                                "px-3 py-3",
+                                                idx === 0 && "border-l border-border/40"
+                                            )}
+                                        >
+                                            <BoqCellContent user={user} period={period} />
+                                        </div>
+                                    ))}
+                                </div>
                             ))
                         )}
-                    </tbody>
-                </table>
+                    </div>
+                </div>
             </div>
         </div>
     );
 };
 
 export default SalesPerformanceTable;
-
-
-// // src/pages/Home/SalesPerformanceTable.tsx
-// import React from 'react';
-// import { useFrappeGetCall } from 'frappe-react-sdk';
-// import { cn } from "@/lib/utils";
-// import { Skeleton } from "@/components/ui/skeleton";
-// import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-// import { Terminal, ChevronRight } from "lucide-react";
-// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-// import { Link, useNavigate } from 'react-router-dom';
-
-// // --- Imports from StatsGrid.tsx for dialog functionality ---
-// import { useDialogStore, StatItem } from "@/store/dialogStore";
-// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-// import { useStatusStyles } from "@/hooks/useStatusStyles";
-// import { formatDateWithOrdinal } from "@/utils/FormatDate";
-// import { TaskStatusIcon } from "@/components/ui/TaskStatusIcon";
-// // --- End Imports from StatsGrid.tsx ---
-
-
-// // Define the interface for your API response data
-// interface FrappeDoc {
-//     name: string;
-//     type?: string;
-//     start_date?: string;
-//     status?: string;
-//     task_profile?: string;
-//     remarks?: string;
-//     boq_status?: string;
-//     creation?: string;
-//     boq?: string;
-//     "contact.first_name"?: string;
-//     "contact.last_name"?: string;
-//     "company.company_name"?: string;
-//     company?: string;
-//     date_from?: string;
-//     date_to?: string;
-//     [key: string]: any;
-// }
-
-// interface SalesPerformanceMetric {
-//     user_name: string;
-//     full_name: string;
-//     IPM_this_week: FrappeDoc[];
-//     IPM_last_week: FrappeDoc[];
-//     IPM_last_30_days: FrappeDoc[];
-//     UMC_this_week: FrappeDoc[];
-//     UMC_last_week: FrappeDoc[];
-//     UMC_last_30_days: FrappeDoc[];
-//     BOQR_this_week: FrappeDoc[];
-//     BOQR_last_week: FrappeDoc[];
-//     BOQR_last_30_days: FrappeDoc[];
-//     email?: string;
-// }
-
-// interface SalesPerformanceTableProps {
-//     className?: string;
-// }
-
-// // --- Re-usable formatters (unchanged) ---
-// const getBoqStatusClass = useStatusStyles("boq");
-// const getTaskStatusClass = useStatusStyles("task");
-
-// const boqNameFormatter = (item: FrappeDoc) => (
-//     <Card className="w-full shadow-none border hover:shadow-md transition-shadow">
-//         <CardHeader className="p-3 pb-2">
-//             <CardTitle className="text-base font-bold text-primary truncate" title={item.name}>
-//                 {item.name}<span className=" block text-sm text-gray-400 font-light">{item.company}</span>
-//             </CardTitle>
-//         </CardHeader>
-//         <CardContent className="px-2 pt-0 flex justify-between items-center text-xs">
-//             <div>
-//                 <span className={`font-semibold px-2 py-1 rounded-full text-xs border ${getBoqStatusClass(item.boq_status || '')}`}>
-//                     {item.boq_status || 'N/A'}
-//                 </span>
-//             </div>
-//             <div className="text-muted-foreground font-medium border p-2">
-//                          <span>Received on</span><br></br>
-//                           {formatDateWithOrdinal(item.creation)}
-//                         </div>
-//         </CardContent>
-//     </Card>
-// );
-
-// const taskNameFormatter = (item: FrappeDoc) => (
-//     <div className="flex p-1 items-center space-x-2 w-full">
-//         <TaskStatusIcon status={item.status || 'Open'} className="flex-shrink-0" />
-//                 <div className="flex flex-col flex-grow min-w-0">
-//                     {item.task_profile === "Sales" ? (
-//                         <span className='truncate text-sm'>
-//                             <span className="font-semibold">{item?.type || 'Task'}</span> with <span className="font-semibold">{item.first_name || '--'}</span>{" "}
-//                             from <span className='font-medium'>{item.company || '--'}</span>
-//                         </span>
-//                     ) : (
-//                         <span className='truncate text-sm'>
-//                             <span className="font-semibold">{item?.type || 'Task'}</span> for  <span className="font-semibold">{item?.boq || '--'}</span>
-//                         </span>
-//                     )}
-
-//                     {item.start_date && (
-//                         <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 self-start">
-//                                On: {formatDateWithOrdinal(item.start_date)}
-//                         </span>
-//                     )}
-
-//                 </div>
-//         <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 ml-2" />
-//     </div>
-// );
-
-
-// const formatItemsForDialog = (data: FrappeDoc[], nameFormatter: (item: FrappeDoc) => React.ReactNode, type: 'Task' | 'BOQ'): StatItem[] => {
-//     return data.map(item => ({
-//         name: nameFormatter(item),
-//         id: item.name,
-//         type: type,
-//         data: item
-//     }));
-// };
-// // --- End Re-usable formatters ---
-
-//     // --- CORRECTED HELPER FUNCTION: Get count of unique companies NOT on hold (using priority) ---
-//     const getUniqueActiveCompanyCount = (items: FrappeDoc[]): number => {
-//         const COMPANY_HOLD_STATUS = "Hold"; // Must match the value used in the backend's UMC logic
-//         const uniqueActiveCompanies = new Set<string>();
-        
-//         for (const item of items) {
-//             // Check if company ID is present AND priority is NOT 'Hold'
-//             // The priority field is fetched by the backend using dot-notation: "company.priority" 
-//             // and should be available as item.priority on the flattened FrappeDoc.
-//             if (item.company && item.priority !== COMPANY_HOLD_STATUS) { 
-//                 uniqueActiveCompanies.add(item.company);
-//             }
-//         }
-//         return uniqueActiveCompanies.size;
-//     };
-//     // -----------------------------------------------------------------------------------------
-
-//     // --- NEW HELPER FUNCTION: Get a list of the unique active companies for the tooltip ---
-//     const getUniqueActiveCompanyNames = (items: FrappeDoc[]): string[] => {
-//         const COMPANY_HOLD_STATUS = "Hold";
-//         const uniqueActiveCompanies = new Map<string, string>(); // Map<company_id, company_name>
-        
-//         for (const item of items) {
-//             if (item.company && item.priority !== COMPANY_HOLD_STATUS) { 
-//                 const companyName = item["company.company_name"] || item.company || 'N/A';
-//                 uniqueActiveCompanies.set(item.company, companyName);
-//             }
-//         }
-//         return Array.from(uniqueActiveCompanies.values());
-//     };
-//     // --------------------------------------------------------------------------------------
-
-//     const uacNameFormatter = (item: FrappeDoc) => (
-//     <div className="flex p-3 items-start space-x-3 w-full border rounded-lg hover:shadow-md transition-shadow">
-//         <div className="flex flex-col flex-grow min-w-0">
-//             {/* Row 2: Highlight Active Company Details */}
-//             {item.company && (
-//                 <div className="flex items-center mt-1 text-xs text-gray-700 dark:text-gray-300 space-x-2">
-//                     {/* Company Name (using the company_name or ID) */}
-//                     <span className='font-medium'>
-//                         Company: <span className='font-semibold text-blue-600 dark:text-blue-400'>{item["company.company_name"] || item.company || 'N/A'}</span>
-//                     </span>
-                    
-//                     {/* Company Priority Status */}
-//                     {item.priority && (
-//                         <>
-//                             <span className="text-gray-400">|</span>
-//                             <span className='font-medium'>
-//                                 Priority: 
-//                                 <span className={`ml-1 font-bold px-2 py-0.5 rounded-full text-xs border ${item.priority === 'Hold' ? 'bg-yellow-100 text-yellow-800 border-yellow-800' : 'bg-green-100 text-green-800 border-green-800'}`}>
-//                                     {item.priority}
-//                                 </span>
-//                             </span>
-//                         </>
-//                     )}
-//                 </div>
-//             )}
-            
-//             {/* Row 3: Date */}
-//             {item.last_meeting && (
-//                 <span className="inline-block text-xs text-muted-foreground mt-1 self-start">
-//                     Last Meeting On: {formatDateWithOrdinal(item.last_meeting)}
-//                 </span>
-//             )}
-
-//         </div>
-//         <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 ml-2 mt-1" />
-//     </div>
-// );
-// // --- End New Formatter ---
-
-
-// // ... (existing formatItemsForDialog, getUniqueActiveCompanyCount) ...
-
-// // --- NEW HELPER FUNCTION: Filter tasks to only include the *first* task per unique, active company ---
-//     const filterTasksByUniqueActiveCompany = (items: FrappeDoc[]): FrappeDoc[] => {
-//         const COMPANY_HOLD_STATUS = "Hold";
-//         const uniqueCompanyTasks: FrappeDoc[] = [];
-//         const uniqueCompanyIds = new Set<string>();
-
-//         for (const item of items) {
-//             // Check if the company is considered "Active" (not Hold)
-//             if (item.company && item.priority !== COMPANY_HOLD_STATUS) {
-//                 // Check if we haven't seen this active company ID yet
-//                 if (!uniqueCompanyIds.has(item.company)) {
-//                     uniqueCompanyIds.add(item.company);
-//                     // We only add a *single* representative task for the unique company dialog
-//                     uniqueCompanyTasks.push(item);
-//                 }
-//             }
-//         }
-//         return uniqueCompanyTasks;
-//     };
-    
-
-
-// export const SalesPerformanceTable: React.FC<SalesPerformanceTableProps> = ({ className }) => {
-//     const { openStatsDetailDialog } = useDialogStore();
-
-//     const { data, isLoading, error } = useFrappeGetCall<SalesPerformanceMetric[]>(
-//         "nirmaan_crm.api.users.get_sales_performance.get_sales_performance_metrics",
-//         []
-//     );
-
-//     const navigate=useNavigate()
-
-//     const performanceData = data?.message || [];
-
-//      const createDialogHandler = (
-//         user: SalesPerformanceMetric,
-//         metricType: 'IPM' | 'UMC' | 'BOQ'|'UAC',
-//         period: 'this_week' | 'last_week' | 'last_30_days',
-//         data: FrappeDoc[], // This is the raw data (IPM or BOQ list)
-//         count: number
-//     ) => () => {
-//         console.log("createDialogHandler invoked with:", { user, metricType, period, data, count });
-//         if (count > 0) {
-//             let titlePrefix = "";
-//             let itemsToDisplay: FrappeDoc[] = data; // Default to raw data
-//             let formatterToUse = taskNameFormatter; // Default formatter
-
-//             if (metricType === 'IPM') {
-//                 titlePrefix = "Total Meetings";
-//             } else if (metricType === 'UMC') {
-//                 titlePrefix = "Unique Meetings";
-//             } else if (metricType === 'BOQ') {
-//                 titlePrefix = "BOQ Received";
-//                 formatterToUse = boqNameFormatter;
-//             } else if (metricType === 'UAC') {
-//                 // --- NEW LOGIC: Filter data and use new formatter for UAC ---
-//                 titlePrefix = "Unique Active Companies";
-//                 const rawIPMData = user[`IPM_${period}`] as FrappeDoc[];
-//                 itemsToDisplay = filterTasksByUniqueActiveCompany(rawIPMData);
-//                 formatterToUse = uacNameFormatter; // <-- USE NEW FORMATTER
-//                 // The count in the dialog title will still be the original 'count' (UAC count)
-//             }
-            
-//             const spacedPeriod = period.replace(/_/g, ' ');
-
-//             // 2. Capitalize the first letter of each word
-//             const capitalizedPeriod = spacedPeriod.split(' ')
-//             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-//             .join(' '); 
-            
-//             const title = `${user.full_name} - ${titlePrefix} ${capitalizedPeriod} (${count})`;
-            
-//             // Determine date range data source
-//             const dateItemsForDialog = metricType === 'BOQ' ? user[`BOQR_${period}`] : user[`IPM_${period}`];
-             
-//             const dialogItemType = 
-//                 metricType === 'BOQ' ? 'BOQ' : 
-//                 metricType === 'UAC' ? 'UAC' : // <-- NEW: Use 'UAC' as the item type
-//                 'Task';
-//             const formattedItems = formatItemsForDialog(
-//                 itemsToDisplay, // <-- Use the filtered data (itemsToDisplay)
-//                 formatterToUse, // <-- Use the determined formatter
-//                 dialogItemType
-//             );
-//             console.log("formattedItems",formattedItems)
-
-//             const dateRange = dateItemsForDialog.length
-//                 ? `${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_from)} to ${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_to)} `
-//                 : "--";
-
-//             openStatsDetailDialog({
-//                 title: (
-//                     <div className="flex flex-col">
-//                         <span>{title}</span>
-//                         <span className="text-xs text-muted-foreground font-normal">
-//                             ({dateRange})
-//                         </span>
-//                     </div>
-//                 ),
-//                 items: formattedItems,
-//             });
-//         }
-//     };
-
-
-
-// //     // Helper to create the dialog handler for a specific metric (remains the same logic)
-// //     const createDialogHandler = (
-// //         user: SalesPerformanceMetric,
-// //         metricType: 'IPM' | 'UMC' | 'BOQ'|'UAC',
-// //         period: 'this_week' | 'last_week' | 'last_30_days',
-// //         data: FrappeDoc[],
-// //         count: number
-// //     ) => () => {
-// //         console.log("createDialogHandler invoked with:", { user, metricType, period, data, count });
-// //         if (count > 0) {
-// //             let titlePrefix = "";
-// //             if (metricType === 'IPM') titlePrefix = "Total Meetings";
-// //             else if (metricType === 'UMC') titlePrefix = "Unique Meetings";
-// //             else if (metricType === 'UAC') titlePrefix = "Unique Active Companies";
-// //             else if (metricType === 'BOQ') titlePrefix = "BOQ Received";
-// //             const spacedPeriod = period.replace(/_/g, ' ');
-
-// // // 2. Capitalize the first letter of each word
-// //     const capitalizedPeriod = spacedPeriod.split(' ')
-// //     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-// //     .join(' '); 
-// //     // Result: 'Last 30 Days'
-// //             const title = `${user.full_name} - ${titlePrefix} ${capitalizedPeriod}`;
-// //             // console.log("Dialog Title:", title);
-// //             const formattedItems = formatItemsForDialog(
-// //                 data,
-// //                 metricType === 'BOQ' ? boqNameFormatter : taskNameFormatter,
-// //                 metricType === 'BOQ' ? 'BOQ' : 'Task'
-// //             );
-// //             const dateItemsForDialog = metricType === 'BOQ' ? user[`BOQR_${period}`] : (user[`IPM_${period}`].length ? user[`IPM_${period}`] : user[`UMC_${period}`]);
-
-// //             const dateRange = dateItemsForDialog.length
-// //                 ? `${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_from)} to ${formatDateWithOrdinal(dateItemsForDialog?.[0]?.date_to)} `
-// //                 : "--";
-
-// //             openStatsDetailDialog({
-// //                 title: (
-// //                     <div className="flex flex-col">
-// //                         <span>{title}</span>
-// //                         <span className="text-xs text-muted-foreground font-normal">
-// //                             ({dateRange})
-// //                         </span>
-// //                     </div>
-// //                 ),
-// //                 items: formattedItems,
-// //             });
-// //         }
-// //     };
-
-
-//     /**
-//      * Component to render the stacked "Total: X" and "Unique: Y" for Meetings columns.
-//      * Styled to match the text-based format of UserReportTable.jsx, but with clickability.
-//      */
-
-
-// const MeetingsCellContent: React.FC<{
-//     user: SalesPerformanceMetric;
-//     period: 'this_week' | 'last_week' | 'last_30_days';
-// }> = ({ user, period }) => {
-//     // Determine the data keys dynamically
-//     const ipmKey = `IPM_${period}` as keyof SalesPerformanceMetric;
-//     const umcKey = `UMC_${period}` as keyof SalesPerformanceMetric;
-
-//     // Safely get the items, assuming they are arrays
-//     const ipmItems = (user[ipmKey] as unknown as any[]) || [];
-//     const umcItems = (user[umcKey] as unknown as any[]) || [];
-
-//     const ipmCount = ipmItems.length;
-//     const umcCount = umcItems.length;
-
-//      // *** NEW: Calculate Unique Active Company Count (UAC) ***
-//     const uacCount = getUniqueActiveCompanyCount(ipmItems);
-//     // ********************* Unique Active Company Names **********************************
-//     const uacCompanyNames = getUniqueActiveCompanyNames(ipmItems);
-//     // *********************
-
-//     // Base styles for the card-like containers
-//     const baseCardClass = "flex justify-between items-center bg-gray-50 dark:bg-gray-800 rounded-md p-1";
-
-//     // Styles for the COUNT when it is > 0 (The RED CIRCLE/BUTTON)
-//     const activeCountClass = "min-w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-red-600 transition-colors shadow-red-500/70 shadow-sm p-1.5";
-    
-//     // Styles for the COUNT when it is 0 (The standard gray text)
-//     const inactiveCountClass = "text-sm text-gray-700 font-semibold dark:text-gray-300";
-
-// const renderCount = (count: number, items: any[], type: 'IPM' | 'UMC'|'UAC') => { // <-- RENDERCOUNT NOW ACCEPTS UAC
-//         const isActive = count > 0;
-//         console.log("ipmItems", type === 'UAC')
-//         return (
-//             <span
-//                 className={isActive ? activeCountClass : inactiveCountClass}
-//                 // Call createDialogHandler for all three metric types now
-//                 onClick={isActive ? createDialogHandler(user, type as 'IPM'|'UMC'|'UAC', period, type === 'UAC' ? ipmItems : items, count) : undefined} 
-//             >
-//                 {/* The content is just the count itself */}
-//                 {count}
-//             </span>
-//         );
-//     };
-    
-//     return (
-//         <div className="flex flex-col items-stretch justify-center h-full text-sm space-y-1">
-//             {/* IPM Card (Total) */}
-//             <div className={baseCardClass}>
-//                 <span className="text-gray-700 font-medium dark:text-gray-300">Total:</span>
-//                 {renderCount(ipmCount, ipmItems, 'IPM')}
-//             </div>
-
-//             {/* UMC Card (Unique) */}
-//             <div className={baseCardClass}>
-//                 <span className="text-gray-700 font-medium dark:text-gray-300">Unique:</span>
-//                 {renderCount(umcCount, umcItems, 'UMC')}
-//             </div>
-//               {/* *** UAC Card (Unique Active Company) - BACK TO DIALOG *** */}
-//             <div className={baseCardClass}>
-//                 <span className="text-gray-700 font-medium dark:text-gray-300">Active Company:</span>
-//                 {renderCount(uacCount, ipmItems, 'UAC')} 
-//             </div>
-//             {/* ********************************************************* */}
-
-
-            
-//         </div>
-//     );
-// };
-    
-//     const BoqCellContent: React.FC<{
-//         user: SalesPerformanceMetric;
-//         period: 'this_week' | 'last_week' | 'last_30_days';
-//     }> = ({ user, period }) => {
-//         const boqItems = user[`BOQR_${period}`] || [];
-//         const boqCount = boqItems.length;
-// console.log("period",period)
-//         return (
-//             <div className="flex items-center justify-center h-full text-sm">
-//                 {boqCount > 0 ? (
-//                     <div
-//                         className="min-w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm cursor-pointer hover:bg-red-600 transition-colors shadow-red-500/70 shadow-sm p-1.5"
-//                         onClick={createDialogHandler(user, 'BOQ', period, boqItems, boqCount)}
-//                     >
-//                         {boqCount} 
-//                     </div>
-//                 ) : (
-//                     <span className="text-gray-700 font-semibold">
-//                         {boqCount}
-//                     </span>
-//                 )}
-//             </div>
-//         );
-//     };
-
-
-//     if (isLoading) {
-//         return (
-//             <div className={cn("sales-performance-container overflow-x-auto p-4", className)}>
-//                 {/* <h2 className="text-lg font-semibold text-primary mb-4">Sales Performance</h2> */}
-
-//                 <table className="table-auto border-collapse border border-red-500 w-full text-center">
-//                     <thead className="bg-white">
-//                         <tr>
-//                             <th rowSpan={2} className="border border-red-500 px-4 py-2 text-red-700">User</th>
-//                             <th colSpan={3} className="border border-red-500 px-4 py-2 text-red-700">In Person Meetings</th>
-//                             <th colSpan={3} className="border border-red-500 px-4 py-2 text-red-700">BOQ</th>
-//                         </tr>
-//                         <tr>
-//                             <th className="border border-red-500 px-4 py-2 text-red-700">This Week</th>
-//                             <th className="border border-red-500 px-4 py-2 text-red-700">Last Week</th>
-//                             <th className="border border-red-500 px-4 py-2 text-red-700">30 Days</th>
-//                             <th className="border border-red-500 px-4 py-2 text-red-700">This Week</th>
-//                             <th className="border border-red-500 px-4 py-2 text-red-700">Last Week</th>
-//                             <th className="border border-red-500 px-4 py-2 text-red-700">30 Days</th>
-//                         </tr>
-//                     </thead>
-//                     <tbody>
-//                         {Array.from({ length: 3 }).map((_, i) => (
-//                             <tr key={i}>
-//                                 <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-4 w-24 mx-auto" /></td>
-//                                 <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-10 w-24 mx-auto" /></td>
-//                                 <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-10 w-24 mx-auto" /></td>
-//                                 <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-10 w-24 mx-auto" /></td>
-//                                 <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-4 w-12 mx-auto" /></td>
-//                                 <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-4 w-12 mx-auto" /></td>
-//                                 <td className="border border-gray-400 px-4 py-2"><Skeleton className="h-4 w-12 mx-auto" /></td>
-//                             </tr>
-//                         ))}
-//                     </tbody>
-//                 </table>
-//             </div>
-//         );
-//     }
-
-//     if (error) {
-//         return (
-//             <Alert variant="destructive" className={cn("mt-4", className)}>
-//                 <Terminal className="h-4 w-4" />
-//                 <AlertTitle>Error fetching Sales Performance</AlertTitle>
-//                 <AlertDescription>
-//                     {error.message || "An unexpected error occurred while loading sales data."}
-//                 </AlertDescription>
-//             </Alert>
-//         );
-//     }
-
-//     return (
-//         <div className={cn("sales-performance-container overflow-x-auto p-4", className)}>
-//             {/* The h2 element for "Sales Performance" is commented out, uncomment and style if needed */}
-//             {/* <h2 className="text-lg font-semibold text-red-700 mb-4">Sales Performance</h2> */}
-//                         <div className="max-h-[300px] overflow-y-auto">
-
-
-//             <table className="table-auto border-collapse border rounded-md border-gray-500 w-full text-center">
-//                 <thead className="bg-gray-100"> {/* Changed background to white */}
-//                     <tr>
-//                         <th rowSpan={2} className="border text-primary px-4 py-2 text-red-700">User</th>
-//                         <th colSpan={3} className="border text-primary px-4 py-2 text-red-700">In Person Meetings</th>
-//                         <th colSpan={3} className="border text-primary px-4 py-2 text-red-700">BOQ</th>
-//                     </tr>
-//                     <tr>
-//                         <th className="border  px-4 py-2 text-primary">This Week</th>
-//                         <th className="border  px-4 py-2 text-primary">Last Week</th>
-//                         <th className="border  px-4 py-2 text-primary">30 Days</th>
-//                         <th className="border  px-4 py-2 text-primary">This Week</th>
-//                         <th className="border  px-4 py-2 text-primary">Last Week</th>
-//                         <th className="border  px-4 py-2 text-primary">30 Days</th>
-//                     </tr>
-//                 </thead>
-//                 <tbody>
-//                     {performanceData.length === 0 ? (
-//                         <tr>
-//                             <td colSpan={7} className="px-4 py-4 text-center text-gray-500">No sales performance data found.</td>
-//                         </tr>
-//                     ) : (
-//                         performanceData.map((user) => (
-//                             <tr key={user.user_name} className="hover:bg-gray-50">
-//                                 <td className="border  px-4 py-2 align-middle text-left"> {/* Left align user name */}
-//                                     <TooltipProvider>
-//                                         <Tooltip>
-//                                             <TooltipTrigger asChild>
-//                                                 <Link to={`/team?memberId=${user.email}`} className="text-primary hover:underline font-semibold">
-//                                                     {user.full_name}
-//                                                 </Link>
-//                                             </TooltipTrigger>
-//                                             <TooltipContent>
-//                                                 <p>{user.email}</p>
-//                                             </TooltipContent>
-//                                         </Tooltip>
-//                                     </TooltipProvider>
-//                                 </td>
-
-//                                 {/* Meetings Columns */}
-//                                 <td className="border  px-4 py-2 align-middle">
-//                                     <MeetingsCellContent user={user} period="this_week" />
-//                                 </td>
-//                                 <td className="border  px-4 py-2 align-middle">
-//                                     <MeetingsCellContent user={user} period="last_week" />
-//                                 </td>
-//                                 <td className="border  px-4 py-2 align-middle">
-//                                     <MeetingsCellContent user={user} period="last_30_days" />
-//                                 </td>
-
-//                                 {/* BOQ Columns */}
-//                                 <td className="border  px-4 py-2 align-middle">
-//                                     <BoqCellContent user={user} period="this_week" />
-//                                 </td>
-//                                 <td className="border  px-4 py-2 align-middle">
-//                                     <BoqCellContent user={user} period="last_week" />
-//                                 </td>
-//                                 <td className="border  px-4 py-2 align-middle">
-//                                     <BoqCellContent user={user} period="last_30_days" />
-//                                 </td>
-//                             </tr>
-//                         ))
-//                     )}
-//                 </tbody>
-//             </table>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default SalesPerformanceTable;
-
-

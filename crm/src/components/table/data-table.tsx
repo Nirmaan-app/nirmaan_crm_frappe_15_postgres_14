@@ -1,14 +1,18 @@
 // src/components/table/data-table.tsx
+// Refined with cleaner, minimalist header styling
+// PERFORMANCE: Uses row virtualization for large datasets
+
 import * as React from "react";
 import {
   flexRender,
   Row,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FilterX, Search, ArrowUpDown } from "lucide-react";
+import { FilterX, Search, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useDataTableLogic } from './hooks/useDataTableLogic';
@@ -16,6 +20,7 @@ import { DataTableColumnDef } from './utils/table-filters';
 
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 import { DataTableDateFilter } from './data-table-date-filter';
+import { ActiveFiltersDisplay } from './active-filters-display';
 
 
 // Props for the generic DataTable component
@@ -29,51 +34,109 @@ interface DataTableProps<TData> {
   containerClassName?: string; // For additional styling on the scrollable table body
   noResultsMessage?: string;
   gridColsClass: string;
-  headerTitle?: string;
+  headerTitle?: string | React.ReactNode;
   renderToolbarActions?: (filteredData: TData[], columns: DataTableColumnDef<TData>[]) => React.ReactNode;
-  renderTopToolbarActions?: React.ReactNode; // NEW PROP: Slot for content above search/reset
+  renderTopToolbarActions?: React.ReactNode;
   shouldExpandHeight?: boolean;
-  minWidth?: string; // NEW: Optional minimum width for the table content
+  minWidth?: string;
 }
+
+// Row height constants for virtualization
+const DESKTOP_ROW_HEIGHT = 52; // py-3 (12px * 2) + content (~28px)
+const MOBILE_ROW_HEIGHT = 100; // Approximate height for mobile cards
 
 export function DataTable<TData>({
   tableLogic,
   isLoading,
   onRowClick,
   renderMobileRow,
-  globalSearchPlaceholder = "Search all columns...",
+  globalSearchPlaceholder = "Search...",
   className,
   containerClassName,
-  noResultsMessage = "No results found matching your criteria.",
+  noResultsMessage = "No results found.",
   gridColsClass,
   headerTitle,
   renderToolbarActions,
-  renderTopToolbarActions, // NEW: Destructure new prop
+  renderTopToolbarActions,
   shouldExpandHeight = false,
-  minWidth, // Destructure minWidth
+  minWidth,
 }: DataTableProps<TData>) {
   const { table, globalFilter, setGlobalFilter, resetFilters, hasActiveFilters, filteredRowsCount } = tableLogic;
 
+  // Ref for the scrollable container (needed for virtualization)
+  const parentRef = React.useRef<HTMLDivElement>(null);
+
+  // Track if we're on mobile (for rendering the correct row type)
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Get current filter state for dependency tracking
+  const currentGlobalFilter = table.getState().globalFilter;
+  const currentColumnFilters = table.getState().columnFilters;
+
+  // Memoize filtered data - only recalculate when filter state actually changes
   const filteredRowsData = React.useMemo(() => {
     return table.getFilteredRowModel().rows.map(row => row.original);
-  }, [table.getState().globalFilter, table.getState().columnFilters, table.getRowModel().rows]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentGlobalFilter, currentColumnFilters, filteredRowsCount]);
 
+  // Get all rows for virtualization
+  const { rows } = table.getRowModel();
 
-  const renderColumnHeader = (header: any) => {
+  // PERFORMANCE: Row virtualizer - only renders visible rows
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => isMobile ? MOBILE_ROW_HEIGHT : DESKTOP_ROW_HEIGHT,
+    overscan: 10, // Render 10 extra rows above/below viewport for smooth scrolling
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Minimalist Column Header Renderer
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const renderColumnHeader = React.useCallback((header: any) => {
     const columnDef = header.column.columnDef as DataTableColumnDef<TData>;
     const title = columnDef.meta?.title || String(columnDef.header) || header.id;
+    const isSortable = columnDef.meta?.enableSorting;
+    const sortDirection = header.column.getIsSorted();
 
-    const renderSorting = columnDef.meta?.enableSorting && (
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => header.column.toggleSorting(header.column.getIsSorted() === "asc")}
-        className="p-1 h-auto"
-      >
-        <ArrowUpDown className="h-3.5 w-3.5" />
-      </Button>
-    );
+    // Subtle sort indicator - only shows when sorted
+    const SortIndicator = () => {
+      if (!isSortable) return null;
 
+      return (
+        <span className="inline-flex flex-col -space-y-1 ml-1">
+          <ChevronUp
+            className={cn(
+              "h-2.5 w-2.5 transition-colors",
+              sortDirection === "asc"
+                ? "text-foreground"
+                : "text-muted-foreground/30"
+            )}
+          />
+          <ChevronDown
+            className={cn(
+              "h-2.5 w-2.5 transition-colors",
+              sortDirection === "desc"
+                ? "text-foreground"
+                : "text-muted-foreground/30"
+            )}
+          />
+        </span>
+      );
+    };
+
+    // Filter component - only for columns with filter config
     const renderFilter = () => {
       switch (columnDef.meta?.filterVariant) {
         case 'select':
@@ -95,92 +158,134 @@ export function DataTable<TData>({
               title={title}
             />
           );
-        case 'text':
-            return null;
         default:
           return null;
       }
     };
 
+    const hasFilter = !!columnDef.meta?.filterVariant;
+
     return (
-      <div className="flex items-center gap-2 justify-start h-full w-full">
-        <span
+      <div className="flex items-center justify-between h-full w-full gap-1 pr-2">
+        {/* Clickable header text with sort indicator */}
+        <button
+          type="button"
           className={cn(
-            "min-w-0 whitespace-normal leading-snug", // Removed flex-1 to keep icons close
-            columnDef.meta?.enableSorting ? "cursor-pointer hover:text-foreground" : ""
+            "flex items-center text-left py-1 px-1 -ml-1 rounded transition-colors",
+            isSortable
+              ? "cursor-pointer hover:bg-muted/60 hover:text-foreground"
+              : "cursor-default"
           )}
-          onClick={columnDef.meta?.enableSorting ? () => header.column.toggleSorting(header.column.getIsSorted() === "asc") : undefined}
-          title={typeof title === 'string' ? title : undefined} // Add tooltip for truncated text
+          onClick={isSortable ? () => header.column.toggleSorting(sortDirection === "asc") : undefined}
+          disabled={!isSortable}
+          title={typeof title === 'string' ? title : undefined}
         >
-          {title}
-        </span>
-        <div className="flex items-center gap-1 flex-shrink-0 bg-background"> 
-            {renderSorting}
+          <span className="text-[11px] font-medium uppercase tracking-wide whitespace-nowrap">
+            {title}
+          </span>
+          <SortIndicator />
+        </button>
+
+        {/* Filter icon - inline at end of header */}
+        {hasFilter && (
+          <div className="flex-shrink-0">
             {renderFilter()}
-        </div>
+          </div>
+        )}
       </div>
     );
-  };
+  }, []);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className={cn("bg-background p-2 border-2 rounded-md  flex flex-col", className)}>
-      {headerTitle && <h2 className="font-semibold text-lg mb-2">{headerTitle} - {isLoading ? '...' : filteredRowsCount}</h2>}
+    <div className={cn("bg-background p-4 border border-border/60 rounded-lg flex flex-col", className)}>
+      {/* Header with count badge and active filters context */}
+      {headerTitle && (
+        <div className="flex items-center gap-3 mb-4 flex-wrap">
+          {/* Count badge - dark circle with white text */}
+          <span className={cn(
+            "inline-flex items-center justify-center",
+            "min-w-[28px] h-7 px-2 rounded-full",
+            "bg-foreground text-background",
+            "text-xs font-semibold tabular-nums",
+            "transition-all duration-300"
+          )}>
+            {isLoading ? '—' : filteredRowsCount}
+          </span>
+          <h2 className="font-semibold text-lg">{headerTitle}</h2>
+          {/* Active filters display - shows what filters are applied */}
+          <ActiveFiltersDisplay
+            table={table}
+            columnFilters={table.getState().columnFilters}
+          />
+        </div>
+      )}
 
-      {renderTopToolbarActions && ( // NEW: Render top toolbar actions if provided
+      {renderTopToolbarActions && (
         <div className="mb-4 flex-shrink-0">
           {renderTopToolbarActions}
         </div>
       )}
 
-      {/* Main Toolbar: Search and Reset Filters */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-2 flex-shrink-0">
+      {/* Toolbar: Search + Actions */}
+      <div className="flex flex-col md:flex-row gap-3 justify-between items-center mb-4 flex-shrink-0">
         <div className="relative w-full md:max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
             placeholder={globalSearchPlaceholder}
-            className="pl-10"
+            className="pl-9 h-9 text-sm bg-muted/30 border-transparent focus:border-border focus:bg-background transition-colors"
             value={globalFilter ?? ''}
-            onChange={(event) => setGlobalFilter(event.target.value)} // FIX: Ensure onChange updates globalFilter
+            onChange={(event) => setGlobalFilter(event.target.value)}
           />
         </div>
-        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto md:justify-end">
-            {renderToolbarActions && renderToolbarActions(filteredRowsData, table.getAllColumns() as DataTableColumnDef<TData>[])}
-            {hasActiveFilters && (
+        <div className="flex flex-row gap-2 w-full md:w-auto md:justify-end">
+          {renderToolbarActions && renderToolbarActions(filteredRowsData, table.getAllColumns() as DataTableColumnDef<TData>[])}
+          {hasActiveFilters && (
             <Button
-                variant="ghost"
-                onClick={resetFilters}
-                className="h-10 w-full md:w-auto"
+              variant="ghost"
+              size="sm"
+              onClick={resetFilters}
+              className="h-9 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
             >
-                Reset Filters
-                <FilterX className="ml-2 h-4 w-4 text-destructive" />
+              Clear filters
+              <FilterX className="h-3.5 w-3.5" />
             </Button>
-            )}
+          )}
         </div>
       </div>
 
-      {/* Scrollable Container for Header and Width Control */}
+      {/* Table Container */}
       <div className={cn("overflow-hidden flex flex-col", shouldExpandHeight ? "flex-1" : "")}>
-        <div 
+        <div
+          ref={parentRef}
           className={cn(
-            "overflow-auto px-2", 
-            shouldExpandHeight ? "flex-1" : "max-h-[300px]",
+            "overflow-auto",
+            shouldExpandHeight ? "flex-1" : "max-h-[400px]",
             containerClassName
           )}
         >
-          <div style={{ minWidth: minWidth ?? '100%' }} className="">
-            {/* Desktop Table Header - Sticky */}
+          <div style={{ minWidth: isMobile ? undefined : minWidth }}>
+            {/* Desktop Header - Clean, minimal */}
             <div className={cn(
-              "hidden md:grid gap-4 font-medium text-sm text-muted-foreground py-2 border-b min-h-10 items-center sticky top-0 z-10 bg-background mb-2",
+              "hidden md:grid gap-4 py-2 px-1 border-b border-border/60 items-center sticky top-0 z-10 bg-background",
               gridColsClass
             )}>
               {table.getHeaderGroups().map(headerGroup => (
                 <React.Fragment key={headerGroup.id}>
-                  {headerGroup.headers.map(header => {
+                  {headerGroup.headers.map((header, index) => {
                     if (header.isPlaceholder) return null;
+                    const isLastColumn = index === headerGroup.headers.length - 1;
                     return (
                       <div
                         key={header.id}
-                        className="flex items-center justify-between h-full min-w-0 overflow-hidden" 
+                        className={cn(
+                          "flex items-center h-full",
+                          // Vertical separator - matches header underline weight
+                          !isLastColumn && "border-r border-border/60"
+                        )}
                       >
                         {renderColumnHeader(header)}
                       </div>
@@ -190,44 +295,86 @@ export function DataTable<TData>({
               ))}
             </div>
 
-            {/* Table Rows */}
-            <div className="space-y-4 md:space-y-0 pb-2">
-              {isLoading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
-
-              {!isLoading && table.getRowModel().rows.map(row => (
-                <div key={row.id}>
-                  <div className="md:hidden">
-                    {renderMobileRow ? (
-                      <div onClick={() => onRowClick?.(row)} className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                        {renderMobileRow(row)}
-                      </div>
-                    ) : (
-                      <div onClick={() => onRowClick?.(row)} className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
-                        <p className="font-semibold text-primary">{Object.values(row.original as any).find(v => typeof v === 'string' && v.length > 0) || 'Unnamed Item'}</p>
-                        <p className="text-sm text-muted-foreground">Click for details</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div
-                    onClick={() => onRowClick?.(row)}
-                    className={cn(
-                      "hidden md:grid md:items-center md:py-2 md:border-b md:rounded-none cursor-pointer hover:bg-muted/50 transition-colors gap-4", 
-                      gridColsClass
-                    )}
-                  >
-                    {row.getVisibleCells().map(cell => (
-                      <div key={cell.id} className="text-left overflow-hidden text-ellipsis">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {/* Table Body - VIRTUALIZED */}
+            <div className="md:space-y-0">
+              {/* Loading skeleton */}
+              {isLoading && Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full rounded mb-3 md:mb-0" />
               ))}
 
-              {!isLoading && table.getRowModel().rows.length === 0 && (
-                <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
-                  <p>{noResultsMessage}</p>
+              {/* Virtualized rows container */}
+              {!isLoading && rows.length > 0 && (
+                <div
+                  style={{
+                    height: `${totalSize}px`,
+                    width: '100%',
+                    position: 'relative',
+                  }}
+                >
+                  {/* Only render visible rows */}
+                  {virtualRows.map((virtualRow) => {
+                    const row = rows[virtualRow.index];
+                    return (
+                      <div
+                        key={row.id}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: `${virtualRow.size}px`,
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                      >
+                        {/* Mobile row - only rendered on mobile */}
+                        {isMobile ? (
+                          <div className="p-1.5">
+                            {renderMobileRow ? (
+                              <div
+                                onClick={() => onRowClick?.(row)}
+                                className="p-3 bg-card border border-border/40 rounded-lg cursor-pointer hover:border-border hover:shadow-sm transition-all"
+                              >
+                                {renderMobileRow(row)}
+                              </div>
+                            ) : (
+                              <div
+                                onClick={() => onRowClick?.(row)}
+                                className="p-3 border border-border/40 rounded-lg cursor-pointer hover:bg-muted/50"
+                              >
+                                <p className="font-medium text-primary">
+                                  {Object.values(row.original as any).find(v => typeof v === 'string' && v.length > 0) || 'Item'}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          /* Desktop row - only rendered on desktop */
+                          <div
+                            onClick={() => onRowClick?.(row)}
+                            className={cn(
+                              "grid items-center py-3 px-1 border-b border-border/30 cursor-pointer",
+                              "hover:bg-muted/30 transition-colors gap-4",
+                              gridColsClass
+                            )}
+                            style={{ height: `${virtualRow.size}px` }}
+                          >
+                            {row.getVisibleCells().map(cell => (
+                              <div key={cell.id} className="text-left overflow-hidden">
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Empty state */}
+              {!isLoading && rows.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <p className="text-muted-foreground text-sm">{noResultsMessage}</p>
                 </div>
               )}
             </div>
