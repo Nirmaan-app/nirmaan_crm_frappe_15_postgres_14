@@ -84,23 +84,27 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState("By BOQ"); // Changed default to "By BOQ"
-    const [dateRange, setDateRange] = useState({ from: format(subDays(new Date(), 30), 'yyyy-MM-dd'), to: format(new Date(), 'yyyy-MM-dd') });
+    // const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
+ 
     const [assignmentFilters, setAssignmentFilters] = useState([]);
     
     // NEW: Multi-select state
     const [selectedBoqs, setSelectedBoqs] = useState<string[]>([]);
+    const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
+    const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
-    const allFilters = useMemo(() => {
-        // REMOVED: No more default filters for Sales User. Backend handles it.
-        const dateFilters = [['modified', 'between', [dateRange.from, dateRange.to]]];
-        return [...dateFilters, ...assignmentFilters];
-    }, [dateRange, assignmentFilters]);
+    // const allFilters = useMemo(() => {
+    //     const dateFilters = dateRange ? [['modified', 'between', [dateRange.from, dateRange.to]]] : [];
+    //     return [...dateFilters, ...assignmentFilters];
+    // }, [dateRange, assignmentFilters]);
 
-    const swrKey = `all-boqs-${JSON.stringify(allFilters)}`;
+    // const swrKey = `all-boqs-${JSON.stringify(allFilters)}`;
+    const swrKey = `all-boqs-${JSON.stringify(assignmentFilters)}`;
 
     const { data: boqs, isLoading } = useFrappeGetDocList<EnrichedBoq>("CRM BOQ", {
         fields: ["name", "boq_name", "boq_status","city","boq_sub_status","boq_submission_date", "boq_type","boq_value", "company", "contact", "boq_size","company.company_name", "contact.first_name","boq_link", "contact.last_name", "modified","assigned_sales"],
-        filters: allFilters,
+        filters: assignmentFilters,
         limit: 0,
         orderBy: { field: "modified", order: "desc" }
     },swrKey);
@@ -108,37 +112,71 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     // NEW: Compute unique BOQ options for the dropdown
     const boqOptions = useMemo(() => {
         if (!boqs) return [];
-        return boqs.map(b => ({ label: b.boq_name || b.name, value: b.boq_name || b.name }));
-        // Ensure uniqueness if needed, but boq.name should be unique. boq_name might not be?
-        // Using map directly for now. If boq_name is not unique, might need filtering.
+        return Array.from(new Set(boqs.map(b => b.boq_name || b.name)))
+            .map(name => ({ label: name, value: name }));
+    }, [boqs]);
+
+    const companyOptions = useMemo(() => {
+        if (!boqs) return [];
+        const companies = boqs.map(b => b.company || "").filter(Boolean);
+        return Array.from(new Set(companies)).map(c => ({ label: c, value: c }));
+    }, [boqs]);
+
+    const contactOptions = useMemo(() => {
+        if (!boqs) return [];
+        const contacts = boqs.map(b => {
+             const name = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+             return name || null;
+        }).filter(Boolean) as string[];
+        return Array.from(new Set(contacts)).map(c => ({ label: c, value: c }));
+    }, [boqs]);
+
+    const statusOptions = useMemo(() => {
+        if (!boqs) return [];
+        const statuses = boqs.map(b => b.boq_status || "").filter(Boolean);
+        return Array.from(new Set(statuses)).map(s => ({ label: s, value: s }));
     }, [boqs]);
     
     const filteredBoqs = useMemo(() => {
         if (!boqs) return [];
         
-        // Handle "By BOQ" multi-select filter
+        let filtered = boqs;
+
+        // Apply filters independently if they have values
         if (filterType === 'By BOQ' && selectedBoqs.length > 0) {
-             return boqs.filter(boq => boq.boq_name && selectedBoqs.includes(boq.boq_name));
+             filtered = filtered.filter(boq => boq.boq_name && selectedBoqs.includes(boq.boq_name));
+        } else if (filterType === 'By Company' && selectedCompanies.length > 0) {
+             filtered = filtered.filter(boq => boq.company && selectedCompanies.includes(boq.company));
+        } else if (filterType === 'By Contact' && selectedContacts.length > 0) {
+             filtered = filtered.filter(boq => {
+                 const contactName = `${boq.first_name || ''} ${boq.last_name || ''}`.trim();
+                 return selectedContacts.includes(contactName);
+             });
+        } else if (filterType === 'By Status' && selectedStatuses.length > 0) {
+             filtered = filtered.filter(boq => boq.boq_status && selectedStatuses.includes(boq.boq_status));
         }
 
-        const lowercasedQuery = searchQuery.toLowerCase().trim();
-        if (!lowercasedQuery) return boqs;
 
-        return boqs.filter(boq => {
-            switch (filterType) {
+        const lowercasedQuery = searchQuery.toLowerCase().trim();
+        if (!lowercasedQuery) return filtered;
+
+        // If search query exists, apply it on top (though typically hidden in multi-select mode)
+        return filtered.filter(boq => {
+             switch (filterType) {
+                 // For text search fallback (e.g. By Package)
+                case 'By Package': return boq.boq_type?.toLowerCase().includes(lowercasedQuery);
+                // Keep default search behavior for others if select is empty/not used
                 case 'By Company': return boq?.company?.toLowerCase().includes(lowercasedQuery);
-                
                 case 'By Contact':
                     const contactName = `${boq?.first_name || ''} ${boq?.last_name || ''}`.toLowerCase();
                     return contactName.includes(lowercasedQuery);
-                case 'By BOQ': return boq.boq_name?.toLowerCase().includes(lowercasedQuery); // Fallback for text search if no multi-select used (though UI hides input)
-                case 'By Package': return boq.boq_type?.toLowerCase().includes(lowercasedQuery);
+                case 'By BOQ': return boq.boq_name?.toLowerCase().includes(lowercasedQuery);
                 case 'By Status': return boq.boq_status?.toLowerCase().includes(lowercasedQuery);
 
                 default: return true;
             }
         });
-    }, [boqs, searchQuery, filterType, selectedBoqs]); // Added selectedBoqs dependency
+    }, [boqs, searchQuery, filterType, selectedBoqs, selectedCompanies, selectedContacts, selectedStatuses]); 
 
     // if (isLoading) { return <div className="p-4 text-center">Loading BOQs...</div>; }
     
@@ -148,12 +186,24 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         setSearchQuery,
         filterType,
         setFilterType,
-        onDateRangeChange: setDateRange,
-         dateRange: dateRange, // Use camelCase `dateRange`
+        // onDateRangeChange: setDateRange,
+        // dateRange: dateRange, // Use camelCase `dateRange`
         isMobile,
         selectedBoqs,    // Pass prop
         setSelectedBoqs, // Pass prop
-        boqOptions       // Pass prop
+        boqOptions,       // Pass prop
+        
+        selectedCompanies,
+        setSelectedCompanies,
+        companyOptions,
+
+        selectedContacts,
+        setSelectedContacts,
+        contactOptions,
+
+        selectedStatuses,
+        setSelectedStatuses,
+        statusOptions
     };
 
     return (

@@ -1,0 +1,23 @@
+{
+  "typescript": {
+    "command": "typescript-language-server",
+    "args": ["--stdio"],
+    "extensionToLanguage": {
+      ".ts": "typescript",
+      ".tsx": "typescript",
+      ".js": "typescript",
+      ".jsx": "typescript"
+    },
+    "startupTimeout": 10000,
+    "restartOnCrash": true
+  },
+  "python": {
+    "command": "pylsp",
+    "args": [],
+    "extensionToLanguage": {
+      ".py": "python"
+    },
+    "startupTimeout": 10000,
+    "restartOnCrash": true
+  }
+}

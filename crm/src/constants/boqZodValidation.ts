@@ -2,7 +2,7 @@ import * as z from "zod";
 import { nameValidationSchema } from "./nameValidation";
 
 export const boqFormSchema = z.object({
-  boq_name: nameValidationSchema,
+  // boq_name: nameValidationSchema,
   boq_size: z.coerce
     .number({
       // This message will be shown if the input cannot be converted to a number (e.g., "abc").
@@ -285,7 +285,7 @@ export const remarkBoqSchema = z.object({
 export type RemarkBoqFormValues = z.infer<typeof remarkBoqSchema>;
 
 export const boqDetailsSchema = z.object({
-  boq_name: nameValidationSchema,
+  // boq_name: nameValidationSchema,
   boq_size: z.coerce
     .number({
       invalid_type_error: "Please enter a valid number for size.",
