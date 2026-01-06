@@ -267,7 +267,7 @@ export function DataTable<TData>({
             containerClassName
           )}
         >
-          <div style={{ minWidth: minWidth ?? '100%' }}>
+          <div style={{ minWidth: isMobile ? undefined : minWidth }}>
             {/* Desktop Header - Clean, minimal */}
             <div className={cn(
               "hidden md:grid gap-4 py-2 px-1 border-b border-border/60 items-center sticky top-0 z-10 bg-background",
