@@ -18,6 +18,7 @@ import { DataTableColumnDef } from './utils/table-filters';
 
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 import { DataTableDateFilter } from './data-table-date-filter';
+import { ActiveFiltersDisplay } from './active-filters-display';
 
 
 // Props for the generic DataTable component
@@ -127,12 +128,12 @@ export function DataTable<TData>({
     const hasFilter = !!columnDef.meta?.filterVariant;
 
     return (
-      <div className="relative flex items-center h-full w-full group">
+      <div className="flex items-center justify-between h-full w-full gap-1 pr-2">
         {/* Clickable header text with sort indicator */}
         <button
           type="button"
           className={cn(
-            "flex items-center text-left py-1 rounded transition-colors",
+            "flex items-center text-left py-1 px-1 -ml-1 rounded transition-colors",
             isSortable
               ? "cursor-pointer hover:bg-muted/60 hover:text-foreground"
               : "cursor-default"
@@ -147,9 +148,9 @@ export function DataTable<TData>({
           <SortIndicator />
         </button>
 
-        {/* Filter icon - absolutely positioned to not affect layout */}
+        {/* Filter icon - inline at end of header */}
         {hasFilter && (
-          <div className="absolute -right-1 top-1/2 -translate-y-1/2">
+          <div className="flex-shrink-0">
             {renderFilter()}
           </div>
         )}
@@ -163,13 +164,25 @@ export function DataTable<TData>({
 
   return (
     <div className={cn("bg-background p-4 border border-border/60 rounded-lg flex flex-col", className)}>
-      {/* Header with count */}
+      {/* Header with count badge and active filters context */}
       {headerTitle && (
-        <div className="flex items-baseline gap-2 mb-4">
-          <h2 className="font-semibold text-lg">{headerTitle}</h2>
-          <span className="text-sm text-muted-foreground tabular-nums">
+        <div className="flex items-center gap-3 mb-4 flex-wrap">
+          {/* Count badge - dark circle with white text */}
+          <span className={cn(
+            "inline-flex items-center justify-center",
+            "min-w-[28px] h-7 px-2 rounded-full",
+            "bg-foreground text-background",
+            "text-xs font-semibold tabular-nums",
+            "transition-all duration-300"
+          )}>
             {isLoading ? '—' : filteredRowsCount}
           </span>
+          <h2 className="font-semibold text-lg">{headerTitle}</h2>
+          {/* Active filters display - shows what filters are applied */}
+          <ActiveFiltersDisplay
+            table={table}
+            columnFilters={table.getState().columnFilters}
+          />
         </div>
       )}
 
@@ -223,12 +236,17 @@ export function DataTable<TData>({
             )}>
               {table.getHeaderGroups().map(headerGroup => (
                 <React.Fragment key={headerGroup.id}>
-                  {headerGroup.headers.map(header => {
+                  {headerGroup.headers.map((header, index) => {
                     if (header.isPlaceholder) return null;
+                    const isLastColumn = index === headerGroup.headers.length - 1;
                     return (
                       <div
                         key={header.id}
-                        className="flex items-center h-full overflow-visible"
+                        className={cn(
+                          "flex items-center h-full",
+                          // Vertical separator - matches header underline weight
+                          !isLastColumn && "border-r border-border/60"
+                        )}
                       >
                         {renderColumnHeader(header)}
                       </div>
