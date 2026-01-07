@@ -1,6 +1,7 @@
 // src/pages/Tasks/TasksVariantPage.tsx
 import { useViewport } from "@/hooks/useViewPort";
 import { format, subDays } from "date-fns";
+import { MultiValue } from 'react-select'; // Import MultiValue
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -80,8 +81,8 @@ export const TasksVariantPage = ({ variant, from: fromProp, to: toProp }: TasksV
 
     const { isMobile } = useViewport();
 
-    const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState("By Contact"); // Default filter type
+    const [selectedValues, setSelectedValues] = useState<{ label: string; value: string }[]>([]);
 
     // This hook will read `from` and `to` from the URL query string.
     const [params, setParams] = useStatesSyncedWithParams([
@@ -93,18 +94,6 @@ export const TasksVariantPage = ({ variant, from: fromProp, to: toProp }: TasksV
     const finalFrom = fromProp || params.from;
     const finalTo = toProp || params.to;
     const assignedToFilter = params.assigned_to; // The string 'user1@email.com,user2@email.com'
-
-    // const filters = useMemo(() => {
-    //     const today = new Date().toISOString().slice(0, 10);
-    //     let statusFilter;
-    //     switch (variant) {
-    //         case 'pending': statusFilter = ['!=', 'Completed']; break;
-    //         case 'upcoming': statusFilter = ['=', 'Scheduled']; break;
-    //         default: statusFilter = ['!=', '']; break;
-    //     }
-    //     return [['status', statusFilter[0], statusFilter[1]], ['start_date', 'between', [finalFrom, finalTo]]];
-    // }, [variant, finalFrom, finalTo]);
-    // 2. UPDATE THE FILTERS useMemo hook to include the assignment filter.
 
     const handleDateRangeChange = (range: { from: string, to: string }) => {
         setParams({ from: range.from, to: range.to });
@@ -150,6 +139,46 @@ export const TasksVariantPage = ({ variant, from: fromProp, to: toProp }: TasksV
         orderBy: { field: "start_date", order: "desc" }
     }, swrKey);
 
+    // Compute options for the multiselect based on the current filterType and available data
+    const filterOptions = useMemo(() => {
+        if (!tasksData) return [];
+
+        const enriched = tasksData.map(task => ({
+            ...task,
+            contact_name: `${task.first_name || ''} ${task.last_name || ''}`.trim() || 'N/A',
+            company_name: task["company.company_name"] || task.company || 'N/A'
+        }));
+
+        let rawOptions: string[] = [];
+
+        switch (filterType) {
+            case "By Contact":
+                rawOptions = Array.from(new Set(enriched.map(t => t.contact_name).filter(Boolean)));
+                break;
+            case "By Company":
+                rawOptions = Array.from(new Set(enriched.map(t => t.company_name).filter(Boolean)));
+                break;
+            case "By Type":
+                rawOptions = Array.from(new Set(enriched.map(t => t.type).filter(Boolean)));
+                break;
+            default:
+                return [];
+        }
+
+        return rawOptions.map(opt => ({ label: opt, value: opt }));
+    }, [tasksData, filterType]);
+
+    // Clear selected values when filter type changes
+    const handleFilterTypeChange = (newType: string) => {
+        setFilterType(newType);
+        setSelectedValues([]);
+    };
+
+    // Handler to safely cast MultiValue to the state type
+    const handleSelectedValuesChange = (newValues: MultiValue<{ label: string; value: string }>) => {
+        setSelectedValues(newValues as { label: string; value: string }[]);
+    };
+
     const filteredTasks = useMemo(() => {
         const enriched = tasksData?.map(task => ({
             ...task,
@@ -157,21 +186,22 @@ export const TasksVariantPage = ({ variant, from: fromProp, to: toProp }: TasksV
             company_name: task["company.company_name"] || task.company || 'N/A'
         })) || [];
 
-        const lowercasedQuery = searchQuery.toLowerCase().trim();
-        if (!lowercasedQuery) return enriched;
+        if (selectedValues.length === 0) return enriched;
+
+        const selectedStrings = new Set(selectedValues.map(v => v.value));
 
         // This switch statement makes the search targeted
         switch (filterType) {
             case "By Contact":
-                return enriched.filter(task => task.contact_name.toLowerCase().includes(lowercasedQuery));
+                return enriched.filter(task => selectedStrings.has(task.contact_name));
             case "By Company":
-                return enriched.filter(task => task.company_name.toLowerCase().includes(lowercasedQuery));
+                return enriched.filter(task => selectedStrings.has(task.company_name));
             case "By Type":
-                return enriched.filter(task => task.type.toLowerCase().includes(lowercasedQuery));
+                return enriched.filter(task => selectedStrings.has(task.type));
             default:
                 return enriched;
         }
-    }, [tasksData, searchQuery, filterType]); // Add filterType as a dependency
+    }, [tasksData, selectedValues, filterType]); 
 
     const title = `${variant.charAt(0).toUpperCase() + variant.slice(1)} Tasks - ${filteredTasks.length}`;
 
@@ -190,10 +220,11 @@ export const TasksVariantPage = ({ variant, from: fromProp, to: toProp }: TasksV
             </div>
 
             <TaskListHeader
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
                 filterType={filterType}
-                setFilterType={setFilterType}
+                setFilterType={handleFilterTypeChange}
+                options={filterOptions}
+                selectedValues={selectedValues}
+                setSelectedValues={handleSelectedValuesChange}
                 onDateRangeChange={handleDateRangeChange}
                 dateRange={{ from: finalFrom, to: finalTo }}
             />
