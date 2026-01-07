@@ -253,7 +253,11 @@ export const BoqTableView = ({
                 accessorKey: "boq_name",
                 meta: { title: "Project Name", enableSorting: true },
                 cell: ({ row }) => (
-                    <Link to={`/boqs/boq?id=${row.original.name}&statusTab=${activeTabStatus}`} className="text-primary font-semibold hover:underline text-left">
+                    <Link 
+                        to={`/boqs/boq?id=${row.original.name}&statusTab=${activeTabStatus}`} 
+                        className="text-primary font-semibold hover:underline text-left block"
+                        title={row.original.boq_name}
+                    >
                         {row.original.boq_name}
                     </Link>
                 ),
@@ -269,7 +273,7 @@ export const BoqTableView = ({
         //     accessorKey: "assigned_sales",
         //     meta: { title: "Salesperson", filterVariant: 'select', filterOptions: salespersonOptions, enableSorting: true },
         //     cell: ({ row }) => <span className="text-center text-sm">{getUserFullNameByEmail(row.original.assigned_sales) || "--"}</span>,
-         
+        //  
         // },
         
             {
@@ -525,19 +529,19 @@ const calculatedGridColsClass = useMemo(() => {
     if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
         // 7 data columns + Actions
         // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr,60px]";
+        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr,60px]";
     } else if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
         // 7 data columns, no Actions
         // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status)
-        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr]";
+        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr]";
     } else if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
         // 6 data columns + Actions
         // (boq_name, company, boq_status, boq_sub_status, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1fr,1fr,60px,1fr]";
+        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1fr,1fr,60px,1fr]";
     } else { // !isSubmissionDateColumnVisible && !isActionsColumnVisible
         // 6 data columns, no Actions
         // (boq_name, company, boq_status, boq_sub_status, modified, deal_status)
-        gridTemplate = "md:grid-cols-[1fr,1.2fr,1fr,1fr,1fr,1fr,1fr,1fr]";
+        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1fr,1fr,1fr]";
     }
 
     return gridTemplate;

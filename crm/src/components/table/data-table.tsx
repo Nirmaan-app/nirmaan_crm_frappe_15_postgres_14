@@ -302,6 +302,7 @@ export function DataTable<TData>({
                 <Skeleton key={i} className="h-14 w-full rounded mb-3 md:mb-0" />
               ))}
 
+
               {/* Virtualized rows container */}
               {!isLoading && rows.length > 0 && (
                 <div
@@ -317,12 +318,13 @@ export function DataTable<TData>({
                     return (
                       <div
                         key={row.id}
+                        data-index={virtualRow.index}
+                        ref={rowVirtualizer.measureElement}
                         style={{
                           position: 'absolute',
                           top: 0,
                           left: 0,
                           width: '100%',
-                          height: `${virtualRow.size}px`,
                           transform: `translateY(${virtualRow.start}px)`,
                         }}
                       >
@@ -356,7 +358,6 @@ export function DataTable<TData>({
                               "hover:bg-muted/30 transition-colors gap-4",
                               gridColsClass
                             )}
-                            style={{ height: `${virtualRow.size}px` }}
                           >
                             {row.getVisibleCells().map(cell => (
                               <div key={cell.id} className="text-left overflow-hidden">
