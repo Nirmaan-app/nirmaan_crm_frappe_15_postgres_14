@@ -18,6 +18,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStatusStyles } from "@/hooks/useStatusStyles";
 import { useStatesSyncedWithParams } from "@/hooks/useSearchParamsManager";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 type EnrichedCRMTask = CRMTask & {
     contact_name?: string;
     company_name?: string;
@@ -208,117 +210,147 @@ export const TasksVariantPage = ({ variant, from: fromProp, to: toProp }: TasksV
     if (isLoading) { return <div>Loading tasks...</div>; }
 
     return (
-        <div className="space-y-4">
-            <div className="space-y-1">
-                {/* Top Row: Title on left, Date Range on right */}
-                <div className="flex justify-between items-center">
-                    <h1 className="text-xl font-bold">{title}</h1>
-                    <DateRangeDisplay from={finalFrom} to={finalTo} />
+        <TooltipProvider>
+            <div className="space-y-4">
+                <div className="space-y-1">
+                    {/* Top Row: Title on left, Date Range on right */}
+                    <div className="flex justify-between items-center">
+                        <h1 className="text-xl font-bold">{title}</h1>
+                        <DateRangeDisplay from={finalFrom} to={finalTo} />
+                    </div>
+                    {/* Bottom Row: Assigned users list (only shows if filters are active) */}
+                    <AssignedUsersDisplay assignedUsersString={assignedToFilter} />
                 </div>
-                {/* Bottom Row: Assigned users list (only shows if filters are active) */}
-                <AssignedUsersDisplay assignedUsersString={assignedToFilter} />
-            </div>
 
-            <TaskListHeader
-                filterType={filterType}
-                setFilterType={handleFilterTypeChange}
-                options={filterOptions}
-                selectedValues={selectedValues}
-                setSelectedValues={handleSelectedValuesChange}
-                onDateRangeChange={handleDateRangeChange}
-                dateRange={{ from: finalFrom, to: finalTo }}
-            />
+                <TaskListHeader
+                    filterType={filterType}
+                    setFilterType={handleFilterTypeChange}
+                    options={filterOptions}
+                    selectedValues={selectedValues}
+                    setSelectedValues={handleSelectedValuesChange}
+                    onDateRangeChange={handleDateRangeChange}
+                    dateRange={{ from: finalFrom, to: finalTo }}
+                />
 
-            {/* 5. RESPONSIVE TABLE DESIGN */}
-            <Card className="mt-4 p-0">
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                {/* This column is visible on all screen sizes */}
-                                <TableHead>Task Details</TableHead>
-
-                                {/* These columns will ONLY appear on desktop (md screens and up) */}
-                                {/* <TableHead className="hidden md:table-cell">Company</TableHead>
-                                <TableHead className="hidden md:table-cell">Status</TableHead> */}
-                                <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
-
-                                <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
-
-
-
-
-                                {/* Chevron column */}
-                                <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredTasks.length > 0 ? (
-                                filteredTasks.map((task) => (
-                                    <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
-
-                                        {/* --- MOBILE & DESKTOP: Combined Cell --- */}
-                                        <TableCell>
-                                            {isMobile ?
-                                                (<div className="flex items-center gap-3">
-                                                    <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                                    <div className="flex flex-col">
-                                                        {
-                                                            task.task_profile === "Sales" ? (<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}
-
-
-                                                            </span>) : (<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}
-                                                            </span>)
-                                                        }
-                                                        {task.remarks && (<span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
-                                                            Remarks: {task.remarks}
-                                                        </span>)}
-                                                        {/* On mobile, show the date here. Hide it on larger screens. */}
-                                                        <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
-                                                            Scheduled for: {formatDateWithOrdinal(task.start_date)}
-                                                        </span>
-                                                    </div>
-                                                </div>) : (<div className="flex items-center gap-3">
-                                                    <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
-                                                    <div >
-                                                        {/* <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`}</span> */}
-                                                        {
-                                                            task.task_profile === "Sales" ? (<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}
-
-
-                                                            </span>) : (<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}
-                                                            </span>)
-                                                        }
-
-                                                    </div>
-                                                </div>)}
-                                        </TableCell>
-
-                                        {/* --- DESKTOP ONLY Cells --- */}
-                                        {/* <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
-                                        <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell> */}
-                                        <TableCell className="hidden md:table-cell text-center">{task.remarks || "--"}</TableCell>
-
-                                        <TableCell className="hidden md:table-cell text-right">
-                                            <div className="flex flex-col items-center">
-                                                <span>{formatDateWithOrdinal(task.start_date)}</span>
-
-                                            </div>
-                                        </TableCell>
-
-
-                                        <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
+                {/* 5. RESPONSIVE TABLE DESIGN */}
+                <Card className="mt-4 p-0">
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center h-24">No tasks found in this category.</TableCell>
+                                    {/* This column is visible on all screen sizes */}
+                                    <TableHead>Task Details</TableHead>
+
+                                    {/* These columns will ONLY appear on desktop (md screens and up) */}
+                                    {/* <TableHead className="hidden md:table-cell">Company</TableHead>
+                                    <TableHead className="hidden md:table-cell">Status</TableHead> */}
+                                    <TableHead className="hidden md:table-cell text-center">Remarks</TableHead>
+
+                                    <TableHead className="hidden md:table-cell text-center">Scheduled for</TableHead>
+
+
+
+
+                                    {/* Chevron column */}
+                                    <TableHead className="w-[5%]"><span className="sr-only">View</span></TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredTasks.length > 0 ? (
+                                    filteredTasks.map((task) => (
+                                        <TableRow key={task.name} onClick={() => isMobile ? navigate(`/tasks/task?id=${task.name}`) : navigate(`/tasks?id=${task.name}`)} className="cursor-pointer">
+
+                                            {/* --- MOBILE & DESKTOP: Combined Cell --- */}
+                                            <TableCell>
+                                                {isMobile ?
+                                                    (<div className="flex items-center gap-3">
+                                                        <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                        <div className="flex flex-col">
+                                                            {
+                                                                task.task_profile === "Sales" ? (<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}
+
+
+                                                                </span>) : (<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}
+                                                                </span>)
+                                                            }
+                                                            {task.remarks && (<span className="inline-block text-xs   rounded-md  py-0.5 mt-1 md:hidden self-start">
+                                                                Remarks: {task.remarks}
+                                                            </span>)}
+                                                            {/* On mobile, show the date here. Hide it on larger screens. */}
+                                                            <span className="inline-block text-xs text-muted-foreground border border-gray-300 dark:border-gray-600 rounded-md px-1.5 py-0.5 mt-1 md:hidden self-start">
+                                                                Scheduled for: {formatDateWithOrdinal(task.start_date)}
+                                                            </span>
+                                                        </div>
+                                                    </div>) : (<div className="flex items-center gap-3">
+                                                        <TaskStatusIcon status={task.status} className=" flex-shrink-0" />
+                                                        <div >
+                                                            {/* <span className="font-medium">{`${task.type} with ${task.first_name} from ${task.company_name}`}</span> */}
+                                                            {
+                                                                task.task_profile === "Sales" ? (<span>                                                <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "}from  {task?.company} {" "}
+
+
+                                                                </span>) : (<span>                                                <span className="font-semibold">{task?.type}</span> for  {task?.boq} {" "}
+                                                                </span>)
+                                                            }
+
+                                                        </div>
+                                                    </div>)}
+                                            </TableCell>
+
+                                            {/* --- DESKTOP ONLY Cells --- */}
+                                            {/* <TableCell className="hidden md:table-cell">{task.company_name}</TableCell>
+                                            <TableCell className="hidden md:table-cell"><StatusPill status={task.status} /></TableCell> */}
+                                            <TableCell className="hidden md:table-cell text-center">
+                                                {(() => {
+                                                    const remarks = task.remarks;
+                                                    if (!remarks) return <span className="text-sm">--</span>;
+                                                    
+                                                    // 200 character limit as requested
+                                                    if (remarks.length <= 200) {
+                                                        return <span className="text-xs">{remarks}</span>;
+                                                    }
+
+                                                    const truncatedRemarks = `${remarks.substring(0, 200)}...`;
+                                                    
+                                                    return (
+                                                        <div className="flex gap-1 justify-center">
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    {/* No line-clamp here to allow dynamic height based on content */}
+                                                                    <div className="flex items-center justify-center h-auto min-h-[24px] w-auto px-2 py-1 text-xs cursor-pointer text-center max-w-[280px] break-words">
+                                                                        {truncatedRemarks}
+                                                                    </div>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent className="max-w-[300px] text-wrap break-words">
+                                                                    <p>{remarks}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </TableCell>
+
+                                            <TableCell className="hidden md:table-cell text-right">
+                                                <div className="flex flex-col items-center">
+                                                    <span>{formatDateWithOrdinal(task.start_date)}</span>
+
+                                                </div>
+                                            </TableCell>
+
+
+                                            <TableCell><ChevronRight className="w-4 h-4 text-muted-foreground" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center h-24">No tasks found in this category.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </div>
+        </TooltipProvider>
     );
 };
