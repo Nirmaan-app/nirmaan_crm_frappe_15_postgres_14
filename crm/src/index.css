@@ -59,6 +59,17 @@ body, html {
         --chart-4: 356 70% 40%; /* Darker red */
         --chart-5: 20 80% 55%; /* Orange accent */
 
+        /* Calendar accent - uses brand red for consistency */
+        --calendar-accent: 356 61% 52%;
+        --calendar-accent-foreground: 0 0% 100%;
+
+        /* Construction theme - Industrial palette */
+        --slate-surface: 220 13% 95%;
+        --slate-border: 220 13% 85%;
+        --concrete: 220 10% 92%;
+        --steel: 220 13% 46%;
+        --industrial-accent: 356 61% 52%;
+
         --navbar-height: 80px;
         --sidebar-width: 140px;
         --notifications-width: 300px;
@@ -102,6 +113,17 @@ body, html {
         --chart-3: 0 0% 70%;
         --chart-4: 356 70% 45%;
         --chart-5: 25 85% 60%;
+
+        /* Calendar accent - uses brand red for dark mode */
+        --calendar-accent: 356 61% 55%;
+        --calendar-accent-foreground: 0 0% 100%;
+
+        /* Construction theme - Industrial palette (dark) */
+        --slate-surface: 220 13% 10%;
+        --slate-border: 220 13% 20%;
+        --concrete: 220 10% 12%;
+        --steel: 220 13% 60%;
+        --industrial-accent: 356 61% 55%;
 
         --navbar-height: 80px;
         --sidebar-width: 140px;
@@ -147,7 +169,7 @@ body, html {
 }
 
 .rdp-modifier-hasTask button {
-  /* 
+  /*
     This applies the underline style from Tailwind CSS.
     The font-semibold makes it stand out a bit more.
   */
