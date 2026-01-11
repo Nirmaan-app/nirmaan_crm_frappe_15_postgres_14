@@ -25,6 +25,7 @@ import { BoqDealStatusCard } from "./components/BoqDealStatusCard";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
 import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
+import { parsePackages } from "@/constants/boqPackages";
 
 // ============================================================================================
 // START OF CHANGES: Implementing the new Task Creation Handler and Role-Based Filtering
@@ -534,10 +535,23 @@ const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRM
             </div>
             {/* Top Details Section */}
             <div className="grid grid-cols-2 gap-y-5 gap-x-20">
-                <DetailItem label="Size (Sqft)" value={boq?.boq_size || 'N/A'} />
+                <DetailItem label="Carpet Area (Sqft)" value={boq?.boq_size || 'N/A'} />
                 <DetailItem label="BOQ Value" value={`${boq?.boq_value} Lakhs` || 'N/A'} />
 
-                <DetailItem label="Package" value={boq?.boq_type || 'N/A'} />
+                <div>
+                    <p className="text-xs text-muted-foreground">Packages</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                        {parsePackages(boq?.boq_type).length > 0 ? (
+                            parsePackages(boq?.boq_type).map((pkg, idx) => (
+                                <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                                    {pkg}
+                                </span>
+                            ))
+                        ) : (
+                            <p className="font-semibold">N/A</p>
+                        )}
+                    </div>
+                </div>
                 <DetailItem label="City" value={boq?.city || 'N/A'} />
 
                 <DetailItem label="Submission Deadline" value={formatDateWithOrdinal(boq?.boq_submission_date) || "--"} />

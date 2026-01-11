@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'; // For combining Tailwind classes
 import { ChevronRight } from 'lucide-react';
 import { SlidingTabs } from '@/components/ui/sliding-tabs';
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
+import { parsePackages } from "@/constants/boqPackages";
 
 
 // Interface for the BOQ data
@@ -487,8 +488,14 @@ export const BoqTableView = ({
                 exportValue: (row) => row.contact ? (getUserFullNameByEmail(row.contact) || row.contact) : ''
             }
         },
-        { accessorKey: "boq_size", meta: { exportHeaderName: "BOQ Size" } },
-        { accessorKey: "boq_type", meta: { exportHeaderName: "BOQ Type" } },
+        { accessorKey: "boq_size", meta: { exportHeaderName: "Carpet Area" } },
+        {
+            accessorKey: "boq_type",
+            meta: {
+                exportHeaderName: "Packages",
+                exportValue: (row) => parsePackages(row.boq_type).join(', ')
+            }
+        },
         { accessorKey: "boq_value", meta: { exportHeaderName: "BOQ Value", isCurrency: true } },
         { accessorKey: "boq_submission_date", meta: { exportHeaderName: "Submission Date" } },
         { accessorKey: "boq_link", meta: { exportHeaderName: "BOQ Link" } },

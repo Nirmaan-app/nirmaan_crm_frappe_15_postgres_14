@@ -25,7 +25,7 @@ export const boqFormSchema = z.object({
     .nullable()
     .optional(),
   // boq_size: z.number().optional(),
-  boq_type: z.string().optional(),
+  boq_type: z.array(z.string()).optional().default([]),
   // boq_value: z.number().optional(),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
@@ -303,7 +303,7 @@ export const boqDetailsSchema = z.object({
     .nonnegative({ message: "Value must be a positive number." })
     .nullable()
     .optional(),
-  boq_type: z.string().optional(),
+  boq_type: z.array(z.string()).optional().default([]),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
   city: z.string().optional(),

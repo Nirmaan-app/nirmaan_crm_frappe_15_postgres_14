@@ -16,6 +16,7 @@ import { useViewport } from "@/hooks/useViewPort";
 import { BoqListHeader } from "./BoqListHeader"; // Import the new header component
 import { AssignmentFilterControls } from "@/components/ui/AssignmentFilterControls";
 import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
+import { parsePackages } from "@/constants/boqPackages";
 
 
 type EnrichedBoq = CRMBOQ & { "company.company_name"?: string; "contact.first_name"?: string; "contact.last_name"?: string; };
@@ -163,8 +164,8 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         // If search query exists, apply it on top (though typically hidden in multi-select mode)
         return filtered.filter(boq => {
              switch (filterType) {
-                 // For text search fallback (e.g. By Package)
-                case 'By Package': return boq.boq_type?.toLowerCase().includes(lowercasedQuery);
+                 // For text search fallback (e.g. By Package) - search within parsed packages array
+                case 'By Package': return parsePackages(boq.boq_type).some(pkg => pkg.toLowerCase().includes(lowercasedQuery));
                 // Keep default search behavior for others if select is empty/not used
                 case 'By Company': return boq?.company?.toLowerCase().includes(lowercasedQuery);
                 case 'By Contact':
