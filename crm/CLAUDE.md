@@ -4,6 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the React frontend directory. See parent `../.claude/CLAUDE.md` for full-stack overview including backend DocTypes, API patterns, and deployment.
 
+## Quick Reference
+
+| Documentation | When to Read |
+|---------------|--------------|
+| [.claude/context/role-access.md](.claude/context/role-access.md) | Working with authorization, route guards, role-based UI |
+| [.claude/context/hooks.md](.claude/context/hooks.md) | Understanding/creating custom hooks, data fetching |
+| [../.claude/context/apis.md](../.claude/context/apis.md) | Backend API endpoints for frontend integration |
+| [../BACKEND_ARCHITECTURE.md](../BACKEND_ARCHITECTURE.md) | Full backend reference |
+
 ## Commands
 
 ```bash
