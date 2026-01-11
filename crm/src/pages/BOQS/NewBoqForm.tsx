@@ -16,6 +16,8 @@ import {useUserRoleLists} from "@/hooks/useUserRoleLists"
 import { BOQmainStatusOptions,BOQsubStatusOptions } from "@/constants/dropdownData";
 import { LocationOptions } from "@/constants/dropdownData";
 import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
+import { PackagesMultiSelect } from "./components/PackagesMultiSelect";
+import { serializePackages } from "@/constants/boqPackages";
 
 // Schema based on your Frappe Doctype and UI Mockup
 const boqFormSchema = z.object({
@@ -42,7 +44,7 @@ const boqFormSchema = z.object({
       .nullable()
       .optional(),
   // boq_size: z.number().optional(),
-  boq_type: z.string().optional(),
+  boq_type: z.array(z.string()).optional().default([]),
   // boq_value: z.number().optional(),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
@@ -314,8 +316,8 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
     form.reset({
       company: companyId || "",
       contact: contactIdFromContext || "",
-      boq_name: "", boq_size: "", boq_type: "", boq_value: "",
-      boq_submission_date: "", boq_link: "", 
+      boq_name: "", boq_size: "", boq_type: [], boq_value: "",
+      boq_submission_date: "", boq_link: "",
       city:
       
       "", remarks: "", assigned_sales: "",assigned_estimations:"",
@@ -387,10 +389,15 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
         return; // Stop the function here
       }
 
-      const dataToSubmit = { ...values };
+      const dataToSubmit: any = { ...values };
 
-         if (dataToSubmit.city === "Others") {
-          dataToSubmit.city = dataToSubmit.other_city?.trim() || "";
+      // Serialize packages array to JSON string for backend storage
+      if (dataToSubmit.boq_type && Array.isArray(dataToSubmit.boq_type)) {
+        dataToSubmit.boq_type = serializePackages(dataToSubmit.boq_type);
+      }
+
+      if (dataToSubmit.city === "Others") {
+        dataToSubmit.city = dataToSubmit.other_city?.trim() || "";
       }
       // Remove the temporary other_city field from the payload
       delete dataToSubmit.other_city;
@@ -544,9 +551,21 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                             )}
                         />
                 )}
-        <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Size (Sqft)</FormLabel><FormControl><Input type="number" placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Carpet Area (Sqft)</FormLabel><FormControl><Input type="number" placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
 
-        <FormField name="boq_type" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Package</FormLabel><FormControl><Input placeholder="e.g. Interior Fitout" {...field} /></FormControl><FormMessage /></FormItem> )} />
+        <FormField name="boq_type" control={form.control} render={({ field }) => (
+          <FormItem>
+            <FormLabel>Packages</FormLabel>
+            <FormControl>
+              <PackagesMultiSelect
+                value={field.value || []}
+                onChange={field.onChange}
+                placeholder="Select packages..."
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
         
         <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value <span className="text-[10px] text-muted-foreground ">(IN Lakhs)</span></FormLabel><FormControl><Input type="number" placeholder="e.g. 5 Lakhs" {...field} /></FormControl><FormMessage /></FormItem> )} />
 

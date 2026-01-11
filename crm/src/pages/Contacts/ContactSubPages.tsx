@@ -227,6 +227,8 @@ import { TaskStatusIcon } from '@/components/ui/TaskStatusIcon';
 import { StatusPill } from "@/pages/Tasks/TasksVariantPage"
 import { formatDateWithOrdinal, formatTime12Hour } from "@/utils/FormatDate";
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 // DATATABLE IMPORTS
 import { ColumnFiltersState, Row } from '@tanstack/react-table';
 import { DataTableColumnDef } from '@/components/table/utils/table-filters';
@@ -423,7 +425,25 @@ const TaskDataTable = ({ tasks, contactName }: { tasks: CRMTask[], contactName: 
     }, {
         accessorKey: "remarks",
         meta: { title: "Remarks", enableSorting: false },
-        cell: ({ row }) => <span>{row.original.remarks || '--'}</span>
+        cell: ({ row }) => {
+            const remarks = row.original.remarks;
+            if (!remarks) return <span>--</span>;
+            if (remarks.length <= 100) return <span>{remarks}</span>;
+            return (
+                  <div className="flex">
+                                     <Tooltip>
+                                         <TooltipTrigger asChild>
+                                             <div className="flex items-center justify-start h-auto min-h-[24px]  py-1 text-xs cursor-pointer text-start max-w-[280px] break-words">
+                                                 {`${remarks.substring(0, 100)}...`}
+                                             </div>
+                                         </TooltipTrigger>
+                                         <TooltipContent className="max-w-[300px] text-wrap break-words">
+                                             <p>{remarks}</p>
+                                         </TooltipContent>
+                                     </Tooltip>
+                                 </div>
+            );
+        }
     }, {
         accessorKey: "start_date",
         meta: { title: "Scheduled for", filterVariant: "date", enableSorting: true },
@@ -533,35 +553,37 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
     // Note: The main component does not need manual search/filter logic since DataTable handles it.
 
     return (
-        <div>
-            {/* The title remains separate from the tabs component for now */}
-            {/* <h2 className="text-lg font-semibold mb-2">Activities and Opportunities</h2> */}
-            <Tabs defaultValue="boqs" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 border">
-                    <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">BOQs<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                        {boqs.length}
-                    </span></TabsTrigger>
-                    <TabsTrigger value="tasks" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-r-md rounded-l-none">Tasks<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                        {tasks.length}
-                    </span></TabsTrigger>
-                </TabsList>
+        <TooltipProvider>
+            <div>
+                {/* The title remains separate from the tabs component for now */}
+                {/* <h2 className="text-lg font-semibold mb-2">Activities and Opportunities</h2> */}
+                <Tabs defaultValue="boqs" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 border">
+                        <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">BOQs<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                            {boqs.length}
+                        </span></TabsTrigger>
+                        <TabsTrigger value="tasks" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-r-md rounded-l-none">Tasks<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                            {tasks.length}
+                        </span></TabsTrigger>
+                    </TabsList>
 
-                {/* The global search input is removed here as it is handled inside each DataTable */}
-                
-                <TabsContent value="boqs" className="mt-4">
-                    {boqs?.length > 0
-                        ? <BoqDataTable boqs={boqs} />
-                        : <p className="text-center text-muted-foreground py-8">No BOQs found for this contact.</p>
-                    }
-                </TabsContent>
+                    {/* The global search input is removed here as it is handled inside each DataTable */}
+                    
+                    <TabsContent value="boqs" className="mt-4">
+                        {boqs?.length > 0
+                            ? <BoqDataTable boqs={boqs} />
+                            : <p className="text-center text-muted-foreground py-8">No BOQs found for this contact.</p>
+                        }
+                    </TabsContent>
 
-                <TabsContent value="tasks" className="mt-4">
-                    {tasks && tasks.length > 0
-                        ? <TaskDataTable tasks={tasks}/>
-                        : <p className="text-center text-muted-foreground py-8">No tasks found for this contact.</p>
-                    }
-                </TabsContent>
-            </Tabs>
-        </div>
+                    <TabsContent value="tasks" className="mt-4">
+                        {tasks && tasks.length > 0
+                            ? <TaskDataTable tasks={tasks}/>
+                            : <p className="text-center text-muted-foreground py-8">No tasks found for this contact.</p>
+                        }
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </TooltipProvider>
     );
 };

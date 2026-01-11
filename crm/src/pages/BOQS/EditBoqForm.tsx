@@ -17,6 +17,8 @@ import { BOQmainStatusOptions, BOQsubStatusOptions } from "@/constants/dropdownD
 import { boqFormSchema, boqDetailsSchema } from "@/constants/boqZodValidation"
 import { LocationOptions } from "@/constants/dropdownData";
 import { INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
+import { PackagesMultiSelect } from "./components/PackagesMultiSelect";
+import { parsePackages, serializePackages } from "@/constants/boqPackages";
 
 type EditBoqFormValues = z.infer<typeof boqFormSchema>;
 
@@ -79,7 +81,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         boq_name: boqData.boq_name || "",
         city: initialCityValue || "",
         other_city: initialOtherCityValue,
-        boq_type: boqData.boq_type || "",
+        boq_type: parsePackages(boqData.boq_type),
         boq_value: Number(boqData.boq_value) || 0,
         boq_size: Number(boqData.boq_size) || 0,
         boq_status: boqData.boq_status || "",
@@ -155,7 +157,12 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   const onSubmit = async (values: EditBoqFormValues) => {
     try {
       if (!boqData) throw new Error("BOQ data is missing");
-      const dataToSave = { ...values };
+      const dataToSave: any = { ...values };
+
+      // Serialize packages array to JSON string for backend storage
+      if (dataToSave.boq_type && Array.isArray(dataToSave.boq_type)) {
+        dataToSave.boq_type = serializePackages(dataToSave.boq_type);
+      }
 
       if (dataToSave.city === "Others") {
         dataToSave.city = dataToSave.other_city?.trim() || "";
@@ -341,9 +348,25 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
               />
             )}
 
-            <FormField name="boq_type" control={form.control} render={({ field }) => (<FormItem><FormLabel>Package</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField
+              name="boq_type"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Packages</FormLabel>
+                  <FormControl>
+                    <PackagesMultiSelect
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      placeholder="Select packages..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <FormField name="boq_size" control={form.control} render={({ field }) => (<FormItem><FormLabel>Size(Sqft)<sup>*</sup></FormLabel><FormControl><div className="relative"><Input type="number"  {...field} /><span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Sq.ft.</span></div></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="boq_size" control={form.control} render={({ field }) => (<FormItem><FormLabel>Carpet Area (Sqft)</FormLabel><FormControl><div className="relative"><Input type="number"  {...field} /><span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Sq.ft.</span></div></FormControl><FormMessage /></FormItem>)} />
 
             <FormField name="boq_value" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Value <span className="text-[10px] text-muted-foreground ">(IN Lakhs)</span></FormLabel><FormControl><Input type="number" placeholder="e.g. 5 Lakhs" {...field} /></FormControl><FormMessage /></FormItem>)} />
 

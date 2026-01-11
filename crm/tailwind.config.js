@@ -52,6 +52,20 @@ module.exports = {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			calendar: {
+  				accent: 'hsl(var(--calendar-accent))',
+  				'accent-foreground': 'hsl(var(--calendar-accent-foreground))'
+  			},
+  			// Construction theme colors
+  			slate: {
+  				surface: 'hsl(var(--slate-surface))',
+  				border: 'hsl(var(--slate-border))'
+  			},
+  			concrete: 'hsl(var(--concrete))',
+  			steel: 'hsl(var(--steel))',
+  			industrial: {
+  				accent: 'hsl(var(--industrial-accent))'
   			}
   		},
 			height: {

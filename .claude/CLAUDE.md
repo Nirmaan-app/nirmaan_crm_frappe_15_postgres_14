@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Quick Reference
+
+| Documentation | When to Read |
+|---------------|--------------|
+| [BACKEND_ARCHITECTURE.md](../BACKEND_ARCHITECTURE.md) | Comprehensive backend reference (DocTypes, APIs, hooks) |
+| [context/doctypes.md](context/doctypes.md) | Working with DocType fields and relationships |
+| [context/apis.md](context/apis.md) | Adding/modifying API endpoints |
+| [context/patterns.md](context/patterns.md) | Code conventions and patterns |
+| [crm/CLAUDE.md](../crm/CLAUDE.md) | Frontend architecture and React patterns |
+| [crm/.claude/context/](../crm/.claude/context/_index.md) | Frontend context files (hooks, roles) |
+
 ## Project Overview
 
 Nirmaan CRM is a hybrid Frappe/ERPNext + React SPA application for managing offline leads. It combines a Python backend (Frappe framework) with a modern React frontend built with Vite, TypeScript, and Tailwind CSS.

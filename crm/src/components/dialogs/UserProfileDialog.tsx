@@ -1,357 +1,616 @@
-// src/pages/MyTeam/UserProfileDialog.tsx
-import React, { useState, useEffect } from "react";
+// src/components/dialogs/UserProfileDialog.tsx
+// Nirmaan CRM - User Profile Dialog
+// Brand Color: #d03b45 (--destructive / --primary)
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import { User as UserIcon, Phone, MailIcon } from "lucide-react";
+import {
+    User as UserIcon,
+    Phone,
+    Mail,
+    Pencil,
+    X,
+    Check,
+    Shield,
+    Loader2
+} from "lucide-react";
 import { formatRoleName } from "@/pages/MyTeam/MemberList";
 import { Button } from "@/components/ui/button";
 import { useDialogStore } from "@/store/dialogStore";
-import { Input } from "@/components/ui/input"; // Import Input for editing
-
-// Import Frappe hooks for updating and SWR configuration
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useFrappeUpdateDoc } from "frappe-react-sdk";
-import { useSWRConfig } from "swr";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-// Assuming useCurrentUser exists and fetches the current user's Frappe User document.
-// Placeholder if your actual useCurrentUser is different or not fully defined:
-// Make sure this hook provides `user`, `isLoading`, and `swrKey` for proper SWR integration.
-import { useCurrentUser } from "@/hooks/useCurrentUser"; // Your actual hook
+// ============================================================================
+// TYPES & VALIDATION
+// ============================================================================
 
+interface ValidationErrors {
+    firstName?: string;
+    phone?: string;
+}
 
-// Helper to generate initials for the avatar fallback
-const generateFallback = (full_name: string = "") => {
-    if (!full_name) return "U";
-    const names = full_name.split(" ");
-    return names.length > 1
-        ? `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
-        : `${names[0][0]}`.toUpperCase();
+interface TouchedFields {
+    firstName: boolean;
+    phone: boolean;
+}
+
+const validatePhone = (phone: string): string | undefined => {
+    if (!phone) return undefined;
+    const phoneRegex = /^(\+91)?[6-9]\d{9}$/;
+    const cleanPhone = phone.replace(/[\s-]/g, '');
+    if (!phoneRegex.test(cleanPhone)) {
+        return "Enter valid Indian mobile (10 digits)";
+    }
+    return undefined;
 };
+
+const validateFirstName = (name: string): string | undefined => {
+    if (!name || name.trim().length === 0) {
+        return "First name is required";
+    }
+    if (name.trim().length < 2) {
+        return "At least 2 characters required";
+    }
+    return undefined;
+};
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+const generateFallback = (firstName: string = "", lastName: string = "") => {
+    const first = firstName?.trim()?.[0] || "";
+    const last = lastName?.trim()?.[0] || "";
+    if (first && last) return `${first}${last}`.toUpperCase();
+    if (first) return first.toUpperCase();
+    return "U";
+};
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 export const UserProfileDialog = () => {
     const { closeUserProfileDialog } = useDialogStore();
+    const { user, user_id, isLoading, mutate: updateMutateUser } = useCurrentUser();
+    const { toast } = useToast();
 
-    // Use the actual current user hook to fetch data from Frappe
-    const { user,user_id, isLoading,mutate:updateMutateUser } = useCurrentUser(); // Assuming useCurrentUser returns user and swrKey
+    // Refs for keyboard navigation
+    const firstInputRef = useRef<HTMLInputElement>(null);
+    const saveButtonRef = useRef<HTMLButtonElement>(null);
 
-    // State for edit mode
+    // Edit mode state
     const [isEditing, setIsEditing] = useState(false);
-    // State for edited values, initialized from user data
-    const [editedFullName, setEditedFullName] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Form fields
+    const [editedFirstName, setEditedFirstName] = useState("");
+    const [editedLastName, setEditedLastName] = useState("");
     const [editedMobileNo, setEditedMobileNo] = useState("");
+
+    // Validation state
+    const [errors, setErrors] = useState<ValidationErrors>({});
+    const [touched, setTouched] = useState<TouchedFields>({
+        firstName: false,
+        phone: false
+    });
 
     // Frappe update hook
     const { updateDoc } = useFrappeUpdateDoc();
-    // SWR mutate function for revalidation
-    const { mutate } = useSWRConfig();
 
-    // Effect to sync edited fields when 'user' data changes (e.g., on initial load or after another update)
+    // Sync form fields when user data loads
     useEffect(() => {
         if (user) {
-            setEditedFullName(user.full_name || "");
+            setEditedFirstName(user.first_name || "");
+            setEditedLastName(user.last_name || "");
             setEditedMobileNo(user.mobile_no || "");
         }
     }, [user]);
 
-    // Derived values for cleaner rendering
+    // Focus first input when entering edit mode
+    useEffect(() => {
+        if (isEditing && firstInputRef.current) {
+            setTimeout(() => firstInputRef.current?.focus(), 100);
+        }
+    }, [isEditing]);
 
-    console.log("Administrator",user_id)
-    const userId = user?.name ||user_id|| ''; // Frappe document name (often email for User doctype)
- const fullName = user_id === "Administrator" ? "Administrator" : (user?.full_name || '');
+    // Clear state when exiting edit mode
+    useEffect(() => {
+        if (!isEditing) {
+            setErrors({});
+            setTouched({ firstName: false, phone: false });
+        }
+    }, [isEditing]);
+
+    // Derived values
+    const userId = user?.name || user_id || '';
+    const isAdministrator = user_id === "Administrator";
+    const firstName = isAdministrator ? "Administrator" : (user?.first_name || '');
+    const lastName = isAdministrator ? "" : (user?.last_name || '');
+    const fullName = isAdministrator ? "Administrator" : (user?.full_name || '');
     const mobileNo = user?.mobile_no || '';
     const userImage = user?.user_image || '';
-   const userRole = (user_id === "Administrator" || user?.is_administrator)
+    const userRole = isAdministrator
         ? "Nirmaan Admin User Profile"
-        : (user?.nirmaan_role_name || "No Role Assigned"); // Fallback if no specific role is assigned
+        : (user?.nirmaan_role_name || "No Role Assigned");
 
+    const hasUserData = (user && userId && userId !== 'Guest') || isAdministrator;
 
-    const hasUserData = user && userId && userId !== 'Guest'||user_id=="Administrator"; // is_administrator is a boolean on User doctype
+    // ========================================================================
+    // VALIDATION HANDLERS
+    // ========================================================================
 
-    const isCurrentUserAdmin = userRole === "Nirmaan Admin User Profile";
+    const validateField = useCallback((field: 'firstName' | 'phone', value: string) => {
+        if (field === 'firstName') {
+            return validateFirstName(value);
+        }
+        if (field === 'phone') {
+            return validatePhone(value);
+        }
+        return undefined;
+    }, []);
 
+    const handleBlur = useCallback((field: 'firstName' | 'phone') => {
+        setTouched(prev => ({ ...prev, [field]: true }));
+        const value = field === 'firstName' ? editedFirstName : editedMobileNo;
+        const error = validateField(field, value);
+        setErrors(prev => ({ ...prev, [field]: error }));
+    }, [editedFirstName, editedMobileNo, validateField]);
+
+    const validateForm = (): boolean => {
+        const newErrors: ValidationErrors = {};
+        const firstNameError = validateFirstName(editedFirstName);
+        if (firstNameError) newErrors.firstName = firstNameError;
+        const phoneError = validatePhone(editedMobileNo);
+        if (phoneError) newErrors.phone = phoneError;
+        setErrors(newErrors);
+        setTouched({ firstName: true, phone: true });
+        return Object.keys(newErrors).length === 0;
+    };
+
+    // ========================================================================
+    // ACTION HANDLERS
+    // ========================================================================
 
     const handleSave = async () => {
         if (!user || !user.name) {
-            console.error("User data not available for update.");
+            toast({
+                title: "Error",
+                description: "User data not available for update.",
+                variant: "destructive",
+            });
             return;
         }
 
+        if (!validateForm()) return;
+
+        setIsSaving(true);
+
         try {
             await updateDoc('User', user.name, {
-                first_name: editedFullName,
-                mobile_no: editedMobileNo,
+                first_name: editedFirstName.trim(),
+                last_name: editedLastName.trim(),
+                mobile_no: editedMobileNo.trim(),
             });
 
-            console.log('User profile updated successfully!');
-            // Also update localStorage for consistency with the existing code's pattern
-            // This is generally less ideal than relying solely on SWR, but maintains original behavior.
-            //   mutate(key => typeof key === 'string' && key.startsWith('all-members'));
-            //  mutate(key => typeof key === 'string' && key.startsWith(`loginuser-${user.name}`));
-            updateMutateUser()
-            localStorage.setItem('fullName', editedFullName);
-            localStorage.setItem('mobileNO', editedMobileNo);
-            setIsEditing(false); // Exit edit mode]
-            closeUserProfileDialog()
+            const newFullName = [editedFirstName.trim(), editedLastName.trim()]
+                .filter(Boolean)
+                .join(' ');
+            localStorage.setItem('fullName', newFullName);
+            localStorage.setItem('mobileNO', editedMobileNo.trim());
 
-             
-            // If nirmaan_role_name or other fields could change, update them too.
-            // For now, only fullName and mobileNO are editable.
+            updateMutateUser();
+
+            toast({
+                title: "Profile Updated",
+                description: "Your changes have been saved.",
+            });
+
+            setIsEditing(false);
+            closeUserProfileDialog();
 
         } catch (error) {
             console.error('Failed to update user profile:', error);
-            // TODO: Add error notification/toast
+            toast({
+                title: "Update Failed",
+                description: "Could not save your changes. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSaving(false);
         }
     };
 
-    const handleCancel = () => {
-        // Revert changes and exit edit mode
-        setEditedFullName(user?.full_name || "");
+    const handleCancel = useCallback(() => {
+        setEditedFirstName(user?.first_name || "");
+        setEditedLastName(user?.last_name || "");
         setEditedMobileNo(user?.mobile_no || "");
+        setErrors({});
+        setTouched({ firstName: false, phone: false });
         setIsEditing(false);
-    };
+    }, [user]);
 
-    return (
-        <div className="p-0">
-            {isLoading ? (
-                // --- Loading State Skeleton ---
-                <div className="space-y-6 py-4">
-                    <div className="flex items-center space-x-4">
-                        <Skeleton className="h-20 w-20 rounded-full" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-5 w-48" />
-                            <Skeleton className="h-4 w-36" />
-                        </div>
-                    </div>
-                    <Separator />
-                    <div className="space-y-3">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
+    const handleEnterEditMode = () => setIsEditing(true);
+
+    // ========================================================================
+    // KEYBOARD NAVIGATION
+    // ========================================================================
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (!isEditing) return;
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            handleCancel();
+        }
+
+        if (e.key === 'Enter' && !e.shiftKey) {
+            // Don't submit if focus is on an input (allow normal Enter behavior)
+            const target = e.target as HTMLElement;
+            if (target.tagName !== 'INPUT') {
+                e.preventDefault();
+                handleSave();
+            }
+        }
+    }, [isEditing, handleCancel]);
+
+    // Handle Enter on last input to submit
+    const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>, isLastField: boolean) => {
+        if (e.key === 'Enter' && isLastField) {
+            e.preventDefault();
+            handleSave();
+        }
+    }, []);
+
+    // ========================================================================
+    // RENDER
+    // ========================================================================
+
+    // Loading State
+    if (isLoading) {
+        return (
+            <div className="space-y-4">
+                <div className="flex items-center gap-4 pt-1">
+                    <Skeleton className="h-14 w-14 rounded-full shrink-0" />
+                    <div className="space-y-2 flex-1">
+                        <Skeleton className="h-5 w-32" />
+                        <Skeleton className="h-4 w-20" />
                     </div>
                 </div>
-            ) : hasUserData ? (
-                // --- User Data Display (if not loading and has data) ---
-                <div className="grid gap-6 py-4">
-                    {/* User Avatar and Name */}
-                    <div className="flex items-center gap-4">
-                        <Avatar className="h-20 w-20 border-2 border-destructive">
-                            <AvatarImage src={userImage} alt={fullName} />
-                            <AvatarFallback className="text-2xl bg-destructive text-destructive-foreground">
-                                {generateFallback(fullName)}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="grid gap-1 flex-1">
-                            {isEditing ? (
-                                <Input
-                                    value={editedFullName}
-                                    onChange={(e) => setEditedFullName(e.target.value)}
-                                    className="text-xl font-bold leading-none text-foreground"
-                                />
-                            ) : (
-                                <p className="text-xl font-bold leading-none text-foreground">{fullName}</p>
-                            )}
-                            <p className="text-sm text-muted-foreground">
-                                {formatRoleName(userRole) || "No Role Assigned"}
-                            </p>
-                        </div>
-                    </div>
+                <div className="space-y-3 pt-3">
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                </div>
+            </div>
+        );
+    }
 
-                    <Separator />
+    // No User Data State
+    if (!hasUserData) {
+        return (
+            <div className="py-6 text-center">
+                <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                    <UserIcon className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-medium text-foreground">
+                    User data not available
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                    Please ensure you are logged in correctly.
+                </p>
+            </div>
+        );
+    }
 
-                    {/* Email */}
-                    <div className="grid grid-cols-3 items-center gap-4">
-                        <span className="text-right text-sm font-semibold text-foreground flex items-center justify-end gap-2">
-                            <MailIcon className="h-4 w-4 text-destructive" />
-                            Email
-                        </span>
-                        <div className="col-span-2 text-base text-muted-foreground space-y-1">
-                            <p>{userId}</p>
-                        </div>
-                    </div>
+    // Main Content
+    return (
+        <div
+            className="space-y-4"
+            onKeyDown={handleKeyDown}
+        >
+            {/* ================================================================
+                HEADER SECTION - Avatar & Identity
+                Added pt-1 to prevent avatar ring cutoff
+            ================================================================ */}
+            <div className="flex items-center gap-3 pt-1">
+                {/* Avatar - using smaller size to prevent cutoff */}
+                <div className="relative shrink-0">
+                    <Avatar className={cn(
+                        "h-14 w-14",
+                        "ring-2 ring-destructive/20 ring-offset-2 ring-offset-background",
+                        "transition-all duration-200"
+                    )}>
+                        <AvatarImage src={userImage} alt={fullName} />
+                        <AvatarFallback className={cn(
+                            "text-base font-semibold",
+                            "bg-destructive text-destructive-foreground"
+                        )}>
+                            {generateFallback(firstName, lastName)}
+                        </AvatarFallback>
+                    </Avatar>
+                    {/* Online indicator - smaller, better positioned */}
+                    <div className={cn(
+                        "absolute bottom-0 right-0",
+                        "h-3 w-3 rounded-full",
+                        "bg-emerald-500 ring-2 ring-background"
+                    )} />
+                </div>
 
-                    {/* Phone Number */}
-                    <div className="grid grid-cols-3 items-center gap-4">
-                        <span className="text-right text-sm font-semibold text-foreground flex items-center justify-end gap-2">
-                            <Phone className="h-4 w-4 text-destructive" />
-                            Phone
-                        </span>
-                        <div className="col-span-2">
-                            {isEditing ? (
-                                <Input
-                                    value={editedMobileNo}
-                                    onChange={(e) => setEditedMobileNo(e.target.value)}
-                                    className="text-base text-muted-foreground"
-                                />
-                            ) : (
-                                <p className="text-base text-muted-foreground">
-                                    {mobileNo || "Not provided"}
+                {/* Name & Role */}
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-base font-semibold text-foreground truncate">
+                        {fullName || "User"}
+                    </h3>
+                    {/* Role Badge - Brand themed */}
+                    <span className={cn(
+                        "inline-flex items-center gap-1 mt-0.5",
+                        "px-2 py-0.5 rounded text-xs font-medium",
+                        "bg-destructive/10 text-destructive",
+                        "border border-destructive/20"
+                    )}>
+                        <Shield className="h-3 w-3" />
+                        {formatRoleName(userRole) || "No Role"}
+                    </span>
+                </div>
+
+                {/* Edit Toggle - only for non-admin */}
+                {!isAdministrator && !isEditing && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleEnterEditMode}
+                        className={cn(
+                            "h-8 w-8 rounded-full shrink-0",
+                            "text-muted-foreground hover:text-destructive",
+                            "hover:bg-destructive/10",
+                            "transition-colors duration-200"
+                        )}
+                    >
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                )}
+            </div>
+
+            {/* ================================================================
+                FORM FIELDS SECTION
+            ================================================================ */}
+            <div className={cn(
+                "space-y-3 pt-3",
+                "border-t border-border",
+                "transition-all duration-200"
+            )}>
+                {/* First Name */}
+                <div className={cn(
+                    "space-y-1",
+                    "transition-all duration-200",
+                    isEditing && "space-y-1.5"
+                )}>
+                    <Label
+                        htmlFor="firstName"
+                        className={cn(
+                            "text-xs font-medium uppercase tracking-wide",
+                            "text-muted-foreground",
+                            isEditing && "text-destructive"
+                        )}
+                    >
+                        First Name {isEditing && <span className="text-destructive">*</span>}
+                    </Label>
+                    {isEditing ? (
+                        <div>
+                            <Input
+                                ref={firstInputRef}
+                                id="firstName"
+                                value={editedFirstName}
+                                onChange={(e) => {
+                                    setEditedFirstName(e.target.value);
+                                    if (touched.firstName) {
+                                        setErrors(prev => ({
+                                            ...prev,
+                                            firstName: validateFirstName(e.target.value)
+                                        }));
+                                    }
+                                }}
+                                onBlur={() => handleBlur('firstName')}
+                                onKeyDown={(e) => handleInputKeyDown(e, false)}
+                                placeholder="Enter first name"
+                                className={cn(
+                                    "h-9 text-sm transition-all duration-200",
+                                    "focus-visible:ring-destructive",
+                                    errors.firstName && touched.firstName &&
+                                    "border-red-500 focus-visible:ring-red-500"
+                                )}
+                            />
+                            {errors.firstName && touched.firstName && (
+                                <p className="text-xs text-red-500 mt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                                    {errors.firstName}
                                 </p>
                             )}
                         </div>
-                    </div>
+                    ) : (
+                        <p className="text-sm text-foreground py-1">
+                            {firstName || "—"}
+                        </p>
+                    )}
+                </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-end gap-2 mt-4">
-                        {
-                            isEditing ? (
-                                <>
-                                    <Button variant="outline" onClick={handleCancel}>
-                                        Cancel
-                                    </Button>
-                                    <Button variant="destructive" onClick={handleSave}>
-                                        Save
-                                    </Button>
-                                </>
-                            ) : (
-                                <>
-                                {user_id !=="Administrator"&&(
-                                    <Button variant="outline" onClick={() => setIsEditing(true)}>
-                                    Edit
-                                </Button>
-                                )}
-                                </>
-                            )
-            }
-                       
-                        <Button variant="outline" onClick={closeUserProfileDialog}>
-                            Close
-                        </Button>
+                {/* Last Name */}
+                <div className={cn(
+                    "space-y-1",
+                    "transition-all duration-200",
+                    isEditing && "space-y-1.5"
+                )}>
+                    <Label
+                        htmlFor="lastName"
+                        className={cn(
+                            "text-xs font-medium uppercase tracking-wide",
+                            "text-muted-foreground",
+                            isEditing && "text-destructive"
+                        )}
+                    >
+                        Last Name
+                    </Label>
+                    {isEditing ? (
+                        <Input
+                            id="lastName"
+                            value={editedLastName}
+                            onChange={(e) => setEditedLastName(e.target.value)}
+                            onKeyDown={(e) => handleInputKeyDown(e, false)}
+                            placeholder="Enter last name"
+                            className={cn(
+                                "h-9 text-sm transition-all duration-200",
+                                "focus-visible:ring-destructive"
+                            )}
+                        />
+                    ) : (
+                        <p className="text-sm text-foreground py-1">
+                            {lastName || "—"}
+                        </p>
+                    )}
+                </div>
+
+                {/* Email - Always Read Only */}
+                <div className="space-y-1">
+                    <Label className={cn(
+                        "text-xs font-medium uppercase tracking-wide",
+                        "text-muted-foreground flex items-center gap-1"
+                    )}>
+                        <Mail className="h-3 w-3" />
+                        Email
+                    </Label>
+                    <div className="flex items-center gap-2 py-1">
+                        <span className="text-sm text-muted-foreground truncate">
+                            {userId}
+                        </span>
+                        {isEditing && (
+                            <span className="text-xs text-muted-foreground/60 shrink-0">
+                                (read-only)
+                            </span>
+                        )}
                     </div>
                 </div>
-            ) : (
-                // --- No User Data State (if not loading and no data) ---
-                <div className="py-8 text-center text-muted-foreground">
-                    <UserIcon className="h-10 w-10 mx-auto mb-4 text-destructive" />
-                    <p className="text-lg font-semibold">User data not available.</p>
-                    <p className="text-sm mt-1">Please ensure you are logged in correctly.</p>
+
+                {/* Phone */}
+                <div className={cn(
+                    "space-y-1",
+                    "transition-all duration-200",
+                    isEditing && "space-y-1.5"
+                )}>
+                    <Label
+                        htmlFor="phone"
+                        className={cn(
+                            "text-xs font-medium uppercase tracking-wide",
+                            "text-muted-foreground flex items-center gap-1",
+                            isEditing && "text-destructive"
+                        )}
+                    >
+                        <Phone className="h-3 w-3" />
+                        Phone
+                    </Label>
+                    {isEditing ? (
+                        <div>
+                            <Input
+                                id="phone"
+                                value={editedMobileNo}
+                                onChange={(e) => {
+                                    setEditedMobileNo(e.target.value);
+                                    if (touched.phone) {
+                                        setErrors(prev => ({
+                                            ...prev,
+                                            phone: validatePhone(e.target.value)
+                                        }));
+                                    }
+                                }}
+                                onBlur={() => handleBlur('phone')}
+                                onKeyDown={(e) => handleInputKeyDown(e, true)}
+                                placeholder="+91 9876543210"
+                                className={cn(
+                                    "h-9 text-sm transition-all duration-200",
+                                    "focus-visible:ring-destructive",
+                                    errors.phone && touched.phone &&
+                                    "border-red-500 focus-visible:ring-red-500"
+                                )}
+                            />
+                            {errors.phone && touched.phone && (
+                                <p className="text-xs text-red-500 mt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                                    {errors.phone}
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-foreground py-1">
+                            {mobileNo || "Not provided"}
+                        </p>
+                    )}
                 </div>
+            </div>
+
+            {/* ================================================================
+                ACTION BUTTONS
+            ================================================================ */}
+            <div className={cn(
+                "flex items-center gap-2 pt-3",
+                "border-t border-border",
+                "transition-all duration-200"
+            )}>
+                {isEditing ? (
+                    <>
+                        <Button
+                            variant="outline"
+                            onClick={handleCancel}
+                            disabled={isSaving}
+                            className={cn(
+                                "flex-1 h-9 text-sm",
+                                "transition-all duration-200"
+                            )}
+                        >
+                            <X className="h-4 w-4 mr-1.5" />
+                            Cancel
+                        </Button>
+                        <Button
+                            ref={saveButtonRef}
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className={cn(
+                                "flex-1 h-9 text-sm",
+                                "bg-destructive hover:bg-destructive/90",
+                                "transition-all duration-200"
+                            )}
+                        >
+                            {isSaving ? (
+                                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                            ) : (
+                                <Check className="h-4 w-4 mr-1.5" />
+                            )}
+                            {isSaving ? "Saving..." : "Save"}
+                        </Button>
+                    </>
+                ) : (
+                    <Button
+                        variant="outline"
+                        onClick={closeUserProfileDialog}
+                        className={cn(
+                            "w-full h-9 text-sm",
+                            "transition-all duration-200"
+                        )}
+                    >
+                        Close
+                    </Button>
+                )}
+            </div>
+
+            {/* Keyboard shortcut hint - hidden on mobile */}
+            {isEditing && (
+                <p className="hidden sm:block text-xs text-center text-muted-foreground/60 animate-in fade-in duration-300">
+                    Press <kbd className="px-1 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-mono">Esc</kbd> to cancel
+                </p>
             )}
         </div>
     );
 };
-// import { useCurrentUser } from "@/hooks/useCurrentUser";
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { Skeleton } from "../ui/skeleton";
-// import { Separator } from "../ui/separator";
-// import { User as UserIcon, Phone, Tag, MailIcon} from "lucide-react";
-// import { formatRoleName } from "@/pages/MyTeam/MemberList";
-// import { Button } from "@/components/ui/button";
-// import { useDialogStore } from "@/store/dialogStore";
-
-
-
-// // Helper to generate initials for the avatar fallback
-// const generateFallback = (full_name: string = "") => {
-//     if (!full_name) return "U";
-//     const names = full_name.split(" ");
-//     return names.length > 1
-//         ? `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
-//         : `${names[0][0]}`.toUpperCase();
-// };
-
-// export const UserProfileDialog = () => {
-
-//         const { userProfile, closeUserProfileDialog } = useDialogStore();
-    
- 
-//     // const { 
-//     //     user,
-//     //     user_id,
-//     //     full_name,
-//     //     user_image,
-//     //     isLoading 
-//     // } = useCurrentUser();
-
-//     const role = localStorage.getItem('role');
-//     const full_name = localStorage.getItem('fullName');
-
-//     const user_id = localStorage.getItem('userId');
-//     const user_image=""
-//     const mobile_no=localStorage.getItem('mobileNO');
-
-
-
-//     const hasUserData = user_id && user_id !== 'Guest' && (user_id || user_id === 'Administrator');
-//     const isAdministrator = user_id === 'Administrator';
-
-//     return (
-//         <div className="p-0"> {/* Use a div or React.Fragment for this component's top-level container */}
-//             {/* The header is now part of ReusableFormDialog's layout,
-//                 so we only style the content within the main dialog area */}
-            
-//             {!user_id ? (
-//                 // --- Loading State Skeleton ---
-//                 <div className="space-y-6 py-4">
-//                     <div className="flex items-center space-x-4">
-//                         <Skeleton className="h-20 w-20 rounded-full" />
-//                         <div className="space-y-2">
-//                             <Skeleton className="h-5 w-48" />
-//                             <Skeleton className="h-4 w-36" />
-//                         </div>
-//                     </div>
-//                     <Separator />
-//                     <div className="space-y-3">
-//                         <Skeleton className="h-4 w-full" />
-//                         <Skeleton className="h-4 w-full" />
-//                     </div>
-//                 </div>
-//             ) : hasUserData ? (
-//                 // --- User Data Display ---
-//                 <div className="grid gap-6 py-4">
-//                     {/* User Avatar and Name */}
-//                     <div className="flex items-center gap-4">
-//                         <Avatar className="h-20 w-20 border-2 border-destructive">
-//                             <AvatarImage src={user_image||""} alt={full_name} />
-//                             <AvatarFallback className="text-2xl bg-destructive text-destructive-foreground">
-//                                 {generateFallback(full_name)}
-//                             </AvatarFallback>
-//                         </Avatar>
-//                         <div className="grid gap-1">
-//                             <p className="text-xl font-bold leading-none text-foreground">{full_name}</p>
-//                             {/* <p className="text-sm text-muted-foreground">{user_id}</p> */}
-//                         <p>{formatRoleName(role) || (isAdministrator ? "Nirmaan Admin User Profile" : "No Role Assigned")}</p>
-
-//                         </div>
-//                     </div>
-
-//                     <Separator />
-
-//                      <div className="grid grid-cols-3 items-center gap-4">
-//                         <span className="text-right text-sm font-semibold text-foreground flex items-center justify-end gap-2">
-//                             <MailIcon className="h-4 w-4 text-destructive"/>
-//                             Email
-//                         </span>
-//                         <div className="col-span-2 text-base text-muted-foreground space-y-1">
-//                             <p>{user_id || (isAdministrator ? "Nirmaan Admin User Profile" : "No Role Assigned")}</p>
-//                         </div>
-//                     </div>
-
-//                     {/* Phone Number */}
-//                     <div className="grid grid-cols-3 items-center gap-4">
-//                         <span className="text-right text-sm font-semibold text-foreground flex items-center justify-end gap-2">
-//                             <Phone className="h-4 w-4 text-destructive"/>
-//                             Phone
-//                         </span>
-//                         <span className="col-span-2 text-base text-muted-foreground">
-//                             {mobile_no || "Not provided"}
-//                         </span>
-//                     </div>
-
-//                     {/* Roles */}
-//                     <Button variant="outline" className="w-full" onClick={closeUserProfileDialog}>
-//                                     Close
-//                                 </Button>
-                   
-//                 </div>
-//             ) : (
-//                 // --- No User Data State ---
-//                 <div className="py-8 text-center text-muted-foreground">
-//                     <UserIcon className="h-10 w-10 mx-auto mb-4 text-destructive"/>
-//                     <p className="text-lg font-semibold">User data not available.</p>
-//                     <p className="text-sm mt-1">Please ensure you are logged in correctly.</p>
-//                 </div>
-//             )}
-//         </div>
-//     );
-// };
-
