@@ -1,6 +1,6 @@
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import React, { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -31,22 +31,42 @@ export const TaskCalendar = () => {
   const [selectedDate, setSelectedDate] = React.useState<string | null>(
     searchParams.get("date") || format(new Date(), "yyyy-MM-dd")
   );
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(() => {
+    const dateParam = searchParams.get("date");
+    return dateParam ? new Date(dateParam) : new Date();
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [tasksData, setTasksData] = React.useState<CalendarTask[]>([]);
 
+  // Calculate month boundaries for filtering
+  const monthStart = format(startOfMonth(currentMonth), "yyyy-MM-dd");
+  const monthEnd = format(endOfMonth(currentMonth), "yyyy-MM-dd");
+
   const { data, isLoading: isTasksLoading, error: tasksError } = useFrappeGetDocList(
     "CRM Task",
     {
-      fields: ["*"],
+      fields: [
+        "name",
+        "start_date",
+        "status",
+        "type",
+        "task_profile",
+        "contact",
+        "boq",
+      ],
+      filters: [
+        ["start_date", ">=", monthStart],
+        ["start_date", "<=", `${monthEnd} 23:59:59`],
+      ],
       limit: 0,
       orderBy: {
         field: "start_date",
         order: "asc"
       }
     },
-    "all-tasks-calender"
+    `tasks-calendar-${monthStart}`
   );
 
   const { data: contactsList, isLoading: contactsListLoading, error: contactsError } =
@@ -176,6 +196,8 @@ export const TaskCalendar = () => {
               showOutsideDays={false}
               timeZone="Asia/Calcutta"
               className="min-w-full"
+              month={currentMonth}
+              onMonthChange={setCurrentMonth}
               selected={selectedDate}
               onDayClick={(day) => handleDateChange(format(day, "yyyy-MM-dd"))}
               modifiers={{ hasTask: isTaskDate }}
