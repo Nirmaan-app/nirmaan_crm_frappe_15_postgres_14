@@ -63,5 +63,5 @@ jobs:
         tags: asia-south1-docker.pkg.dev/nirmaan-stack/nirmaan-crm/nirmaan-crm:${{ env.RELEASE_VERSION }}
         build-args: |
           FRAPPE_PATH=https://github.com/frappe/frappe
-          FRAPPE_BRANCH=v15.90.0
+          FRAPPE_BRANCH=version-15
           APPS_JSON_BASE64=${{ env.APPS_JSON_BASE64 }}
