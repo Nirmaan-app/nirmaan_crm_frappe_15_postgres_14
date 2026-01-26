@@ -102,6 +102,7 @@ def global_search(search_term="", user_role=""):
 
         company_or_filters = [ # For OR conditions
             ["company_name", "like", search_pattern],
+            ["company_nick", "like", search_pattern],
             ["company_city", "like", search_pattern]
         ]
     

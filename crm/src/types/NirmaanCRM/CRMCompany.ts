@@ -12,6 +12,8 @@ export interface CRMCompany{
 	idx?: number
 	/**	Company Name : Data	*/
 	company_name?: string
+	/**	Company Nickname : Data	*/
+	company_nick?: string
 	/**	Company Website : Data	*/
 	company_website?: string
 	/**	Company Type : Link - CRM Company Type	*/

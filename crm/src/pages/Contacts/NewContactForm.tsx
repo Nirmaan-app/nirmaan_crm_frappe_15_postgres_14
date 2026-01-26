@@ -70,9 +70,9 @@ const { data: allContacts } = useFrappeGetDocList("CRM Contacts", {
    const { data: allCompaniesData, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>(
     "CRM Company",
    { 
-      fields: ["name", "company_name"], 
+      fields: ["name", "company_name", "company_nick"],
       limit: 0,
-      enabled: !companyIdFromContext 
+      enabled: !companyIdFromContext
     }
   );
 
@@ -82,7 +82,7 @@ const allCompanies = allCompaniesData || [];
   // console.log("All Companies ",allCompanies)
 
   const companyOptions = useMemo(() =>
-    allCompanies?.map(c => ({ label: c.company_name, value: c.name })),
+    allCompanies?.map(c => ({ label: c.company_nick ? `${c.company_name} (${c.company_nick})` : c.company_name, value: c.name })),
     [allCompanies]
   );
 

@@ -22,6 +22,7 @@ import { useViewport } from "@/hooks/useViewPort";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { parse, isValid } from 'date-fns';
 import { BoqDealStatusCard } from "./components/BoqDealStatusCard";
+import { BoqBcsStatusCard } from "./components/BoqBcsStatusCard";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
 import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
@@ -183,7 +184,7 @@ const BoqTaskDetails = ({ allTasks, boqId, companyId, contactId }: { allTasks: C
 // Make sure useStatusStyles is imported at the top of the file
 
 // --- THIS IS THE UPDATED HEADER COMPONENT ---
-const BoqDetailsHeader = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany }) => {
+const BoqDetailsHeader = ({ boq }: { boq: CRMBOQ }) => {
     const { openEditBoqDialog, openAssignBoqDialog, openRenameBoqNameDialog } = useDialogStore();
     const { updateDoc, loading } = useFrappeUpdateDoc();
     const { mutate } = useSWRConfig();
@@ -323,20 +324,40 @@ const BoqDetailsHeader = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CR
                 </div>
             </div>
 
-            <div className="my-2">
-                <Separator />
-                {/* Contact & Company Details Section */}
-                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                    {/* Row 1 */}
-                    <div className="flex justify-between gap-x-4">
-                        <DetailItem label="Contact Name" value={contact?.first_name ? `${contact.first_name} ${contact.last_name}` : 'N/A'} isLink href={`/contacts/contact?id=${contact?.name}`} />
-                        <DetailItem label="Designation" value={contact?.designation || 'N/A'} />
+            <Separator className="my-4" />
+
+            {/* BOQ Specifications */}
+            <div className="space-y-4">
+                <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-lg font-semibold">BOQ Details</h2>
+                    <Button variant="outline" size="sm" className="border-destructive text-destructive"
+                        onClick={() => openEditBoqDialog({ boqData: boq, mode: 'details' })}>
+                        <SquarePen className="w-4 h-4 mr-2" />Edit
+                    </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-y-5 gap-x-20">
+                    <DetailItem label="Carpet Area (Sqft)" value={boq?.boq_size || 'N/A'} />
+                    <DetailItem label="BOQ Value" value={boq?.boq_value ? `${boq.boq_value} Lakhs` : 'N/A'} />
+                    <div>
+                        <p className="text-xs text-muted-foreground">Packages</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                            {parsePackages(boq?.boq_type).length > 0 ? (
+                                parsePackages(boq?.boq_type).map((pkg, idx) => (
+                                    <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                                        {pkg}
+                                    </span>
+                                ))
+                            ) : (
+                                <p className="font-semibold">N/A</p>
+                            )}
+                        </div>
                     </div>
-                    {/* Row 2 */}
-                    <div className="flex justify-between gap-x-4 mt-2">
-                        <DetailItem label="Company Name" value={company?.name || 'N/A'} isLink href={`/companies/company?id=${company?.name}`} />
-                        <DetailItem label="Company City" value={company ? company?.company_city : 'N/A'} />
-                    </div>
+                    <DetailItem label="City" value={boq?.city || 'N/A'} />
+                    <DetailItem label="Submission Deadline" value={formatDateWithOrdinal(boq?.boq_submission_date) || "--"} />
+                    <DetailItem label="Received on" value={formatDateWithOrdinal(boq?.creation)} />
+                    <DetailItem label="Created by" value={getUserFullNameByEmail(boq?.owner) || "Administrator"} />
+                    <DetailItem label="" value={""} />
+                    <RemarksDisplayItem label="Latest Remarks" value={boq?.remarks || 'N/A'} className="col-span-2" />
                 </div>
             </div>
 
@@ -345,7 +366,27 @@ const BoqDetailsHeader = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CR
     );
 };
 
-
+const BoqContactCompanyCard = ({ contact, company }: { contact?: CRMContacts, company?: CRMCompany }) => {
+    return (
+        <div className="bg-background p-6 rounded-lg border shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">Contact & Company</h2>
+            <div className="grid grid-cols-2 gap-y-5 gap-x-20">
+                <DetailItem
+                    label="Contact Name"
+                    value={contact?.first_name ? `${contact.first_name} ${contact.last_name}` : 'N/A'}
+                    href={contact?.name ? `/contacts/contact?id=${contact.name}` : undefined}
+                />
+                <DetailItem label="Designation" value={contact?.designation || 'N/A'} />
+                <DetailItem
+                    label="Company Name"
+                    value={company?.name || 'N/A'}
+                    href={company?.name ? `/companies/company?id=${company.name}` : undefined}
+                />
+                <DetailItem label="Company City" value={company?.company_city || 'N/A'} />
+            </div>
+        </div>
+    );
+};
 
 // // --- SUB-COMPONENT 2: Task List (Now with rendering logic) ---
 // const BoqTaskDetails = ({ tasks, boqId, companyId, contactId }: { tasks: CRMTask[], boqId: string, companyId: string, contactId: string }) => {
@@ -515,67 +556,6 @@ export const RemarksDisplayItem = ({ label, value, className }) => {
         </div>
     );
 
-};
-// --- SUB-COMPONENT 4: Other Details ---
-const OtherBoqDetails = ({ boq, contact, company }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany }) => {
-    const { openEditBoqDialog } = useDialogStore();
-    const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
-
-
-    // --- UPDATED: DetailItem component to use <Link> for internal paths ---
-
-    return (
-        <div className="bg-background p-6 rounded-lg border shadow-sm space-y-6">
-
-            <div className="flex justify-between items-center mb-2">
-                <h2 className="text-lg font-semibold">BOQ Details</h2>
-                <Button variant="outline" size="sm" className="border-destructive text-destructive" onClick={() => openEditBoqDialog({ boqData: boq, mode: 'details' })}>
-                    <SquarePen className="w-4 h-4 mr-2" />Edit
-                </Button>
-            </div>
-            {/* Top Details Section */}
-            <div className="grid grid-cols-2 gap-y-5 gap-x-20">
-                <DetailItem label="Carpet Area (Sqft)" value={boq?.boq_size || 'N/A'} />
-                <DetailItem label="BOQ Value" value={`${boq?.boq_value} Lakhs` || 'N/A'} />
-
-                <div>
-                    <p className="text-xs text-muted-foreground">Packages</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                        {parsePackages(boq?.boq_type).length > 0 ? (
-                            parsePackages(boq?.boq_type).map((pkg, idx) => (
-                                <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
-                                    {pkg}
-                                </span>
-                            ))
-                        ) : (
-                            <p className="font-semibold">N/A</p>
-                        )}
-                    </div>
-                </div>
-                <DetailItem label="City" value={boq?.city || 'N/A'} />
-
-                <DetailItem label="Submission Deadline" value={formatDateWithOrdinal(boq?.boq_submission_date) || "--"} />
-                <DetailItem label="Recevied on" value={formatDateWithOrdinal(boq?.creation)} />
-                <DetailItem label="Created by" value={getUserFullNameByEmail(boq?.owner) || "Administrator"} />
-
-                <DetailItem label="" value={""} />
-                <RemarksDisplayItem label="Latest Remarks" value={boq?.remarks || 'N/A'} className="col-span-2" />
-
-
-            </div>
-
-            {/* <Separator />
-
-            <div className="grid grid-cols-2 gap-y-5 gap-x-20">
-                <DetailItem label="Contact Name" value={contact?.first_name ? `${contact.first_name} ${contact.last_name}` : 'N/A'} isLink href={`/contacts/contact?id=${contact?.name}`} />
-                <DetailItem label="Designation" value={contact?.designation || 'N/A'} />
-                <DetailItem label="Company Name" value={company?.name || 'N/A'} isLink href={`/companies/company?id=${company?.name}`} />
-                <DetailItem label="Company City" value={company ? company?.company_city : 'N/A'} />
-            </div> */}
-
-
-        </div>
-    );
 };
 
 
@@ -931,33 +911,21 @@ export const BOQ = () => {
                 <h1 className="text-xl md:text-2xl font-bold ">{boqData.boq_name}</h1> 
             </div> */}
 
-            <BoqDetailsHeader boq={boqData}
-                contact={contactData}
-                company={companyData}
-            />
+            <BoqDetailsHeader boq={boqData} />
 
+            <BoqContactCompanyCard contact={contactData} company={companyData} />
+
+            <BoqBcsStatusCard boq={boqData} />
 
             {(role != "Nirmaan Estimations User Profile") && (
-                <BoqDealStatusCard boq={boqData}
-
-                />
+                <BoqDealStatusCard boq={boqData} />
             )}
 
-            {/* {(role != "Nirmaan Estimations User Profile") && ( */}
             <BoqTaskDetails
-                // tasks={tasksList}
                 allTasks={tasksList || []}
                 boqId={boqData.name}
                 companyId={boqData.company}
                 contactId={boqData.contact}
-            />
-            {/* )} */}
-
-
-            <OtherBoqDetails
-                boq={boqData}
-                contact={contactData}
-                company={companyData}
             />
             {role !== "Nirmaan Sales User Profile" && (
                 <BoqSubmissionHistory versions={versionsList} boqData={boqData} />

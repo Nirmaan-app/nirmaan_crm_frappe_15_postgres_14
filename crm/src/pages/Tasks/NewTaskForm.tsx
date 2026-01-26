@@ -102,13 +102,13 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
   // Note: contactDocFromContext is reused for the contact's disabled input display.
 
   // Step 4: Fetch lists for populating dropdowns, only if needed.
-  const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", { fields: ["name", "company_name"], limit: 0 });
+  const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", { fields: ["name", "company_name", "company_nick"], limit: 0 });
 
   const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: { company: selectedCompanyByUser || companyId }, fields: ["name", "first_name", "last_name"], limit: 0 });
   const { data: boqsList, isLoading: boqsLoading } = useFrappeGetDocList<CRMBOQ>("CRM BOQ", { filters: { contact: selectedContactByUser || contactIdFromContext }, fields: ["name", "boq_name"], limit: 0 });
 
   // --- OPTIONS FOR DROPDOWNS ---
-  const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_name, value: c.name })) || [], [allCompanies]);
+  const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_nick ? `${c.company_name} (${c.company_nick})` : c.company_name, value: c.name })) || [], [allCompanies]);
   const contactOptions = useMemo(() => contactsList?.map(c => ({ label: c.first_name, value: c.name })) || [], [contactsList]);
   const boqOptions = useMemo(() => boqsList?.map(b => ({ label: b.boq_name, value: b.name })) || [], [boqsList]);
 

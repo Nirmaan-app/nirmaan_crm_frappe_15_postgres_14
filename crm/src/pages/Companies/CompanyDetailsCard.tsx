@@ -60,7 +60,14 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts, acti
                                 <SquarePen className="w-4 h-4" /> {/* Pencil icon */}
                             </Button>
                         </div>
-                        <p className="font-semibold">{company?.company_name}</p>
+                        <p className="font-semibold">
+                            {company?.company_name}
+                            {company?.company_nick && (
+                                <span className="text-muted-foreground font-normal ml-1">
+                                    ({company.company_nick})
+                                </span>
+                            )}
+                        </p>
                     </div>
                     <div className="text-right">
                         <p className="text-xs text-muted-foreground">City</p>

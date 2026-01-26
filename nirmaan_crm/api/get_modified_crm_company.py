@@ -20,6 +20,7 @@ def get_modified_crm_companies():
             fields=[
                 "name",
                 "company_name",
+                "company_nick",
                 "company_city",
                 "assigned_sales",
                 "priority",

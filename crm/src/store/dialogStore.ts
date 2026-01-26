@@ -85,6 +85,11 @@ type EditDealStatusContext = {
    boqData: CRMBoq | null; // Pass the entire BOQ object
 };
 
+// --- NEW: Context for EditBcsStatusForm ---
+type EditBcsStatusContext = {
+  boqData: CRMBOQ | null;
+};
+
 
 // --- NEW: Context for CompanyProgressForm ---
 type CompanyProgressContext = {
@@ -132,6 +137,8 @@ type DialogState = {
    renameContactName: { isOpen: boolean; context: RenameContactNameContext | null };
 
    editDealStatus: { isOpen: boolean; context: EditDealStatusContext | null };
+
+   editBcsStatus: { isOpen: boolean; context: EditBcsStatusContext | null };
 
     companyProgress: { isOpen: boolean; context: CompanyProgressContext | null };
 
@@ -207,6 +214,8 @@ closeNewUserDialog: () => void;
   openEditDealStatusDialog: (context: EditDealStatusContext) => void;
   closeEditDealStatusDialog: () => void;
 
+  openEditBcsStatusDialog: (context: EditBcsStatusContext) => void;
+  closeEditBcsStatusDialog: () => void;
 
     // --- NEW: Company Progress Dialog Actions ---
     openCompanyProgressDialog: (context: CompanyProgressContext) => void;
@@ -249,6 +258,8 @@ const initialState: DialogState = {
   renameContactName: { isOpen: false, context: null },
 
   editDealStatus: { isOpen: false, context: null },
+
+  editBcsStatus: { isOpen: false, context: null },
 
    companyProgress: { isOpen: false, context: null },
 
@@ -327,6 +338,10 @@ closeNewUserDialog: () => set({ newUser: { isOpen: false } }),
     // --- NEW: Edit Deal Status Dialog Implementation ---
   openEditDealStatusDialog: (context) => set({ editDealStatus: { isOpen: true, context } }),
   closeEditDealStatusDialog: () => set({ editDealStatus: { isOpen: false, context: null } }),
+
+  // --- NEW: Edit BCS Status Dialog Implementation ---
+  openEditBcsStatusDialog: (context) => set({ editBcsStatus: { isOpen: true, context } }),
+  closeEditBcsStatusDialog: () => set({ editBcsStatus: { isOpen: false, context: null } }),
 
   // --- NEW: Company Progress Dialog Implementation ---
   openCompanyProgressDialog: (context) => set({ companyProgress: { isOpen: true, context } }),
