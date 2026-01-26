@@ -37,6 +37,7 @@ interface RemarkItem {
 interface CRMCompany {
   name: string;
   company_name: string;
+  company_nick?: string;
   company_city?: string;
   company_type?: string;
   website?: string;
@@ -156,6 +157,11 @@ export const CompanyTableView = () => {
               className="text-primary font-medium hover:underline block truncate"
             >
               {row.original.company_name}
+              {row.original.company_nick && (
+                <span className="text-[11px] text-muted-foreground ml-1">
+                  ({row.original.company_nick})
+                </span>
+              )}
             </Link>
           </div>
         ),
@@ -290,7 +296,7 @@ export const CompanyTableView = () => {
     columns,
     initialSorting,
     initialColumnFilters: initialFilters,
-    customGlobalFilterFn: ['company_name', 'company_city', 'assigned_sales', 'priority', 'company_type'],
+    customGlobalFilterFn: ['company_name', 'company_nick', 'company_city', 'assigned_sales', 'priority', 'company_type'],
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -301,6 +307,7 @@ export const CompanyTableView = () => {
     () => [
       { accessorKey: 'name', meta: { exportHeaderName: 'Company ID' } },
       { accessorKey: 'company_name', meta: { exportHeaderName: 'Company Name' } },
+      { accessorKey: 'company_nick', meta: { exportHeaderName: 'Nickname' } },
       { accessorKey: 'company_type', meta: { exportHeaderName: 'Company Type' } },
       { accessorKey: 'company_city', meta: { exportHeaderName: 'City' } },
       {
@@ -372,6 +379,7 @@ export const CompanyTableView = () => {
             className="font-semibold text-primary hover:underline block"
           >
             {row.original.company_name}
+            {row.original.company_nick && ` (${row.original.company_nick})`}
           </Link>
           <p className="text-xs text-muted-foreground mt-0.5">
             {row.original.company_type || 'No type'}

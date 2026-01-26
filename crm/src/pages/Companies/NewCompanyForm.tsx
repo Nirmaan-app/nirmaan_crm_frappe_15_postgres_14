@@ -31,6 +31,7 @@ import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/name
 // Zod Schema based on your Frappe Doctype and UI Mockup
 const companyFormSchema = z.object({
   company_name: nameValidationSchema,
+  company_nick: z.string().max(140, "Nickname too long").optional(),
 
   company_city: z.string().min(1, "Location is required"),
   other_company_city: z.string().optional(),
@@ -132,6 +133,7 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
     resolver: zodResolver(companyFormSchema),
     defaultValues: {
       company_name: "",
+      company_nick: "",
       company_city: "",
       other_company_city: "",
       company_type: "",
@@ -153,6 +155,7 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
 
       form.reset({
         company_name: initialData.company_name || "",
+        company_nick: initialData.company_nick || "",
         company_city: isStandardCity ? initialData.company_city : "Others", // If not standard, set to "Others"
         other_company_city: isStandardCity ? "" : initialData.company_city, // If not standard, fill the 'other' field
 
@@ -169,7 +172,7 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
     } else {
       // Reset default for new forms
       form.reset({
-        company_name: "", company_city: "", other_company_city: "",
+        company_name: "", company_nick: "", company_city: "", other_company_city: "",
         company_type: "", company_website: "", assigned_sales: "",
         team_size: undefined, // Reset to undefined
         projects_per_month: undefined,
@@ -256,6 +259,20 @@ export const NewCompanyForm = ({ onSuccess, isEditMode = false, initialData = nu
                       field.onChange(sanitizedValue);
                     }}
                   />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="company_nick"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Company Nickname</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. ZPT" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

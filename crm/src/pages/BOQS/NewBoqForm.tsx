@@ -299,7 +299,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   // 3. Fetch the company document (for display in disabled input)
   const { data: companyDoc } = useFrappeGetDoc<CRMCompany>("CRM Company", companyId, { enabled: !!companyId });
   // 4. Fetch ALL companies (for the dropdown if no context)
-  const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", { fields: ["name", "company_name","assigned_sales"], limit: 1000, enabled: !companyId });
+  const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>("CRM Company", { fields: ["name", "company_name", "company_nick", "assigned_sales"], limit: 1000, enabled: !companyId });
   
   // 5. Fetch the contact document (for display in disabled input)
   const { data: contactDoc } = useFrappeGetDoc<CRMContacts>("CRM Contacts", contactIdFromContext, { enabled: !!contactIdFromContext });
@@ -308,7 +308,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: { company: selectedCompany || companyId }, fields: ["name", "first_name", "last_name"], enabled: !!(selectedCompany || companyId) });
 
   // --- OPTIONS FOR DROPDOWNS ---
-  const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_name, value: c.name})) || [], [allCompanies]);
+  const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_nick ? `${c.company_name} (${c.company_nick})` : c.company_name, value: c.name})) || [], [allCompanies]);
   const contactOptions = useMemo(() => contactsList?.map(c => ({ label: `${c.first_name} ${c.last_name}`, value: c.name })) || [], [contactsList]);
   
   // Effect to pre-fill the form with context

@@ -9,6 +9,7 @@
  "field_order": [
   "company_details_section",
   "company_name",
+  "company_nick",
   "company_website",
   "company_type",
   "company_city",
@@ -30,6 +31,12 @@
    "fieldtype": "Data",
    "label": "Company Name",
    "unique": 1
+  },
+  {
+   "fieldname": "company_nick",
+   "fieldtype": "Data",
+   "label": "Company Nickname",
+   "length": 140
   },
   {
    "fieldname": "company_website",

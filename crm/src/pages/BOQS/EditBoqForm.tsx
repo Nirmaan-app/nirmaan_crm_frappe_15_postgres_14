@@ -39,13 +39,13 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>(
     "CRM Company",
 
-    { fields: ["name", "company_name"], limit: 0, }
+    { fields: ["name", "company_name", "company_nick"], limit: 0, }
   );
 
 
 
 
-  const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_name, value: c.name })) || [], [allCompanies]);
+  const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_nick ? `${c.company_name} (${c.company_nick})` : c.company_name, value: c.name })) || [], [allCompanies]);
 
   const form = useForm<EditBoqFormValues>({
     resolver: zodResolver(mode === 'status' ? boqFormSchema : boqDetailsSchema),
