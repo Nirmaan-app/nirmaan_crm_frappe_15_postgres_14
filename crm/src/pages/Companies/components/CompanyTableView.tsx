@@ -140,12 +140,12 @@ export const CompanyTableView = () => {
   } = useCompanyTableOptions(companies);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Column Definitions - Consolidated from 12 → 6 columns
+  // Column Definitions - 8 columns
   // ─────────────────────────────────────────────────────────────────────────
 
   const columns = useMemo<DataTableColumnDef<CRMCompany>[]>(
     () => [
-      // 1. Company (Name + Type stacked)
+      // 1. Company Name
       {
         accessorKey: 'company_name',
         meta: { title: 'Company', enableSorting: true },
@@ -157,17 +157,29 @@ export const CompanyTableView = () => {
             >
               {row.original.company_name}
             </Link>
-            {row.original.company_type && (
-              <span className="text-[11px] text-muted-foreground">
-                {row.original.company_type}
-              </span>
-            )}
           </div>
         ),
         filterFn: 'faceted',
       },
 
-      // 2. Sales (Assigned Sales - first name only)
+      // 2. Type (Company Type)
+      {
+        accessorKey: 'company_type',
+        meta: {
+          title: 'Type',
+          filterVariant: 'select',
+          filterOptions: companyTypeOptions,
+          enableSorting: true,
+        },
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground truncate block">
+            {row.original.company_type || '—'}
+          </span>
+        ),
+        filterFn: 'faceted',
+      },
+
+      // 3. Sales (Assigned Sales - first name only)
       {
         accessorKey: 'assigned_sales',
         meta: {
@@ -187,7 +199,7 @@ export const CompanyTableView = () => {
         filterFn: 'faceted',
       },
 
-      // 3. Priority (Visual badge)
+      // 4. Priority (Visual badge)
       {
         accessorKey: 'priority',
         meta: {
@@ -200,7 +212,7 @@ export const CompanyTableView = () => {
         filterFn: 'faceted',
       },
 
-      // 4. Last Meeting (separate column with date filter)
+      // 5. Last Meeting (separate column with date filter)
       {
         accessorKey: 'last_meeting',
         meta: { title: 'Last Met', enableSorting: true, filterVariant: 'date' },
@@ -214,7 +226,7 @@ export const CompanyTableView = () => {
         filterFn: 'dateRange',
       },
 
-      // 5. Next Meeting (separate column with date filter)
+      // 6. Next Meeting (separate column with date filter)
       {
         accessorKey: 'next_meeting_date',
         meta: { title: 'Next Meet', enableSorting: true, filterVariant: 'date' },
@@ -228,7 +240,7 @@ export const CompanyTableView = () => {
         filterFn: 'dateRange',
       },
 
-      // 6. BOQs (Consolidated: Recent/Active/Hot badges)
+      // 7. BOQs (Consolidated: Recent/Active/Hot badges)
       {
         id: 'boqs', // Use id instead of accessorKey for computed columns
         accessorFn: (row) => {
@@ -248,7 +260,7 @@ export const CompanyTableView = () => {
         // Default numeric sorting will work now since accessorFn returns a number
       },
 
-      // 7. Remarks (Latest remarks with tooltip)
+      // 8. Remarks (Latest remarks with tooltip)
       {
         accessorKey: 'last_three_remarks_from_tasks',
         meta: { title: 'Remarks', enableSorting: false },
@@ -257,7 +269,7 @@ export const CompanyTableView = () => {
         ),
       },
     ],
-    [assignedSalesOptions, companyPriorityOptions, getUserFullNameByEmail]
+    [assignedSalesOptions, companyPriorityOptions, companyTypeOptions, getUserFullNameByEmail]
   );
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -278,7 +290,7 @@ export const CompanyTableView = () => {
     columns,
     initialSorting,
     initialColumnFilters: initialFilters,
-    customGlobalFilterFn: ['company_name', 'company_city', 'assigned_sales', 'priority'],
+    customGlobalFilterFn: ['company_name', 'company_city', 'assigned_sales', 'priority', 'company_type'],
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -434,9 +446,9 @@ export const CompanyTableView = () => {
       globalSearchPlaceholder="Search companies..."
       className="h-full"
       shouldExpandHeight={true}
-      // Grid: Company | Sales | Freq | Last Met | Next Meet | BOQs | Remarks
-      gridColsClass="grid-cols-[minmax(160px,2fr),80px,90px,120px,120px,minmax(140px,1.2fr),minmax(160px,1.5fr)]"
-      minWidth="950px"
+      // Grid: Company | Type | Sales | Freq | Last Met | Next Meet | BOQs | Remarks
+      gridColsClass="grid-cols-[minmax(140px,1.8fr),100px,80px,90px,120px,120px,minmax(130px,1.1fr),minmax(140px,1.3fr)]"
+      minWidth="1050px"
       renderToolbarActions={filteredData => (
         <DataTableExportButton
           data={filteredData}
