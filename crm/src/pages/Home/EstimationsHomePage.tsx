@@ -47,7 +47,18 @@ interface BOQ {
     city?: string;
     remarks?: string;
     assigned_estimations?: string; // Estimator's email/ID, needs lookup for display name
+    bcs_status?: string; // BCS Status: Pending | Review Pending | Completed
 }
+
+// --- BCS Status color helper (distinct from BOQ status colors) ---
+const getBcsStatusClass = (status?: string) => {
+    switch (status) {
+        case 'Pending': return 'bg-yellow-100 text-yellow-800';
+        case 'Review Pending': return 'bg-blue-100 text-blue-800';
+        case 'Completed': return 'bg-green-100 text-green-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+};
 
 // =============================================================================
 // Component for the "Pending BOQs" section
@@ -98,6 +109,16 @@ export const PendingBOQs = () => {
         const subStatuses = new Set<string>();
         pendingBoqs.forEach(boq => boq.boq_sub_status && subStatuses.add(boq.boq_sub_status));
         return Array.from(subStatuses).sort().map(status => ({
+            label: status,
+            value: status
+        }));
+    }, [pendingBoqs]);
+
+    const pendingBcsStatusOptions = useMemo(() => {
+        if (!pendingBoqs) return [];
+        const statuses = new Set<string>();
+        pendingBoqs.forEach(boq => boq.bcs_status && statuses.add(boq.bcs_status));
+        return Array.from(statuses).sort().map(status => ({
             label: status,
             value: status
         }));
@@ -173,6 +194,19 @@ export const PendingBOQs = () => {
             enableSorting: true,
         },
         {
+            accessorKey: "bcs_status",
+            meta: { title: "BCS Status", filterVariant: 'select', enableSorting: true, filterOptions: pendingBcsStatusOptions },
+            cell: ({ row }) => (
+                row.original.bcs_status ? (
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBcsStatusClass(row.original.bcs_status)}`}>
+                        {row.original.bcs_status}
+                    </span>
+                ) : '--'
+            ),
+            filterFn: 'faceted',
+            enableSorting: true,
+        },
+        {
             accessorKey: "assigned_sales",
             meta: { title: "Salesperson", filterVariant: 'select', enableSorting: true, filterOptions: pendingSalespersonOptions },
             cell: ({ row }) => <span className="px-2 text-sm">{getUserFullNameByEmail(row.original.assigned_sales) || "--"}</span>,
@@ -214,7 +248,7 @@ export const PendingBOQs = () => {
             enableSorting: false,
             enableColumnFilter: false,
         },
-    ], [pendingBoqs, pendingCompanyOptions, pendingStatusOptions, pendingSalespersonOptions, pendingSubStatusOptions, pendingProjectNamesOptions, getBoqStatusClass, openEditBoqDialog, getUserFullNameByEmail]);
+    ], [pendingBoqs, pendingCompanyOptions, pendingStatusOptions, pendingSalespersonOptions, pendingSubStatusOptions, pendingBcsStatusOptions, pendingProjectNamesOptions, getBoqStatusClass, openEditBoqDialog, getUserFullNameByEmail]);
 
 
     if (error) return <div className="text-red-500">Error loading pending BOQs.</div>;
@@ -286,6 +320,11 @@ export const PendingBOQs = () => {
                         {row.original.boq_sub_status}
                     </span>
                 )}
+                {row.original.bcs_status && (
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBcsStatusClass(row.original.bcs_status)}`}>
+                        {row.original.bcs_status}
+                    </span>
+                )}
             </div>
         </div>
     );
@@ -307,6 +346,7 @@ export const PendingBOQs = () => {
         { accessorKey: "remarks", meta: { exportHeaderName: "Remarks" } },
         { accessorKey: "boq_status", meta: { exportHeaderName: "Status" } },
         { accessorKey: "boq_sub_status", meta: { exportHeaderName: "Sub-Status" } },
+        { accessorKey: "bcs_status", meta: { exportHeaderName: "BCS Status" } },
         { accessorKey: "assigned_sales", meta: { exportHeaderName: "Assigned Salesperson", exportValue: (row) => getUserFullNameByEmail(row.assigned_sales) || '' } },
         { accessorKey: "assigned_estimations", meta: { exportHeaderName: "Assigned Estimations", exportValue: (row) => row.assigned_estimations ? (getUserFullNameByEmail(row.assigned_estimations) || row.assigned_estimations) : '' } },
         { accessorKey: "owner", meta: { exportHeaderName: "Created By" } },
@@ -326,7 +366,7 @@ export const PendingBOQs = () => {
             containerClassName="max-h-[300px]" // Apply fixed max-height to the scrollable table body
             minWidth="1200px"
             // Grid columns for Pending BOQs (7 columns)
-            gridColsClass="md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1.2fr,1fr,1fr,160px]"
+            gridColsClass="md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1.2fr,1fr,1fr,160px]"
             headerTitle="Pending BOQs"
             noResultsMessage="No pending BOQs found."
             // Render the export button in the toolbar actions slot
@@ -381,6 +421,16 @@ export const AllBOQs = () => {
         const subStatuses = new Set<string>();
         allBoqs.forEach(boq => boq.boq_sub_status && subStatuses.add(boq.boq_sub_status));
         return Array.from(subStatuses).sort().map(status => ({
+            label: status,
+            value: status
+        }));
+    }, [allBoqs]);
+
+    const bcsStatusOptions = useMemo(() => {
+        if (!allBoqs) return [];
+        const statuses = new Set<string>();
+        allBoqs.forEach(boq => boq.bcs_status && statuses.add(boq.bcs_status));
+        return Array.from(statuses).sort().map(status => ({
             label: status,
             value: status
         }));
@@ -460,6 +510,19 @@ export const AllBOQs = () => {
                 enableSorting: true,
         },
         {
+            accessorKey: "bcs_status",
+            meta: { title: "BCS Status", filterVariant: 'select', filterOptions: bcsStatusOptions, enableSorting: true },
+            cell: ({ row }) => (
+                row.original.bcs_status ? (
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBcsStatusClass(row.original.bcs_status)}`}>
+                        {row.original.bcs_status}
+                    </span>
+                ) : '--'
+            ),
+            filterFn: 'faceted',
+            enableSorting: true,
+        },
+        {
             accessorKey: "modified",
             meta: { title: "Last Updated", filterVariant: 'date', enableSorting: true },
             cell: ({ row }) => (
@@ -488,7 +551,7 @@ export const AllBOQs = () => {
         //     enableSorting: false,
         //     enableColumnFilter: false,
         // },
-    ], [allBoqs, companyOptions, projectNamesOptions, statusOptions, subStatusOptions, salespersonOptions, getBoqStatusClass, getUserFullNameByEmail]);
+    ], [allBoqs, companyOptions, projectNamesOptions, statusOptions, subStatusOptions, bcsStatusOptions, salespersonOptions, getBoqStatusClass, getUserFullNameByEmail]);
 
 
     if (error) return <div className="text-red-500">Error loading BOQs.</div>;
@@ -560,6 +623,11 @@ export const AllBOQs = () => {
                         {row.original.boq_sub_status}
                     </span>
                 )}
+                {row.original.bcs_status && (
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${getBcsStatusClass(row.original.bcs_status)}`}>
+                        {row.original.bcs_status}
+                    </span>
+                )}
                 <p className="text-xs text-muted-foreground">
                     {formatDateWithOrdinal(new Date(row.original.modified), 'dd-MM-yyyy')}
                 </p>
@@ -589,6 +657,7 @@ export const AllBOQs = () => {
         { accessorKey: "remarks", meta: { exportHeaderName: "Remarks" } },
         { accessorKey: "boq_status", meta: { exportHeaderName: "Status" } },
         { accessorKey: "boq_sub_status", meta: { exportHeaderName: "Sub-Status" } },
+        { accessorKey: "bcs_status", meta: { exportHeaderName: "BCS Status" } },
         {
             accessorKey: "assigned_sales",
             meta: {
@@ -619,7 +688,7 @@ export const AllBOQs = () => {
             className="h-full" // The DataTable's root div itself should fill its parent
             minWidth="1200px"
              containerClassName="max-h-[300px]"
-            gridColsClass="md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,60px]" // 7 columns for AllBOQs
+            gridColsClass="md:grid-cols-[2fr,1.5fr,1fr,1fr,1fr,1fr,1fr,60px]" // 8 columns for AllBOQs
             headerTitle="All BOQs"
             
             renderToolbarActions={(filteredData) => (
