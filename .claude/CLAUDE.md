@@ -6,10 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Documentation | When to Read |
 |---------------|--------------|
-| [BACKEND_ARCHITECTURE.md](../BACKEND_ARCHITECTURE.md) | Comprehensive backend reference (DocTypes, APIs, hooks) |
 | [context/doctypes.md](context/doctypes.md) | Working with DocType fields and relationships |
 | [context/apis.md](context/apis.md) | Adding/modifying API endpoints |
 | [context/patterns.md](context/patterns.md) | Code conventions and patterns |
+| [context/workflows.md](context/workflows.md) | Doc events, permissions, BOQ pipeline, task lifecycle |
+| [context/integrations.md](context/integrations.md) | Frontend-backend communication, REST hooks, real-time |
 | [crm/CLAUDE.md](../crm/CLAUDE.md) | Frontend architecture and React patterns |
 | [crm/.claude/context/](../crm/.claude/context/_index.md) | Frontend context files (hooks, roles) |
 
@@ -121,3 +122,7 @@ Create new patches:
 Frontend builds to `nirmaan_crm/public/crm/`, served by Frappe at `/assets/nirmaan_crm/crm/`.
 
 CI/CD via GitHub Actions builds Docker image on git tags, pushing to Google Artifact Registry.
+
+## Changelog
+
+Session insights and documentation updates are tracked in [CHANGELOG.md](CHANGELOG.md).

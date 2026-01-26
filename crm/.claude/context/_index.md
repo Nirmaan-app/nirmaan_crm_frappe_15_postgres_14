@@ -15,7 +15,14 @@ Quick reference for loading context files based on your task.
 |------|--------------|
 | [../CLAUDE.md](../CLAUDE.md) | Frontend architecture, providers, state management |
 | [../../.claude/context/apis.md](../../.claude/context/apis.md) | Backend API endpoints for frontend integration |
-| [../../BACKEND_ARCHITECTURE.md](../../BACKEND_ARCHITECTURE.md) | Full backend reference |
+| [../../.claude/context/workflows.md](../../.claude/context/workflows.md) | Doc events, permissions, BOQ pipeline, task lifecycle |
+| [../../.claude/context/integrations.md](../../.claude/context/integrations.md) | Frontend-backend communication, real-time, SWR cache |
+
+## Changelog
+
+| File | Purpose |
+|------|---------|
+| [../CHANGELOG.md](../.claude/CHANGELOG.md) | Frontend documentation audit trail |
 
 ## Role Profiles
 

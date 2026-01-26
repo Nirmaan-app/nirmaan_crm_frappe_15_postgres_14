@@ -9,13 +9,20 @@ Quick reference for loading context files based on your task.
 | [doctypes.md](doctypes.md) | Working with DocType fields, relationships, or creating new doctypes |
 | [apis.md](apis.md) | Adding/modifying API endpoints, understanding backend data flow |
 | [patterns.md](patterns.md) | Following code conventions, naming standards, error handling |
+| [workflows.md](workflows.md) | Doc events, permission logic, BOQ pipeline, task lifecycle |
+| [integrations.md](integrations.md) | Frontend-backend communication, REST hooks, real-time, SWR cache |
 
 ## Related Documentation
 
 | File | When to Read |
 |------|--------------|
-| [../BACKEND_ARCHITECTURE.md](../BACKEND_ARCHITECTURE.md) | Comprehensive backend reference (hooks, permissions, migrations) |
 | [../../crm/CLAUDE.md](../../crm/CLAUDE.md) | Frontend architecture, React patterns, component structure |
+
+## Changelog
+
+| File | Purpose |
+|------|---------|
+| [../CHANGELOG.md](../CHANGELOG.md) | Backend documentation audit trail |
 
 ## Role Profiles
 
@@ -31,6 +38,6 @@ Quick reference for loading context files based on your task.
 |------|------------|
 | Add new DocType | doctypes.md → hooks.py |
 | Add new API | apis.md → nirmaan_crm/api/ |
-| Modify permissions | BACKEND_ARCHITECTURE.md → permissions.py |
+| Modify permissions | workflows.md → permissions.py |
 | Add frontend page | crm/CLAUDE.md → src/pages/ |
 | Add frontend hook | crm/.claude/context/hooks.md |

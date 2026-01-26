@@ -11,7 +11,7 @@ This is the React frontend directory. See parent `../.claude/CLAUDE.md` for full
 | [.claude/context/role-access.md](.claude/context/role-access.md) | Working with authorization, route guards, role-based UI |
 | [.claude/context/hooks.md](.claude/context/hooks.md) | Understanding/creating custom hooks, data fetching |
 | [../.claude/context/apis.md](../.claude/context/apis.md) | Backend API endpoints for frontend integration |
-| [../BACKEND_ARCHITECTURE.md](../BACKEND_ARCHITECTURE.md) | Full backend reference |
+| [../.claude/context/integrations.md](../.claude/context/integrations.md) | Frontend-backend communication, real-time, SWR cache |
 
 ## Commands
 
@@ -189,3 +189,7 @@ import { cn } from '@/lib/utils';
 
 DocType interfaces in `src/types/NirmaanCRM/`:
 - `CRMCompany`, `CRMBOQ`, `CRMTask`, `CRMContacts`, `CRMUsers`, `CRMNote`
+
+## Changelog
+
+Session insights and documentation updates are tracked in [.claude/CHANGELOG.md](.claude/CHANGELOG.md).
