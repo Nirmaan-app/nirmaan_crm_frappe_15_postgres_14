@@ -27,6 +27,7 @@ Detailed documentation for all 7 DocTypes in Nirmaan CRM.
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | company_name | Data | Yes | Primary key, must be unique |
+| company_nick | Data | No | Nickname/abbreviation (max 140 chars) |
 | company_website | Data | No | Company website URL |
 | company_type | Link | No | → CRM Company Type |
 | company_city | Data | No | Location |
@@ -97,6 +98,7 @@ Detailed documentation for all 7 DocTypes in Nirmaan CRM.
 | assigned_estimations | Link | No | → User (estimations owner) |
 | deal_status | Select | No | Deal outcome |
 | client_deal_status | Select | No | Client's deal status |
+| bcs_status | Data | No | Default "Pending". Options: Pending, Review Pending, Completed |
 | company | Link | No | → CRM Company |
 | contact | Link | No | → CRM Contacts |
 
