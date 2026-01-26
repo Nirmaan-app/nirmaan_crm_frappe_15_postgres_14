@@ -270,6 +270,27 @@ export const BoqTableView = ({
                 filterFn: 'faceted',
                 enableSorting: true,
             },
+            {
+                accessorKey: "boq_value",
+                meta: { title: "BOQ Value", enableSorting: true },
+                cell: ({ row }) => {
+                    const val = row.original.boq_value;
+                    if (!val && val !== 0) return <span className="text-sm text-muted-foreground">--</span>;
+                    const num = Number(val);
+                    if (isNaN(num)) return <span className="text-sm text-muted-foreground">--</span>;
+                    return (
+                        <span className="text-sm font-medium">
+                            ₹{num.toFixed(2)} L
+                        </span>
+                    );
+                },
+                enableSorting: true,
+                sortingFn: (rowA, rowB) => {
+                    const a = Number(rowA.original.boq_value) || 0;
+                    const b = Number(rowB.original.boq_value) || 0;
+                    return a - b;
+                },
+            },
         //      {
         //     accessorKey: "assigned_sales",
         //     meta: { title: "Salesperson", filterVariant: 'select', filterOptions: salespersonOptions, enableSorting: true },
@@ -359,7 +380,7 @@ export const BoqTableView = ({
         const statusesWithSubmissionDate = ['New', 'In-Progress', 'Revision Pending'];
         if (statusesWithSubmissionDate.includes(activeTabStatus)) {
             // Insert it before the "Deal Status" column for a logical flow
-            baseColumns.splice(5, 0, boqSubmissionDateColumn); // Insert at index 5
+            baseColumns.splice(6, 0, boqSubmissionDateColumn); // Insert at index 6 (after boq_value column)
         }
 
         // Add Actions Column
@@ -534,21 +555,17 @@ const calculatedGridColsClass = useMemo(() => {
     let gridTemplate: string;
 
     if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
-        // 7 data columns + Actions
-        // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr,60px]";
+        // (boq_name, company, boq_value, boq_status, boq_sub_status, boq_submission_date, creation, modified, deal_status, actions)
+        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,0.8fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr,60px]";
     } else if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
-        // 7 data columns, no Actions
-        // (boq_name, company, boq_status, boq_sub_status, boq_submission_date, modified, deal_status)
-        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr]";
+        // (boq_name, company, boq_value, boq_status, boq_sub_status, boq_submission_date, creation, modified, deal_status)
+        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,0.8fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr]";
     } else if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
-        // 6 data columns + Actions
-        // (boq_name, company, boq_status, boq_sub_status, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1fr,1fr,60px,1fr]";
+        // (boq_name, company, boq_value, boq_status, boq_sub_status, creation, modified, deal_status, actions)
+        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,0.8fr,1fr,1fr,1fr,1fr,1fr,60px,1fr]";
     } else { // !isSubmissionDateColumnVisible && !isActionsColumnVisible
-        // 6 data columns, no Actions
-        // (boq_name, company, boq_status, boq_sub_status, modified, deal_status)
-        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1fr,1fr,1fr]";
+        // (boq_name, company, boq_value, boq_status, boq_sub_status, creation, modified, deal_status)
+        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,0.8fr,1fr,1fr,1fr,1fr,1fr,1fr]";
     }
 
     return gridTemplate;
