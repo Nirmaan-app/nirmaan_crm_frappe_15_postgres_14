@@ -20,6 +20,7 @@ import { RenameCompanyName } from "@/pages/Companies/forms/RenameCompanyName";
 import { RenameContactName } from "@/pages/Contacts/forms/RenameContactName";
 
 import { EditDealStatusForm } from "@/pages/BOQS/forms/EditBoqDealStatusForm";
+import { EditBcsStatusForm } from "@/pages/BOQS/forms/EditBcsStatusForm";
 
 import { CompanyProgressForm } from "@/pages/Companies/forms/CompanyProgressForm"
 // ============================================================================================
@@ -64,6 +65,7 @@ export const MainDialogs = () => {
         companyProgress, closeCompanyProgressDialog,
 
         editDealStatus, closeEditDealStatusDialog,
+        editBcsStatus, closeEditBcsStatusDialog,
         // ============================================================================================
         // START OF CHANGES: Destructuring new dialog states from the store
         // ============================================================================================
@@ -345,6 +347,21 @@ export const MainDialogs = () => {
                 )}
             </ReusableFormDialog>
 
+            <ReusableFormDialog
+                isOpen={editBcsStatus.isOpen}
+                onClose={closeEditBcsStatusDialog}
+                title={editBcsStatus.context?.boqData?.boq_name
+                    ? `Update BCS Status for "${editBcsStatus.context.boqData.boq_name}"`
+                    : "Update BCS Status"}
+                className="max-w-lg"
+            >
+                {editBcsStatus.context?.boqData && (
+                    <EditBcsStatusForm
+                        boqData={editBcsStatus.context.boqData}
+                        onSuccess={closeEditBcsStatusDialog}
+                    />
+                )}
+            </ReusableFormDialog>
 
             <ReusableFormDialog
                 isOpen={companyProgress.isOpen}

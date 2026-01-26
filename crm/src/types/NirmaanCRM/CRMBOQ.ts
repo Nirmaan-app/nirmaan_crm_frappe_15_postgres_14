@@ -42,4 +42,6 @@ export interface CRMBOQ{
 	deal_status?: string
 	/**	Client Deal Status : Data	*/
 	client_deal_status?: string
+	/**	BCS Status : Data	*/
+	bcs_status?: string
 }

@@ -22,6 +22,7 @@ import { useViewport } from "@/hooks/useViewPort";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { parse, isValid } from 'date-fns';
 import { BoqDealStatusCard } from "./components/BoqDealStatusCard";
+import { BoqBcsStatusCard } from "./components/BoqBcsStatusCard";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
 import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
@@ -913,6 +914,8 @@ export const BOQ = () => {
             <BoqDetailsHeader boq={boqData} />
 
             <BoqContactCompanyCard contact={contactData} company={companyData} />
+
+            <BoqBcsStatusCard boq={boqData} />
 
             {(role != "Nirmaan Estimations User Profile") && (
                 <BoqDealStatusCard boq={boqData} />
