@@ -247,19 +247,12 @@ export const HomeHeader = () => {
                 )}
 
 
-{activeTab === 'estimations_review' &&(
- <div className="space-y-2 mb-4">
-     <CollapsibleSection title="Pending BOQs" defaultOpen={true}>
-                            <PendingBOQs className="border-none p-0 shadow-none" /> {/* Pass dateRange if PendingBOQs needs it */}
-                        </CollapsibleSection>
-                        {/* --- COLLAPSIBLE ALL BOQs --- */}
-                        <CollapsibleSection title="All BOQs" defaultOpen={false}>
-                            <AllBOQs className="border-none p-0 shadow-none" /> {/* Pass dateRange if AllBOQs needs it */}
-                        </CollapsibleSection>
-                        {/* <PendingBOQs />
-                        <AllBOQs /> */}
+{activeTab === 'estimations_review' && (
+                    <div className="flex-1 flex flex-col min-h-0">
+                        <PendingBOQs />
+                        {/* <AllBOQs /> */}
                     </div>
-)}
+                )}
                 
             </div>
         </div>

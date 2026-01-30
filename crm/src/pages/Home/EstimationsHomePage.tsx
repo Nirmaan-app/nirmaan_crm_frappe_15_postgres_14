@@ -60,6 +60,27 @@ const getBcsStatusClass = (status?: string) => {
     }
 };
 
+// --- Deadline-based row highlighting helper ---
+const getDeadlineRowClass = (submissionDate?: string): string => {
+    if (!submissionDate) return '';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of day
+
+    const deadline = new Date(submissionDate);
+    deadline.setHours(0, 0, 0, 0); // Normalize to start of day
+
+    if (deadline.getTime() < today.getTime()) {
+        // Deadline has passed - light red
+        return 'bg-red-50 hover:bg-red-100';
+    } else if (deadline.getTime() === today.getTime()) {
+        // Deadline is today - yellow
+        return 'bg-yellow-50 hover:bg-yellow-100';
+    }
+
+    return '';
+};
+
 // =============================================================================
 // Component for the "Pending BOQs" section
 // =============================================================================
@@ -361,14 +382,15 @@ export const PendingBOQs = () => {
             // onRowClick={(row) => navigate(`/boqs/boq?id=${row.original.name}`)}
             renderMobileRow={renderPendingBoqMobileRow}
             globalSearchPlaceholder="Search pending BOQs..."
-            shouldExpandHeight={false} // Explicitly NOT expanding height (fixed 350px max-height)
-            className="h-full" // Ensure DataTable's root div itself fills its parent container
-            containerClassName="max-h-[300px]" // Apply fixed max-height to the scrollable table body
+            shouldExpandHeight={true}
+            className="h-full flex-1"
             minWidth="1200px"
-            // Grid columns for Pending BOQs (7 columns)
+            // Grid columns for Pending BOQs (9 columns)
             gridColsClass="md:grid-cols-[1.5fr,1.2fr,1fr,1fr,1fr,1.2fr,1fr,1fr,160px]"
             headerTitle="Pending BOQs"
             noResultsMessage="No pending BOQs found."
+            // Highlight rows based on deadline: red if overdue, yellow if due today
+            getRowClassName={(row) => getDeadlineRowClass(row.original.boq_submission_date)}
             // Render the export button in the toolbar actions slot
             renderToolbarActions={(filteredData) => (
                 <DataTableExportButton
@@ -748,17 +770,14 @@ export const EstimationsHomePage = ({FullName}) => {
                         </div>
       </div>
 
-      {/* 
+      {/*
         The content that scrolls underneath the fixed header.
         This div is now the main content area below the fixed header.
-        No explicit overflow-y-auto here if its parent already handles it.
-        We remove space-y-2 from the parent, and manage spacing internally or in child components.
+        Uses flex-1 to fill remaining height for full-screen table.
       */}
-      <div className="flex-1 p-4 pt-0"> {/* Added p-4 for general content padding, pt-0 to avoid double padding with header */}
-        <div className="space-y-2"> {/* Manage internal spacing here */}
+      <div className="flex-1 p-4 pt-0 flex flex-col min-h-0">
             <PendingBOQs />
-            <AllBOQs />
-        </div>
+            {/* <AllBOQs /> */}
       </div>
     </div>
 
