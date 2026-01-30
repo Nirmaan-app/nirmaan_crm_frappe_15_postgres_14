@@ -135,13 +135,14 @@ export const CompanyTableView = () => {
 
   const {
     assignedSalesOptions,
+    companyCityOptions,
     companyPriorityOptions,
     companyTypeOptions,
     getUserFullNameByEmail,
   } = useCompanyTableOptions(companies);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Column Definitions - 8 columns
+  // Column Definitions - 9 columns
   // ─────────────────────────────────────────────────────────────────────────
 
   const columns = useMemo<DataTableColumnDef<CRMCompany>[]>(
@@ -185,7 +186,24 @@ export const CompanyTableView = () => {
         filterFn: 'faceted',
       },
 
-      // 3. Sales (Assigned Sales - first name only)
+      // 3. City
+      {
+        accessorKey: 'company_city',
+        meta: {
+          title: 'City',
+          filterVariant: 'select',
+          filterOptions: companyCityOptions,
+          enableSorting: true,
+        },
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground truncate block">
+            {row.original.company_city || '—'}
+          </span>
+        ),
+        filterFn: 'faceted',
+      },
+
+      // 4. Sales (Assigned Sales - first name only)
       {
         accessorKey: 'assigned_sales',
         meta: {
@@ -205,7 +223,7 @@ export const CompanyTableView = () => {
         filterFn: 'faceted',
       },
 
-      // 4. Priority (Visual badge)
+      // 5. Priority (Visual badge)
       {
         accessorKey: 'priority',
         meta: {
@@ -218,7 +236,7 @@ export const CompanyTableView = () => {
         filterFn: 'faceted',
       },
 
-      // 5. Last Meeting (separate column with date filter)
+      // 6. Last Meeting (separate column with date filter)
       {
         accessorKey: 'last_meeting',
         meta: { title: 'Last Met', enableSorting: true, filterVariant: 'date' },
@@ -232,7 +250,7 @@ export const CompanyTableView = () => {
         filterFn: 'dateRange',
       },
 
-      // 6. Next Meeting (separate column with date filter)
+      // 7. Next Meeting (separate column with date filter)
       {
         accessorKey: 'next_meeting_date',
         meta: { title: 'Next Meet', enableSorting: true, filterVariant: 'date' },
@@ -246,7 +264,7 @@ export const CompanyTableView = () => {
         filterFn: 'dateRange',
       },
 
-      // 7. BOQs (Consolidated: Recent/Active/Hot badges)
+      // 8. BOQs (Consolidated: Recent/Active/Hot badges)
       {
         id: 'boqs', // Use id instead of accessorKey for computed columns
         accessorFn: (row) => {
@@ -266,7 +284,7 @@ export const CompanyTableView = () => {
         // Default numeric sorting will work now since accessorFn returns a number
       },
 
-      // 8. Remarks (Latest remarks with tooltip)
+      // 9. Remarks (Latest remarks with tooltip)
       {
         accessorKey: 'last_three_remarks_from_tasks',
         meta: { title: 'Remarks', enableSorting: false },
@@ -275,7 +293,7 @@ export const CompanyTableView = () => {
         ),
       },
     ],
-    [assignedSalesOptions, companyPriorityOptions, companyTypeOptions, getUserFullNameByEmail]
+    [assignedSalesOptions, companyCityOptions, companyPriorityOptions, companyTypeOptions, getUserFullNameByEmail]
   );
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -454,9 +472,9 @@ export const CompanyTableView = () => {
       globalSearchPlaceholder="Search companies..."
       className="h-full"
       shouldExpandHeight={true}
-      // Grid: Company | Type | Sales | Freq | Last Met | Next Meet | BOQs | Remarks
-      gridColsClass="grid-cols-[minmax(140px,1.8fr),100px,80px,90px,120px,120px,minmax(130px,1.1fr),minmax(140px,1.3fr)]"
-      minWidth="1050px"
+      // Grid: Company | Type | City | Sales | Freq | Last Met | Next Meet | BOQs | Remarks
+      gridColsClass="grid-cols-[minmax(140px,1.8fr),100px,90px,80px,90px,120px,120px,minmax(120px,1fr),minmax(130px,1.2fr)]"
+      minWidth="1140px"
       renderToolbarActions={filteredData => (
         <DataTableExportButton
           data={filteredData}
