@@ -39,6 +39,7 @@ interface DataTableProps<TData> {
   renderTopToolbarActions?: React.ReactNode;
   shouldExpandHeight?: boolean;
   minWidth?: string;
+  getRowClassName?: (row: Row<TData>) => string; // Conditional row styling
 }
 
 // Row height constants for virtualization
@@ -60,6 +61,7 @@ export function DataTable<TData>({
   renderTopToolbarActions,
   shouldExpandHeight = false,
   minWidth,
+  getRowClassName,
 }: DataTableProps<TData>) {
   const { table, globalFilter, setGlobalFilter, resetFilters, hasActiveFilters, filteredRowsCount } = tableLogic;
 
@@ -334,14 +336,20 @@ export function DataTable<TData>({
                             {renderMobileRow ? (
                               <div
                                 onClick={() => onRowClick?.(row)}
-                                className="p-3 bg-card border border-border/40 rounded-lg cursor-pointer hover:border-border hover:shadow-sm transition-all"
+                                className={cn(
+                                  "p-3 bg-card border border-border/40 rounded-lg cursor-pointer hover:border-border hover:shadow-sm transition-all",
+                                  getRowClassName?.(row)
+                                )}
                               >
                                 {renderMobileRow(row)}
                               </div>
                             ) : (
                               <div
                                 onClick={() => onRowClick?.(row)}
-                                className="p-3 border border-border/40 rounded-lg cursor-pointer hover:bg-muted/50"
+                                className={cn(
+                                  "p-3 border border-border/40 rounded-lg cursor-pointer hover:bg-muted/50",
+                                  getRowClassName?.(row)
+                                )}
                               >
                                 <p className="font-medium text-primary">
                                   {Object.values(row.original as any).find(v => typeof v === 'string' && v.length > 0) || 'Item'}
@@ -356,7 +364,8 @@ export function DataTable<TData>({
                             className={cn(
                               "grid items-center py-3 px-1 border-b border-border/30 cursor-pointer",
                               "hover:bg-muted/30 transition-colors gap-4",
-                              gridColsClass
+                              gridColsClass,
+                              getRowClassName?.(row)
                             )}
                           >
                             {row.getVisibleCells().map(cell => (

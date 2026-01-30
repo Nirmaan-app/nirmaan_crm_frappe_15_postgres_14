@@ -440,7 +440,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
 
             {
               !isHidden("boq_submission_date") && (
-                <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Deadline{isRequired("boq_submission_date") && <sup>*</sup>}</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField name="boq_submission_date" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ Submission Deadline{isRequired("boq_submission_date") && <sup>*</sup>}</FormLabel><FormControl><Input type="date" min={new Date().toISOString().split('T')[0]} {...field} /></FormControl><FormMessage /></FormItem>)} />
               )
             }
 
