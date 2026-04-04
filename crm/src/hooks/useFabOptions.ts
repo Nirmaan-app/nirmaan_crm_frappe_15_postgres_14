@@ -75,7 +75,7 @@ export const useFabOptions = () => {
 
         if (pathname.startsWith('/companies/company') && id) {
             newOptions = [
-                { label: "Add New BOQ", action: () => openNewBoqDialog({ companyId: id }) },
+                { label: "Add New Project", action: () => openNewBoqDialog({ companyId: id }) },
                 { label: "Add New Contact", action: () => openNewContactDialog({ companyId: id }) },
                 // Use the handler here
                 { label: "Add New Task", action: () => handleCreateTask({ companyId: id }) }
@@ -83,7 +83,7 @@ export const useFabOptions = () => {
         }
         if (pathname.startsWith('/companies') && id) {
             newOptions = [
-                { label: "Add New BOQ", action: () => openNewBoqDialog({ companyId: id }) },
+                { label: "Add New Project", action: () => openNewBoqDialog({ companyId: id }) },
                 { label: "Add New Contact", action: () => openNewContactDialog({ companyId: id }) },
                 // Use the handler here
                 { label: "Add New Task", action: () => handleCreateTask({ companyId: id }) }
@@ -92,13 +92,13 @@ export const useFabOptions = () => {
             newOptions = [
                 // Use the handler here
                 { label: "Add New Task", action: () => handleCreateTask({ contactId: id }) },
-                { label: "Add New BOQ", action: () => openNewBoqDialog({ contactId: id }) }
+                { label: "Add New Project", action: () => openNewBoqDialog({ contactId: id }) }
             ];
         } else if (pathname.startsWith('/contacts') && id) {
             newOptions = [
                 // Use the handler here
                 { label: "Add New Task", action: () => handleCreateTask({ contactId: id }) },
-                { label: "Add New BOQ", action: () => openNewBoqDialog({ contactId: id }) }
+                { label: "Add New Project", action: () => openNewBoqDialog({ contactId: id }) }
             ];
         }
         else if (pathname.startsWith('/boqs') && id) {
@@ -117,18 +117,18 @@ export const useFabOptions = () => {
         } else if (pathname.startsWith('/contacts')) {
             newOptions = [{ label: "Add New Contact", action: openNewContactDialog }];
         } else if (pathname.startsWith('/boqs')) {
-            newOptions = [{ label: "Add New BOQ", action: openNewBoqDialog }];
+            newOptions = [{ label: "Add New Project", action: openNewBoqDialog }];
         } else if (pathname.startsWith('/tasks')) {
             newOptions = [{ label: "Add New Task", action: handleCreateTask }];
         } else if (pathname.startsWith('/team')) {
             newOptions = [{ label: "Add New CRM User", action: openNewUserDialog }];
         } else if (role === "Nirmaan Estimations User Profile" && pathname === '/') {
-            newOptions = [{ label: "Add New BOQ", action: openNewBoqDialog }];
+            newOptions = [{ label: "Add New Project", action: openNewBoqDialog }];
         } else if (pathname === '/') {
             newOptions = [
                 { label: "Add New Company", action: openNewCompanyDialog },
                 { label: "Add New Contact", action: openNewContactDialog },
-                { label: "Add New BOQ", action: openNewBoqDialog },
+                { label: "Add New Project", action: openNewBoqDialog },
                 // Use the handler here
                 { label: "Add New Task", action: handleCreateTask },
             ];

@@ -84,8 +84,8 @@ export const MainDialogs = () => {
     // Helper to generate a dynamic title
     const getEditBoqTitle = () => {
         const mode = editBoq.context.mode;
-        if (mode === 'details') return 'Edit BOQ Details';
-        if (mode === 'status') return 'Update Status';
+        if (mode === 'details') return 'Edit project Details';
+        if (mode === 'status') return 'Project Status';
         // if (mode === 'remark') return 'Add New Remark';
         // if (mode === 'assigned') return 'Edit Assigned';
 
@@ -170,7 +170,7 @@ export const MainDialogs = () => {
             <ReusableFormDialog
                 isOpen={newBoq.isOpen}
                 onClose={closeNewBoqDialog}
-                title="Add New BOQ"
+                title="Add New Project"
                 className="max-w-lg"
             >
                 <NewBoqForm onSuccess={closeNewBoqDialog} />

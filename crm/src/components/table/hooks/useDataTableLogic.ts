@@ -12,6 +12,8 @@ import {
   GlobalFilterFn,
    Row, // Added Row import
   ColumnDef, // Added ColumnDef import for the inline default filter logic // NEW: Import GlobalFilterFn
+  getExpandedRowModel,
+  ExpandedState,
 } from '@tanstack/react-table';
 import { createGlobalFilterFn } from '../utils/global-filters';
 
@@ -137,6 +139,7 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(initialColumnFilters);
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(initialColumnVisibility);
+  const [expanded, setExpanded] = useState<ExpandedState>({});
 
   const activeGlobalFilterFn = useMemo<GlobalFilterFn<TData>>(() => {
     // If custom searchable keys are provided and not empty, use the factory function
@@ -201,11 +204,14 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
     getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
+    onExpandedChange: setExpanded,
+    getExpandedRowModel: getExpandedRowModel(),
     state: {
       sorting,
       columnFilters,
       globalFilter,
       columnVisibility,
+      expanded,
     },
     filterFns: {
       dateRange: dateRangeFilterFn,
@@ -245,6 +251,8 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
     filteredRowsCount,
     columnVisibility,
     setColumnVisibility,
+    expanded,
+    setExpanded,
   }), [
     table,
     globalFilter,
@@ -254,5 +262,7 @@ export function useDataTableLogic<TData extends Record<string, any>>({ // NEW: E
     filteredRowsCount,
     columnVisibility,
     setColumnVisibility,
+    expanded,
+    setExpanded,
   ]);
 }

@@ -17,7 +17,7 @@ const getPageTitle = (pathname: string): string => {
     if (pathname.startsWith('/companies')) return 'Companies';
 
     if (pathname.startsWith('/boqs/boq')) return 'BOQ Details';
-    if (pathname.startsWith('/boqs/new')) return 'Add New BOQ';
+    if (pathname.startsWith('/boqs/new')) return 'Add New Project';
     if (pathname.startsWith('/boqs')) return 'BOQs';
 
     if (pathname.startsWith('/contacts/contact')) return 'Contact Details';
@@ -39,7 +39,7 @@ export const MobileLayout = () => {
     const [options, setOptions] = useState<Array<{ label: string; action: () => void }>>([]);
 
     // --- LOGIC to calculate the dynamic data ---
-  useEffect(() => {
+    useEffect(() => {
     const { pathname, search } = location;
     const params = new URLSearchParams(search);
     const id = params.get('id');
@@ -58,45 +58,44 @@ export const MobileLayout = () => {
                 { label: "Add New Task", action: () => openNewTaskDialog({}) },
             ];
         }else if (pathname.startsWith('/companies/company') && id) {
-        newOptions = [
-            { label: "Add New BOQ", action: () => openNewBoqDialog({ companyId: id }) },
-            { label: "Add New Contact", action: () => openNewContactDialog({ companyId: id }) },
-            { label: "Add New Task", action: () => openNewTaskDialog({ companyId: id }) }
-        ];
-    } else if (pathname.startsWith('/contacts/contact') && id) {
-        newOptions = [
-            { label: "Add New Task", action: () => openNewTaskDialog({ contactId: id }) },
-            { label: "Add New BOQ", action: () => openNewBoqDialog({ contactId: id })  }
-        ];
-        
-    }
-    else if (pathname.startsWith('/boqs/boq') && id) {
-         newOptions = [];
-    }else if(pathname.startsWith('/tasks/task') && id) {
-         newOptions = [];
-    }
-    
-    // --- LIST PAGE OPTIONS (NOW FULLY CORRECTED) ---
-    else if (pathname.startsWith('/companies')) {
-        newOptions = [{ label: "Add New Company", action: openNewCompanyDialog }];
-    } 
-    else if (pathname.startsWith('/contacts')) {
-        // CORRECTED: from 'path' to 'action'
-        newOptions = [{ label: "Add New Contact", action: openNewContactDialog }];
-    } 
-    else if (pathname.startsWith('/boqs')) {
-        // CORRECTED: from 'path' to 'action'
-        newOptions = [{ label: "Add New BOQ", action: openNewBoqDialog }];
-    } 
-    else if (pathname.startsWith('/tasks')) {
-        // CORRECTED: from 'path' to 'action'
-        newOptions = [{ label: "Add New Task", action: openNewTaskDialog }];
-    }else if (pathname.startsWith('/team')) {
-        // CORRECTED: from 'path' to 'action'
-        newOptions = [{ label: "Add New Task", action: openNewTaskDialog }];
-    }
-    
-    setOptions(newOptions);
+            newOptions = [
+                { label: "Add New Project", action: () => openNewBoqDialog({ companyId: id }) },
+                { label: "Add New Contact", action: () => openNewContactDialog({ companyId: id }) },
+                { label: "Add New Task", action: () => openNewTaskDialog({ companyId: id }) }
+            ];
+        } else if (pathname.startsWith('/contacts/contact') && id) {
+            newOptions = [
+                { label: "Add New Task", action: () => openNewTaskDialog({ contactId: id }) },
+                { label: "Add New Project", action: () => openNewBoqDialog({ contactId: id }) }
+            ];
+        }
+        else if (pathname.startsWith('/boqs/boq') && id) {
+            newOptions = [];
+        }else if(pathname.startsWith('/tasks/task') && id) {
+            newOptions = [];
+        }
+
+        // --- LIST PAGE OPTIONS (NOW FULLY CORRECTED) ---
+        else if (pathname.startsWith('/companies')) {
+            newOptions = [{ label: "Add New Company", action: openNewCompanyDialog }];
+        }
+        else if (pathname.startsWith('/contacts')) {
+            // CORRECTED: from 'path' to 'action'
+            newOptions = [{ label: "Add New Contact", action: openNewContactDialog }];
+        }
+        else if (pathname.startsWith('/boqs')) {
+            // CORRECTED: from 'path' to 'action'
+            newOptions = [{ label: "Add New Project", action: openNewBoqDialog }];
+        }
+        else if (pathname.startsWith('/tasks')) {
+            // CORRECTED: from 'path' to 'action'
+            newOptions = [{ label: "Add New Task", action: openNewTaskDialog }];
+        } else if (pathname.startsWith('/team')) {
+            // CORRECTED: from 'path' to 'action'
+            newOptions = [{ label: "Add New Task", action: openNewTaskDialog }];
+        }
+
+        setOptions(newOptions);
 
 }, [
     location, 

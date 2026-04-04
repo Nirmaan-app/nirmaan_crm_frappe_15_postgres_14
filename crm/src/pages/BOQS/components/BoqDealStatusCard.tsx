@@ -51,26 +51,31 @@ export const BoqDealStatusCard = ({ boq }: BoqDealStatusCardProps) => {
     console.log("boq",boq.deal_status)
     
     return (
-        <div className="bg-background p-4 rounded-lg border shadow-sm flex justify-between items-center">
-            {/* Left side: Deal Status */}
-            <div>
-                <p className="text-sm text-muted-foreground mb-2">Deal Status : <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getDealStatusClass(boq.deal_status)}`}>
-                    {boq.deal_status||"N/A"}
-                </span></p>
-                <p className="text-sm text-muted-foreground">Client Deal Status : <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getClientStatusClass(boq.client_deal_status)}`}>
-                    {boq.client_deal_status||"N/A"}
-                </span></p>
+        <div className="bg-background px-6 py-4 rounded-lg border shadow-sm flex flex-col sm:flex-row justify-between items-center w-full shrink-0">
+            <div className="flex flex-wrap items-center gap-6 w-full">
+                <div className="flex items-center gap-3">
+                    <span className="text-[11px] font-bold text-gray-500 tracking-wider">DEAL STATUS:</span>
+                    <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getDealStatusClass(boq.deal_status)}`}>
+                        {boq.deal_status || "N/A"}
+                    </span>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                    <span className="text-[11px] font-bold text-gray-500 tracking-wider">CLIENT DEAL STATUS:</span>
+                    <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getClientStatusClass(boq.client_deal_status)}`}>
+                        {boq.client_deal_status || "N/A"}
+                    </span>
+                </div>
             </div>
 
-            {/* Right side: Update Button */}
             <Button
                 variant="outline"
                 size="sm"
-                className="border-destructive text-destructive"
+                className="border-destructive text-destructive whitespace-nowrap mt-4 sm:mt-0"
                 onClick={handleUpdateDealStatusClick}
             >
-                <SquarePen className="w-4 h-4 mr-2" />
-                Update 
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21l-5.94 5.94M21.5 8l-5.94-5.94"/></svg>
+                Update
             </Button>
         </div>
     );
