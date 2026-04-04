@@ -30,12 +30,19 @@ export const useUserRoleLists = () => {
                 "nirmaan_role_name": ["in", [
                     "Nirmaan Sales User Profile", 
                     "Nirmaan Estimations User Profile",
+                    "Nirmaan Estimates User Profile",
+                    "Nirmaan Estimations lead Profile",
+                    "Nirmaan Estimations Lead Profile",
                     "Nirmaan Admin User Profile",
                 ]] 
             },
             limit: 0,
         },
-        "all-role-users-list" // A new, appropriate cache key
+        "all-role-users-list", // A new, appropriate cache key
+        {
+            // Prevent recurring retries when role-based permissions return 403.
+            shouldRetryOnError: false,
+        }
     );
 
     // --- 2. Process the Combined List and create a lookup map ---
@@ -65,7 +72,12 @@ export const useUserRoleLists = () => {
 
                 if (user.nirmaan_role_name === "Nirmaan Sales User Profile" || user.nirmaan_role_name==="Nirmaan Admin User Profile") {
                     accumulator.sales.push(userOption);
-                } else if (user.nirmaan_role_name === "Nirmaan Estimations User Profile") {
+                } else if (
+                    user.nirmaan_role_name === "Nirmaan Estimations User Profile" ||
+                    user.nirmaan_role_name === "Nirmaan Estimates User Profile" ||
+                    user.nirmaan_role_name === "Nirmaan Estimations lead Profile" ||
+                    user.nirmaan_role_name === "Nirmaan Estimations Lead Profile"
+                ) {
                     accumulator.estimations.push(userOption);
                 }
                 

@@ -25,7 +25,7 @@ export const DesktopLayout = () => {
         // Order matters: More specific routes (detail pages) go first.
         if (pathname.startsWith('/companies/company') && id) {
             newOptions = [
-                { label: "Add New BOQ", path: `/boqs/new?company_id=${id}` },
+                { label: "Add New Project", path: `/boqs/new?company_id=${id}` },
                 { label: "Add New Contact", path: `/contacts/new?company_id=${id}` },
                 { label: "Add New Task", path: `/tasks/new?company_id=${id}` }
             ];
@@ -46,11 +46,11 @@ export const DesktopLayout = () => {
         } else if (pathname.startsWith('/contacts')) {
             newOptions = [{ label: "Add New Contact", path: "/contacts/new" }];
         } else if (pathname.startsWith('/boqs')) {
-            newOptions = [{ label: "Add New BOQ", path: "/boqs/new" }];
+            newOptions = [{ label: "Add New Project", path: "/boqs/new" }];
         } else if (pathname.startsWith('/tasks')) {
             newOptions = [{ label: "Add New Task", path: "/tasks/new" }];
         }
-        
+
         setOptions(newOptions);
     }, [location]); // Re-run when the location changes
 

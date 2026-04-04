@@ -77,8 +77,12 @@ export const EditBcsStatusForm = ({ onSuccess, boqData }: EditBcsStatusFormProps
       });
 
       // --- Cache Invalidation ---
-      mutate(`BOQ/${boqData.name}`);
-      mutate(key => typeof key === 'string' && key.startsWith('all-boqs-'));
+      await Promise.all([
+        mutate(`BOQ/${boqData.name}`),
+        mutate("all-boqs-all-view"),
+        mutate("home-estimation-review-projects"),
+        mutate(key => typeof key === 'string' && key.startsWith('all-boqs-')),
+      ]);
 
       onSuccess?.();
     } catch (error: any) {

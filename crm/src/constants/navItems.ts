@@ -40,7 +40,7 @@ export const items : NavItem[] = [
     icon: User
   },
   {
-    label : "BOQs", // REPLACED Project
+    label : "Projects", // REPLACED Project
     path: "/boqs",
     icon: GanttChartSquare
   },

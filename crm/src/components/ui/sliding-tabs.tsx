@@ -16,6 +16,7 @@ interface SlidingTabsProps {
   activeTab: string;
   onTabChange: (value: string) => void;
   className?: string;
+  tabClassName?: string;
 }
 
 export const SlidingTabs: React.FC<SlidingTabsProps> = ({
@@ -23,6 +24,7 @@ export const SlidingTabs: React.FC<SlidingTabsProps> = ({
   activeTab,
   onTabChange,
   className,
+  tabClassName,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -141,7 +143,8 @@ export const SlidingTabs: React.FC<SlidingTabsProps> = ({
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
               isActive
                 ? "text-foreground font-bold"
-                : "text-muted-foreground font-medium hover:text-foreground/70"
+                : "text-muted-foreground font-medium hover:text-foreground/70",
+              tabClassName
             )}
           >
             {tab.label}
