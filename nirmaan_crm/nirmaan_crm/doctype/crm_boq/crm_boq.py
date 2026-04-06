@@ -16,10 +16,12 @@ class CRMBOQ(Document):
 			pass
 		else:
 			user_doc = frappe.get_doc("CRM Users", user)
-			role_profile = user_doc.nirmaan_role_name
-			if role_profile == "Nirmaan Sales User Profile":
+			role_profile = (user_doc.nirmaan_role_name or "").strip().lower()
+			if role_profile in ["nirmaan sales user profile", "nirmaan sales user"]:
 				self.assigned_sales = self.owner
-			elif role_profile == "Nirmaan Estimations User Profile":
+			elif role_profile in [
+				"nirmaan estimations user profile",
+			]:
 				self.assigned_estimations = self.owner
 			else:
 				pass
@@ -33,6 +35,10 @@ class CRMBOQ(Document):
 			except Exception:
 				packages = [self.boq_type] if self.boq_type else []
 
+			assigned_to = None
+			if getattr(self, "assigned_estimations", None) and frappe.db.exists("CRM Users", self.assigned_estimations):
+				assigned_to = self.assigned_estimations
+
 			for pkg in packages:
 				# Check if BOQ exists for this package
 				if not frappe.db.exists("CRM Project Estimation", {"parent_project": self.name, "document_type": "BOQ", "package_name": pkg}):
@@ -43,6 +49,7 @@ class CRMBOQ(Document):
 						"document_type": "BOQ",
 						"package_name": pkg,
 						"deadline": getattr(self, "boq_submission_date", None),
+						"assigned_to": assigned_to,
 						"status": "New"
 					})
 					doc.insert(ignore_permissions=True)
@@ -56,6 +63,7 @@ class CRMBOQ(Document):
 						"document_type": "BCS",
 						"package_name": pkg,
 						"deadline": getattr(self, "boq_submission_date", None),
+						"assigned_to": assigned_to,
 						"status": "New"
 					})
 					doc.insert(ignore_permissions=True)

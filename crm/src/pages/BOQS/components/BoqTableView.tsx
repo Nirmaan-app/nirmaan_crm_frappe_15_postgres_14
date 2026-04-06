@@ -663,14 +663,14 @@ const calculatedGridColsClass = useMemo(() => {
             //     }
             // }}
             renderMobileRow={renderBoqMobileRow}
-            globalSearchPlaceholder="Search BOQs..."
+            globalSearchPlaceholder="Search Projects..."
             shouldExpandHeight={true} // BoqTableView always tells DataTable to expand to fill its parent's height
             className={className} // Pass parent's className to DataTable's root div
             minWidth="1200px"
              gridColsClass={calculatedGridColsClass}
 
             headerTitle={<span className="tracking-tight">Projects</span>}
-            noResultsMessage="No BOQs found."
+            noResultsMessage="No Projects found."
             // Minimalist animated tabs with sliding indicator
             renderTopToolbarActions={
                 <SlidingTabs

@@ -62,7 +62,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     "CRM Project Estimation",
     {
       filters: boqData?.name ? [["parent_project", "=", boqData.name]] : [],
-      fields: ["value", "document_type"],
+      fields: ["value", "document_type", "package_name"],
       limit: 0
     },
     `project-estimations-edit-${boqData?.name}`
@@ -76,6 +76,12 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     return (estimations || [])
       .filter(e => e.document_type === "BOQ")
       .reduce((sum, e) => sum + (Number(e.value) || 0), 0);
+  }, [estimations]);
+
+  const hasLegacyPackage = useMemo(() => {
+    return (estimations || []).some(
+      (est) => (est.package_name || "").trim().toLowerCase() === "legacy"
+    );
   }, [estimations]);
 
   const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_nick ? `${c.company_name} (${c.company_nick})` : c.company_name, value: c.name })) || [], [allCompanies]);
@@ -304,9 +310,15 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                     <PackagesMultiSelect
                       value={field.value || []}
                       onChange={field.onChange}
-                      placeholder="Select packages..."
+                      placeholder={hasLegacyPackage ? "Legacy projects cannot add packages" : "Select packages..."}
+                      disabled={hasLegacyPackage}
                     />
                   </FormControl>
+                  {hasLegacyPackage && (
+                    <p className="text-[11px] text-muted-foreground">
+                      This migrated legacy project is locked. Package changes are disabled to avoid mixing legacy and package-based data.
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

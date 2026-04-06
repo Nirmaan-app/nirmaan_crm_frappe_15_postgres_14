@@ -164,10 +164,18 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
     fields: ["boq_name"]
   },"all-boqs-existornot");
   const role=localStorage.getItem("role")
+  const normalizedRole = (role || "").toLowerCase().trim();
+  const currentUserId = localStorage.getItem("userId") || "";
     const { salesUserOptions,estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
   
   
   const { companyId: companyIdFromContext, contactId: contactIdFromContext } = newBoq.context;
+  const isAdminOrEstimationsLead =
+    normalizedRole === "nirmaan admin user profile" ||
+    normalizedRole === "nirmaan estimations lead profile";
+  const isEstimationsUser =
+    normalizedRole === "nirmaan estimations user profile";
+  const canManageAssignments = isAdminOrEstimationsLead || isEstimationsUser;
 
   const form = useForm<BoqFormValues>({
     resolver: zodResolver(boqFormSchema),
@@ -214,11 +222,11 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       boq_submission_date: "", boq_link: "",
       city:
       
-      "", remarks: "", assigned_sales: "",assigned_estimations:"",
+      "", remarks: "", assigned_sales: "", assigned_estimations: isEstimationsUser ? currentUserId : "",
        boq_status: "New",
         boq_sub_status: "",
     });
-  }, [companyId, contactIdFromContext, form]);
+  }, [companyId, contactIdFromContext, currentUserId, form, isEstimationsUser]);
 
   useEffect(() => {
     const clearFieldsBasedOnStatus = (status: string | undefined) => {
@@ -268,6 +276,9 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       }
 
       const dataToSubmit: any = { ...values };
+      if (isEstimationsUser && !dataToSubmit.assigned_estimations) {
+        dataToSubmit.assigned_estimations = currentUserId;
+      }
 
       // Serialize packages array to JSON string for backend storage
       if (dataToSubmit.boq_type && Array.isArray(dataToSubmit.boq_type)) {
@@ -391,11 +402,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                 <ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select Contact" isDisabled={!selectedCompany && !companyId} />
             )}
         </FormControl><FormMessage /></FormItem> )} />
-                 {(role==="Nirmaan Admin User Profile" ||
-                   role==="Nirmaan Estimations User Profile" ||
-                   role==="Nirmaan Estimates User Profile" ||
-                   role==="Nirmaan Estimations lead Profile" ||
-                   role==="Nirmaan Estimations Lead Profile") &&(
+                 {canManageAssignments &&(
                  <FormField
                             control={form.control}
                             name="assigned_sales"
@@ -417,6 +424,30 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                                 </FormItem>
                             )}
                         />
+                )}
+
+                {isAdminOrEstimationsLead && (
+                  <FormField
+                    control={form.control}
+                    name="assigned_estimations"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Assigned Estimation Person</FormLabel>
+                        <FormControl>
+                          <ReactSelect
+                            options={estimationUserOptions}
+                            value={estimationUserOptions.find(u => u.value === field.value)}
+                            onChange={val => field.onChange(val?.value)}
+                            placeholder="Select estimation assignee..."
+                            isLoading={usersLoading}
+                            className="text-sm"
+                            menuPosition={'auto'}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
 
         <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Carpet Area (Sqft)</FormLabel><FormControl><Input type="number" placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
