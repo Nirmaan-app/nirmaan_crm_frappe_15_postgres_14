@@ -1,5 +1,12 @@
 [
  {
+  "company_type_name": "cost consultant",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-12-29 17:11:26.487082",
+  "name": "cost consultant"
+ },
+ {
   "company_type_name": "GC",
   "docstatus": 0,
   "doctype": "CRM Company Type",
@@ -61,5 +68,40 @@
   "doctype": "CRM Company Type",
   "modified": "2025-09-05 17:48:53.600137",
   "name": "D&B"
+ },
+ {
+  "company_type_name": "Others",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-09-08 15:45:59.235440",
+  "name": "Others"
+ },
+ {
+  "company_type_name": "End Client",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2026-02-12 12:00:33.295831",
+  "name": "End Client"
+ },
+ {
+  "company_type_name": "Other Contractor",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-12-29 18:54:49.747158",
+  "name": "Other Contractor"
+ },
+ {
+  "company_type_name": "Builder & Developer",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-10-15 11:48:48.012302",
+  "name": "Builder & Developer"
+ },
+ {
+  "company_type_name": "Architecture firm",
+  "docstatus": 0,
+  "doctype": "CRM Company Type",
+  "modified": "2025-10-29 18:47:26.769988",
+  "name": "Architecture firm"
  }
 ]

@@ -13,11 +13,18 @@ import * as z from "zod";
 import ReactSelect from 'react-select';
 import { useMemo, useEffect } from "react";
 import {useUserRoleLists} from "@/hooks/useUserRoleLists"
-import { BOQmainStatusOptions,BOQsubStatusOptions } from "@/constants/dropdownData";
+import { BOQmainStatusOptions } from "@/constants/dropdownData";
 import { LocationOptions } from "@/constants/dropdownData";
 import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 import { PackagesMultiSelect } from "./components/PackagesMultiSelect";
 import { serializePackages } from "@/constants/boqPackages";
+
+const normalizeStatus = (status?: string) =>
+  (status || "")
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 // Schema based on your Frappe Doctype and UI Mockup
 const boqFormSchema = z.object({
@@ -65,6 +72,13 @@ const boqFormSchema = z.object({
       path: ['company'],
     });
   }
+  if (!data.boq_type || data.boq_type.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "At least one package is required.",
+      path: ['boq_type'],
+    });
+  }
   // if (!data.contact || data.contact.trim() === "") {
   //   ctx.addIssue({
   //     code: z.ZodIssueCode.custom,
@@ -97,160 +111,41 @@ const boqFormSchema = z.object({
          }
 
   // --- Status-Specific Validations ---
-  switch (data.boq_status) {
-    case "New":
-      // Deadline: Required
+  const normalizedStatus = (data.boq_status || "")
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  switch (normalizedStatus) {
+    case "new":
+    case "in progress":
       if (!data.boq_submission_date || data.boq_submission_date.trim() === "") {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "BOQ Submission Deadline is required for New BOQs.",
+          message: "Project Submission Deadline is required.",
           path: ['boq_submission_date'],
         });
       }
-      // Link: Optional (handled by original schema)
-      // Remarks: Optional (handled by original schema)
       break;
 
-    case "In-Progress":
-      // Sub Status: Required
-      if (!data.boq_sub_status || data.boq_sub_status.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Sub Status is required for In-Progress BOQs.",
-          path: ['boq_sub_status'],
-        });
-      }
-      // Deadline: Required (Copy old)
-      if (!data.boq_submission_date || data.boq_submission_date.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Submission Deadline is required for In-Progress BOQs.",
-          path: ['boq_submission_date'],
-        });
-      }
-      // Link: Optional
-      // Remarks: Optional
-      break;
-
-    case "BOQ Submitted":
-    case "Partial BOQ Submitted": // Same rules for both
-      // Deadline: Not Required (X) - we might want to clear it in UI if set
-      // Link: Required (*)
-      if (!data.boq_link || data.boq_link.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Link is required when BOQ is Submitted.",
-          path: ['boq_link'],
-        });
-      } else if (!z.string().url().safeParse(data.boq_link).success) {
-         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Please enter a valid URL for BOQ Link.",
-          path: ['boq_link'],
-        });
-      }
-      // Remarks: Required for "Partial BOQ Submitted"
-      if (data.boq_status === "Partial BOQ Submitted" && (!data.remarks || data.remarks.trim() === "")) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Remarks are required for Partial BOQ Submitted.",
-          path: ['remarks'],
-        });
-      }
-       if (data.boq_status === "Partial BOQ Submitted" && (!data.boq_submission_date || data.boq_submission_date.trim() === "")) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Submission Deadline is required for In-Progress BOQs.",
-          path: ['boq_submission_date'],
-        });
-      }
-      
-
-      break;
-
-    case "Revision Pending":
-      // Sub Status: Required
-      if (!data.boq_sub_status || data.boq_sub_status.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Sub Status is required for Revision Pending BOQs.",
-          path: ['boq_sub_status'],
-        });
-      }
-      // Deadline: Required (Copy old)
-      if (!data.boq_submission_date || data.boq_submission_date.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Submission Deadline is required for Revision Pending BOQs.",
-          path: ['boq_submission_date'],
-        });
-      }
-      // Link: Optional
-      // Remarks: Optional
-      break;
-
-    case "Revision Submitted":
-      // Deadline: Not Required (X)
-      // Link: Required (*)
-      if (!data.boq_link || data.boq_link.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Link is required when Revision is Submitted.",
-          path: ['boq_link'],
-        });
-      } else if (!z.string().url().safeParse(data.boq_link).success) {
-         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Please enter a valid URL for BOQ Link.",
-          path: ['boq_link'],
-        });
-      }
-      // Remarks: Optional
-      break;
-
-    case "Negotiation":
-      // Deadline: Not Required (X)
-      // Link: Not Required (X)
-      // Remarks: Required (*)
+    case "negotiation":
+    case "hold":
+    case "lost":
+    case "dropped":
       if (!data.remarks || data.remarks.trim() === "") {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Remarks are required for Negotiation BOQs.",
+          message: `Remarks are required for "${data.boq_status}" status.`,
           path: ['remarks'],
         });
       }
       break;
 
-    case "Won":
-    case "Lost":
-    case "Dropped":
-      // Deadline: Not Required (X)
-      // Link: Not Required (X)
-      // Remarks: Required (*) for Lost/Dropped
-      if ((data.boq_status === "Lost" || data.boq_status === "Dropped") && (!data.remarks || data.remarks.trim() === "")) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Remarks are required for ${data.boq_status} BOQs.`,
-          path: ['remarks'],
-        });
-      }
-      break;
-
-    case "Hold":
-      // Deadline: Not Required (X)
-      // Link: Not Required (X)
-      // Remarks: Required (*)
-      if (!data.remarks || data.remarks.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Remarks are required for Hold BOQs.",
-          path: ['remarks'],
-        });
-      }
+    case "won":
       break;
 
     default:
-      // Default case, perhaps for initial load or unhandled statuses
       break;
   }
 });
@@ -269,10 +164,18 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
     fields: ["boq_name"]
   },"all-boqs-existornot");
   const role=localStorage.getItem("role")
+  const normalizedRole = (role || "").toLowerCase().trim();
+  const currentUserId = localStorage.getItem("userId") || "";
     const { salesUserOptions,estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
   
   
   const { companyId: companyIdFromContext, contactId: contactIdFromContext } = newBoq.context;
+  const isAdminOrEstimationsLead =
+    normalizedRole === "nirmaan admin user profile" ||
+    normalizedRole === "nirmaan estimations lead profile";
+  const isEstimationsUser =
+    normalizedRole === "nirmaan estimations user profile";
+  const canManageAssignments = isAdminOrEstimationsLead || isEstimationsUser;
 
   const form = useForm<BoqFormValues>({
     resolver: zodResolver(boqFormSchema),
@@ -284,7 +187,6 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   // Watch the company field to dynamically update the contact list
    const selectedCompany = form.watch("company");
   const selectedBoqStatus = form.watch("boq_status");
-   const selectedBoqLink = form.watch("boq_link")
    const selectedCity = form.watch("city"); 
    
 
@@ -320,43 +222,27 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       boq_submission_date: "", boq_link: "",
       city:
       
-      "", remarks: "", assigned_sales: "",assigned_estimations:"",
+      "", remarks: "", assigned_sales: "", assigned_estimations: isEstimationsUser ? currentUserId : "",
        boq_status: "New",
         boq_sub_status: "",
     });
-  }, [companyId, contactIdFromContext, form]);
+  }, [companyId, contactIdFromContext, currentUserId, form, isEstimationsUser]);
 
   useEffect(() => {
     const clearFieldsBasedOnStatus = (status: string | undefined) => {
-      // Clear boq_sub_status if status doesn't require it
-      if (status !== "In-Progress" && status !== "Revision Pending") {
-        if (form.getValues("boq_sub_status") !== "") { // Only clear if it has a value
-          form.setValue("boq_sub_status", "", { shouldValidate: true });
-          form.clearErrors("boq_sub_status");
-        }
-      }
+      const normalizedStatus = normalizeStatus(status);
 
-      // Clear boq_submission_date if status doesn't require it (X)
-      const deadlineNotRequiredStatuses = ["BOQ Submitted", "Revision Submitted", "Negotiation", "Won", "Lost", "Dropped", "Hold"];
-      if (deadlineNotRequiredStatuses.includes(status || "")) {
+      // Clear boq_submission_date if status doesn't require it
+      const deadlineNotRequiredStatuses = new Set(["won", "lost", "dropped", "hold", "negotiation"]);
+      if (deadlineNotRequiredStatuses.has(normalizedStatus)) {
         if (form.getValues("boq_submission_date") !== "") {
           form.setValue("boq_submission_date", "", { shouldValidate: true });
           form.clearErrors("boq_submission_date");
         }
       }
 
-      // Clear boq_link if status doesn't require it (X)
-      const linkNotRequiredStatuses = ["Negotiation", "Won", "Lost", "Dropped", "Hold"];
-      if (linkNotRequiredStatuses.includes(status || "")) {
-        if (form.getValues("boq_link") !== "") {
-          form.setValue("boq_link", "", { shouldValidate: true });
-          form.clearErrors("boq_link");
-        }
-      }
-
-      // Clear remarks if status makes them optional/not required AND it currently has a value
-      // Specifically for "Won" where remarks become optional from being required in other states
-      if (status === "Won") {
+      // Clear remarks if status makes them optional/not required
+      if (["won", "new", "in progress"].includes(normalizedStatus)) {
          if (form.getValues("remarks") !== "") {
           form.setValue("remarks", "", { shouldValidate: true });
           form.clearErrors("remarks");
@@ -390,6 +276,9 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       }
 
       const dataToSubmit: any = { ...values };
+      if (isEstimationsUser && !dataToSubmit.assigned_estimations) {
+        dataToSubmit.assigned_estimations = currentUserId;
+      }
 
       // Serialize packages array to JSON string for backend storage
       if (dataToSubmit.boq_type && Array.isArray(dataToSubmit.boq_type)) {
@@ -402,13 +291,29 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       // Remove the temporary other_city field from the payload
       delete dataToSubmit.other_city;
 
+      // Format URL for backend consistency
+      if (dataToSubmit.boq_link && dataToSubmit.boq_link.trim() !== "") {
+        let formattedLink = dataToSubmit.boq_link.trim();
+        if (!formattedLink.startsWith("http://") && !formattedLink.startsWith("https://") && !formattedLink.startsWith("www.")) {
+          formattedLink = `https://${formattedLink}`;
+        } else if (formattedLink.startsWith("www.")) {
+          formattedLink = `https://${formattedLink}`;
+        }
+        dataToSubmit.boq_link = formattedLink;
+      }
+
 
 
       const res = await createDoc("CRM BOQ", dataToSubmit);
       // await mutate("All BOQ");
       // await mutate("AllBOQsList")
       // await mutate("PendingBOQsList")
-      await mutate(key => typeof key === 'string' && key.startsWith('all-boqs-'));
+      await Promise.all([
+        mutate("all-boqs-all-view"),
+        mutate("home-estimation-review-projects"),
+        mutate("all-project-estimation-values"),
+        mutate(key => typeof key === 'string' && key.startsWith('all-boqs-')),
+      ]);
 
       toast({ title: "Success!", description: `BOQ "${res.boq_name}" created.` });
       onSuccess?.();
@@ -420,30 +325,22 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
 
   // Helper functions for conditional rendering and label asterisks
   const isRequired = (fieldName: keyof BoqFormValues) => {
+    const normalizedStatus = normalizeStatus(selectedBoqStatus);
     switch (fieldName) {
       case "boq_submission_date":
-        return ["New", "In-Progress","Partial BOQ Submitted", "Revision Pending"].includes(selectedBoqStatus || "");
-      case "boq_link":
-        return ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(selectedBoqStatus || "");
+        return normalizedStatus === "new" || normalizedStatus === "in progress";
       case "remarks":
-        return ["Negotiation", "Partial BOQ Submitted", "Lost", "Dropped", "Hold"].includes(selectedBoqStatus || "");
-      case "boq_sub_status":
-        return ["In-Progress", "Revision Pending"].includes(selectedBoqStatus || "");
-        
+        return ["negotiation", "lost", "dropped", "hold"].includes(normalizedStatus);
       default:
         return false;
     }
   };
 
   const isHidden = (fieldName: keyof BoqFormValues) => {
+    const normalizedStatus = normalizeStatus(selectedBoqStatus);
     switch (fieldName) {
       case "boq_submission_date":
-        return ["BOQ Submitted", "Revision Submitted", "Negotiation", "Won", "Lost", "Dropped", "Hold"].includes(selectedBoqStatus || "");
-      case "boq_link":
-        return ["Negotiation", "Won", "Lost", "Dropped", "Hold"].includes(selectedBoqStatus || "");
-      // Remarks is always visible but its required status changes
-      case "boq_sub_status":
-        return !["In-Progress", "Revision Pending"].includes(selectedBoqStatus || "");
+        return ["negotiation", "won", "lost", "dropped", "hold"].includes(normalizedStatus);
       default:
         return false;
     }
@@ -456,7 +353,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField name="boq_name" control={form.control} render={({ field }) => ( 
           <FormItem>
-            <FormLabel>BOQ Name<sup>*</sup></FormLabel>
+            <FormLabel>Project Name<sup>*</sup></FormLabel>
             <FormControl>
               <Input 
                 placeholder="e.g. Zepto P1" 
@@ -505,13 +402,13 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                 <ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select Contact" isDisabled={!selectedCompany && !companyId} />
             )}
         </FormControl><FormMessage /></FormItem> )} />
-                 {(role==="Nirmaan Admin User Profile"||role==="Nirmaan Estimations User Profile") &&(
+                 {canManageAssignments &&(
                  <FormField
                             control={form.control}
                             name="assigned_sales"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Assigned Salesperson For BOQ</FormLabel>
+                                    <FormLabel>Assigned Salesperson</FormLabel>
                                     <FormControl>
                                         <ReactSelect
                                             options={salesUserOptions}
@@ -528,34 +425,36 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                             )}
                         />
                 )}
-                {role==="Nirmaan Admin User Profile" &&(
-                 <FormField
-                            control={form.control}
-                            name="assigned_estimations"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Assigned Estimateperson For BOQ</FormLabel>
-                                    <FormControl>
-                                        <ReactSelect
-                                            options={estimationUserOptions}
-                                            value={estimationUserOptions.find(u => u.value === field.value)}
-                                            onChange={val => field.onChange(val?.value)}
-                                            placeholder="Select a salesperson..."
-                                            isLoading={usersLoading}
-                                            className="text-sm"
-                                            menuPosition={'auto'}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+
+                {isAdminOrEstimationsLead && (
+                  <FormField
+                    control={form.control}
+                    name="assigned_estimations"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Assigned Estimation Person</FormLabel>
+                        <FormControl>
+                          <ReactSelect
+                            options={estimationUserOptions}
+                            value={estimationUserOptions.find(u => u.value === field.value)}
+                            onChange={val => field.onChange(val?.value)}
+                            placeholder="Select estimation assignee..."
+                            isLoading={usersLoading}
+                            className="text-sm"
+                            menuPosition={'auto'}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
+
         <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Carpet Area (Sqft)</FormLabel><FormControl><Input type="number" placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
 
         <FormField name="boq_type" control={form.control} render={({ field }) => (
           <FormItem>
-            <FormLabel>Packages</FormLabel>
+            <FormLabel>Packages<sup>*</sup></FormLabel>
             <FormControl>
               <PackagesMultiSelect
                 value={field.value || []}
@@ -567,48 +466,21 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
           </FormItem>
         )} />
         
-        <FormField name="boq_value" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Value <span className="text-[10px] text-muted-foreground ">(IN Lakhs)</span></FormLabel><FormControl><Input type="number" placeholder="e.g. 5 Lakhs" {...field} /></FormControl><FormMessage /></FormItem> )} />
-
-
-
 <FormField name="boq_status" control={form.control} render={({ field }) => (
-                        <FormItem><FormLabel>BOQ Status<sup>*</sup></FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl></FormItem>
+                        <FormItem><FormLabel>Project Status<sup>*</sup></FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl></FormItem>
                     )}/>
 
-                           {(selectedBoqStatus === "In-Progress" || selectedBoqStatus === "Revision Pending") && (
-          <FormField
-            name="boq_sub_status"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Sub Status{isRequired("boq_sub_status")&& <sup>*</sup>} {/* Always add asterisk when shown in these states */}
-                </FormLabel>
-                <FormControl>
-                  <ReactSelect
-                    options={BOQsubStatusOptions}
-                    value={BOQsubStatusOptions.find(s => s.value === field.value)}
-                    onChange={val => field.onChange(val?.value)}
-                    placeholder="Select Sub Status"
-                    menuPosition={'auto'}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
 
         {
           !isHidden("boq_submission_date")&&(
- <FormField name="boq_submission_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Submission Deadline{isRequired("boq_submission_date") && <sup>*</sup>}</FormLabel><FormControl><Input type="date" min={new Date().toISOString().split('T')[0]} {...field} /></FormControl><FormMessage /></FormItem> )} />
+ <FormField name="boq_submission_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Project Submission Deadline{isRequired("boq_submission_date") && <sup>*</sup>}</FormLabel><FormControl><Input type="date" min={new Date().toISOString().split('T')[0]} {...field} /></FormControl><FormMessage /></FormItem> )} />
           )
         }
         {/* <FormField name="boq_submission_date" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Submission Deadline<sup>*</sup></FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} /> */}
 
 {
 !isHidden("boq_link")&&(
- <FormField name="boq_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Link{isRequired("boq_link")&&<sup>*</sup>}</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
+ <FormField name="boq_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Project Link{isRequired("boq_link")&&<sup>*</sup>}</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
 )
 }
   
@@ -919,6 +791,3 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
 //     </Form>
 //   );
 // };
-
-
-

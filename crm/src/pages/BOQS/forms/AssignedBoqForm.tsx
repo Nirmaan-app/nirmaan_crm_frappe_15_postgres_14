@@ -59,8 +59,15 @@ export const AssignedBoqForm = ({ onSuccess }: AssignedBoqFormProps) => {
       toast({ title: "Success", description: "Assigned persons updated." });
 
       // Invalidate relevant SWR caches to reflect the changes
-      await mutate(`BOQ/${boqData.name}`);
-      await mutate(key => typeof key === 'string' && key.startsWith('all-boqs-')); // If you have a list of all BOQs that needs refreshing
+      await Promise.all([
+        mutate(`BOQ/${boqData.name}`),
+        mutate(`project-estimations-${boqData.name}`),
+        mutate(`project-estimations-edit-${boqData.name}`),
+        mutate("all-boqs-all-view"),
+        mutate("home-estimation-review-projects"),
+        mutate("all-project-estimation-values"),
+        mutate(key => typeof key === 'string' && key.startsWith('all-boqs-')),
+      ]);
 
       if (onSuccess) {
         onSuccess();

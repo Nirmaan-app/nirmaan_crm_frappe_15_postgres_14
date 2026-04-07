@@ -87,10 +87,12 @@ export const EditDealStatusForm = ({ onSuccess, boqData }: EditDealStatusFormPro
       });
 
       // --- Cache Invalidation ---
-      // Invalidate the specific BOQ document cache
-      mutate(`BOQ/${boqData.name}`);
-      // Invalidate any list caches that might show BOQs
-      mutate(key => typeof key === 'string' && key.startsWith('all-boqs-'));
+      await Promise.all([
+        mutate(`BOQ/${boqData.name}`),
+        mutate("all-boqs-all-view"),
+        mutate("home-estimation-review-projects"),
+        mutate(key => typeof key === 'string' && key.startsWith('all-boqs-')),
+      ]);
 
 
       onSuccess?.(); // Call onSuccess to close the dialog

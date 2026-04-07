@@ -67,5 +67,26 @@
     "role": "Nirmaan Sales User"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-04-04 11:53:44.720251",
+  "name": "Nirmaan Estimations Lead Profile",
+  "role_profile": "Nirmaan Estimations Lead Profile",
+  "roles": [
+   {
+    "parent": "Nirmaan Estimations Lead Profile",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Nirmaan Estimations User"
+   },
+   {
+    "parent": "Nirmaan Estimations Lead Profile",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "System Manager"
+   }
+  ]
  }
 ]

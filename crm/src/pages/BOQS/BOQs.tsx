@@ -73,7 +73,7 @@ export const BOQs = () => {
            
         <div className="p-4 border-t flex-shrink-0">
                     <button onClick={openNewBoqDialog} className="w-full h-12 bg-destructive text-white rounded-lg flex items-center justify-center gap-2">
-                        <Plus size={20} /> Add New BOQ
+                        <Plus size={20} /> Add New Project
                     </button>
                 </div>
             </div>

@@ -311,7 +311,7 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
             <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                    placeholder="Search BOQs..."
+                    placeholder="Search Projects..."
                     className="pl-10"
                     value={globalFilter ?? ''}
                     onChange={(event) => setGlobalFilter(event.target.value)}
@@ -355,7 +355,7 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
                             })
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center h-24">No BOQs found.</TableCell>
+                                <TableCell colSpan={4} className="text-center h-24">No Projects found.</TableCell>
                             </TableRow>
                         )}
                     </TableBody>
@@ -370,8 +370,8 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
     <DataTable
       tableLogic={tableLogic}
       isLoading={false}
-      headerTitle={<span>BOQ List</span>}
-      noResultsMessage="No BOQs found."
+      headerTitle={<span>Project List</span>}
+      noResultsMessage="No Projects found."
       globalSearchPlaceholder="Search BOQs by name or status..."
       className="h-full"
       shouldExpandHeight={true}
