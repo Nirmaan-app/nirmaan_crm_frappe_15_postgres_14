@@ -237,10 +237,10 @@ def execute():
 
     for index, project_name in enumerate(project_names, start=1):
         project_doc = frappe.get_doc("CRM BOQ", project_name)
-        package_names = parse_project_packages(getattr(project_doc, "boq_type", None))
-        if not package_names:
-            package_names = [LEGACY_PACKAGE_NAME]
-            summary["projects_with_legacy_package"] += 1
+        # Migration decision: force all legacy projects to a single Legacy package,
+        # even when historical boq_type has package text.
+        package_names = [LEGACY_PACKAGE_NAME]
+        summary["projects_with_legacy_package"] += 1
 
         project_boq_value = _coerce_float(getattr(project_doc, "boq_value", None))
         for package_index, package_name in enumerate(package_names):
