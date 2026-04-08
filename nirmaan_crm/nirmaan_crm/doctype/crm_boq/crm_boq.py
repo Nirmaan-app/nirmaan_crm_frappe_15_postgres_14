@@ -22,7 +22,9 @@ class CRMBOQ(Document):
 			elif role_profile in [
 				"nirmaan estimations user profile",
 			]:
-				self.assigned_estimations = self.owner
+				# self.assigned_estimations = self.owner
+				self.assigned_estimations = ""
+
 			else:
 				pass
 
