@@ -35,11 +35,12 @@ class CRMBOQ(Document):
 			except Exception:
 				packages = [self.boq_type] if self.boq_type else []
 
-			assigned_to = None
-			if getattr(self, "assigned_estimations", None) and frappe.db.exists("CRM Users", self.assigned_estimations):
-				assigned_to = self.assigned_estimations
-
 			for pkg in packages:
+				# Route to the package's specific lead, if configured in CRM BOQ Package
+				# If the package is custom (not found) or has no lead configured, it will be None
+				package_lead = frappe.db.get_value("CRM BOQ Package", pkg, "assigned_lead")
+				pkg_assigned_to = package_lead if package_lead else None
+
 				# Check if BOQ exists for this package
 				if not frappe.db.exists("CRM Project Estimation", {"parent_project": self.name, "document_type": "BOQ", "package_name": pkg}):
 					doc = frappe.get_doc({
@@ -49,7 +50,7 @@ class CRMBOQ(Document):
 						"document_type": "BOQ",
 						"package_name": pkg,
 						"deadline": getattr(self, "boq_submission_date", None),
-						"assigned_to": assigned_to,
+						"assigned_to": pkg_assigned_to,
 						"status": "New"
 					})
 					doc.insert(ignore_permissions=True)
@@ -63,7 +64,7 @@ class CRMBOQ(Document):
 						"document_type": "BCS",
 						"package_name": pkg,
 						"deadline": getattr(self, "boq_submission_date", None),
-						"assigned_to": assigned_to,
+						"assigned_to": pkg_assigned_to,
 						"status": "New"
 					})
 					doc.insert(ignore_permissions=True)

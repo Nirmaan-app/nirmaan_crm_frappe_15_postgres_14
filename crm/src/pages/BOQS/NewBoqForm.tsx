@@ -162,6 +162,13 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   const { data: allBoqs } = useFrappeGetDocList("CRM BOQ", {
     fields: ["boq_name"]
   },"all-boqs-existornot");
+
+  // Fetch db packages to check assigned leads for live warning
+  const { data: dbPackages } = useFrappeGetDocList("CRM BOQ Package", {
+    fields: ["name", "package_name", "assigned_lead"],
+    limit: 0
+  });
+
   const role=localStorage.getItem("role")
   const normalizedRole = (role || "").toLowerCase().trim();
   const currentUserId = localStorage.getItem("userId") || "";
@@ -183,11 +190,19 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
     },
   });
   
-  // Watch the company field to dynamically update the contact list
    const selectedCompany = form.watch("company");
   const selectedBoqStatus = form.watch("boq_status");
    const selectedCity = form.watch("city"); 
+   const selectedPackages = form.watch("boq_type") || [];
    
+   // Check for unassigned packages
+   const unassignedPackages = useMemo(() => {
+     if (!selectedPackages.length || !dbPackages) return [];
+     return selectedPackages.filter(pkg => {
+       const dbPkg = dbPackages.find((dp: any) => dp.package_name === pkg);
+       return !dbPkg || !dbPkg.assigned_lead;
+     });
+   }, [selectedPackages, dbPackages]);
 
 
   // --- CASCADING DATA FETCHING ---
@@ -432,11 +447,26 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
           <FormItem>
             <FormLabel>Packages<sup>*</sup></FormLabel>
             <FormControl>
-              <PackagesMultiSelect
-                value={field.value || []}
-                onChange={field.onChange}
-                placeholder="Select packages..."
-              />
+              <div className="space-y-2">
+                <PackagesMultiSelect
+                  value={field.value || []}
+                  onChange={field.onChange}
+                  placeholder="Select packages..."
+                />
+                
+                {unassignedPackages.length > 0 && (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md p-3 text-sm flex gap-2 items-start mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-alert-triangle shrink-0 mt-0.5 text-amber-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                    <div>
+                      <p className="font-semibold text-amber-900">Missing Lead Assignment</p>
+                      <p className="mt-1">
+                        The following packages do not currently have an Estimation Lead assigned in Frappe: <span className="font-semibold">{unassignedPackages.join(", ")}</span>. 
+                        If you create this project, its tasks will remain unassigned.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </FormControl>
             <FormMessage />
           </FormItem>

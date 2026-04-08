@@ -55,6 +55,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
         try {
             await updateDoc("CRM Project Estimation", editingEst.name, dataToSave);
             toast({ title: "Success", description: "Estimation updated successfully." });
+            // Trigger comprehensive mutation for all related caches
             await Promise.all([
                 mutate(`project-estimations-${editingEst.parent_project}`),
                 mutate(`project-estimations-edit-${editingEst.parent_project}`),
@@ -64,6 +65,10 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                 mutate("home-estimation-review-estimations"),
                 mutate("home-estimation-review-projects"),
                 mutate((key) => typeof key === 'string' && key.startsWith('all-boqs-')),
+                mutate((key) => typeof key === 'string' && key.startsWith('project-estimations-')),
+
+                // Robust matching for project-specific caches, handling both string and array keys
+
             ]);
             onSuccess();
         } catch (error: any) {
@@ -90,11 +95,28 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                 <Input value={editingEst.package_name || ''} disabled className="h-9 bg-muted/30" />
             </div>
 
+            {/* Value Field - Single location with conditional required status */}
             <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">{editingEst.document_type} Value</label>
+                <label className="text-xs font-medium text-muted-foreground">
+                    {editingEst.document_type} Value
+                    {(
+                        (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
+                        (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
+                    ) && <sup>*</sup>}
+                </label>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">₹</span>
-                    <Input name="value" type="number" step="0.01" className="pl-7 pr-8 h-9 hover:border-primary/50 focus-visible:ring-1" defaultValue={editingEst.value} />
+                    <Input
+                        name="value"
+                        type="number"
+                        step="0.01"
+                        required={(
+                            (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
+                            (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
+                        )}
+                        className="pl-7 pr-8 h-9 hover:border-primary/50 focus-visible:ring-1"
+                        defaultValue={editingEst.value}
+                    />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">L</span>
                 </div>
             </div>
@@ -145,19 +167,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                 </div>
             )}
 
-            {(
-                (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-            ) && (
-                    <div className="space-y-1">
-                        <label className="text-xs font-medium text-muted-foreground">{editingEst.document_type} Value<sup>*</sup></label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">₹</span>
-                            <Input name="value" type="number" step="0.01" required className="pl-7 pr-8 h-9 hover:border-primary/50 focus-visible:ring-1" defaultValue={editingEst.value} />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">L</span>
-                        </div>
-                    </div>
-                )}
+            {/* Condition removed here, moved to the top field */}
 
             {((editingEst.document_type === 'BOQ' && ["New", "In-Progress", "Revision Pending", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
                 (editingEst.document_type === 'BCS' && ["New", "In-Progress"].includes(editingEst.status))) && (
