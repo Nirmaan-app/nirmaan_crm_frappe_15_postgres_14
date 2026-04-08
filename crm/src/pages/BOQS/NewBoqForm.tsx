@@ -12,8 +12,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from 'react-select';
 import { useMemo, useEffect } from "react";
-import {useUserRoleLists} from "@/hooks/useUserRoleLists"
-import { BOQmainStatusOptions } from "@/constants/dropdownData";
+import { useUserRoleLists } from "@/hooks/useUserRoleLists";
 import { LocationOptions } from "@/constants/dropdownData";
 import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 import { PackagesMultiSelect } from "./components/PackagesMultiSelect";
@@ -166,7 +165,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   const role=localStorage.getItem("role")
   const normalizedRole = (role || "").toLowerCase().trim();
   const currentUserId = localStorage.getItem("userId") || "";
-    const { salesUserOptions,estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
+    const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
   
   
   const { companyId: companyIdFromContext, contactId: contactIdFromContext } = newBoq.context;
@@ -426,29 +425,6 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                         />
                 )}
 
-                {isAdminOrEstimationsLead && (
-                  <FormField
-                    control={form.control}
-                    name="assigned_estimations"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Assigned Estimation Person</FormLabel>
-                        <FormControl>
-                          <ReactSelect
-                            options={estimationUserOptions}
-                            value={estimationUserOptions.find(u => u.value === field.value)}
-                            onChange={val => field.onChange(val?.value)}
-                            placeholder="Select estimation assignee..."
-                            isLoading={usersLoading}
-                            className="text-sm"
-                            menuPosition={'auto'}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
 
         <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Carpet Area (Sqft)</FormLabel><FormControl><Input type="number" placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
 
@@ -466,9 +442,6 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
           </FormItem>
         )} />
         
-<FormField name="boq_status" control={form.control} render={({ field }) => (
-                        <FormItem><FormLabel>Project Status<sup>*</sup></FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl></FormItem>
-                    )}/>
 
 
         {

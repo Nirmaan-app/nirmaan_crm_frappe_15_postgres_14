@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useFrappeGetDocList } from "frappe-react-sdk";
-import { ChevronDown, ChevronRight, Link2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Link2, SquarePen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useDialogStore } from "@/store/dialogStore";
 import { cn } from "@/lib/utils";
 import { formatDateWithOrdinal } from "@/utils/FormatDate";
+import { StandaloneFacetedFilter } from "@/components/table/standalone-faceted-filter";
+import { StandaloneDateFilter, DateFilterValue, matchDateFilter } from "@/components/table/standalone-date-filter";
 
 type StatusTab = "ALL" | "WIP" | "PENDING" | "COMPLETED";
 
@@ -199,6 +203,187 @@ const CountButton = ({
   );
 };
 
+const TaskTable = ({
+  items,
+  showProjectName,
+  projectMap,
+  userNameMap,
+  isEstimationsTeam
+}: {
+  items: CRMProjectEstimation[];
+  showProjectName: boolean;
+  projectMap: Map<string, CRMProject>;
+  userNameMap: Map<string, string>;
+  isEstimationsTeam?: boolean;
+}) => {
+  const [projectFilter, setProjectFilter] = useState<string[]>([]);
+  const [taskNameFilter, setTaskNameFilter] = useState<string[]>([]);
+  const [typeFilter, setTypeFilter] = useState<string[]>([]);
+  const [assignedFilter, setAssignedFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [subStatusFilter, setSubStatusFilter] = useState<string[]>([]);
+  const [deadlineFilter, setDeadlineFilter] = useState<DateFilterValue | undefined>(undefined);
+
+  const { openEditProjectEstimationDialog } = useDialogStore();
+
+  const projectOptions = useMemo(() => Array.from(new Set(items.map(item => projectMap.get(item.parent_project || "")?.boq_name || item.parent_project || "--"))).filter(Boolean).map(v => ({label: v, value: v})), [items, projectMap]);
+  const taskNameOptions = useMemo(() => Array.from(new Set(items.map(item => item.package_name || item.title || "--"))).filter(Boolean).map(v => ({label: v, value: v})), [items]);
+  const typeOptions = useMemo(() => Array.from(new Set(items.map(item => item.document_type || "--"))).filter(Boolean).map(v => ({label: v, value: v})), [items]);
+  const assignedOptions = useMemo(() => Array.from(new Set(items.map(item => item.assigned_to ? userNameMap.get(item.assigned_to) || item.assigned_to : "Unassigned"))).filter(Boolean).map(v => ({label: v, value: v})), [items, userNameMap]);
+  const statusOptions = useMemo(() => Array.from(new Set(items.map(item => item.status || "--"))).filter(Boolean).map(v => ({label: v, value: v})), [items]);
+  const subStatusOptions = useMemo(() => Array.from(new Set(items.map(item => item.sub_status || "--"))).filter(Boolean).map(v => ({label: v, value: v})), [items]);
+
+  const filteredItems = useMemo(() => {
+     return items.filter(item => {
+        const pName = projectMap.get(item.parent_project || "")?.boq_name || item.parent_project || "--";
+        if (projectFilter.length > 0 && !projectFilter.includes(pName)) return false;
+
+        const tName = item.package_name || item.title || "--";
+        if (taskNameFilter.length > 0 && !taskNameFilter.includes(tName)) return false;
+
+        const type = item.document_type || "--";
+        if (typeFilter.length > 0 && !typeFilter.includes(type)) return false;
+
+        const assign = item.assigned_to ? userNameMap.get(item.assigned_to) || item.assigned_to : "Unassigned";
+        if (assignedFilter.length > 0 && !assignedFilter.includes(assign)) return false;
+
+        const st = item.status || "--";
+        if (statusFilter.length > 0 && !statusFilter.includes(st)) return false;
+
+        const sst = item.sub_status || "--";
+        if (subStatusFilter.length > 0 && !subStatusFilter.includes(sst)) return false;
+
+        if (deadlineFilter && !matchDateFilter(item.deadline, deadlineFilter)) return false;
+
+        return true;
+     });
+  }, [items, projectFilter, taskNameFilter, typeFilter, assignedFilter, statusFilter, subStatusFilter, deadlineFilter, projectMap, userNameMap]);
+
+  if (items.length === 0) {
+    return (
+      <div className="rounded-md border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-500">
+        No BOQ/BCS rows found.
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px] text-sm">
+          <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+            <tr>
+              {showProjectName && (
+                <th className="px-3 py-2 text-left">
+                  <div className="flex items-center justify-between gap-1">
+                    <span>Project Name</span>
+                    <StandaloneFacetedFilter title="Project Name" options={projectOptions} value={projectFilter} onChange={setProjectFilter} />
+                  </div>
+                </th>
+              )}
+              <th className="px-3 py-2 text-left">
+                  <div className="flex items-center justify-between gap-1">
+                    <span>Task Name</span>
+                    <StandaloneFacetedFilter title="Task Name" options={taskNameOptions} value={taskNameFilter} onChange={setTaskNameFilter} />
+                  </div>
+              </th>
+              <th className="px-3 py-2 text-left">
+                  <div className="flex items-center justify-between gap-1">
+                    <span>Type</span>
+                    <StandaloneFacetedFilter title="Type" options={typeOptions} value={typeFilter} onChange={setTypeFilter} />
+                  </div>
+              </th>
+              <th className="px-3 py-2 text-left">
+                  <div className="flex items-center justify-between gap-1">
+                    <span>Assigned</span>
+                    <StandaloneFacetedFilter title="Assigned" options={assignedOptions} value={assignedFilter} onChange={setAssignedFilter} />
+                  </div>
+              </th>
+              <th className="px-3 py-2 text-left">Remarks</th>
+              <th className="px-3 py-2 text-left">
+                  <div className="flex items-center justify-between gap-1">
+                    <span>Deadline</span>
+                    <StandaloneDateFilter title="Deadline" value={deadlineFilter} onChange={setDeadlineFilter} />
+                  </div>
+              </th>
+              <th className="px-3 py-2 text-left">Link</th>
+              <th className="px-3 py-2 text-left">
+                  <div className="flex items-center justify-between gap-1">
+                    <span>Status</span>
+                    <StandaloneFacetedFilter title="Status" options={statusOptions} value={statusFilter} onChange={setStatusFilter} />
+                  </div>
+              </th>
+              <th className="px-3 py-2 text-left">
+                  <div className="flex items-center justify-between gap-1">
+                    <span>Sub-Status</span>
+                    <StandaloneFacetedFilter title="Sub-Status" options={subStatusOptions} value={subStatusFilter} onChange={setSubStatusFilter} />
+                  </div>
+              </th>
+              {isEstimationsTeam && <th className="px-3 py-2 text-center w-[60px]">Actions</th>}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filteredItems.map((item) => (
+              <tr key={item.name} className="align-top">
+                {showProjectName && (
+                  <td className="px-3 py-2 text-sm text-gray-900">
+                    {projectMap.get(item.parent_project || "")?.boq_name || item.parent_project || "--"}
+                  </td>
+                )}
+                <td className="px-3 py-2 text-sm text-gray-900">{item.package_name || item.title || "--"}</td>
+                <td className="px-3 py-2 text-xs font-semibold uppercase text-blue-700">{item.document_type || "--"}</td>
+                <td className="px-3 py-2 text-sm text-gray-700">
+                  {item.assigned_to ? userNameMap.get(item.assigned_to) || item.assigned_to : "Unassigned"}
+                </td>
+                <td className="px-3 py-2 text-sm text-gray-700">{item.remarks || "--"}</td>
+                <td className="px-3 py-2 text-sm text-gray-700">
+                  {item.deadline ? formatDateWithOrdinal(item.deadline) : "--"}
+                </td>
+                <td className="px-3 py-2">
+                  {item.link ? (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                    >
+                      <Link2 className="h-3.5 w-3.5" />
+                      <span className="text-xs">Open</span>
+                    </a>
+                  ) : (
+                    <span className="text-gray-400">--</span>
+                  )}
+                </td>
+                <td className="px-3 py-2">
+                  <span className={cn("inline-flex rounded px-2 py-1 text-xs font-semibold", getStatusPillClass(item.status))}>
+                    {item.status || "--"}
+                  </span>
+                </td>
+                <td className="px-3 py-2 text-sm text-gray-700">{item.sub_status || "--"}</td>
+                {isEstimationsTeam && (
+                  <td className="px-3 py-2 text-center">
+                    {!item.name.startsWith('legacy-') && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEditProjectEstimationDialog({ estimationData: item })}
+                        className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <SquarePen className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+
 export const EstimationsReviewTable = () => {
   const [statusTab, setStatusTab] = useState<StatusTab>("ALL");
   const [expandedRowKey, setExpandedRowKey] = useState<string | null>(null);
@@ -212,6 +397,10 @@ export const EstimationsReviewTable = () => {
     role === "Nirmaan Estimations lead Profile" ||
     role === "Nirmaan Estimations Lead Profile" ||
     role === "Nirmaan Admin User Profile";
+  const isEstimationsTeam =
+    role === "Nirmaan Estimations User Profile" ||
+    role === "Nirmaan Estimates User Profile" ||
+    isEstimationLead;
 
   const { data: estimations, isLoading: estimationsLoading } = useFrappeGetDocList<CRMProjectEstimation>(
     "CRM Project Estimation",
@@ -511,78 +700,7 @@ export const EstimationsReviewTable = () => {
     setExpandedProjectId(null);
   };
 
-  const renderTaskTable = (items: CRMProjectEstimation[], showProjectName: boolean) => {
-    if (items.length === 0) {
-      return (
-        <div className="rounded-md border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-500">
-          No BOQ/BCS rows found.
-        </div>
-      );
-    }
 
-    return (
-      <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-sm">
-            <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-              <tr>
-                {showProjectName && <th className="px-3 py-2 text-left">Project Name</th>}
-                <th className="px-3 py-2 text-left">Task Name</th>
-                <th className="px-3 py-2 text-left">Type</th>
-                <th className="px-3 py-2 text-left">Assigned</th>
-                <th className="px-3 py-2 text-left">Remarks</th>
-                <th className="px-3 py-2 text-left">Deadline</th>
-                <th className="px-3 py-2 text-left">Link</th>
-                <th className="px-3 py-2 text-left">Status</th>
-                <th className="px-3 py-2 text-left">Sub-Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {items.map((item) => (
-                <tr key={item.name} className="align-top">
-                  {showProjectName && (
-                    <td className="px-3 py-2 text-sm text-gray-900">
-                      {projectMap.get(item.parent_project || "")?.boq_name || item.parent_project || "--"}
-                    </td>
-                  )}
-                  <td className="px-3 py-2 text-sm text-gray-900">{item.package_name || item.title || "--"}</td>
-                  <td className="px-3 py-2 text-xs font-semibold uppercase text-blue-700">{item.document_type || "--"}</td>
-                  <td className="px-3 py-2 text-sm text-gray-700">
-                    {item.assigned_to ? userNameMap.get(item.assigned_to) || item.assigned_to : "Unassigned"}
-                  </td>
-                  <td className="px-3 py-2 text-sm text-gray-700">{item.remarks || "--"}</td>
-                  <td className="px-3 py-2 text-sm text-gray-700">
-                    {item.deadline ? formatDateWithOrdinal(item.deadline) : "--"}
-                  </td>
-                  <td className="px-3 py-2">
-                    {item.link ? (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                      >
-                        <Link2 className="h-3.5 w-3.5" />
-                        <span className="text-xs">Open</span>
-                      </a>
-                    ) : (
-                      <span className="text-gray-400">--</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className={cn("inline-flex rounded px-2 py-1 text-xs font-semibold", getStatusPillClass(item.status))}>
-                      {item.status || "--"}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-sm text-gray-700">{item.sub_status || "--"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  };
 
   if (estimationsLoading || projectsLoading || usersLoading) {
     return (
@@ -746,7 +864,13 @@ export const EstimationsReviewTable = () => {
                                               {isOpen && (
                                                 <tr>
                                                   <td colSpan={5} className="px-3 py-3 bg-gray-50">
-                                                    {renderTaskTable(expandedProjectTasks, false)}
+                                                    <TaskTable
+                                                      items={expandedProjectTasks}
+                                                      showProjectName={false}
+                                                      projectMap={projectMap}
+                                                      userNameMap={userNameMap}
+                                                      isEstimationsTeam={isEstimationsTeam}
+                                                    />
                                                   </td>
                                                 </tr>
                                               )}
@@ -764,7 +888,7 @@ export const EstimationsReviewTable = () => {
                               <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                                 {row.label} - BOQ/BCS Tasks
                               </div>
-                              {renderTaskTable(scopedEstimations, true)}
+                              <TaskTable items={scopedEstimations} showProjectName={true} projectMap={projectMap} userNameMap={userNameMap} isEstimationsTeam={isEstimationsTeam} />
                             </div>
                           )}
                         </td>

@@ -60,6 +60,11 @@ type SelectTaskProfileContext = {
 type DateRangeContext = { onConfirm: (dateRange: { from: Date; to: Date }) => void };
 type StatsDetailContext = { title: string; items: any[] };
 
+// --- NEW: Context for EditProjectEstimationForm ---
+type EditProjectEstimationContext = {
+    estimationData: any | null; // We can use 'any' or import CRMProjectEstimation if we extract it, but 'any' is safe here
+};
+
 //AssignBoqContext
 type AssignBoqContext = { boqData: CRMBoq | null };
 
@@ -142,6 +147,8 @@ type DialogState = {
 
     companyProgress: { isOpen: boolean; context: CompanyProgressContext | null };
 
+   // --- NEW: Edit Project Estimation Dialog ---
+   editProjectEstimation: { isOpen: boolean; context: EditProjectEstimationContext | null };
 
 };
 
@@ -221,6 +228,10 @@ closeNewUserDialog: () => void;
     openCompanyProgressDialog: (context: CompanyProgressContext) => void;
     closeCompanyProgressDialog: () => void;
 
+    // --- NEW: Edit Project Estimation Dialog Actions ---
+    openEditProjectEstimationDialog: (context: EditProjectEstimationContext) => void;
+    closeEditProjectEstimationDialog: () => void;
+
 };
 
 const initialState: DialogState = {
@@ -263,6 +274,7 @@ const initialState: DialogState = {
 
    companyProgress: { isOpen: false, context: null },
 
+   editProjectEstimation: { isOpen: false, context: null },
 
 };
 
@@ -357,6 +369,9 @@ closeNewUserDialog: () => set({ newUser: { isOpen: false } }),
   openSelectTaskProfileDialog: (context) => set({ selectTaskProfileDialog: { isOpen: true, context } }),
   closeSelectTaskProfileDialog: () => set((state) => ({ selectTaskProfileDialog: { ...state.selectTaskProfileDialog, isOpen: false } })),
   // --- END OF NEW DIALOG ACTION IMPLEMENTATIONS ---
+
+  openEditProjectEstimationDialog: (context) => set({ editProjectEstimation: { isOpen: true, context } }),
+  closeEditProjectEstimationDialog: () => set({ editProjectEstimation: { isOpen: false, context: null } }),
 
 }));
 
