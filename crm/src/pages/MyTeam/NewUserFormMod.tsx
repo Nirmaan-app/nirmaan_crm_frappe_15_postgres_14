@@ -40,6 +40,7 @@ export const NewUserForm = ({ onSuccess }: NewUserFormProps) => {
   const roleProfileOptions = useMemo(() => [
     { label: "Nirmaan Sales User Profile", value: "Nirmaan Sales User Profile" },
     { label: "Nirmaan Estimations User Profile", value: "Nirmaan Estimations User Profile" },
+    { label: "Nirmaan Estimations Lead Profile", value: "Nirmaan Estimations Lead Profile" },
     { label: "Nirmaan Admin User Profile", value: "Nirmaan Admin User Profile" },
   ], []);
 

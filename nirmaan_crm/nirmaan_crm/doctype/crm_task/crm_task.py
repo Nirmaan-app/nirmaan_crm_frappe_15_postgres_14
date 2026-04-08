@@ -13,7 +13,7 @@ class CRMTask(Document):
 		else:
 			user_doc = frappe.get_doc("CRM Users", user)
 			role_profile = user_doc.nirmaan_role_name
-			if role_profile == "Nirmaan Sales User Profile" or role_profile == "Nirmaan Estimations User Profile":
+			if role_profile == "Nirmaan Sales User Profile" or role_profile in ["Nirmaan Estimations User Profile", "Nirmaan Estimations Lead Profile"]:
 				self.assigned_sales = self.owner
 			else:
 				pass
@@ -32,7 +32,7 @@ class CRMTask(Document):
 		# 	role_profile = user_doc.nirmaan_role_name
 		# 	if role_profile == "Nirmaan Sales User Profile":
 		# 		self.assigned_sales = self.owner
-		# 	elif role_profile == "Nirmaan Estimations User Profile":
+		# 	elif role_profile in ["Nirmaan Estimations User Profile", "Nirmaan Estimations Lead Profile"]:
 		# 		self.assigned_estimations = self.owner
 		# 	else:
 		# 		pass

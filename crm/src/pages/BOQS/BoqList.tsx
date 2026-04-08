@@ -58,7 +58,7 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
                     </span>
 
                     {
-                        (role != "Nirmaan Estimations User Profile") && (
+                        (role != "Nirmaan Estimations User Profile" && role != "Nirmaan Estimations Lead Profile") && (
 <Button variant="outline" size="sm" className="h-8 w-8 rounded-full border-destructive text-destructive" onClick={(e) => { e.stopPropagation();handleCreateTask({ boqId: boq.name, companyId: boq.company, contactId: boq.contact })  }}>
                         <Plus className="w-4 h-4 mr-0" /> 
 

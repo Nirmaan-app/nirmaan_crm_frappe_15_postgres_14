@@ -121,10 +121,7 @@ export const HomeHeader = () => {
     const isAdmin = role === 'Nirmaan Admin User Profile';
     const isSalesUser = role === 'Nirmaan Sales User Profile';
     const isEstimationsUser =
-        role === 'Nirmaan Estimations User Profile' ||
-        role === 'Nirmaan Estimates User Profile' ||
-        role === 'Nirmaan Estimations lead Profile' ||
-        role === 'Nirmaan Estimations Lead Profile';
+        role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimations Lead Profile'
 
     const canViewSalesReview = isAdmin || isSalesUser;
     const canViewEstimationsReview = isAdmin || isEstimationsUser;
@@ -152,7 +149,7 @@ export const HomeHeader = () => {
     const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]];
     const homePageTaskSWR = `all-tasks-${JSON.stringify(homePageTaskFilter)}`;
     const { data: tasksData, isLoading: tasksLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-        fields: ["name", "type", "start_date", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name", "creation", "modified","task_profile"],
+        fields: ["name", "type", "start_date", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name", "creation", "modified", "task_profile"],
         filters: homePageTaskFilter,
         limit: 0,
         orderBy: {
@@ -212,7 +209,6 @@ export const HomeHeader = () => {
                         </TabsList>
                     </Tabs>
                 )}
-               
 
                 {/* Global Search Input, fixed under tabs (or directly under greeting if tabs are hidden) */}
                 {/* <div className="relative mt-4 mb-2 flex-shrink-0">
@@ -224,11 +220,11 @@ export const HomeHeader = () => {
             <div className="flex-1 px-4"> {/* flex-1 allows this section to fill remaining space */}
                 {canViewSalesReview && activeTab === 'sales_review' && (
                     <div className="space-y-2"> {/* Use space-y- to manage spacing between components */}
-                         <div className="relative mt-0 mb-0 flex-shrink-0">
-                           <GlobalSearchInput className="flex-1" />
-                       </div>
-                       
-                       {/* {isAdmin ? (
+                        <div className="relative mt-0 mb-0 flex-shrink-0">
+                            <GlobalSearchInput className="flex-1" />
+                        </div>
+
+                        {/* {isAdmin ? (
                         <>
                         <SalesPerformanceTable className="mt-8 border-t border-gray-200 pt-4"/>
                          <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" />
@@ -239,9 +235,9 @@ export const HomeHeader = () => {
                             // If not Admin, show PendingTasks (original behavior)
                             <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
                         )} */}
-                          {isAdmin ? (
+                        {isAdmin ? (
                             <>
-                            
+
                                 {/* --- COLLAPSIBLE SALES PERFORMANCE TABLE --- */}
                                 <CollapsibleSection title="Sales Performance" defaultOpen={true}>
                                     <SalesPerformanceTable className="border-none p-0 shadow-none" /> {/* Remove default styling from table here */}
@@ -259,7 +255,7 @@ export const HomeHeader = () => {
                             // Non-Admin view retains PendingTasks
                             <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
                         )}
-                        
+
                         <StatsGrid />
                     </div>
                 )}
@@ -269,7 +265,7 @@ export const HomeHeader = () => {
                         <EstimationsReviewTable />
                     </div>
                 )}
-                
+
             </div>
         </div>
     );

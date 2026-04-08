@@ -899,7 +899,7 @@ export const BOQ = () => {
             {/* 
             <div className="flex items-center gap-4 mb-4"> 
 
-                {(role != "Nirmaan Estimations User Profile") && (
+                {(role != "Nirmaan Estimations User Profile" && role != "Nirmaan Estimations Lead Profile") && (
                     <Button variant="ghost" size="icon" onClick={handleBackToBoqsList} aria-label="Back to Company List"
                         className="hidden md:inline-flex" // Add these classes
                     >
@@ -919,7 +919,7 @@ export const BOQ = () => {
                 estimations={estimationsList} 
             />
 
-            {(role != "Nirmaan Estimations User Profile") && (
+            {(role != "Nirmaan Estimations User Profile" && role != "Nirmaan Estimations Lead Profile") && (
                 <BoqDealStatusCard boq={boqData} />
             )}
 

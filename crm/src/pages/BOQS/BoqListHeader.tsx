@@ -63,7 +63,7 @@ export const BoqListHeader = ({
     // Ensure "By BOQ" is consistently used
     let filterOptions = ["By BOQ", "By Company", "By Contact", "By Package", "By Status"];
 
-    if (role == "Nirmaan Estimations User Profile") {
+    if (role == "Nirmaan Estimations User Profile" || role == "Nirmaan Estimations Lead Profile") {
         filterOptions = ["By BOQ", "By Company", "By Type"]
     }
 
