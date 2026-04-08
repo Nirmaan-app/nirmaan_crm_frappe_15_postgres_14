@@ -269,9 +269,9 @@ const TaskTable = ({
 
   return (
     <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
-      <div className="overflow-x-auto">
+      <div className="overflow-auto max-h-[400px] relative">
         <table className="w-full min-w-[980px] text-sm">
-          <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+          <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 sticky top-0 z-10">
             <tr>
               {showProjectName && (
                 <th className="px-3 py-2 text-left">
