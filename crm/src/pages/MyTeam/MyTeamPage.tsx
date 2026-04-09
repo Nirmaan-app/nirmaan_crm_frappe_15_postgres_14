@@ -5,7 +5,7 @@ import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { MemberList } from "./MemberList";
 import { MemberDetails } from "./MemberDetails";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Package } from "lucide-react";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDialogStore } from "@/store/dialogStore";
@@ -26,14 +26,14 @@ export const MyTeamPage = () => {
     // The ONLY data this page fetches is the list of team members for the sidebar.
     const { data: members, isLoading: membersLoading } = useFrappeGetDocList("CRM Users", {
         fields: ["name", "email", "full_name", "nirmaan_role_name"],
-   limit: 0,
+        limit: 0,
     }, "all-members-MyTeamPage");
 
     // The mobile view navigates to a separate page for details.
     if (isMobile) {
         return (
-            <MemberList 
-                members={members || []} 
+            <MemberList
+                members={members || []}
                 isLoading={membersLoading}
                 onMemberSelect={(id) => navigate(`/team/details?memberId=${id}`)}
             />
@@ -44,26 +44,32 @@ export const MyTeamPage = () => {
     return (
         <div className="grid grid-cols-[350px,1fr] gap-6 h-[calc(100vh-var(--navbar-height)-80px)]">
             {/* Master Panel (Left Sidebar) */}
-         <div className="bg-background rounded-lg border flex flex-col min-h-0">
-        {/* Header - Fixed at top */}
-            <div className="p-4 border-b flex-shrink-0">
-                <h2 className="text-lg font-semibold mb-4">Team Members</h2>
-            </div>
-        <div className="flex-1 overflow-y-auto min-h-0 p-4">
+            <div className="bg-background rounded-lg border flex flex-col min-h-0">
+                {/* Header - Fixed at top */}
+                <div className="p-4 border-b flex-shrink-0">
+                    <h2 className="text-lg font-semibold mb-4">Team Members</h2>
+                </div>
+                <div className="flex-1 overflow-y-auto min-h-0 p-4">
 
-                <MemberList
-                    members={members || []}
-                    isLoading={membersLoading}
-                    onMemberSelect={setMemberId}
-                    activeMemberId={memberId}
-                />
+                    <MemberList
+                        members={members || []}
+                        isLoading={membersLoading}
+                        onMemberSelect={setMemberId}
+                        activeMemberId={memberId}
+                    />
 
                 </div>
 
-                <div className="p-4 border-t flex-shrink-0">
-                    <button 
+                <div className="p-4 border-t flex-shrink-0 space-y-3">
+                    <button
+                        onClick={() => navigate('/team/packages')}
+                        className="w-full h-12 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg flex items-center justify-center gap-2 font-medium"
+                    >
+                        <Package size={20} /> Specialization Management
+                    </button>
+                    <button
                         onClick={openNewUserDialog}
-                        className="w-full h-12 bg-destructive text-white rounded-lg flex items-center justify-center gap-2"
+                        className="w-full h-12 bg-destructive text-white rounded-lg flex items-center justify-center gap-2 font-medium"
                     >
                         <Plus size={20} /> Add New CRM User
                     </button>
@@ -71,19 +77,19 @@ export const MyTeamPage = () => {
             </div>
 
             {/* Detail Panel (Right Content Area) */}
-           <div className="bg-background rounded-lg border min-h-0">
-        <div className="h-full overflow-y-auto p-4">
-                {/* 
+            <div className="bg-background rounded-lg border min-h-0">
+                <div className="h-full overflow-y-auto p-4">
+                    {/* 
                   - If a memberId is selected, we render the MemberDetails component.
                   - The `key={memberId}` is CRITICAL. It tells React to create a new instance
                     of MemberDetails whenever the ID changes, which correctly triggers the
                     on-demand data fetching inside it.
                 */}
-                {memberId ? (
-                    <MemberDetails key={memberId} memberId={memberId} />
-                ) : (
-                    <DesktopPlaceholder />
-                )}
+                    {memberId ? (
+                        <MemberDetails key={memberId} memberId={memberId} />
+                    ) : (
+                        <DesktopPlaceholder />
+                    )}
                 </div>
             </div>
         </div>

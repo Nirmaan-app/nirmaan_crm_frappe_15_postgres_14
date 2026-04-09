@@ -12,7 +12,7 @@ export const useTaskCreationHandler = () => {
     const handleCreateTask = (context: object = {}) => {
         if (role === 'Nirmaan Sales User Profile') {
             openNewTaskDialog({ ...context, task_profile: 'Sales' });
-        } else if (role === 'Nirmaan Estimations User Profile') {
+        } else if (role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimations Lead Profile') {
             openNewEstimationTaskDialog({ ...context, task_profile: 'Estimates' });
         } else if (role === 'Nirmaan Admin User Profile') {
             openSelectTaskProfileDialog({

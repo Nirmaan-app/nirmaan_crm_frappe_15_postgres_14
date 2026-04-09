@@ -1,0 +1,82 @@
+[
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-09 12:16:37.061663",
+  "name": "Electrical",
+  "package_name": "Electrical"
+ },
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-08 14:00:08.433487",
+  "name": "HVAC Ducting",
+  "package_name": "HVAC Ducting"
+ },
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-08 14:00:08.435238",
+  "name": "HVAC VRF-DX",
+  "package_name": "HVAC VRF-DX"
+ },
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-08 14:00:08.436943",
+  "name": "HVAC AHU+Chilled Water",
+  "package_name": "HVAC AHU+Chilled Water"
+ },
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-08 14:00:08.438647",
+  "name": "FA",
+  "package_name": "FA"
+ },
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-08 14:00:08.440516",
+  "name": "PA",
+  "package_name": "PA"
+ },
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-08 14:00:08.442298",
+  "name": "Access Control",
+  "package_name": "Access Control"
+ },
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-08 14:00:08.444047",
+  "name": "CCTV",
+  "package_name": "CCTV"
+ },
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-08 14:00:08.445689",
+  "name": "Data & Networking",
+  "package_name": "Data & Networking"
+ },
+ {
+  "assigned_lead": null,
+  "docstatus": 0,
+  "doctype": "CRM BOQ Package",
+  "modified": "2026-04-08 14:00:08.447288",
+  "name": "BMS",
+  "package_name": "BMS"
+ }
+]

@@ -12,8 +12,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from 'react-select';
 import { useMemo, useEffect } from "react";
-import {useUserRoleLists} from "@/hooks/useUserRoleLists"
-import { BOQmainStatusOptions } from "@/constants/dropdownData";
+import { useUserRoleLists } from "@/hooks/useUserRoleLists";
 import { LocationOptions } from "@/constants/dropdownData";
 import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 import { PackagesMultiSelect } from "./components/PackagesMultiSelect";
@@ -163,10 +162,17 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   const { data: allBoqs } = useFrappeGetDocList("CRM BOQ", {
     fields: ["boq_name"]
   },"all-boqs-existornot");
+
+  // Fetch db packages to check assigned leads for live warning
+  const { data: dbPackages } = useFrappeGetDocList("CRM BOQ Package", {
+    fields: ["name", "package_name", "assigned_lead"],
+    limit: 0
+  });
+
   const role=localStorage.getItem("role")
   const normalizedRole = (role || "").toLowerCase().trim();
   const currentUserId = localStorage.getItem("userId") || "";
-    const { salesUserOptions,estimationUserOptions, isLoading: usersLoading } = useUserRoleLists();
+    const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
   
   
   const { companyId: companyIdFromContext, contactId: contactIdFromContext } = newBoq.context;
@@ -184,11 +190,19 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
     },
   });
   
-  // Watch the company field to dynamically update the contact list
    const selectedCompany = form.watch("company");
   const selectedBoqStatus = form.watch("boq_status");
    const selectedCity = form.watch("city"); 
+   const selectedPackages = form.watch("boq_type") || [];
    
+   // Check for unassigned packages
+   const unassignedPackages = useMemo(() => {
+     if (!selectedPackages.length || !dbPackages) return [];
+     return selectedPackages.filter(pkg => {
+       const dbPkg = dbPackages.find((dp: any) => dp.package_name === pkg);
+       return !dbPkg || !dbPkg.assigned_lead;
+     });
+   }, [selectedPackages, dbPackages]);
 
 
   // --- CASCADING DATA FETCHING ---
@@ -426,29 +440,6 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
                         />
                 )}
 
-                {isAdminOrEstimationsLead && (
-                  <FormField
-                    control={form.control}
-                    name="assigned_estimations"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Assigned Estimation Person</FormLabel>
-                        <FormControl>
-                          <ReactSelect
-                            options={estimationUserOptions}
-                            value={estimationUserOptions.find(u => u.value === field.value)}
-                            onChange={val => field.onChange(val?.value)}
-                            placeholder="Select estimation assignee..."
-                            isLoading={usersLoading}
-                            className="text-sm"
-                            menuPosition={'auto'}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
 
         <FormField name="boq_size" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Carpet Area (Sqft)</FormLabel><FormControl><Input type="number" placeholder="e.g. 10000 Sqft." {...field} /></FormControl><FormMessage /></FormItem> )} />
 
@@ -456,19 +447,31 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
           <FormItem>
             <FormLabel>Packages<sup>*</sup></FormLabel>
             <FormControl>
-              <PackagesMultiSelect
-                value={field.value || []}
-                onChange={field.onChange}
-                placeholder="Select packages..."
-              />
+              <div className="space-y-2">
+                <PackagesMultiSelect
+                  value={field.value || []}
+                  onChange={field.onChange}
+                  placeholder="Select packages..."
+                />
+                
+                {unassignedPackages.length > 0 && (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md p-3 text-sm flex gap-2 items-start mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-alert-triangle shrink-0 mt-0.5 text-amber-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                    <div>
+                      <p className="font-semibold text-amber-900">Missing Lead Assignment</p>
+                      <p className="mt-1">
+                        The following packages do not currently have an Estimation Lead assigned in Frappe: <span className="font-semibold">{unassignedPackages.join(", ")}</span>. 
+                        If you create this project, its tasks will remain unassigned.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </FormControl>
             <FormMessage />
           </FormItem>
         )} />
         
-<FormField name="boq_status" control={form.control} render={({ field }) => (
-                        <FormItem><FormLabel>Project Status<sup>*</sup></FormLabel><FormControl><ReactSelect options={BOQmainStatusOptions} value={BOQmainStatusOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} isOptionDisabled={(option) => option.value === field.value}/></FormControl></FormItem>
-                    )}/>
 
 
         {

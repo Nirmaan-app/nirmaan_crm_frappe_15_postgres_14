@@ -144,6 +144,7 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
         };
 
         switch (memberRole) {
+            case 'Nirmaan Estimations Lead Profile':
             case 'Nirmaan Estimations User Profile':
                 return [
                     allPossibleCards.boqReceived,
@@ -413,6 +414,7 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
 //         };
         
 //         switch (memberRole) {
+//             case 'Nirmaan Estimations Lead Profile':
 //             case 'Nirmaan Estimations User Profile':
 //                 return [
 //                     allPossibleCards.boqReceived,

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { FilterControls } from "@/components/ui/FilterControls";
 import { ChevronDown, Search } from "lucide-react";
 import ReactSelect from 'react-select'; // Import ReactSelect
+import { BoqBcsTaskExport } from "./components/BoqBcsTaskExport";
 
 // Define the props this component will accept from its parent
 interface BoqListHeaderProps {
@@ -32,6 +33,8 @@ interface BoqListHeaderProps {
     selectedStatuses?: string[];
     setSelectedStatuses?: (value: string[]) => void;
     statusOptions?: { label: string; value: string }[];
+    
+    filteredProjectIds?: string[];
 }
 
 
@@ -57,13 +60,14 @@ export const BoqListHeader = ({
 
     selectedStatuses = [],
     setSelectedStatuses,
-    statusOptions = []
+    statusOptions = [],
+    filteredProjectIds = []
 }: BoqListHeaderProps) => {
     const role = localStorage.getItem("role")
     // Ensure "By BOQ" is consistently used
     let filterOptions = ["By BOQ", "By Company", "By Contact", "By Package", "By Status"];
 
-    if (role == "Nirmaan Estimations User Profile") {
+    if (role == "Nirmaan Estimations User Profile" || role == "Nirmaan Estimations Lead Profile") {
         filterOptions = ["By BOQ", "By Company", "By Type"]
     }
 
@@ -136,7 +140,17 @@ export const BoqListHeader = ({
                         </>
                     )}
                 </div>
+                {!isMobile && (
+                    <div className="flex-shrink-0">
+                        <BoqBcsTaskExport projectIds={filteredProjectIds} />
+                    </div>
+                )}
             </div>
+            {isMobile && (
+                <div className="w-full">
+                    <BoqBcsTaskExport projectIds={filteredProjectIds} />
+                </div>
+            )}
             {/* <FilterControls onDateRangeChange={onDateRangeChange} dateRange={dateRange} /> */}
         </div>
     );

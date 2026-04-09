@@ -30,10 +30,9 @@ export const useUserRoleLists = () => {
                 "nirmaan_role_name": ["in", [
                     "Nirmaan Sales User Profile", 
                     "Nirmaan Estimations User Profile",
-                    "Nirmaan Estimates User Profile",
-                    "Nirmaan Estimations lead Profile",
                     "Nirmaan Estimations Lead Profile",
                     "Nirmaan Admin User Profile",
+                    
                 ]] 
             },
             limit: 0,
@@ -74,9 +73,7 @@ export const useUserRoleLists = () => {
                     accumulator.sales.push(userOption);
                 } else if (
                     user.nirmaan_role_name === "Nirmaan Estimations User Profile" ||
-                    user.nirmaan_role_name === "Nirmaan Estimates User Profile" ||
-                    user.nirmaan_role_name === "Nirmaan Estimations lead Profile" ||
-                    user.nirmaan_role_name === "Nirmaan Estimations Lead Profile"
+                    user.nirmaan_role_name === "Nirmaan Estimations Lead Profile" 
                 ) {
                     accumulator.estimations.push(userOption);
                 }
