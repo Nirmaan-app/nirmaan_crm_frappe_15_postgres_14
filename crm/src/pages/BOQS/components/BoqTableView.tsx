@@ -64,6 +64,7 @@ interface BOQ {
     remarks?: string;
     assigned_estimations?: string; // Estimator's email/ID, needs lookup for display name
     deal_status?: string; 
+    client_deal_status?: string;
     creation: string;
 }
 
@@ -115,6 +116,21 @@ export const BoqTableView = ({
         fields: ["parent_project", "document_type", "value"],
         limit: 0,
     }, "all-project-estimation-values");
+
+    // Fetch CRM Contacts for name resolution in export
+    const { data: contactsData } = useFrappeGetDocList('CRM Contacts', {
+        fields: ["name", "first_name", "last_name"],
+        limit: 0
+    }, "all-contacts-for-export");
+
+    const contactMap = useMemo(() => {
+        const map = new Map<string, string>();
+        (contactsData || []).forEach(c => {
+            const fullName = `${c.first_name || ''} ${c.last_name || ''}`.trim();
+            if (fullName) map.set(c.name, fullName);
+        });
+        return map;
+    }, [contactsData]);
 
     const { projectValueById, hasProjectBoqEntries } = useMemo(() => {
         const valueMap = new Map<string, number>();
@@ -564,14 +580,14 @@ export const BoqTableView = ({
 
     // --- Export Fields Definition ---
     const boqExportFields = useMemo<DataTableColumnDef<BOQ>[]>(() => ([
-        { accessorKey: "name", meta: { exportHeaderName: "BOQ ID" } },
-        { accessorKey: "boq_name", meta: { exportHeaderName: "BOQ Name" } },
+        { accessorKey: "name", meta: { exportHeaderName: "Project ID" } },
+        { accessorKey: "boq_name", meta: { exportHeaderName: "Project Name" } },
         { accessorKey: "company", meta: { exportHeaderName: "Company" } },
         {
             accessorKey: "contact",
             meta: {
                 exportHeaderName: "Contact Person",
-                exportValue: (row) => row.contact ? (getUserFullNameByEmail(row.contact) || row.contact) : ''
+                exportValue: (row) => row.contact ? (contactMap.get(row.contact) || row.contact) : ''
             }
         },
         { accessorKey: "boq_size", meta: { exportHeaderName: "Carpet Area" } },
@@ -594,11 +610,10 @@ export const BoqTableView = ({
             }
         },
         { accessorKey: "boq_submission_date", meta: { exportHeaderName: "Submission Date" } },
-        { accessorKey: "boq_link", meta: { exportHeaderName: "BOQ Link" } },
         { accessorKey: "city", meta: { exportHeaderName: "City" } },
-        { accessorKey: "remarks", meta: { exportHeaderName: "Remarks" } },
         { accessorKey: "boq_status", meta: { exportHeaderName: "Status" } },
-        { accessorKey: "boq_sub_status", meta: { exportHeaderName: "Sub-Status" } },
+        { accessorKey: "deal_status", meta: { exportHeaderName: "Deal Status" } },
+        { accessorKey: "client_deal_status", meta: { exportHeaderName: "Client Status" } },
         {
             accessorKey: "assigned_sales",
             meta: {
@@ -606,17 +621,17 @@ export const BoqTableView = ({
                 exportValue: (row) => getUserFullNameByEmail(row.assigned_sales || "") || ''
             }
         },
-        {
-            accessorKey: "assigned_estimations",
-            meta: {
-                exportHeaderName: "Assigned Estimations",
-                exportValue: (row) => row.assigned_estimations ? (getUserFullNameByEmail(row.assigned_estimations) || row.assigned_estimations) : ''
-            }
+        { 
+            accessorKey: "owner", 
+            meta: { 
+                exportHeaderName: "Created By",
+                exportValue: (row) => row.owner ? (getUserFullNameByEmail(row.owner) || row.owner) : ''
+            } 
         },
-        { accessorKey: "owner", meta: { exportHeaderName: "Created By" } },
         { accessorKey: "modified", meta: { exportHeaderName: "Last Modified" } },
-        { accessorKey: "deal_status", meta: { exportHeaderName: "Deal Status" } },
-    ]), [getUserFullNameByEmail, hasProjectBoqEntries, projectValueById]);
+        { accessorKey: "boq_link", meta: { exportHeaderName: "BOQ Link" } },
+        { accessorKey: "remarks", meta: { exportHeaderName: "Remarks" } },
+    ]), [getUserFullNameByEmail, contactMap, hasProjectBoqEntries, projectValueById]);
 
 
     // ... (after tableLogic declaration)

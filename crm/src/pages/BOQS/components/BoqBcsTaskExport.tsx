@@ -6,6 +6,7 @@ import { CRMProjectEstimation } from "./ProjectEstimationsTable";
 import { toast } from "@/hooks/use-toast";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists";
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
 
 interface BoqBcsTaskExportProps {
     projectId?: string;
@@ -60,15 +61,31 @@ export const BoqBcsTaskExport = ({ projectId, companyId, projectIds, data, custo
         }
     }
 
-    const { data: fetchedEstimations, isLoading: isEstimationsLoading } = useFrappeGetDocList<CRMProjectEstimation>("CRM Project Estimation", {
+    const { data: fetchedEstimationsData, isLoading: isEstimationsLoading } = useFrappeGetDocList<CRMProjectEstimation>("CRM Project Estimation", {
         filters: estimationFilters,
         fields: ["parent_project", "title", "package_name", "document_type", "value", "link", "status", "sub_status", "deadline", "remarks", "assigned_to", "creation"],
         orderBy: { field: "parent_project", order: "asc" },
         limit: 0
     }, cacheKey);
 
-    const estimations = data || fetchedEstimations;
     const isLoading = (!data && isBoqsLoading) || (!data && isEstimationsLoading);
+
+    // Apply sorting based on projectIds order if available
+    const estimations = useMemo(() => {
+        const base = data || fetchedEstimationsData;
+        if (!base || !projectIds || projectIds.length === 0) return base;
+
+        const projectIndexMap = new Map();
+        projectIds.forEach((id, index) => projectIndexMap.set(id, index));
+
+        return [...base].sort((a, b) => {
+            const indexA = projectIndexMap.get(a.parent_project) ?? 999999;
+            const indexB = projectIndexMap.get(b.parent_project) ?? 999999;
+            if (indexA !== indexB) return indexA - indexB;
+            // Secondary sort by creation date within the same project
+            return (a.creation || "").localeCompare(b.creation || "");
+        });
+    }, [data, fetchedEstimationsData, projectIds]);
 
     const handleExport = () => {
         if (!estimations || estimations.length === 0) {
