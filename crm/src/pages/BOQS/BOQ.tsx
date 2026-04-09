@@ -28,6 +28,7 @@ import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
 import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
 import { parsePackages } from "@/constants/boqPackages";
 import { ProjectEstimationsTable, CRMProjectEstimation } from "./components/ProjectEstimationsTable";
+import { BoqBcsTaskExport } from "./components/BoqBcsTaskExport";
 import { cn } from "@/lib/utils";
 
 // ============================================================================================
@@ -206,7 +207,7 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                         {boq?.boq_name || 'N/A'}
                     </h1>
                 </div>
-                
+
                 <div className={cn("grid gap-2 mt-4", isSalesProfile ? "grid-cols-1" : "grid-cols-2")}>
                     <div className="flex items-center gap-2 bg-blue-50/50 p-3 rounded-lg border border-blue-100/50">
                         <div className="bg-blue-100 text-blue-600 p-1.5 rounded-md">
@@ -217,7 +218,7 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                             <p className="text-sm font-bold text-gray-900">₹{totalValue.toFixed(2)}L</p>
                         </div>
                     </div>
-                    
+
                     {!isSalesProfile && (
                         <div className="flex items-center gap-2 bg-emerald-50/50 p-3 rounded-lg border border-emerald-100/60">
                             <div className="bg-emerald-100 text-emerald-700 p-1.5 rounded-md">
@@ -247,18 +248,19 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                             <SquarePen className="w-3.5 h-3.5 mr-2" />
                             Project Status
                         </Button>
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
+                        <Button
+                            variant="outline"
+                            size="sm"
                             className="h-8 text-xs font-semibold bg-gray-50 hover:bg-gray-100"
                             onClick={() => openEditBoqDialog({ boqData: boq, mode: 'details' })}
                         >
                             <SquarePen className="w-3.5 h-3.5 mr-2" />
                             Edit Project Details
                         </Button>
+                        {/* <BoqBcsTaskExport projectId={boq?.name} /> */}
                     </div>
                 </div>
-                
+
                 <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-y-6 gap-x-4 flex-grow">
                     <div>
                         <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Carpet Area (Sqft.)</p>
@@ -270,9 +272,9 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                     </div>
                     <div>
                         <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Assigned Sales</p>
-                        <p className="text-sm font-semibold text-gray-900">{getUserFullNameByEmail(boq?.assigned_sales) || 'N/A'}</p>
+                        <p className="text-sm font-semibold text-gray-900">{getUserFullNameByEmail(boq?.assigned_sales || "") || 'N/A'}</p>
                     </div>
-                    
+
                     <div>
                         <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Company Name</p>
                         {company?.name ? (
@@ -540,7 +542,7 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
         if (versions && versions.length > 0) {
             let lastKnownStatus = '';
             let lastKnownSubStatus = '';
-            
+
             const tempHistory = versions.slice().reverse().map((version): TransformedHistoryItem | null => {
                 try {
                     const parsedData: ParsedVersionData = JSON.parse(version.data);
@@ -554,7 +556,7 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
 
                     if (statusChange) lastKnownStatus = statusChange[2] as string;
                     else lastKnownStatus = "-";
-                    
+
                     if (subStatusChange) lastKnownSubStatus = subStatusChange[2] as string;
                     else lastKnownSubStatus = "-";
 
@@ -574,7 +576,7 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                         sub_status: lastKnownSubStatus || '--',
                         remark: remarkValue,
                         submission_date: parsedSubmissionDate,
-                        date: version.creation, 
+                        date: version.creation,
                         link: boqLinkChange ? boqLinkChange[2] : undefined,
                         owner: version.owner,
                         source_type: 'PROJECT',
@@ -584,7 +586,7 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                     return null;
                 }
             }).filter((item): item is TransformedHistoryItem => item !== null);
-            
+
             allItems = [...allItems, ...tempHistory];
         }
 
@@ -604,12 +606,12 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                 let lastKnownStatus = '';
                 let lastKnownSubStatus = '';
                 const est = estimations?.find(e => e.name === docname);
-                
+
                 const tempHistory = docs.slice().reverse().map((version): TransformedHistoryItem | null => {
                     try {
                         const parsedData: ParsedVersionData = JSON.parse(version.data);
                         const changes = parsedData.changed || [];
-                        
+
                         const statusChange = changes.find(c => c[0] === 'status');
                         const subStatusChange = changes.find(c => c[0] === 'sub_status');
                         const boqLinkChange = changes.find(c => c[0] === 'link');
@@ -618,7 +620,7 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
 
                         if (statusChange) lastKnownStatus = statusChange[2] as string;
                         else lastKnownStatus = "-";
-                        
+
                         if (subStatusChange) lastKnownSubStatus = subStatusChange[2] as string;
                         else lastKnownSubStatus = "-";
 
@@ -649,7 +651,7 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                         return null;
                     }
                 }).filter((item): item is TransformedHistoryItem => item !== null);
-                
+
                 allItems = [...allItems, ...tempHistory];
             });
         }
@@ -752,7 +754,7 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                                             <span className="text-xs font-semibold text-gray-900 truncate max-w-[180px]" title={item.source_title}>{item.source_title}</span>
                                             {item.link && (
                                                 <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-500 hover:underline mt-0.5 inline-flex items-center">
-                                                    Open Link <svg className="w-2.5 h-2.5 ml-0.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                    Open Link <svg className="w-2.5 h-2.5 ml-0.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                                 </a>
                                             )}
                                         </div>
@@ -912,19 +914,19 @@ export const BOQ = () => {
                 <h1 className="text-xl md:text-2xl font-bold ">{boqData.boq_name}</h1> 
             </div> */}
 
-            <ProjectOverviewCard 
-                boq={boqData} 
-                company={companyData} 
-                contact={contactData} 
-                estimations={estimationsList} 
+            <ProjectOverviewCard
+                boq={boqData}
+                company={companyData}
+                contact={contactData}
+                estimations={estimationsList}
             />
 
             {(role != "Nirmaan Estimations User Profile" && role != "Nirmaan Estimations Lead Profile") && (
                 <BoqDealStatusCard boq={boqData} />
             )}
 
-            <ProjectEstimationsTable 
-                projectId={boqData.name} 
+            <ProjectEstimationsTable
+                projectId={boqData.name}
                 estimations={estimationsList}
                 isLoading={estimationsLoading}
             />
@@ -936,11 +938,11 @@ export const BOQ = () => {
                 contactId={boqData.contact || ''}
             />
             {role !== "Nirmaan Sales User Profile" && (
-                <BoqSubmissionHistory 
-                    versions={versionsList || []} 
-                    estVersions={estVersionsList || []} 
-                    estimations={estimationsList} 
-                    boqData={boqData} 
+                <BoqSubmissionHistory
+                    versions={versionsList || []}
+                    estVersions={estVersionsList || []}
+                    estimations={estimationsList}
+                    boqData={boqData}
                 />
             )}
 

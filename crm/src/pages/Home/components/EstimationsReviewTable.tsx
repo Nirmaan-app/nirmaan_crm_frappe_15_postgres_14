@@ -8,23 +8,24 @@ import { cn } from "@/lib/utils";
 import { formatDateWithOrdinal } from "@/utils/FormatDate";
 import { StandaloneFacetedFilter } from "@/components/table/standalone-faceted-filter";
 import { StandaloneDateFilter, DateFilterValue, matchDateFilter } from "@/components/table/standalone-date-filter";
+import { BoqBcsTaskExport } from "../../BOQS/components/BoqBcsTaskExport";
 
 type StatusTab = "ALL" | "WIP" | "PENDING" | "COMPLETED";
 
 interface CRMProjectEstimation {
   name: string;
   parent_project: string;
-  title?: string;
-  package_name?: string;
-  document_type?: string;
-  value?: number;
-  link?: string;
-  status?: string;
-  sub_status?: string;
-  deadline?: string;
-  remarks?: string;
-  assigned_to?: string;
-  creation?: string;
+  title: string;
+  package_name: string;
+  document_type: string;
+  value: number;
+  link: string;
+  status: string;
+  sub_status: string;
+  deadline: string;
+  remarks: string;
+  assigned_to: string;
+  creation: string;
 }
 
 interface CRMProject {
@@ -208,13 +209,15 @@ const TaskTable = ({
   showProjectName,
   projectMap,
   userNameMap,
-  isEstimationsTeam
+  isEstimationsTeam,
+  title
 }: {
   items: CRMProjectEstimation[];
   showProjectName: boolean;
   projectMap: Map<string, CRMProject>;
   userNameMap: Map<string, string>;
   isEstimationsTeam?: boolean;
+  title?: string;
 }) => {
   const [projectFilter, setProjectFilter] = useState<string[]>([]);
   const [taskNameFilter, setTaskNameFilter] = useState<string[]>([]);
@@ -269,52 +272,63 @@ const TaskTable = ({
 
   return (
     <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
+      {title && (
+        <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-4 py-2.5">
+          <div className="text-xs font-bold uppercase tracking-wider text-gray-600">
+            {title}
+          </div>
+          <BoqBcsTaskExport 
+            data={filteredItems} 
+            customFileName={`${title.replace(/\s+/g, '_')}_Export`}
+          />
+        </div>
+      )}
       <div className="overflow-auto max-h-[400px] relative">
         <table className="w-full min-w-[980px] text-sm">
           <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 sticky top-0 z-10">
             <tr>
               {showProjectName && (
                 <th className="px-3 py-2 text-left">
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-start gap-1">
                     <span>Project Name</span>
                     <StandaloneFacetedFilter title="Project Name" options={projectOptions} value={projectFilter} onChange={setProjectFilter} />
                   </div>
                 </th>
               )}
               <th className="px-3 py-2 text-left">
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-start gap-1">
                     <span>Task Name</span>
                     <StandaloneFacetedFilter title="Task Name" options={taskNameOptions} value={taskNameFilter} onChange={setTaskNameFilter} />
                   </div>
               </th>
               <th className="px-3 py-2 text-left">
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-start gap-1">
                     <span>Type</span>
                     <StandaloneFacetedFilter title="Type" options={typeOptions} value={typeFilter} onChange={setTypeFilter} />
                   </div>
               </th>
               <th className="px-3 py-2 text-left">
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-start gap-1">
                     <span>Assigned</span>
                     <StandaloneFacetedFilter title="Assigned" options={assignedOptions} value={assignedFilter} onChange={setAssignedFilter} />
                   </div>
               </th>
               <th className="px-3 py-2 text-left">Remarks</th>
               <th className="px-3 py-2 text-left">
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-start gap-1">
                     <span>Deadline</span>
                     <StandaloneDateFilter title="Deadline" value={deadlineFilter} onChange={setDeadlineFilter} />
                   </div>
               </th>
               <th className="px-3 py-2 text-left">Link</th>
               <th className="px-3 py-2 text-left">
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-start gap-1">
                     <span>Status</span>
                     <StandaloneFacetedFilter title="Status" options={statusOptions} value={statusFilter} onChange={setStatusFilter} />
                   </div>
               </th>
               <th className="px-3 py-2 text-left">
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-start gap-1">
                     <span>Sub-Status</span>
                     <StandaloneFacetedFilter title="Sub-Status" options={subStatusOptions} value={subStatusFilter} onChange={setSubStatusFilter} />
                   </div>
@@ -389,6 +403,8 @@ export const EstimationsReviewTable = () => {
   const [expandedRowKey, setExpandedRowKey] = useState<string | null>(null);
   const [expandedMode, setExpandedMode] = useState<"projects" | "tasks" | null>(null);
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+  const [projectListSearch, setProjectListSearch] = useState<string[]>([]);
+  const [projectListStatusFilter, setProjectListStatusFilter] = useState<string[]>([]);
 
   // Role-based access
   const role = localStorage.getItem("role");
@@ -501,13 +517,13 @@ export const EstimationsReviewTable = () => {
         package_name: project.boq_name || "Legacy BOQ",
         document_type: "BOQ",
         value: Number(project.boq_value) || 0,
-        link: project.boq_link,
-        status: project.boq_status,
-        sub_status: undefined,
-        deadline: project.boq_submission_date,
-        remarks: project.remarks,
-        assigned_to: project.assigned_estimations,
-        creation: project.creation,
+        link: project.boq_link || "",
+        status: project.boq_status || "New",
+        sub_status: "",
+        deadline: project.boq_submission_date || "",
+        remarks: project.remarks || "",
+        assigned_to: project.assigned_estimations || "",
+        creation: project.creation || "",
       }));
 
     return [...currentEstimations, ...legacyRows];
@@ -681,6 +697,17 @@ export const EstimationsReviewTable = () => {
     return summaries.sort((a, b) => a.projectName.localeCompare(b.projectName));
   }, [projectMap, scopedEstimations]);
 
+  const projectNameOptions = useMemo(() => Array.from(new Set(projectSummaries.map(p => p.projectName))).filter(Boolean).map(v => ({ label: v, value: v })), [projectSummaries]);
+  const projectStatusOptions = useMemo(() => Array.from(new Set(projectSummaries.map(p => p.status))).filter(Boolean).map(v => ({ label: v, value: v })), [projectSummaries]);
+
+  const filteredProjectSummaries = useMemo(() => {
+    return projectSummaries.filter(p => {
+      if (projectListSearch.length > 0 && !projectListSearch.includes(p.projectName)) return false;
+      if (projectListStatusFilter.length > 0 && !projectListStatusFilter.includes(p.status)) return false;
+      return true;
+    });
+  }, [projectSummaries, projectListSearch, projectListStatusFilter]);
+
   const expandedProjectTasks = useMemo(() => {
     if (!expandedProjectId) return [] as CRMProjectEstimation[];
     return scopedEstimations.filter((item) => item.parent_project === expandedProjectId);
@@ -816,19 +843,29 @@ export const EstimationsReviewTable = () => {
                                 </div>
                               ) : (
                                 <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
-                                  <div className="overflow-x-auto">
+                                  <div className="overflow-auto max-h-[450px] relative">
                                     <table className="w-full min-w-[760px] text-sm">
-                                      <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                                      <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 sticky top-0 z-10">
                                         <tr>
-                                          <th className="px-3 py-2 text-left">Project Name</th>
-                                          <th className="px-3 py-2 text-left">Status</th>
+                                          <th className="px-3 py-2 text-left">
+                                            <div className="flex items-center justify-start gap-1">
+                                              <span>Project Name</span>
+                                              <StandaloneFacetedFilter title="Project Name" options={projectNameOptions} value={projectListSearch} onChange={setProjectListSearch} />
+                                            </div>
+                                          </th>
+                                          <th className="px-3 py-2 text-left">
+                                            <div className="flex items-center justify-start gap-1">
+                                              <span>Status</span>
+                                              <StandaloneFacetedFilter title="Status" options={projectStatusOptions} value={projectListStatusFilter} onChange={setProjectListStatusFilter} />
+                                            </div>
+                                          </th>
                                           <th className="px-3 py-2 text-left">Total Value</th>
                                           <th className="px-3 py-2 text-left">Tasks</th>
                                           <th className="px-3 py-2 text-left">Overdue</th>
                                         </tr>
                                       </thead>
                                       <tbody className="divide-y divide-gray-100">
-                                        {projectSummaries.map((project) => {
+                                        {filteredProjectSummaries.map((project) => {
                                           const isOpen = expandedProjectId === project.projectId;
 
                                           return (
@@ -870,6 +907,7 @@ export const EstimationsReviewTable = () => {
                                                       projectMap={projectMap}
                                                       userNameMap={userNameMap}
                                                       isEstimationsTeam={isEstimationsTeam}
+                                                      title={`${project.projectName} - BOQ/BCS Tasks`}
                                                     />
                                                   </td>
                                                 </tr>
@@ -885,10 +923,14 @@ export const EstimationsReviewTable = () => {
                             </div>
                           ) : (
                             <div className="space-y-3">
-                              <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                {row.label} - BOQ/BCS Tasks
-                              </div>
-                              <TaskTable items={scopedEstimations} showProjectName={true} projectMap={projectMap} userNameMap={userNameMap} isEstimationsTeam={isEstimationsTeam} />
+                              <TaskTable 
+                                items={scopedEstimations} 
+                                showProjectName={true} 
+                                projectMap={projectMap} 
+                                userNameMap={userNameMap} 
+                                isEstimationsTeam={isEstimationsTeam} 
+                                title={`${row.label} - BOQ/BCS Tasks`}
+                              />
                             </div>
                           )}
                         </td>

@@ -204,7 +204,8 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
 
         selectedStatuses,
         setSelectedStatuses,
-        statusOptions
+        statusOptions,
+        filteredProjectIds: filteredBoqs?.map(b => b.name) || []
     };
 
     return (
