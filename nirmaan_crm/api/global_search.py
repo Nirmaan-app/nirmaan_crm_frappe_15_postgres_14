@@ -130,12 +130,12 @@ def global_search(search_term="", user_role=""):
 
     # --- Search CRM BOQ ---
     print(f"Attempting to search CRM BOQ for user_role: {user_role}")
-    if user_role in ["Nirmaan Admin User Profile", "Nirmaan Sales User Profile", "Nirmaan Estimations User Profile"]:
+    if user_role in ["Nirmaan Admin User Profile", "Nirmaan Sales User Profile", "Nirmaan Estimations User Profile", "Nirmaan Estimations Lead Profile"]:
         base_filters = {} # For AND conditions
         if user_role == "Nirmaan Sales User Profile":
             base_filters["assigned_sales"] = user_email
             print(f"CRM BOQ: Added assigned_sales filter for {user_email}")
-        elif user_role == "Nirmaan Estimations User Profile":
+        elif user_role in ["Nirmaan Estimations User Profile", "Nirmaan Estimations Lead Profile"]:
             base_filters["assigned_estimations"] = user_email
             print(f"CRM BOQ: Added assigned_estimations filter for {user_email}")
         
@@ -171,7 +171,7 @@ def global_search(search_term="", user_role=""):
 
     # --- Search CRM Task ---
     print(f"Attempting to search CRM Task for user_role: {user_role}")
-    if user_role in ["Nirmaan Admin User Profile", "Nirmaan Sales User Profile", "Nirmaan Estimations User Profile"]:
+    if user_role in ["Nirmaan Admin User Profile", "Nirmaan Sales User Profile", "Nirmaan Estimations User Profile", "Nirmaan Estimations Lead Profile"]:
         base_filters = {} # For AND conditions
         # Conditional assignment for Tasks
         if user_role == "Nirmaan Sales User Profile":
@@ -181,7 +181,7 @@ def global_search(search_term="", user_role=""):
             elif frappe.db.has_column("CRM Task", "assigned_to"): # Fallback to assigned_to if assigned_sales doesn't exist
                 base_filters["assigned_to"] = user_email
                 print(f"CRM Task: Added assigned_to filter for Sales User {user_email} (assigned_sales not found)")
-        elif user_role == "Nirmaan Estimations User Profile":
+        elif user_role in ["Nirmaan Estimations User Profile", "Nirmaan Estimations Lead Profile"]:
             if frappe.db.has_column("CRM Task", "assigned_estimations"):
                 base_filters["assigned_estimations"] = user_email
                 print(f"CRM Task: Added assigned_estimations filter for Estimations User {user_email}")
@@ -374,7 +374,7 @@ def global_search(search_term="", user_role=""):
 
 #     # --- Search CRM BOQ ---
 #     print(f"Attempting to search CRM BOQ for user_role: {user_role}")
-#     if user_role in ["Nirmaan Admin User Profile", "Nirmaan Sales User Profile", "Nirmaan Estimations User Profile"]:
+#     if user_role in ["Nirmaan Admin User Profile", "Nirmaan Sales User Profile", "Nirmaan Estimations User Profile", "Nirmaan Estimations Lead Profile"]:
 #         base_filters = {} # For AND conditions
 #         # No assigned_sales/estimations filter for global search, as per your request.
 
@@ -410,7 +410,7 @@ def global_search(search_term="", user_role=""):
 
 #     # --- Search CRM Task ---
 #     print(f"Attempting to search CRM Task for user_role: {user_role}")
-#     if user_role in ["Nirmaan Admin User Profile", "Nirmaan Sales User Profile", "Nirmaan Estimations User Profile"]:
+#     if user_role in ["Nirmaan Admin User Profile", "Nirmaan Sales User Profile", "Nirmaan Estimations User Profile", "Nirmaan Estimations Lead Profile"]:
 #         base_filters = {} # For AND conditions
 #         # No assigned filters for global search, as per your request.
 

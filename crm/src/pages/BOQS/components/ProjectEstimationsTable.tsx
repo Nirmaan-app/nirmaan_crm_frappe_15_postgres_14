@@ -1,14 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
-import { useStatusStyles } from "@/hooks/useStatusStyles";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists";
-import { SquarePen, PenLine, Send } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { SquarePen } from "lucide-react";
+import { useDialogStore } from "@/store/dialogStore";
 
 export interface CRMProjectEstimation {
     name: string;
@@ -26,32 +21,26 @@ export interface CRMProjectEstimation {
     creation: string;
 }
 
-export const ProjectEstimationsTable = ({ 
-    projectId, 
-    estimations, 
-    isLoading 
-}: { 
-    projectId: string; 
-    estimations: CRMProjectEstimation[] | undefined; 
-    isLoading: boolean; 
+export const ProjectEstimationsTable = ({
+    projectId,
+    estimations,
+    isLoading
+}: {
+    projectId: string;
+    estimations: CRMProjectEstimation[] | undefined;
+    isLoading: boolean;
 }) => {
     const role = localStorage.getItem("role");
-    const { mutate } = useSWRConfig();
-    const { updateDoc } = useFrappeUpdateDoc();
-
-    const { estimationUserOptions, getUserFullNameByEmail } = useUserRoleLists();
+    const { getUserFullNameByEmail } = useUserRoleLists();
 
     const isEstimationsLead =
-        role === "Nirmaan Estimations lead Profile" ||
-        role === "Nirmaan Estimations Lead Profile" ||
-        role === "Nirmaan Admin User Profile";
+        role === "Nirmaan Estimations Lead Profile" || role === "Nirmaan Admin User Profile";
     const isEstimationsTeam =
         role === "Nirmaan Estimations User Profile" ||
         role === "Nirmaan Estimates User Profile" ||
         isEstimationsLead;
 
-    // Edit State
-    const [editingEst, setEditingEst] = useState<CRMProjectEstimation | null>(null);
+    const { openEditProjectEstimationDialog } = useDialogStore();
 
     if (isLoading) return <div className="p-4 flex items-center justify-center text-sm text-muted-foreground animate-pulse">Loading Packages...</div>;
     if (!estimations || estimations.length === 0) {
@@ -62,50 +51,6 @@ export const ProjectEstimationsTable = ({
         );
     }
 
-    const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!editingEst) return;
-        const formData = new FormData(e.currentTarget);
-        const dataToSave: any = {
-            value: Number(formData.get("value")) || 0,
-            link: (formData.get("link") as string)?.trim() || null,
-            status: (formData.get("status") as string) || editingEst.status,
-            sub_status: (formData.get("sub_status") as string) || null,
-            deadline: (formData.get("deadline") as string) || null,
-            remarks: (formData.get("remarks") as string)?.trim() || null,
-            assigned_to: (formData.get("assigned_to") as string) || editingEst.assigned_to,
-        };
-
-        // Format link
-        if (dataToSave.link) {
-            let formattedLink = dataToSave.link;
-            if (!formattedLink.startsWith("http://") && !formattedLink.startsWith("https://") && !formattedLink.startsWith("www.")) {
-                formattedLink = `https://${formattedLink}`;
-            } else if (formattedLink.startsWith("www.")) { 
-                formattedLink = `https://${formattedLink}`;
-            }
-            dataToSave.link = formattedLink;
-        }
-
-        try {
-            await updateDoc("CRM Project Estimation", editingEst.name, dataToSave);
-            toast({ title: "Success", description: "Estimation updated successfully." });
-            await Promise.all([
-                mutate(`project-estimations-${projectId}`),
-                mutate(`project-estimations-edit-${projectId}`),
-                mutate(`BOQ/${projectId}`),
-                mutate("all-project-estimation-values"),
-                mutate("all-boqs-all-view"),
-                mutate("home-estimation-review-estimations"),
-                mutate("home-estimation-review-projects"),
-                mutate((key) => typeof key === 'string' && key.startsWith('all-boqs-')),
-            ]);
-            setEditingEst(null);
-        } catch (error: any) {
-             toast({ title: "Error", description: error.message, variant: "destructive" });
-        }
-    };
-
     return (
         <div className="bg-background max-h-[400px] overflow-y-auto w-full p-4  rounded-lg border shadow-sm shrink-0">
             <div className="flex items-center gap-2 mb-4">
@@ -114,7 +59,7 @@ export const ProjectEstimationsTable = ({
                     {estimations?.length || 0}
                 </div>
             </div>
-            
+
             <div className="overflow-x-auto border border-border/60 rounded-lg max-h-[400px]">
                 <Table>
                     <TableHeader className="bg-muted/30 z-10 sticky top-0">
@@ -137,8 +82,8 @@ export const ProjectEstimationsTable = ({
                         {estimations.map((est) => (
                             <TableRow key={est.name} className="hover:bg-muted/10 transition-colors">
                                 <TableCell className="font-medium text-sm text-foreground">
-                                    {est.title?.startsWith(`${projectId} - `) 
-                                        ? est.title.replace(`${projectId} - `, '') 
+                                    {est.title?.startsWith(`${projectId} - `)
+                                        ? est.title.replace(`${projectId} - `, '')
                                         : est.title}
                                 </TableCell>
                                 <TableCell className="text-center">
@@ -188,7 +133,7 @@ export const ProjectEstimationsTable = ({
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => setEditingEst(est)}
+                                            onClick={() => openEditProjectEstimationDialog({ estimationData: est })}
                                             className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
                                         >
                                             <SquarePen className="w-4 h-4" />
@@ -200,139 +145,6 @@ export const ProjectEstimationsTable = ({
                     </TableBody>
                 </Table>
             </div>
-
-            <Dialog open={!!editingEst} onOpenChange={(open) => !open && setEditingEst(null)}>
-                <DialogContent className="max-w-md p-6">
-                    {editingEst && (
-                        <>
-                            <DialogHeader className="mb-4">
-                                <DialogTitle className="flex items-center gap-2 text-xl">
-                                    <PenLine className="w-5 h-5" />
-                                    Edit {editingEst.document_type} Details
-                                </DialogTitle>
-                                <p className="text-destructive text-xs font-semibold mt-1 tracking-wide">
-                                    {projectId}
-                                </p>
-                            </DialogHeader>
-
-                            <form onSubmit={handleEditSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 styled-scrollbar">
-                                <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Package</label>
-                                    <Input value={editingEst.package_name} disabled className="h-9 bg-muted/30" />
-                                </div>
-                                
-                                <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">{editingEst.document_type} Value</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">₹</span>
-                                        <Input name="value" type="number" step="0.01" className="pl-7 pr-8 h-9 hover:border-primary/50 focus-visible:ring-1" defaultValue={editingEst.value} />
-                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">L</span>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Assigned to</label>
-                                    <select name="assigned_to" className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editingEst.assigned_to} disabled={!isEstimationsLead}>
-                                        <option value="">Select User</option>
-                                        {estimationUserOptions.map(u => (
-                                            <option key={u.value.toString()} value={u.value.toString()}>{u.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Status</label>
-                                    <select name="status" className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" 
-                                            value={editingEst.status || "New"}
-                                            onChange={(e) => setEditingEst({ ...editingEst, status: e.target.value })}>
-                                        <option value="New">New</option>
-                                        <option value="In-Progress">In-Progress</option>
-                                        {editingEst.document_type === 'BOQ' ? (
-                                            <>
-                                                <option value="BOQ Submitted">BOQ Submitted</option>
-                                                <option value="Partial BOQ Submitted">Partial BOQ Submitted</option>
-                                                <option value="Revision Submitted">Revision Submitted</option>
-                                                <option value="Revision Pending">Revision Pending</option>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <option value="Done">Done</option>
-                                                <option value="Hold">Hold</option>
-                                                <option value="Not Applicable">Not Applicable</option>
-                                            </>
-                                        )}
-                                    </select>
-                                </div>
-
-                                {editingEst.document_type === 'BOQ' && ["In-Progress", "Revision Pending"].includes(editingEst.status) && (
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-muted-foreground">Sub-Status<sup>*</sup></label>
-                                        <select name="sub_status" required className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" defaultValue={editingEst.sub_status}>
-                                            <option value="">Select Sub-Status</option>
-                                            <option value="WIP">WIP</option>
-                                            <option value="Awaiting clarification from Client">Awaiting clarification from Client</option>
-                                            <option value="Awaiting quotation from Vendor">Awaiting quotation from Vendor</option>
-                                            <option value="Review pending from Divyansh">Review pending from Divyansh</option>
-                                        </select>
-                                    </div>
-                                )}
-
-                                {(
-                                    (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                                    (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-                                ) && (
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-muted-foreground">{editingEst.document_type} Value<sup>*</sup></label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">₹</span>
-                                            <Input name="value" type="number" step="0.01" required className="pl-7 pr-8 h-9 hover:border-primary/50 focus-visible:ring-1" defaultValue={editingEst.value} />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">L</span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {((editingEst.document_type === 'BOQ' && ["New", "In-Progress", "Revision Pending", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) || 
-                                  (editingEst.document_type === 'BCS' && ["New", "In-Progress"].includes(editingEst.status))) && (
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-muted-foreground">Submission Deadline<sup>*</sup></label>
-                                        <Input name="deadline" type="date" required className="h-9 hover:border-primary/50 focus-visible:ring-1" defaultValue={editingEst.deadline} />
-                                    </div>
-                                )}
-
-                                <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">{editingEst.document_type} Link{(
-                                        (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                                        (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-                                    ) && <sup>*</sup>}</label>
-                                    <Input name="link" required={(
-                                        (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                                        (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-                                    )} defaultValue={editingEst.link} placeholder="https://..." className="h-9 hover:border-primary/50 focus-visible:ring-1" />
-                                </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Latest Remarks{(
-                                        (editingEst.document_type === 'BOQ' && ["Partial BOQ Submitted"].includes(editingEst.status)) ||
-                                        (editingEst.document_type === 'BCS' && editingEst.status === 'Hold')
-                                    ) && <sup>*</sup>}</label>
-                                    <Textarea name="remarks" required={(
-                                        (editingEst.document_type === 'BOQ' && ["Partial BOQ Submitted"].includes(editingEst.status)) ||
-                                        (editingEst.document_type === 'BCS' && editingEst.status === 'Hold')
-                                    )} className="resize-none h-20 hover:border-primary/50 focus-visible:ring-1" defaultValue={editingEst.remarks} placeholder="Enter remarks..." />
-                                </div>
-
-                                <div className="flex justify-end gap-3 pt-4 border-t mt-4 bg-muted/10 -mx-6 px-6 -mb-6 pb-6 pt-6 rounded-b-lg">
-                                    <Button type="button" variant="outline" className="w-24 border-gray-300" onClick={() => setEditingEst(null)}>
-                                        Cancel
-                                    </Button>
-                                    <Button type="submit" className="w-36 bg-destructive hover:bg-destructive/90 text-white gap-2">
-                                        Save Changes <Send className="w-3 h-3" />
-                                    </Button>
-                                </div>
-                            </form>
-                        </>
-                    )}
-                </DialogContent>
-            </Dialog>
         </div>
     );
 };

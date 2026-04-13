@@ -16,6 +16,7 @@ import { LoginPage } from "@/pages/Login";
 import { ProtectedRoute } from "@/auth/ProtectedRoute";
 import { MyTeamPage } from "@/pages/MyTeam/MyTeamPage";
 import { MobileMemberDetailsPage } from "@/pages/MyTeam/MobileMemberDetailsPage";
+import { PackagesList } from "@/pages/Packages/PackagesList";
 // --- CHANGE 1: Import the new AuthorizationGuard ---
 import { AuthorizationGuard } from "@/auth/AuthorizationGuard";
 import ForgotPassword from "@/pages/forgot-password";
@@ -82,6 +83,7 @@ export const appRoutes = [
                 children: [
                   { index: true, element: <MyTeamPage /> },
                   { path: "details", element: <MobileMemberDetailsPage /> },
+                  { path: "packages", element: <PackagesList /> },
                 ],
               },
             ],

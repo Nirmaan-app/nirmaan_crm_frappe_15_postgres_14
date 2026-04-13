@@ -850,12 +850,19 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
   const navigate = useNavigate();
   const { isMobile } = useViewport(); // Check viewport
 
-  // Contact Designation Options
+  // Contact Designation & Department Options
   const contactDesignationOptions = useMemo(() => {
     if (!contacts) return [];
     const set = new Set<string>();
     contacts.forEach(c => c.designation && set.add(c.designation));
     return Array.from(set).map(designation => ({ label: designation, value: designation }));
+  }, [contacts]);
+
+  const contactDepartmentOptions = useMemo(() => {
+    if (!contacts) return [];
+    const set = new Set<string>();
+    contacts.forEach(c => c.department && set.add(c.department));
+    return Array.from(set).map(dept => ({ label: dept, value: dept }));
   }, [contacts]);
 
   // Contact Columns for Desktop
@@ -868,13 +875,18 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
     meta: { title: "Designation", filterVariant: "select", filterOptions: contactDesignationOptions, enableSorting: true },
     cell: ({ row }) => <span>{row.original.designation || 'N/A'}</span>,
     filterFn: 'faceted',
-  }], [contactDesignationOptions]);
+  }, {
+    accessorKey: "department",
+    meta: { title: "Department", filterVariant: "select", filterOptions: contactDepartmentOptions, enableSorting: true },
+    cell: ({ row }) => <span>{row.original.department || 'N/A'}</span>,
+    filterFn: 'faceted',
+  }], [contactDesignationOptions, contactDepartmentOptions]);
 
   const tableLogic = useDataTableLogic<CRMContacts>({
     data: contacts,
     columns: contactColumns,
     initialSorting: [{ id: 'first_name', desc: false }],
-    customGlobalFilterFn: ['first_name', 'last_name', 'designation']
+    customGlobalFilterFn: ['first_name', 'last_name', 'designation', 'department']
   });
   
   // Destructure for mobile rendering
@@ -903,7 +915,8 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
-                            <TableHead className="text-right">Designation</TableHead>
+                            <TableHead className="text-center">Designation</TableHead>
+                            <TableHead className="text-right">Department</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -920,7 +933,8 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
                                         className="cursor-pointer"
                                     >
                                         <TableCell className="font-medium text-blue-600 underline">{contact.first_name} {contact.last_name}</TableCell>
-                                        <TableCell className="text-right">{contact.designation || 'N/A'}</TableCell>
+                                        <TableCell className="text-center">{contact.designation || 'N/A'}</TableCell>
+                                        <TableCell className="text-right">{contact.department || 'N/A'}</TableCell>
                                     </TableRow>
                                 );
                             })
@@ -946,7 +960,7 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
       globalSearchPlaceholder="Search contacts by name or designation..."
       className="h-full"
       shouldExpandHeight={true}
-      gridColsClass="md:grid-cols-[2fr,1fr]"
+      gridColsClass="md:grid-cols-[2fr,1fr,1fr]"
       onRowClick={(row) => navigate(`/contacts/contact?id=${row.original.name}`)}
     />
   );

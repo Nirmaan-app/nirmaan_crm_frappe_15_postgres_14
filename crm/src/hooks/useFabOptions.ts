@@ -25,7 +25,7 @@ const useTaskCreationHandler = () => {
         if (role === 'Nirmaan Sales User Profile') {
             openNewTaskDialog({ ...context, task_profile: 'Sales' });
         }
-        else if (role === 'Nirmaan Estimations User Profile') {
+        else if (role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimations Lead Profile') {
             openNewEstimationTaskDialog({ ...context, task_profile: 'Estimates' });
         }
         else if (role === 'Nirmaan Admin User Profile') {
@@ -122,7 +122,7 @@ export const useFabOptions = () => {
             newOptions = [{ label: "Add New Task", action: handleCreateTask }];
         } else if (pathname.startsWith('/team')) {
             newOptions = [{ label: "Add New CRM User", action: openNewUserDialog }];
-        } else if (role === "Nirmaan Estimations User Profile" && pathname === '/') {
+        } else if ((role === "Nirmaan Estimations User Profile" || role === "Nirmaan Estimations Lead Profile") && pathname === '/') {
             newOptions = [{ label: "Add New Project", action: openNewBoqDialog }];
         } else if (pathname === '/') {
             newOptions = [

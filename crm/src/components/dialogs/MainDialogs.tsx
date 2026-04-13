@@ -23,6 +23,8 @@ import { EditDealStatusForm } from "@/pages/BOQS/forms/EditBoqDealStatusForm";
 import { EditBcsStatusForm } from "@/pages/BOQS/forms/EditBcsStatusForm";
 
 import { CompanyProgressForm } from "@/pages/Companies/forms/CompanyProgressForm"
+
+import { EditProjectEstimationForm } from "@/pages/BOQS/forms/EditProjectEstimationForm";
 // ============================================================================================
 // START OF CHANGES: Importing new forms for Estimation and Admin flows
 // ============================================================================================
@@ -74,6 +76,9 @@ export const MainDialogs = () => {
         newEstimationTask, closeNewEstimationTaskDialog,
         editEstimationTask, closeEditEstimationTaskDialog,
         selectTaskProfileDialog, closeSelectTaskProfileDialog,
+
+        // NEW: Estimation Tasks from the Project Estimations Table
+        editProjectEstimation, closeEditProjectEstimationDialog,
 
         // ============================================================================================
         // END OF CHANGES
@@ -378,6 +383,20 @@ export const MainDialogs = () => {
                     />
                 ) : (
                     <p className="text-destructive">Error: Company ID missing for progress update.</p>
+                )}
+            </ReusableFormDialog>
+
+            <ReusableFormDialog
+                isOpen={editProjectEstimation.isOpen}
+                onClose={closeEditProjectEstimationDialog}
+                title="" // Handled inside the component
+                className="max-w-md p-0 overflow-hidden" 
+            >
+                {editProjectEstimation.context?.estimationData && (
+                    <EditProjectEstimationForm
+                        estimationData={editProjectEstimation.context.estimationData}
+                        onSuccess={closeEditProjectEstimationDialog}
+                    />
                 )}
             </ReusableFormDialog>
 

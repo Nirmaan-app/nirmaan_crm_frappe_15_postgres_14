@@ -365,30 +365,30 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 <p className="text-[10px] text-muted-foreground italic">Calculated from associated BOQ packages.</p>
               </div>
             ) : (
-                <FormField
-                    name="boq_value"
-                    control={form.control}
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Project Value (Lakhs)</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">₹</span>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="e.g. 5.00"
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        className="pl-7 pr-8"
-                                    />
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">L</span>
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+              <FormField
+                name="boq_value"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Value (Lakhs)</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">₹</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="e.g. 5.00"
+                          {...field}
+                          value={field.value ?? ""}
+                          className="pl-7 pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">L</span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
             <FormField
               name="company"
@@ -415,7 +415,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             />
             <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact </FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value) || ""}
               onChange={val => field.onChange((val as any)?.value || "")}
-              menuPosition={'auto' as MenuPosition} isOptionDisabled={(option) => option.value === field.value} 
+              menuPosition={'auto' as MenuPosition} isOptionDisabled={(option) => option.value === field.value}
             /></FormControl><FormMessage /></FormItem>)} />
           </>
         )}

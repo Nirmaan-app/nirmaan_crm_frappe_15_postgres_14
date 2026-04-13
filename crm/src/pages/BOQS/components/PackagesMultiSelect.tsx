@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import ReactSelect, { MultiValue, ActionMeta } from "react-select";
-import { BOQ_PACKAGE_OPTIONS } from "@/constants/boqPackages";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 import {
   Dialog,
   DialogContent,
@@ -46,12 +46,25 @@ export function PackagesMultiSelect({
     label: v,
   }));
 
+  const { data: dbPackages, isLoading } = useFrappeGetDocList("CRM BOQ Package", {
+    fields: ["package_name"],
+    limit: 0
+  });
+
+  const boqPackageOptions = useMemo(() => {
+    if (!dbPackages) return [];
+    return dbPackages.map((pkg: any) => ({
+      value: pkg.package_name,
+      label: pkg.package_name,
+    }));
+  }, [dbPackages]);
+
   // Build options: predefined + any existing custom values + "Others" at the end
   const allOptions: PackageOption[] = [
-    ...BOQ_PACKAGE_OPTIONS,
+    ...boqPackageOptions,
     // Add custom values that are already selected but not in predefined options
     ...value
-      .filter((v) => !BOQ_PACKAGE_OPTIONS.some((opt) => opt.value === v))
+      .filter((v) => !boqPackageOptions.some((opt) => opt.value === v))
       .map((v) => ({ value: v, label: v })),
     // "Others" option at the end
     OTHERS_OPTION,
@@ -98,6 +111,7 @@ export function PackagesMultiSelect({
       <ReactSelect<PackageOption, true>
         isMulti
         isDisabled={disabled}
+        isLoading={isLoading}
         options={allOptions}
         value={selectedOptions}
         onChange={handleChange}

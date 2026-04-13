@@ -42,7 +42,7 @@ export const AuthorizationGuard = () => {
     }
   }
  
-  if (role === 'Nirmaan Estimations User Profile') {
+  if (role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimations Lead Profile') {
     const allowedBasePaths = ['/', '/boqs',"/calendar", "/tasks"];
     if (!isPathAllowed(location.pathname, allowedBasePaths)) {
       return <Navigate to="/" replace />;
