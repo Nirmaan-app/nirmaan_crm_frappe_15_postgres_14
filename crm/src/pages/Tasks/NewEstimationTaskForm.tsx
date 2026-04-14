@@ -125,11 +125,11 @@ export const NewEstimationTaskForm = ({ onSuccess }: NewEstimationTaskFormProps)
                           />
                         )}
                 <FormField
-                    name="boq"
+                    name="Projec"
                     control={form.control}
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>BOQ<sup>*</sup></FormLabel>
+                            <FormLabel>Project<sup>*</sup></FormLabel>
                             <FormControl>
                                 {boqIdFromContext ? (
                                     <Input value={boqIdFromContext} disabled />
@@ -139,7 +139,7 @@ export const NewEstimationTaskForm = ({ onSuccess }: NewEstimationTaskFormProps)
                                         isLoading={boqsLoading}
                                         value={boqOptions.find(b => b.value === field.value)}
                                         onChange={val => field.onChange(val?.value)}
-                                        placeholder="Select a BOQ"
+                                        placeholder="Select a Project"
                                         menuPosition={'auto'}
                                     />
                                 )}

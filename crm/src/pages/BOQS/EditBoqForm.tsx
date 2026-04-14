@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
@@ -78,12 +79,6 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       .reduce((sum, e) => sum + (Number(e.value) || 0), 0);
   }, [estimations]);
 
-  const hasLegacyPackage = useMemo(() => {
-    return (estimations || []).some(
-      (est) => (est.package_name || "").trim().toLowerCase() === "legacy"
-    );
-  }, [estimations]);
-
   const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_nick ? `${c.company_name} (${c.company_nick})` : c.company_name, value: c.name })) || [], [allCompanies]);
 
   const form = useForm<EditBoqFormValues>({
@@ -94,6 +89,30 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   const watchedBoqStatus = form.watch("boq_status");
   const selectedCity = form.watch("city");
   const selectedCompany = form.watch("company");
+  const selectedPackages = form.watch("boq_type") || [];
+
+  const existingBcsPackages = useMemo(() => {
+    const packages = new Set<string>();
+    (estimations || []).forEach((est) => {
+      if ((est.document_type || "").trim().toUpperCase() !== "BCS") return;
+      const pkg = (est.package_name || "").trim();
+      if (pkg) packages.add(pkg);
+    });
+    return packages;
+  }, [estimations]);
+
+  const pendingBcsPackages = useMemo(() => {
+    return (selectedPackages || [])
+      .map((pkg: string) => (pkg || "").trim())
+      .filter((pkg: string) => pkg && !existingBcsPackages.has(pkg));
+  }, [selectedPackages, existingBcsPackages]);
+
+  const hasPendingBcsForSelectedPackages = pendingBcsPackages.length > 0;
+  const isCreateBcsLocked = useMemo(() => {
+    const hasStoredFlag = Number(boqData?.create_bcs || 0) === 1;
+    return Boolean(hasStoredFlag || existingBcsPackages.size > 0);
+  }, [boqData?.create_bcs, existingBcsPackages]);
+  const disableCreateBcsToggle = isCreateBcsLocked || !hasPendingBcsForSelectedPackages;
 
   const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>(
     "CRM Contacts",
@@ -117,6 +136,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         city: initialCityValue || "",
         other_city: initialOtherCityValue,
         boq_type: parsePackages(boqData.boq_type),
+        create_bcs: boqData.create_bcs === 1,
         boq_value: Number(boqData.boq_value) || 0,
         boq_size: Number(boqData.boq_size) || 0,
         boq_status: boqData.boq_status || "",
@@ -128,6 +148,12 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       });
     }
   }, [boqData, form]);
+
+  useEffect(() => {
+    if (isCreateBcsLocked && !form.getValues("create_bcs")) {
+      form.setValue("create_bcs", true, { shouldValidate: false, shouldDirty: false });
+    }
+  }, [isCreateBcsLocked, form]);
 
   useEffect(() => {
     const clearFieldsBasedOnStatus = (status: string | undefined) => {
@@ -186,6 +212,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       if (dataToSave.boq_type && Array.isArray(dataToSave.boq_type)) {
         dataToSave.boq_type = serializePackages(dataToSave.boq_type);
       }
+      dataToSave.create_bcs = isCreateBcsLocked ? 1 : (dataToSave.create_bcs ? 1 : 0);
       if (dataToSave.city === "Others") {
         dataToSave.city = dataToSave.other_city?.trim() || "";
       }
@@ -310,16 +337,43 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                     <PackagesMultiSelect
                       value={field.value || []}
                       onChange={field.onChange}
-                      placeholder={hasLegacyPackage ? "Legacy projects cannot add packages" : "Select packages..."}
-                      disabled={hasLegacyPackage}
+                      placeholder="Select packages..."
                     />
                   </FormControl>
-                  {hasLegacyPackage && (
-                    <p className="text-[11px] text-muted-foreground">
-                      This migrated legacy project is locked. Package changes are disabled to avoid mixing legacy and package-based data.
-                    </p>
-                  )}
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="create_bcs"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                  <FormControl>
+                    <Checkbox
+                      checked={!!field.value}
+                      disabled={disableCreateBcsToggle}
+                      onCheckedChange={(checked) => field.onChange(!!checked)}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Create BCS tasks for selected packages</FormLabel>
+                    {isCreateBcsLocked && (
+                      <p className="text-[11px] text-muted-foreground">
+                        BCS creation is permanently enabled for this project. New packages will auto-create BCS.
+                      </p>
+                    )}
+                    {!isCreateBcsLocked && disableCreateBcsToggle && (
+                      <p className="text-[11px] text-muted-foreground">
+                        No new packages pending for BCS. Add a new package to enable this option.
+                      </p>
+                    )}
+                    {!isCreateBcsLocked && !disableCreateBcsToggle && (
+                      <p className="text-[11px] text-muted-foreground">
+                        New package(s): {pendingBcsPackages.join(", ")}. Enable this to create BCS only for these package(s).
+                      </p>
+                    )}
+                  </div>
                 </FormItem>
               )}
             />

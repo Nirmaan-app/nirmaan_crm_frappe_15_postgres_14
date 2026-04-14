@@ -83,6 +83,7 @@ export function DataTable<TData extends Record<string, any>>({
   // Get current filter state for dependency tracking
   const currentGlobalFilter = table.getState().globalFilter;
   const currentColumnFilters = table.getState().columnFilters;
+  const expandedState = table.getState().expanded;
 
   // Memoize filtered data - only recalculate when filter state actually changes
   const filteredRowsData = React.useMemo(() => {
@@ -103,6 +104,18 @@ export function DataTable<TData extends Record<string, any>>({
 
   const virtualRows = rowVirtualizer.getVirtualItems();
   const totalSize = rowVirtualizer.getTotalSize();
+  const shouldVirtualize = !renderSubComponent;
+
+  React.useEffect(() => {
+    if (!shouldVirtualize) return;
+    // Expanded sub-rows change row heights. Force a re-measure so virtualized
+    // row positions stay aligned and do not overlap.
+    if (typeof window === "undefined") return;
+    const rafId = window.requestAnimationFrame(() => {
+      rowVirtualizer.measure();
+    });
+    return () => window.cancelAnimationFrame(rafId);
+  }, [expandedState, rowVirtualizer, shouldVirtualize]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Minimalist Column Header Renderer
@@ -314,8 +327,8 @@ export function DataTable<TData extends Record<string, any>>({
               ))}
 
 
-              {/* Virtualized rows container */}
-              {!isLoading && rows.length > 0 && (
+              {/* Rows */}
+              {!isLoading && rows.length > 0 && shouldVirtualize && (
                 <div
                   style={{
                     height: `${totalSize}px`,
@@ -394,6 +407,35 @@ export function DataTable<TData extends Record<string, any>>({
                       </div>
                     );
                   })}
+                </div>
+              )}
+
+              {!isLoading && rows.length > 0 && !shouldVirtualize && (
+                <div className="w-full">
+                  {rows.map((row) => (
+                    <div key={row.id} className="flex flex-col">
+                      <div
+                        onClick={() => onRowClick ? onRowClick(row) : undefined}
+                        className={cn(
+                          "grid items-center py-3 px-1 border-b border-border/30 cursor-pointer",
+                          "hover:bg-muted/30 transition-colors gap-4",
+                          gridColsClass,
+                          getRowClassName?.(row)
+                        )}
+                      >
+                        {row.getVisibleCells().map(cell => (
+                          <div key={cell.id} className="text-left overflow-hidden">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </div>
+                        ))}
+                      </div>
+                      {renderSubComponent && row.getIsExpanded() && (
+                        <div className="w-full bg-white border-b border-border/30 p-2 shadow-inner">
+                          {renderSubComponent(row)}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
 

@@ -4,7 +4,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useDialogStore } from '@/store/dialogStore';
 import { CRMBOQ } from '@/types/NirmaanCRM/CRMBOQ';
-import { SquarePen } from 'lucide-react'; // Assuming SquarePen is used for edit icon
+import { RotateCw, SquarePen } from 'lucide-react'; // Assuming SquarePen is used for edit icon
 
 interface BoqDealStatusCardProps {
     boq: CRMBOQ;
@@ -74,7 +74,7 @@ export const BoqDealStatusCard = ({ boq }: BoqDealStatusCardProps) => {
                 className="border-destructive text-destructive whitespace-nowrap mt-4 sm:mt-0"
                 onClick={handleUpdateDealStatusClick}
             >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21l-5.94 5.94M21.5 8l-5.94-5.94"/></svg>
+                <RotateCw />
                 Update
             </Button>
         </div>

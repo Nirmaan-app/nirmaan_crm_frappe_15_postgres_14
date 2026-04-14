@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useDialogStore } from "@/store/dialogStore";
@@ -51,6 +52,7 @@ const boqFormSchema = z.object({
       .optional(),
   // boq_size: z.number().optional(),
   boq_type: z.array(z.string()).optional().default([]),
+  create_bcs: z.boolean().optional().default(false),
   // boq_value: z.number().optional(),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
@@ -76,6 +78,13 @@ const boqFormSchema = z.object({
       code: z.ZodIssueCode.custom,
       message: "At least one package is required.",
       path: ['boq_type'],
+    });
+  }
+  if (!data.city || data.city.trim() === "") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "City is required.",
+      path: ['city'],
     });
   }
   // if (!data.contact || data.contact.trim() === "") {
@@ -186,7 +195,8 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
   const form = useForm<BoqFormValues>({
     resolver: zodResolver(boqFormSchema),
      defaultValues: { // Set a default boq_status
-        boq_status: "New" // This is important for initial state
+        boq_status: "New", // This is important for initial state
+        create_bcs: false
     },
   });
   
@@ -233,6 +243,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       company: companyId || "",
       contact: contactIdFromContext || "",
       boq_name: "", boq_size: "", boq_type: [], boq_value: "",
+      create_bcs: false,
       boq_submission_date: "", boq_link: "",
       city:
       
@@ -298,6 +309,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       if (dataToSubmit.boq_type && Array.isArray(dataToSubmit.boq_type)) {
         dataToSubmit.boq_type = serializePackages(dataToSubmit.boq_type);
       }
+      dataToSubmit.create_bcs = dataToSubmit.create_bcs ? 1 : 0;
 
       if (dataToSubmit.city === "Others") {
         dataToSubmit.city = dataToSubmit.other_city?.trim() || "";
@@ -471,6 +483,21 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
             <FormMessage />
           </FormItem>
         )} />
+
+        <FormField
+          name="create_bcs"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+              <FormControl>
+                <Checkbox checked={!!field.value} onCheckedChange={(checked) => field.onChange(!!checked)} />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Create BCS tasks for selected packages</FormLabel>
+              </div>
+            </FormItem>
+          )}
+        />
         
 
 

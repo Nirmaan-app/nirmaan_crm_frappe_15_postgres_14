@@ -104,7 +104,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     const swrKey = `all-boqs-${JSON.stringify(assignmentFilters)}`;
 
     const { data: boqs, isLoading } = useFrappeGetDocList<EnrichedBoq>("CRM BOQ", {
-        fields: ["name", "boq_name", "boq_status","city","boq_sub_status","boq_submission_date", "boq_type","boq_value", "company", "contact", "boq_size","company.company_name", "contact.first_name","boq_link", "contact.last_name", "modified","assigned_sales"],
+        fields: ["name", "boq_name", "boq_status","city","boq_sub_status","boq_submission_date", "boq_type","create_bcs","boq_value", "company", "contact", "boq_size","company.company_name", "contact.first_name","boq_link", "contact.last_name", "modified","assigned_sales"],
         filters: assignmentFilters,
         limit: 0,
         orderBy: { field: "modified", order: "desc" }

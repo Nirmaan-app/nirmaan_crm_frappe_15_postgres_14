@@ -20,6 +20,8 @@ export interface CRMBOQ{
 	boq_size?: string
 	/**	BOQ Type : Data	*/
 	boq_type?: string
+	/**	Create BCS : Check	*/
+	create_bcs?: 0 | 1
 	/**	BOQ Value : Data	*/
 	boq_value?: string
 	/**	BOQ Submission Date : Date	*/
