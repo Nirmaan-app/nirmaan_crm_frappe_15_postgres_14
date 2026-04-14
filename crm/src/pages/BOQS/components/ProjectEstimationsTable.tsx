@@ -65,8 +65,6 @@ export const ProjectEstimationsTable = ({
                     <TableHeader className="bg-muted/30 z-10 sticky top-0">
                         <TableRow>
                             <TableHead className="text-[11px] uppercase font-semibold text-muted-foreground tracking-wider">TITLE</TableHead>
-                            <TableHead className="text-[11px] uppercase font-semibold text-muted-foreground tracking-wider text-center">TYPE</TableHead>
-                            <TableHead className="text-[11px] uppercase font-semibold text-muted-foreground tracking-wider text-center">PACKAGE</TableHead>
                             <TableHead className="text-[11px] uppercase font-semibold text-muted-foreground tracking-wider">VALUE</TableHead>
                             <TableHead className="text-[11px] uppercase font-semibold text-muted-foreground tracking-wider text-center">LINK</TableHead>
                             <TableHead className="text-[11px] uppercase font-semibold text-muted-foreground tracking-wider text-center">STATUS</TableHead>
@@ -85,16 +83,6 @@ export const ProjectEstimationsTable = ({
                                     {est.title?.startsWith(`${projectId} - `)
                                         ? est.title.replace(`${projectId} - `, '')
                                         : est.title}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                    <span className={est.document_type === 'BOQ' ? 'bg-blue-100 text-blue-600 px-2.5 py-1 rounded text-[10px] uppercase font-bold tracking-wider' : 'bg-purple-100 text-purple-600 px-2.5 py-1 rounded text-[10px] uppercase font-bold tracking-wider'}>
-                                        {est.document_type}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="text-center">
-                                    <span className="border border-gray-200 px-3 py-1 text-xs rounded bg-white whitespace-nowrap text-gray-600">
-                                        {est.package_name || '--'}
-                                    </span>
                                 </TableCell>
                                 <TableCell className="font-medium text-sm">
                                     {est.value ? `₹${Number(est.value).toFixed(2)} L` : '--'}

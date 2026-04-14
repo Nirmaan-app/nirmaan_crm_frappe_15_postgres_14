@@ -192,8 +192,9 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
         .reduce((sum, est) => sum + (Number(est.value) || 0), 0);
 
     const totalValue = boqTotalFromRows > 0 ? boqTotalFromRows : (Number(boq?.boq_value) || 0);
-    const profitValue = totalValue - bcsTotalFromRows;
-    const profitPercent = totalValue > 0 ? (profitValue / totalValue) * 100 : 0;
+    const hasBcsValue = bcsTotalFromRows > 0;
+    const profitValue = hasBcsValue ? totalValue - bcsTotalFromRows : 0;
+    const profitPercent = hasBcsValue && totalValue > 0 ? (profitValue / totalValue) * 100 : 0;
 
     return (
         <div className="bg-background rounded-xl border shadow-sm flex flex-col md:flex-row mb-6 overflow-hidden shrink-0">
@@ -220,13 +221,22 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                     </div>
 
                     {!isSalesProfile && (
-                        <div className="flex items-center gap-2 bg-emerald-50/50 p-3 rounded-lg border border-emerald-100/60">
-                            <div className="bg-emerald-100 text-emerald-700 p-1.5 rounded-md">
+                        <div className={cn("flex items-center gap-2 p-3 rounded-lg border", 
+                            !hasBcsValue ? "bg-gray-50/50 border-gray-200" : 
+                            profitValue >= 0 ? "bg-emerald-50/50 border-emerald-100/60" : "bg-red-50/50 border-red-100/60"
+                        )}>
+                            <div className={cn("p-1.5 rounded-md", 
+                                !hasBcsValue ? "bg-gray-100 text-gray-500" :
+                                profitValue >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
+                            )}>
                                 <Wallet className="w-4 h-4" />
                             </div>
                             <div>
-                                <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Profit</p>
-                                <p className={cn("text-sm font-bold", profitValue >= 0 ? "text-emerald-700" : "text-red-600")}>
+                                <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">{(!hasBcsValue || profitValue >= 0) ? "Profit" : "Loss"}</p>
+                                <p className={cn("text-sm font-bold", 
+                                    !hasBcsValue ? "text-gray-500" :
+                                    profitValue >= 0 ? "text-emerald-700" : "text-red-600"
+                                )}>
                                     ₹{profitValue.toFixed(2)}L ({profitPercent.toFixed(1)}%)
                                 </p>
                             </div>

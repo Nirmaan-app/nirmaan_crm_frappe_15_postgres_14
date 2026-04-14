@@ -4,6 +4,7 @@
 import frappe
 import json
 from frappe.model.document import Document
+from frappe.utils import cint
 
 class CRMBOQ(Document):
 	def validate(self):
@@ -11,6 +12,9 @@ class CRMBOQ(Document):
 			self.deal_status = "Cold"
 
 	def before_insert(self):
+		if not (getattr(self, "city", None) or "").strip():
+			frappe.throw("City is required.")
+
 		user = frappe.session.user
 		if user == "Administrator":
 			pass
@@ -29,44 +33,66 @@ class CRMBOQ(Document):
 				pass
 
 	def on_update(self):
-		if getattr(self, "boq_type", None):
-			try:
-				packages = json.loads(self.boq_type)
-				if not isinstance(packages, list):
-					packages = [self.boq_type]
-			except Exception:
-				packages = [self.boq_type] if self.boq_type else []
+		packages = self._get_selected_packages()
+		if not packages:
+			return
 
-			for pkg in packages:
-				# Route to the package's specific lead, if configured in CRM BOQ Package
-				# If the package is custom (not found) or has no lead configured, it will be None
-				package_lead = frappe.db.get_value("CRM BOQ Package", pkg, "assigned_lead")
-				pkg_assigned_to = package_lead if package_lead else None
+		should_create_bcs = cint(getattr(self, "create_bcs", 0)) == 1
 
-				# Check if BOQ exists for this package
-				if not frappe.db.exists("CRM Project Estimation", {"parent_project": self.name, "document_type": "BOQ", "package_name": pkg}):
-					doc = frappe.get_doc({
-						"doctype": "CRM Project Estimation",
-						"title": f"{self.name} - {pkg} BOQ",
-						"parent_project": self.name,
-						"document_type": "BOQ",
-						"package_name": pkg,
-						"deadline": getattr(self, "boq_submission_date", None),
-						"assigned_to": pkg_assigned_to,
-						"status": "New"
-					})
-					doc.insert(ignore_permissions=True)
-				
-				# Check if BCS exists for this package
-				if not frappe.db.exists("CRM Project Estimation", {"parent_project": self.name, "document_type": "BCS", "package_name": pkg}):
-					doc = frappe.get_doc({
-						"doctype": "CRM Project Estimation",
-						"title": f"{self.name} - {pkg} BCS",
-						"parent_project": self.name,
-						"document_type": "BCS",
-						"package_name": pkg,
-						"deadline": getattr(self, "boq_submission_date", None),
-						"assigned_to": pkg_assigned_to,
-						"status": "New"
-					})
-					doc.insert(ignore_permissions=True)
+		for package_name in packages:
+			# Route to the package's specific lead, if configured in CRM BOQ Package.
+			# If the package is custom (not found) or has no lead configured, it remains unassigned.
+			package_lead = frappe.db.get_value("CRM BOQ Package", package_name, "assigned_lead")
+			assigned_to = package_lead if package_lead else None
+
+			# BOQ estimation rows are always created for package-based projects.
+			self._create_project_estimation_if_missing(package_name, "BOQ", assigned_to)
+
+			# BCS rows are created only when explicitly enabled from project create/edit flow.
+			if should_create_bcs:
+				self._create_project_estimation_if_missing(package_name, "BCS", assigned_to)
+
+	def _get_selected_packages(self):
+		raw_packages = getattr(self, "boq_type", None)
+		if not raw_packages:
+			return []
+
+		try:
+			packages = json.loads(raw_packages)
+			if not isinstance(packages, list):
+				packages = [packages]
+		except Exception:
+			packages = [raw_packages]
+
+		normalized_packages = []
+		for package_name in packages:
+			name = (str(package_name or "")).strip()
+			if name and name not in normalized_packages:
+				normalized_packages.append(name)
+
+		return normalized_packages
+
+	def _create_project_estimation_if_missing(self, package_name, document_type, assigned_to=None):
+		if frappe.db.exists(
+			"CRM Project Estimation",
+			{
+				"parent_project": self.name,
+				"document_type": document_type,
+				"package_name": package_name,
+			},
+		):
+			return
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "CRM Project Estimation",
+				"title": f"{self.name} - {package_name} {document_type}",
+				"parent_project": self.name,
+				"document_type": document_type,
+				"package_name": package_name,
+				"deadline": getattr(self, "boq_submission_date", None),
+				"assigned_to": assigned_to,
+				"status": "New",
+			}
+		)
+		doc.insert(ignore_permissions=True)

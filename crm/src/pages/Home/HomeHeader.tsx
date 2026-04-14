@@ -77,6 +77,7 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 import { useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { EstimationsReviewTable } from "./components/EstimationsReviewTable";
+import { BoqBcsReviewTable } from "./components/BoqBcsReviewTable";
 
 // --- shadcn/ui Tabs Imports ---
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -121,7 +122,7 @@ export const HomeHeader = () => {
     const isAdmin = role === 'Nirmaan Admin User Profile';
     const isSalesUser = role === 'Nirmaan Sales User Profile';
     const isEstimationsUser =
-        role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimations Lead Profile'
+        role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimates User Profile' || role === 'Nirmaan Estimations Lead Profile' || role === 'Nirmaan Estimations lead Profile'
 
     const canViewSalesReview = isAdmin || isSalesUser;
     const canViewEstimationsReview = isAdmin || isEstimationsUser;
@@ -183,7 +184,7 @@ export const HomeHeader = () => {
 
                 {(canViewSalesReview || canViewEstimationsReview) && (
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-                        <TabsList className={cn("grid w-full md:w-[400px]", canViewSalesReview && canViewEstimationsReview ? "grid-cols-2" : "grid-cols-1")}>
+                        <TabsList className={cn("grid w-full md:w-auto", canViewSalesReview && canViewEstimationsReview ? "grid-cols-1 sm:grid-cols-3 md:w-[600px]" : "grid-cols-1 sm:grid-cols-2 md:w-[400px]")}>
                             {canViewSalesReview && (
                                 <TabsTrigger
                                     value="sales_review"
@@ -204,6 +205,17 @@ export const HomeHeader = () => {
                                     )}
                                 >
                                     Estimations Review
+                                </TabsTrigger>
+                            )}
+                            {canViewEstimationsReview && (
+                                <TabsTrigger
+                                    value="boq_bcs_review"
+                                    className={cn(
+                                        "data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground",
+                                        "data-[state=inactive]:text-muted-foreground data-[state=inactive]:bg-background hover:data-[state=inactive]:bg-accent"
+                                    )}
+                                >
+                                    BOQ/BCS Review
                                 </TabsTrigger>
                             )}
                         </TabsList>
@@ -263,6 +275,12 @@ export const HomeHeader = () => {
                 {canViewEstimationsReview && activeTab === 'estimations_review' && (
                     <div className="flex-1 flex flex-col min-h-0">
                         <EstimationsReviewTable />
+                    </div>
+                )}
+
+                {canViewEstimationsReview && activeTab === 'boq_bcs_review' && (
+                    <div className="flex-1 flex flex-col min-h-0">
+                        <BoqBcsReviewTable />
                     </div>
                 )}
 

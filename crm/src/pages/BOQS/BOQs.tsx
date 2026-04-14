@@ -5,7 +5,6 @@ import { BOQ } from "./BOQ";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useDialogStore } from "@/store/dialogStore";
 import { Plus } from "lucide-react";
-import { useState, useMemo, useCallback } from "react";
 import { BoqTableView } from "./components/BoqTableView";
 
 const DesktopPlaceholder = () => (
@@ -18,15 +17,6 @@ export const BOQs = () => {
     const { isMobile } = useViewport();
     const [id, setId] = useStateSyncedWithParams<string>("id", "");
     const { openNewBoqDialog } = useDialogStore();
-
-    
-     const userRoleIsAdminOrSales = useMemo(() => {
-        const storedRole = localStorage.getItem('role');
-        if (!storedRole) return false;
-        // Check if it includes 'Admin' or 'Sales'
-        return storedRole.includes('Admin') || storedRole.includes('Sales');
-    }, []);
-    const hideStatusColumnForRole = userRoleIsAdminOrSales;
 
     if (isMobile) {
         return <BoqList />;
@@ -44,9 +34,7 @@ export const BOQs = () => {
                 {/* FIX: Removed overflow-hidden and added min-h-0 */}
                 <div className="flex-1 min-h-0 bg-background rounded-b-lg border-x border-b">
                     <BoqTableView
-                        hideStatusColumn={hideStatusColumnForRole}
                         isStandalonePage={true}
-                        shouldExpandHeight={true}
                         className="h-full" // FIX: Ensure BoqTableView itself fills its container
                     />
                 </div>

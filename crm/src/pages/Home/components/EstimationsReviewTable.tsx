@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useDialogStore } from "@/store/dialogStore";
 import { cn } from "@/lib/utils";
-import { formatDateWithOrdinal } from "@/utils/FormatDate";
+
 import { StandaloneFacetedFilter } from "@/components/table/standalone-faceted-filter";
 import { StandaloneDateFilter, DateFilterValue, matchDateFilter } from "@/components/table/standalone-date-filter";
 import { BoqBcsTaskExport } from "../../BOQS/components/BoqBcsTaskExport";
@@ -148,6 +148,19 @@ const isOverdue = (deadline?: string, status?: string) => {
   return dueDate.getTime() < today.getTime();
 };
 
+export const isDueToday = (deadline?: string, status?: string) => {
+  if (!deadline || isCompletedStatus(status)) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const dueDate = new Date(deadline);
+  if (Number.isNaN(dueDate.getTime())) return false;
+
+  dueDate.setHours(0, 0, 0, 0);
+  return dueDate.getTime() === today.getTime();
+};
+
 const getStatusPillClass = (status?: string) => {
   const normalized = normalizeStatus(status);
 
@@ -204,13 +217,14 @@ const CountButton = ({
   );
 };
 
-const TaskTable = ({
+export const TaskTable = ({
   items,
   showProjectName,
   projectMap,
   userNameMap,
   isEstimationsTeam,
-  title
+  title,
+  maxHeightClass = "max-h-[400px]"
 }: {
   items: CRMProjectEstimation[];
   showProjectName: boolean;
@@ -218,6 +232,7 @@ const TaskTable = ({
   userNameMap: Map<string, string>;
   isEstimationsTeam?: boolean;
   title?: string;
+  maxHeightClass?: string;
 }) => {
   const [projectFilter, setProjectFilter] = useState<string[]>([]);
   const [taskNameFilter, setTaskNameFilter] = useState<string[]>([]);
@@ -283,7 +298,7 @@ const TaskTable = ({
           />
         </div>
       )}
-      <div className="overflow-auto max-h-[400px] relative">
+      <div className={cn("overflow-auto relative", maxHeightClass)}>
         <table className="w-full min-w-[980px] text-sm">
           <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 sticky top-0 z-10">
             <tr>
@@ -337,8 +352,11 @@ const TaskTable = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {filteredItems.map((item) => (
-              <tr key={item.name} className="align-top">
+            {filteredItems.map((item) => {
+              const overdue = isOverdue(item.deadline, item.status);
+              const dueToday = isDueToday(item.deadline, item.status);
+              return (
+              <tr key={item.name} className={cn("align-top", overdue ? "bg-red-50 hover:bg-red-100/50" : dueToday ? "bg-yellow-50 hover:bg-yellow-100/50" : "hover:bg-gray-50")}>
                 {showProjectName && (
                   <td className="px-3 py-2 text-sm text-gray-900">
                     {projectMap.get(item.parent_project || "")?.boq_name || item.parent_project || "--"}
@@ -351,7 +369,7 @@ const TaskTable = ({
                 </td>
                 <td className="px-3 py-2 text-sm text-gray-700">{item.remarks || "--"}</td>
                 <td className="px-3 py-2 text-sm text-gray-700">
-                  {item.deadline ? formatDateWithOrdinal(item.deadline) : "--"}
+                  {item.deadline ? new Date(item.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "--"}
                 </td>
                 <td className="px-3 py-2">
                   {item.link ? (
@@ -389,7 +407,14 @@ const TaskTable = ({
                   </td>
                 )}
               </tr>
-            ))}
+            )})}
+            {filteredItems.length === 0 && (
+              <tr>
+                <td colSpan={showProjectName ? 10 : 9} className="px-3 py-8 text-center text-sm text-gray-400">
+                  No matching records found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -601,16 +626,6 @@ export const EstimationsReviewTable = () => {
       }
     });
 
-    const teamRow: SummaryRow = {
-      key: TEAM_KEY,
-      label: "Estimations Team",
-      assignee: null,
-      activeProjects: new Set(filteredEstimations.map((item) => item.parent_project).filter(Boolean)).size,
-      totalTasks: filteredEstimations.length,
-      overdue: filteredEstimations.filter((item) => isOverdue(item.deadline, item.status)).length,
-      isTeam: true,
-    };
-
     const rows: SummaryRow[] = [...accumulators.values()]
       .filter((item) => item.key !== UNASSIGNED_KEY)
       .map((item) => ({
@@ -635,7 +650,7 @@ export const EstimationsReviewTable = () => {
       });
     }
 
-    return [teamRow, ...rows];
+    return [...rows];
   }, [filteredEstimations, teamUsers, userNameMap]);
 
   // For non-lead users, filter summary rows to only show their own row + unassigned

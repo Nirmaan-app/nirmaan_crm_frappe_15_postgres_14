@@ -25,6 +25,7 @@ export const boqFormSchema = z.object({
     .optional(),
   // boq_size: z.number().optional(),
   boq_type: z.array(z.string()).optional().default([]),
+  create_bcs: z.boolean().optional().default(false),
   // boq_value: z.number().optional(),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
@@ -172,6 +173,7 @@ export const boqDetailsSchema = z.object({
     .nullable()
     .optional(),
   boq_type: z.array(z.string()).optional().default([]),
+  create_bcs: z.boolean().optional().default(false),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
   city: z.string().optional(),

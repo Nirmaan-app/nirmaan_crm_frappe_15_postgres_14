@@ -23,6 +23,15 @@ DETAILED_TO_PROJECT_STATUS = {
     "COMPLETED": "In-Progress",
 }
 
+PROJECT_LEVEL_STATUSES_FOR_BOQ_SUBMITTED = {
+    "LOST",
+    "DROPPED",
+    "WON",
+    "HOLD",
+    "ON HOLD",
+    "NEGOTIATION",
+}
+
 KNOWN_PACKAGE_LABELS = [
     ("HVAC VRF-DX", "HVAC VRF-DX"),
     ("HVAC DUCTING", "HVAC Ducting"),
@@ -86,6 +95,10 @@ def normalize_boq_estimation_status(value):
         return "New"
 
     upper_value = cleaned.upper()
+    if upper_value in PROJECT_LEVEL_STATUSES_FOR_BOQ_SUBMITTED:
+        # These are project-level outcomes; migrated BOQ rows should stay at
+        # BOQ-level status.
+        return "BOQ Submitted"
     if upper_value in PROJECT_STATUS_ALIASES:
         return PROJECT_STATUS_ALIASES[upper_value]
 
@@ -196,7 +209,8 @@ def _create_estimation_if_missing(project_doc, package_name, document_type, boq_
         payload["value"] = boq_value_for_package
         payload["link"] = _clean_text(getattr(project_doc, "boq_link", None)) or None
     else:
-        payload["status"] = normalize_bcs_status(getattr(project_doc, "bcs_status", None))
+        # Migration rule: all migrated BCS rows should start in Pending.
+        payload["status"] = "Pending"
         payload["sub_status"] = None
         payload["value"] = None
         payload["link"] = None
@@ -237,14 +251,36 @@ def execute():
 
     for index, project_name in enumerate(project_names, start=1):
         project_doc = frappe.get_doc("CRM BOQ", project_name)
-        # Migration decision: force all legacy projects to a single Legacy package,
-        # even when historical boq_type has package text.
-        package_names = [LEGACY_PACKAGE_NAME]
-        summary["projects_with_legacy_package"] += 1
-
         project_boq_value = _coerce_float(getattr(project_doc, "boq_value", None))
-        for package_index, package_name in enumerate(package_names):
-            boq_value_for_package = project_boq_value if package_index == 0 else 0.0
+
+        parsed_packages = parse_project_packages(getattr(project_doc, "boq_type", None))
+
+        if not parsed_packages:
+            # Rule 3: No package in old data -> use Legacy BOQ/BCS.
+            package_names = [LEGACY_PACKAGE_NAME]
+        elif len(parsed_packages) == 1:
+            # Rule 1: Single package in old data -> only that package BOQ/BCS.
+            package_names = parsed_packages
+        else:
+            # Rule 2: Multiple packages in old data ->
+            # create Legacy BOQ/BCS plus per-package BOQ/BCS.
+            # Keep value in Legacy BOQ only; package BOQs get empty value.
+            package_names = [LEGACY_PACKAGE_NAME] + [
+                pkg for pkg in parsed_packages if _clean_text(pkg).lower() != LEGACY_PACKAGE_NAME.lower()
+            ]
+
+        package_names = _dedupe_preserve_order(package_names)
+        if LEGACY_PACKAGE_NAME in package_names:
+            summary["projects_with_legacy_package"] += 1
+
+        for package_name in package_names:
+            if package_name == LEGACY_PACKAGE_NAME:
+                boq_value_for_package = project_boq_value
+            elif len(parsed_packages) == 1:
+                boq_value_for_package = project_boq_value
+            else:
+                boq_value_for_package = None
+
             if _create_estimation_if_missing(project_doc, package_name, "BOQ", boq_value_for_package=boq_value_for_package):
                 summary["boq_rows_created"] += 1
             if _create_estimation_if_missing(project_doc, package_name, "BCS"):
