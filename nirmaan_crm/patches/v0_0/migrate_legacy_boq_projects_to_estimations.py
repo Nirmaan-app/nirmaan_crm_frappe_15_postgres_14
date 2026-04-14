@@ -247,6 +247,7 @@ def execute():
         "boq_rows_created": 0,
         "bcs_rows_created": 0,
         "project_statuses_updated": 0,
+        "project_packages_normalized": 0,
     }
 
     for index, project_name in enumerate(project_names, start=1):
@@ -254,6 +255,16 @@ def execute():
         project_boq_value = _coerce_float(getattr(project_doc, "boq_value", None))
 
         parsed_packages = parse_project_packages(getattr(project_doc, "boq_type", None))
+        normalized_boq_type = json.dumps(parsed_packages) if parsed_packages else "[]"
+        if _clean_text(getattr(project_doc, "boq_type", None)) != normalized_boq_type:
+            frappe.db.set_value(
+                "CRM BOQ",
+                project_doc.name,
+                "boq_type",
+                normalized_boq_type,
+                update_modified=False,
+            )
+            summary["project_packages_normalized"] += 1
 
         if not parsed_packages:
             # Rule 3: No package in old data -> use Legacy BOQ/BCS.
@@ -309,3 +320,4 @@ def execute():
     print(f"BOQ rows created: {summary['boq_rows_created']}")
     print(f"BCS rows created: {summary['bcs_rows_created']}")
     print(f"Project statuses updated: {summary['project_statuses_updated']}")
+    print(f"Project packages normalized: {summary['project_packages_normalized']}")

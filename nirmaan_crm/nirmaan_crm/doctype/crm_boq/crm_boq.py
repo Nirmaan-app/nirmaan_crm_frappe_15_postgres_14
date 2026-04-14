@@ -8,6 +8,8 @@ from frappe.utils import cint
 
 class CRMBOQ(Document):
 	def validate(self):
+		self._lock_create_bcs_once_enabled()
+
 		if self.boq_status in ["Won", "Lost"]:
 			self.deal_status = "Cold"
 
@@ -62,7 +64,12 @@ class CRMBOQ(Document):
 			if not isinstance(packages, list):
 				packages = [packages]
 		except Exception:
-			packages = [raw_packages]
+			cleaned_raw = str(raw_packages or "").strip()
+			# Backward compatibility for legacy values stored as comma-separated text.
+			if "," in cleaned_raw:
+				packages = [item.strip() for item in cleaned_raw.split(",")]
+			else:
+				packages = [cleaned_raw]
 
 		normalized_packages = []
 		for package_name in packages:
@@ -96,3 +103,20 @@ class CRMBOQ(Document):
 			}
 		)
 		doc.insert(ignore_permissions=True)
+
+	def _lock_create_bcs_once_enabled(self):
+		if self.is_new():
+			return
+
+		existing_toggle_value = cint(
+			frappe.db.get_value(self.doctype, self.name, "create_bcs") or 0
+		)
+		has_existing_bcs_rows = bool(
+			frappe.db.exists(
+				"CRM Project Estimation",
+				{"parent_project": self.name, "document_type": "BCS"},
+			)
+		)
+
+		if existing_toggle_value == 1 or has_existing_bcs_rows:
+			self.create_bcs = 1
