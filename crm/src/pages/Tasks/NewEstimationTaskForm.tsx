@@ -125,7 +125,7 @@ export const NewEstimationTaskForm = ({ onSuccess }: NewEstimationTaskFormProps)
                           />
                         )}
                 <FormField
-                    name="Projec"
+                    name="boq"
                     control={form.control}
                     render={({ field }) => (
                         <FormItem>

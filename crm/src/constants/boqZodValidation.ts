@@ -195,4 +195,20 @@ export const boqDetailsSchema = z.object({
       path: ['other_city'],
     });
   }
+
+  const normalizedStatus = (data.boq_status || "")
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (["new", "in progress"].includes(normalizedStatus)) {
+    if (!data.boq_submission_date || data.boq_submission_date.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Project Submission Deadline is required.",
+        path: ["boq_submission_date"],
+      });
+    }
+  }
 });

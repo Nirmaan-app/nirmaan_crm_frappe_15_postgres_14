@@ -33,7 +33,7 @@ interface BoqListHeaderProps {
     selectedStatuses?: string[];
     setSelectedStatuses?: (value: string[]) => void;
     statusOptions?: { label: string; value: string }[];
-    
+
     filteredProjectIds?: string[];
 }
 
@@ -49,7 +49,7 @@ export const BoqListHeader = ({
     selectedBoqs = [], // Default empty array
     setSelectedBoqs,
     boqOptions = [], // Default empty options
-    
+
     selectedCompanies = [],
     setSelectedCompanies,
     companyOptions = [],
@@ -64,11 +64,11 @@ export const BoqListHeader = ({
     filteredProjectIds = []
 }: BoqListHeaderProps) => {
     const role = localStorage.getItem("role")
-    // Ensure "By BOQ" is consistently used
-    let filterOptions = ["By BOQ", "By Company", "By Contact", "By Package", "By Status"];
+    // Ensure "By Project" is consistently used
+    let filterOptions = ["By Project", "By Company", "By Contact", "By Package", "By Status"];
 
     if (role == "Nirmaan Estimations User Profile" || role == "Nirmaan Estimations Lead Profile") {
-        filterOptions = ["By BOQ", "By Company", "By Type"]
+        filterOptions = ["By Project", "By Company", "By Type"]
     }
 
     const renderMultiSelect = (
@@ -117,9 +117,9 @@ export const BoqListHeader = ({
                     </DropdownMenuContent>
                 </DropdownMenu>
                 <div className="relative flex-1">
-                    {filterType === 'By BOQ' ? (
+                    {filterType === 'By Project' ? (
                         <div className="w-full">
-                           {renderMultiSelect(boqOptions, selectedBoqs, setSelectedBoqs, "Select BOQs...")}
+                            {renderMultiSelect(boqOptions, selectedBoqs, setSelectedBoqs, "Select BOQs...")}
                         </div>
                     ) : filterType === 'By Company' ? (
                         <div className="w-full">

@@ -13,6 +13,23 @@ interface EditProjectEstimationFormProps {
     onSuccess: () => void;
 }
 
+const normalizeStatus = (status?: string) =>
+    (status || "")
+        .toLowerCase()
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+const requiresValueByStatus = (documentType?: string, status?: string) => {
+    const docType = (documentType || "").toUpperCase();
+    const normalizedStatus = normalizeStatus(status);
+    return (
+        (docType === "BOQ" &&
+            ["boq submitted", "partial boq submitted", "revision submitted"].includes(normalizedStatus)) ||
+        (docType === "BCS" && normalizedStatus === "done")
+    );
+};
+
 export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditProjectEstimationFormProps) => {
     const role = localStorage.getItem("role");
     const { mutate } = useSWRConfig();
@@ -31,10 +48,24 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
         e.preventDefault();
         if (!editingEst) return;
         const formData = new FormData(e.currentTarget);
+        const statusFromForm = (formData.get("status") as string) || editingEst.status;
+        const valueRaw = String(formData.get("value") ?? "").trim();
+        const parsedValue = valueRaw === "" ? null : Number(valueRaw);
+        const shouldRequireValue = requiresValueByStatus(editingEst.document_type, statusFromForm);
+
+        if (shouldRequireValue && (parsedValue === null || Number.isNaN(parsedValue) || parsedValue <= 0)) {
+            toast({
+                title: "Validation Error",
+                description: `${editingEst.document_type} Value is required and must be greater than 0 for "${statusFromForm}" status.`,
+                variant: "destructive",
+            });
+            return;
+        }
+
         const dataToSave: any = {
-            value: Number(formData.get("value")) || 0,
+            value: parsedValue,
             link: (formData.get("link") as string)?.trim() || null,
-            status: (formData.get("status") as string) || editingEst.status,
+            status: statusFromForm,
             sub_status: (formData.get("sub_status") as string) || null,
             deadline: (formData.get("deadline") as string) || null,
             remarks: (formData.get("remarks") as string)?.trim() || null,
@@ -99,10 +130,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
             <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">
                     {editingEst.document_type} Value
-                    {(
-                        (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                        (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-                    ) && <sup>*</sup>}
+                    {requiresValueByStatus(editingEst.document_type, editingEst.status) && <sup>*</sup>}
                 </label>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-foreground font-medium">₹</span>
@@ -110,10 +138,8 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                         name="value"
                         type="number"
                         step="0.01"
-                        required={(
-                            (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                            (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-                        )}
+                        min={requiresValueByStatus(editingEst.document_type, editingEst.status) ? "0.01" : "0"}
+                        required={requiresValueByStatus(editingEst.document_type, editingEst.status)}
                         className="pl-7 pr-8 h-9 hover:border-primary/50 focus-visible:ring-1"
                         defaultValue={editingEst.value}
                     />

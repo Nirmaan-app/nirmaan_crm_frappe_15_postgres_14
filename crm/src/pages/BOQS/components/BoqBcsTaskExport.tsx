@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
 import { exportToCsv } from "@/utils/export-to-csv";
 import { CRMProjectEstimation } from "./ProjectEstimationsTable";
 import { toast } from "@/hooks/use-toast";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists";
 import { cn } from "@/lib/utils";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 interface BoqBcsTaskExportProps {
     projectId?: string;
@@ -19,6 +19,7 @@ interface BoqBcsTaskExportProps {
 
 export const BoqBcsTaskExport = ({ projectId, companyId, projectIds, data, customFileName, className }: BoqBcsTaskExportProps) => {
     const { getUserFullNameByEmail } = useUserRoleLists();
+    const [isExporting, setIsExporting] = useState(false);
 
     // If companyId is provided, we first need to get all projects for that company
     const { data: companyBoqs, isLoading: isBoqsLoading } = useFrappeGetDocList("CRM BOQ", {
@@ -29,73 +30,76 @@ export const BoqBcsTaskExport = ({ projectId, companyId, projectIds, data, custo
 
     const projectIdsForCompany = companyBoqs?.map(boq => boq.name) || [];
 
-    // Construct the filter for CRM Project Estimation
-    let estimationFilters: any[] = [];
-    let skipFetch = !!data;
+    // POST call for fetching estimations to avoid 414 error
+    const { call: fetchEstimations } = useFrappePostCall<any>("frappe.client.get_list");
 
-    if (!data) {
-        if (projectIds && projectIds.length > 0) {
-            estimationFilters = [['parent_project', 'in', projectIds]];
-        } else if (projectId) {
-            estimationFilters = [['parent_project', '=', projectId]];
-        } else if (companyId) {
-            if (isBoqsLoading) {
-                skipFetch = true;
-            } else if (projectIdsForCompany.length > 0) {
-                estimationFilters = [['parent_project', 'in', projectIdsForCompany]];
-            } else {
-                // Company has no projects, so no estimations to fetch
-                skipFetch = true;
+    const isLoading = (!data && isBoqsLoading) || isExporting;
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            let finalData = data;
+
+            if (!finalData) {
+                // Construct the filter for CRM Project Estimation
+                let estimationFilters: any[] = [];
+                if (projectIds && projectIds.length > 0) {
+                    estimationFilters = [['parent_project', 'in', projectIds]];
+                } else if (projectId) {
+                    estimationFilters = [['parent_project', '=', projectId]];
+                } else if (companyId) {
+                    if (projectIdsForCompany.length > 0) {
+                        estimationFilters = [['parent_project', 'in', projectIdsForCompany]];
+                    } else {
+                        // Company has no projects, nothing to fetch
+                        toast({
+                            title: "No data found",
+                            description: "There are no projects for this company to export.",
+                            variant: "destructive"
+                        });
+                        setIsExporting(false);
+                        return;
+                    }
+                }
+
+                // Fetch data via POST
+                const response = await fetchEstimations({
+                    doctype: "CRM Project Estimation",
+                    filters: estimationFilters,
+                    fields: ["parent_project", "title", "package_name", "document_type", "value", "link", "status", "sub_status", "deadline", "remarks", "assigned_to", "creation"],
+                    order_by: "parent_project asc",
+                    limit_page_length: 0
+                });
+
+                finalData = (response as any)?.message || response;
             }
-        }
-    }
 
-    // Determine a unique cache key for the estimations fetch
-    let cacheKey = null;
-    if (!skipFetch && !data) {
-        if (projectIds && projectIds.length > 0) {
-            // Use count and a small hash or just a count for the key to avoid URL length issues
-            cacheKey = `boq-bcs-export-filtered-${projectIds.length}-${projectIds[0]}`;
-        } else {
-            cacheKey = `boq-bcs-export-${projectId || (companyId ? `company-${companyId}` : 'all')}`;
-        }
-    }
+            if (!finalData || (finalData as any[]).length === 0) {
+                toast({
+                    title: "No data found",
+                    description: "There are no BOQ/BCS tasks to export.",
+                    variant: "destructive"
+                });
+                setIsExporting(false);
+                return;
+            }
 
-    const { data: fetchedEstimationsData, isLoading: isEstimationsLoading } = useFrappeGetDocList<CRMProjectEstimation>("CRM Project Estimation", {
-        filters: estimationFilters,
-        fields: ["parent_project", "title", "package_name", "document_type", "value", "link", "status", "sub_status", "deadline", "remarks", "assigned_to", "creation"],
-        orderBy: { field: "parent_project", order: "asc" },
-        limit: 0
-    }, cacheKey);
+            // Apply sorting based on projectIds order if available
+            const sortedData = (() => {
+                const base = finalData as CRMProjectEstimation[];
+                if (!base || !projectIds || projectIds.length === 0) return base;
 
-    const isLoading = (!data && isBoqsLoading) || (!data && isEstimationsLoading);
+                const projectIndexMap = new Map();
+                projectIds.forEach((id, index) => projectIndexMap.set(id, index));
 
-    // Apply sorting based on projectIds order if available
-    const estimations = useMemo(() => {
-        const base = data || fetchedEstimationsData;
-        if (!base || !projectIds || projectIds.length === 0) return base;
-
-        const projectIndexMap = new Map();
-        projectIds.forEach((id, index) => projectIndexMap.set(id, index));
-
-        return [...base].sort((a, b) => {
-            const indexA = projectIndexMap.get(a.parent_project) ?? 999999;
-            const indexB = projectIndexMap.get(b.parent_project) ?? 999999;
-            if (indexA !== indexB) return indexA - indexB;
-            // Secondary sort by creation date within the same project
-            return (a.creation || "").localeCompare(b.creation || "");
-        });
-    }, [data, fetchedEstimationsData, projectIds]);
-
-    const handleExport = () => {
-        if (!estimations || estimations.length === 0) {
-            toast({
-                title: "No data found",
-                description: "There are no BOQ/BCS tasks to export.",
-                variant: "destructive"
-            });
-            return;
-        }
+                return [...base].sort((a, b) => {
+                    const indexA = projectIndexMap.get(a.parent_project) ?? 999999;
+                    const indexB = projectIndexMap.get(b.parent_project) ?? 999999;
+                    if (indexA !== indexB) return indexA - indexB;
+                    // Secondary sort by creation date within the same project
+                    return (a.creation || "").localeCompare(b.creation || "");
+                });
+            })();
 
         const columns = [
             { accessorKey: 'parent_project', header: 'Project ID', meta: { title: 'Project ID' } },
@@ -136,8 +140,18 @@ export const BoqBcsTaskExport = ({ projectId, companyId, projectIds, data, custo
                 : "All_BOQ_BCS_Tasks");
 
         // Use the exportToCsv utility
-        exportToCsv(fileName, estimations, columns as any);
-    };
+        exportToCsv(fileName, sortedData, columns as any);
+    } catch (error: any) {
+        console.error("Export Error:", error);
+        toast({
+            title: "Export failed",
+            description: error.message || "An error occurred while fetching data for export.",
+            variant: "destructive"
+        });
+    } finally {
+        setIsExporting(false);
+    }
+};
 
     return (
         <Button
