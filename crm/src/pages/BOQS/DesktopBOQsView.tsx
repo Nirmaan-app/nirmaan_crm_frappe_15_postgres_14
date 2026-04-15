@@ -40,7 +40,7 @@ export const DesktopBOQsView = () => {
   if (company) {
     return (
       <div className="space-y-4">
-        <h2 className="font-bold">BOQs</h2> {/* 7. Update heading */}
+        <h2 className="font-bold">Projects</h2> {/* 7. Update heading */}
         {/* 
           Pass boqsList to the newly named prop `boqsData`.
           The `CompanyBOQs` component itself will need to be refactored.
