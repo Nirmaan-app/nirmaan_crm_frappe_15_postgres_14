@@ -21,12 +21,38 @@ export type BoqPackageOption = (typeof BOQ_PACKAGE_OPTIONS)[number];
  */
 export function parsePackages(boqType: string | undefined | null): string[] {
   if (!boqType) return [];
+
+  const normalizeArray = (values: unknown[]): string[] => {
+    const seen = new Set<string>();
+    const normalized: string[] = [];
+
+    values.forEach((value) => {
+      const cleaned = String(value ?? "").trim();
+      if (!cleaned || seen.has(cleaned)) return;
+      seen.add(cleaned);
+      normalized.push(cleaned);
+    });
+
+    return normalized;
+  };
+
   try {
     const parsed = JSON.parse(boqType);
-    return Array.isArray(parsed) ? parsed : [boqType];
+    if (Array.isArray(parsed)) {
+      return normalizeArray(parsed);
+    }
   } catch {
-    return boqType ? [boqType] : [];
+    // Legacy values may be comma-separated plain text.
   }
+
+  const cleaned = boqType.trim();
+  if (!cleaned) return [];
+
+  if (cleaned.includes(",")) {
+    return normalizeArray(cleaned.split(","));
+  }
+
+  return [cleaned];
 }
 
 /**

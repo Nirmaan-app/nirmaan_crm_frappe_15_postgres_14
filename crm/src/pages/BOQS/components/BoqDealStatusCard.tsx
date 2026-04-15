@@ -4,7 +4,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useDialogStore } from '@/store/dialogStore';
 import { CRMBOQ } from '@/types/NirmaanCRM/CRMBOQ';
-import { SquarePen } from 'lucide-react'; // Assuming SquarePen is used for edit icon
+import { RotateCw, SquarePen } from 'lucide-react'; // Assuming SquarePen is used for edit icon
 
 interface BoqDealStatusCardProps {
     boq: CRMBOQ;
@@ -51,26 +51,31 @@ export const BoqDealStatusCard = ({ boq }: BoqDealStatusCardProps) => {
     console.log("boq",boq.deal_status)
     
     return (
-        <div className="bg-background p-4 rounded-lg border shadow-sm flex justify-between items-center">
-            {/* Left side: Deal Status */}
-            <div>
-                <p className="text-sm text-muted-foreground mb-2">Deal Status : <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getDealStatusClass(boq.deal_status)}`}>
-                    {boq.deal_status||"N/A"}
-                </span></p>
-                <p className="text-sm text-muted-foreground">Client Deal Status : <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getClientStatusClass(boq.client_deal_status)}`}>
-                    {boq.client_deal_status||"N/A"}
-                </span></p>
+        <div className="bg-background px-6 py-4 rounded-lg border shadow-sm flex flex-col sm:flex-row justify-between items-center w-full shrink-0">
+            <div className="flex flex-wrap items-center gap-6 w-full">
+                <div className="flex items-center gap-3">
+                    <span className="text-[11px] font-bold text-gray-500 tracking-wider">DEAL STATUS:</span>
+                    <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getDealStatusClass(boq.deal_status)}`}>
+                        {boq.deal_status || "N/A"}
+                    </span>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                    <span className="text-[11px] font-bold text-gray-500 tracking-wider">CLIENT DEAL STATUS:</span>
+                    <span className={`font-semibold text-xs px-3 py-1 rounded-full ${getClientStatusClass(boq.client_deal_status)}`}>
+                        {boq.client_deal_status || "N/A"}
+                    </span>
+                </div>
             </div>
 
-            {/* Right side: Update Button */}
             <Button
                 variant="outline"
                 size="sm"
-                className="border-destructive text-destructive"
+                className="border-destructive text-destructive whitespace-nowrap mt-4 sm:mt-0"
                 onClick={handleUpdateDealStatusClick}
             >
-                <SquarePen className="w-4 h-4 mr-2" />
-                Update 
+                <RotateCw />
+                Update
             </Button>
         </div>
     );

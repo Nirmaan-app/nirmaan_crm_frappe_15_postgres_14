@@ -17,11 +17,10 @@ import { useStatusStyles } from '@/hooks/useStatusStyles';
 import { useUserRoleLists } from '@/hooks/useUserRoleLists';
 import { formatDateWithOrdinal } from '@/utils/FormatDate'; // Your date formatting utility
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils'; // For combining Tailwind classes
-import { ChevronRight } from 'lucide-react';
-import { SlidingTabs } from '@/components/ui/sliding-tabs';
-import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import { parsePackages } from "@/constants/boqPackages";
+import { ConnectedProjectEstimationsTable } from './ProjectEstimationsTable';
+import { BoqBcsTaskExport } from './BoqBcsTaskExport';
 
 
 // Interface for the BOQ data
@@ -46,13 +45,20 @@ interface BOQ {
     city?: string;
     remarks?: string;
     assigned_estimations?: string; // Estimator's email/ID, needs lookup for display name
-    // deal_status?: string; // Assuming this might be a new field if you truly meant it
+    deal_status?: string;
+    client_deal_status?: string;
+    creation: string;
+}
+
+interface ProjectEstimationValueRow {
+    parent_project?: string;
+    document_type?: string;
+    value?: number;
 }
 
 interface BoqTableViewProps {
     onBoqSelect?: (id: string) => void;
     activeBoqId?: string;
-    // hideStatusColumn prop is removed as status column will always be visible in BoqTableView
     isStandalonePage?: boolean;
     className?: string;
     tableContainerClassName?: string;
@@ -68,15 +74,9 @@ export const BoqTableView = ({
     const navigate = useNavigate();
     const getBoqStatusClass = useStatusStyles("boq");
     const { getUserFullNameByEmail, isLoading: usersLoading } = useUserRoleLists();
-      const role = localStorage.getItem('role');
+    const role = localStorage.getItem('role');
 
-      const showAssignedSalesColumn = role !== "Nirmaan Sales User Profile"
-
-
-    // Use useStateSyncedWithParams for activeTabStatus to persist in URL
-    const [activeTabStatus, setActiveTabStatus] = useStateSyncedWithParams<string>('statusTab', 'All');
-    // In BoqTableView, hideStatusColumn is effectively false, as the column is always defined and visible.
-    const hideStatusColumn = false; // For clarity within this component
+    const showAssignedSalesColumn = role !== "Nirmaan Sales User Profile"
 
 
     // --- Data Fetching for all BOQs ---
@@ -85,6 +85,58 @@ export const BoqTableView = ({
         limit: 0,
         orderBy: { field: 'modified', order: 'desc' },
     }, "all-boqs-all-view");
+
+    // Aggregate BOQ-only values from child estimations for "Project Value" column
+    const { data: estimationValues, isLoading: estimationValuesLoading } = useFrappeGetDocList<ProjectEstimationValueRow>('CRM Project Estimation', {
+        fields: ["parent_project", "document_type", "value"],
+        limit: 0,
+    }, "all-project-estimation-values");
+
+    // Fetch CRM Contacts for name resolution in export
+    const { data: contactsData } = useFrappeGetDocList('CRM Contacts', {
+        fields: ["name", "first_name", "last_name"],
+        limit: 0
+    }, "all-contacts-for-export");
+
+    const contactMap = useMemo(() => {
+        const map = new Map<string, string>();
+        (contactsData || []).forEach(c => {
+            const fullName = `${c.first_name || ''} ${c.last_name || ''}`.trim();
+            if (fullName) map.set(c.name, fullName);
+        });
+        return map;
+    }, [contactsData]);
+
+    const { projectValueById, hasProjectBoqEntries } = useMemo(() => {
+        const valueMap = new Map<string, number>();
+        const hasEntries = new Set<string>();
+
+        (estimationValues || []).forEach((row) => {
+            const projectId = row.parent_project;
+            if (!projectId) return;
+
+            const type = (row.document_type || "").trim().toUpperCase();
+            if (type !== "BOQ") return;
+
+            const value = Number(row.value) || 0;
+            hasEntries.add(projectId);
+            valueMap.set(projectId, (valueMap.get(projectId) || 0) + value);
+        });
+
+        return { projectValueById: valueMap, hasProjectBoqEntries: hasEntries };
+    }, [estimationValues]);
+
+    const getProjectValue = (row: BOQ): number | undefined => {
+        if (hasProjectBoqEntries.has(row.name)) {
+            return projectValueById.get(row.name) ?? 0;
+        }
+
+        if (row.boq_value !== undefined && row.boq_value !== null && !Number.isNaN(Number(row.boq_value))) {
+            return Number(row.boq_value);
+        }
+
+        return undefined;
+    };
 
 
     // --- Memoized Filter Options (derived from the fetched `boqs` data) ---
@@ -127,7 +179,7 @@ export const BoqTableView = ({
         return Array.from(projectNames).sort().map(name => ({ label: name, value: name }));
     }, [boqs]);
 
-      // NEW: Options for Deal Status Faceted Filter
+    // NEW: Options for Deal Status Faceted Filter
     const dealStatusOptions = useMemo(() => {
         if (!boqs) return [];
         const dealStatuses = new Set<string>();
@@ -137,33 +189,20 @@ export const BoqTableView = ({
             value: status
         }));
     }, [boqs]);
-     const salespersonOptions = useMemo(() => {
-            if (!boqs ) return [];
-            const salespersons = new Map<string, string>();
-            boqs.forEach(boq => {
-                if (boq.assigned_sales) {
-                    const fullName = getUserFullNameByEmail(boq.assigned_sales);
-                    if (fullName) {
-                        salespersons.set(boq.assigned_sales, fullName);
-                    }
+    const salespersonOptions = useMemo(() => {
+        if (!boqs) return [];
+        const salespersons = new Map<string, string>();
+        boqs.forEach(boq => {
+            if (boq.assigned_sales) {
+                const fullName = getUserFullNameByEmail(boq.assigned_sales);
+                if (fullName) {
+                    salespersons.set(boq.assigned_sales, fullName);
                 }
-            });
-            return Array.from(salespersons.entries()).map(([email, name]) => ({ id: email, label: name, value: email }));
-        }, [boqs, usersLoading, getUserFullNameByEmail]);
-    
+            }
+        });
+        return Array.from(salespersons.entries()).map(([email, name]) => ({ id: email, label: name, value: email }));
+    }, [boqs, usersLoading, getUserFullNameByEmail]);
 
-      const boqSubmissionDateColumn: DataTableColumnDef<BOQ> = {
-            accessorKey: "boq_submission_date",
-            meta: { title: "Submission Deadline", filterVariant: 'date', enableSorting: true },
-            cell: ({ row }) => (
-                <span className="text-sm text-muted-foreground">
-                    {row.original.boq_submission_date ? formatDateWithOrdinal(new Date(row.original.boq_submission_date), 'dd-MMM-yyyy') : '--'}
-                </span>
-            ),
-            enableSorting: true,
-            filterFn: 'dateRange',
-        };
-    
 
     // // --- Column Definitions for the DataTable ---
     // const columns = useMemo<DataTableColumnDef<BOQ>[]>(() => [
@@ -175,7 +214,7 @@ export const BoqTableView = ({
     //                 {row.original.boq_name}
     //             </Link>
     //         ),
-           
+
     //     },
     //     {
     //         accessorKey: "company",
@@ -183,7 +222,7 @@ export const BoqTableView = ({
     //         cell: ({ row }) => <span className="text-left">{row.original.company || '--'}</span>,
     //         filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
     //         enableSorting: true,
-            
+
     //     },
     //     {
     //         accessorKey: "boq_status", // This column is ALWAYS defined and visible
@@ -195,7 +234,7 @@ export const BoqTableView = ({
     //         ),
     //         filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
     //         enableSorting: true,
-            
+
     //     },
     //     {
     //         accessorKey: "boq_sub_status", // Filter for sub_status
@@ -209,7 +248,7 @@ export const BoqTableView = ({
     //         ),
     //         filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
     //         enableSorting: true,
-            
+
     //     },
     //     // If 'deal_status' is a real field, add it here:
     //     // {
@@ -242,20 +281,38 @@ export const BoqTableView = ({
     //         ),
     //         filterFn: 'faceted', // Uses the 'facetedFilterFn' registered in useDataTableLogic
     //         enableSorting: true,
-            
+
     //     },
-       
+
     // ], [boqs, companyOptions, projectNamesOptions, statusOptions,dealStatusOptions, subStatusOptions, getBoqStatusClass]); // Added subStatusOptions to dependencies
 
-        // --- Column Definitions for the DataTable ---
+    // --- Column Definitions for the DataTable ---
     const columns = useMemo<DataTableColumnDef<BOQ>[]>(() => {
         const baseColumns: DataTableColumnDef<BOQ>[] = [
+            {
+                id: 'expander',
+                meta: { title: "", enableSorting: false },
+                cell: ({ row }) => (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-1 p-0 h-8 w-8 text-muted-foreground hover:bg-muted/50"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            row.toggleExpanded();
+                        }}
+                    >
+                        {row.getIsExpanded() ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                    </Button>
+                ),
+                enableSorting: false,
+            },
             {
                 accessorKey: "boq_name",
                 meta: { title: "Project Name", enableSorting: true },
                 cell: ({ row }) => (
-                    <Link 
-                        to={`/boqs/boq?id=${row.original.name}&statusTab=${activeTabStatus}`} 
+                    <Link
+                        to={`/boqs/boq?id=${row.original.name}`}
                         className="text-primary font-semibold hover:underline text-left block"
                         title={row.original.boq_name}
                     >
@@ -272,9 +329,9 @@ export const BoqTableView = ({
             },
             {
                 accessorKey: "boq_value",
-                meta: { title: "BOQ Value", enableSorting: true },
+                meta: { title: "Project Value", enableSorting: true },
                 cell: ({ row }) => {
-                    const val = row.original.boq_value;
+                    const val = getProjectValue(row.original);
                     if (!val && val !== 0) return <span className="text-sm text-muted-foreground">--</span>;
                     const num = Number(val);
                     if (isNaN(num)) return <span className="text-sm text-muted-foreground">--</span>;
@@ -286,18 +343,18 @@ export const BoqTableView = ({
                 },
                 enableSorting: true,
                 sortingFn: (rowA, rowB) => {
-                    const a = Number(rowA.original.boq_value) || 0;
-                    const b = Number(rowB.original.boq_value) || 0;
+                    const a = getProjectValue(rowA.original) ?? 0;
+                    const b = getProjectValue(rowB.original) ?? 0;
                     return a - b;
                 },
             },
-        //      {
-        //     accessorKey: "assigned_sales",
-        //     meta: { title: "Salesperson", filterVariant: 'select', filterOptions: salespersonOptions, enableSorting: true },
-        //     cell: ({ row }) => <span className="text-center text-sm">{getUserFullNameByEmail(row.original.assigned_sales) || "--"}</span>,
-        //  
-        // },
-        
+            //      {
+            //     accessorKey: "assigned_sales",
+            //     meta: { title: "Salesperson", filterVariant: 'select', filterOptions: salespersonOptions, enableSorting: true },
+            //     cell: ({ row }) => <span className="text-center text-sm">{getUserFullNameByEmail(row.original.assigned_sales) || "--"}</span>,
+            //  
+            // },
+
             {
                 accessorKey: "boq_status",
                 meta: { title: "Status", filterVariant: 'select', enableSorting: true, filterOptions: statusOptions },
@@ -309,25 +366,19 @@ export const BoqTableView = ({
                 filterFn: 'faceted',
                 enableSorting: true,
             },
-            {
-                accessorKey: "boq_sub_status",
-                meta: { title: "Sub-Status", filterVariant: 'select', enableSorting: true, filterOptions: subStatusOptions },
-                cell: ({ row }) => (
-                    row.original.boq_sub_status ? (
-                        <span className={`text-[10px] font-semibold p-1 rounded-full ${getBoqStatusClass(row.original.boq_sub_status)}`}>
-                            {row.original.boq_sub_status}
-                        </span>
-                    ) : (<span className='px-4 py-0.5'>{'--'}</span>)
-                ),
-                filterFn: 'faceted',
-                enableSorting: true,
-            },
+
             {
                 accessorKey: "creation",
                 meta: { title: "Added Date", filterVariant: 'date', enableSorting: true },
                 cell: ({ row }) => (
                     <span className="text-sm text-muted-foreground">
-                        {formatDateWithOrdinal(new Date(row.original.creation), 'dd-MMM-yyyy')}
+                        {row.original.creation
+                            ? new Date(row.original.creation).toLocaleDateString("en-GB", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                            })
+                            : "--"}
                     </span>
                 ),
                 enableSorting: true,
@@ -338,7 +389,13 @@ export const BoqTableView = ({
                 meta: { title: "Last Updated", filterVariant: 'date', enableSorting: true },
                 cell: ({ row }) => (
                     <span className="text-sm  text-muted-foreground">
-                        {formatDateWithOrdinal(new Date(row.original.modified), 'dd-MMM-yyyy')}
+                        {row.original.modified
+                            ? new Date(row.original.modified).toLocaleDateString("en-GB", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                            })
+                            : "--"}
                     </span>
                 ),
                 enableSorting: true,
@@ -352,14 +409,14 @@ export const BoqTableView = ({
                         <span className={`text-xs  font-semibold px-4 py-0.5 rounded-full ${getBoqStatusClass(row.original.deal_status)}`}>
                             {row.original.deal_status}
                         </span>
-                    ) :(<span className='px-4 py-0.5'>{'--'}</span>) 
+                    ) : (<span className='px-4 py-0.5'>{'--'}</span>)
                 ),
                 filterFn: 'faceted',
                 enableSorting: true,
             },
         ];
 
-         // Conditionally insert the 'assigned_sales' column based on user roles
+        // Conditionally insert the 'assigned_sales' column based on user roles
         if (showAssignedSalesColumn) {
             // Insert after 'company' column (which is at index 1)
             baseColumns.splice(2, 0, {
@@ -376,13 +433,6 @@ export const BoqTableView = ({
         }
 
 
-        // Conditionally add the boq_submission_date column
-        const statusesWithSubmissionDate = ['New', 'In-Progress', 'Revision Pending'];
-        if (statusesWithSubmissionDate.includes(activeTabStatus)) {
-            // Insert it before the "Deal Status" column for a logical flow
-            baseColumns.splice(6, 0, boqSubmissionDateColumn); // Insert at index 6 (after boq_value column)
-        }
-
         // Add Actions Column
         baseColumns.push({
             id: 'actions',
@@ -390,7 +440,7 @@ export const BoqTableView = ({
             cell: ({ row }) => (
                 <div className="flex justify-center">
                     <Button variant="ghost" size="icon" onClick={() => {
-                         if (isStandalonePage) {
+                        if (isStandalonePage) {
                             navigate(`/boqs/boq?id=${row.original.name}`);
                         } else {
                             onBoqSelect?.(row.original.name);
@@ -406,7 +456,7 @@ export const BoqTableView = ({
 
         return baseColumns;
 
-    }, [boqs, companyOptions,showAssignedSalesColumn, projectNamesOptions, statusOptions, dealStatusOptions, subStatusOptions, getBoqStatusClass, activeTabStatus, isStandalonePage, navigate, onBoqSelect]);
+    }, [boqs, companyOptions, showAssignedSalesColumn, projectNamesOptions, statusOptions, dealStatusOptions, subStatusOptions, getBoqStatusClass, isStandalonePage, navigate, onBoqSelect, hasProjectBoqEntries, projectValueById]);
 
 
     if (error) return <div className="text-red-500">Error loading BOQs.</div>;
@@ -414,17 +464,11 @@ export const BoqTableView = ({
 
     // --- Dynamic Filters & Visibility passed to useDataTableLogic ---
 
-    // `initialColumnFilters`: Based on the active tab status
-    const initialColumnFilters: ColumnFiltersState = useMemo(() => {
-        if (activeTabStatus !== 'All') { // Only apply filter if a specific tab is selected
-            return [{ id: 'boq_status', value: [activeTabStatus] }];
-        }
-        return [];
-    }, [activeTabStatus]); // Dependency only on activeTabStatus
+    const initialColumnFilters: ColumnFiltersState = [];
 
-    // `initialColumnVisibility`: `boq_status` is always visible now. `actions` depends on `isStandalonePage`.
+    // Keep status visible in the main projects grid.
     const initialColumnVisibility = useMemo(() => ({
-        boq_status: true, // Status column is always visible visually
+        boq_status: true,
         actions: !isStandalonePage // Hide 'actions' column if it's a standalone page
     }), [isStandalonePage]); // Dependency only on isStandalonePage
 
@@ -436,18 +480,17 @@ export const BoqTableView = ({
         initialSorting: [{ id: 'modified', desc: true }], // Default sort order
         initialColumnFilters: initialColumnFilters, // Pass initial filter state
         initialColumnVisibility: initialColumnVisibility, // Pass 
-        customGlobalFilterFn : [
-    'boq_name',
-    'company',
-    'boq_status',
-    'boq_sub_status',
-    'owner',
-    'salesperson',
-    'assigned_sales',
-    'contact',
-    'city',
-    'remarks'
-],
+        customGlobalFilterFn: [
+            'boq_name',
+            'company',
+            'boq_status',
+            'owner',
+            'salesperson',
+            'assigned_sales',
+            'contact',
+            'city',
+            'remarks'
+        ],
 
         // initial column visibility
         // globalFilterFn will be `defaultGlobalFilterFn` from useDataTableLogic itself,
@@ -461,19 +504,13 @@ export const BoqTableView = ({
         // Clear global search when a tab filter is applied/changed.
         tableLogic.setGlobalFilter('');
 
-        // Apply the tab-based status filter based on activeTabStatus
-        const newFilters = activeTabStatus !== 'All'
-            ? [{ id: 'boq_status', value: [activeTabStatus] }]
-            : [];
-        tableLogic.table.setColumnFilters(newFilters);
-
         // Dynamically set 'actions' column visibility
         tableLogic.setColumnVisibility(prev => ({
             ...prev,
             actions: !isStandalonePage
         }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeTabStatus, isStandalonePage]);
+    }, [isStandalonePage]);
 
 
     // --- Mobile Row Renderer ---
@@ -491,7 +528,7 @@ export const BoqTableView = ({
                     {row.original.boq_status}
                 </span>
                 <p className="text-xs text-muted-foreground">
-                    {formatDateWithOrdinal(new Date(row.original.modified), 'dd-MM-yyyy')}
+                    {formatDateWithOrdinal(new Date(row.original.modified))}
                 </p>
             </div>
         </div>
@@ -499,14 +536,14 @@ export const BoqTableView = ({
 
     // --- Export Fields Definition ---
     const boqExportFields = useMemo<DataTableColumnDef<BOQ>[]>(() => ([
-        { accessorKey: "name", meta: { exportHeaderName: "BOQ ID" } },
-        { accessorKey: "boq_name", meta: { exportHeaderName: "BOQ Name" } },
+        { accessorKey: "name", meta: { exportHeaderName: "Project ID" } },
+        { accessorKey: "boq_name", meta: { exportHeaderName: "Project Name" } },
         { accessorKey: "company", meta: { exportHeaderName: "Company" } },
         {
             accessorKey: "contact",
             meta: {
                 exportHeaderName: "Contact Person",
-                exportValue: (row) => row.contact ? (getUserFullNameByEmail(row.contact) || row.contact) : ''
+                exportValue: (row) => row.contact ? (contactMap.get(row.contact) || row.contact) : ''
             }
         },
         { accessorKey: "boq_size", meta: { exportHeaderName: "Carpet Area" } },
@@ -517,66 +554,79 @@ export const BoqTableView = ({
                 exportValue: (row) => parsePackages(row.boq_type).join(', ')
             }
         },
-        { accessorKey: "boq_value", meta: { exportHeaderName: "BOQ Value", isCurrency: true } },
+        {
+            accessorKey: "boq_value",
+            meta: {
+                exportHeaderName: "Project Value",
+                isCurrency: true,
+                exportValue: (row) => {
+                    const value = getProjectValue(row);
+                    return value !== undefined ? value : "";
+                }
+            }
+        },
         { accessorKey: "boq_submission_date", meta: { exportHeaderName: "Submission Date" } },
-        { accessorKey: "boq_link", meta: { exportHeaderName: "BOQ Link" } },
         { accessorKey: "city", meta: { exportHeaderName: "City" } },
-        { accessorKey: "remarks", meta: { exportHeaderName: "Remarks" } },
         { accessorKey: "boq_status", meta: { exportHeaderName: "Status" } },
-        { accessorKey: "boq_sub_status", meta: { exportHeaderName: "Sub-Status" } },
+        { accessorKey: "deal_status", meta: { exportHeaderName: "Deal Status" } },
+        { accessorKey: "client_deal_status", meta: { exportHeaderName: "Client Status" } },
         {
             accessorKey: "assigned_sales",
             meta: {
                 exportHeaderName: "Assigned Salesperson",
-                exportValue: (row) => getUserFullNameByEmail(row.assigned_sales) || ''
+                exportValue: (row) => getUserFullNameByEmail(row.assigned_sales || "") || ''
             }
         },
         {
-            accessorKey: "assigned_estimations",
+            accessorKey: "owner",
             meta: {
-                exportHeaderName: "Assigned Estimations",
-                exportValue: (row) => row.assigned_estimations ? (getUserFullNameByEmail(row.assigned_estimations) || row.assigned_estimations) : ''
+                exportHeaderName: "Created By",
+                exportValue: (row) => row.owner ? (getUserFullNameByEmail(row.owner) || row.owner) : ''
             }
         },
-        { accessorKey: "owner", meta: { exportHeaderName: "Created By" } },
         { accessorKey: "modified", meta: { exportHeaderName: "Last Modified" } },
-        { accessorKey: "deal_status", meta: { exportHeaderName: "Deal Status" } },
-    ]), [getUserFullNameByEmail]);
+        { accessorKey: "boq_link", meta: { exportHeaderName: "BOQ Link" } },
+        { accessorKey: "remarks", meta: { exportHeaderName: "Remarks" } },
+    ]), [getUserFullNameByEmail, contactMap, hasProjectBoqEntries, projectValueById]);
 
 
     // ... (after tableLogic declaration)
 
-// NEW: Calculate gridColsClass dynamically based on visible columns
-const calculatedGridColsClass = useMemo(() => {
-    const statusesWithSubmissionDate = ['New', 'In-Progress', 'Revision Pending'];
-    const isSubmissionDateColumnVisible = statusesWithSubmissionDate.includes(activeTabStatus);
-    const isActionsColumnVisible = tableLogic.columnVisibility.actions;
-
-    let gridTemplate: string;
-
-    if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
-        // (boq_name, company, boq_value, boq_status, boq_sub_status, boq_submission_date, creation, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,0.8fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr,60px]";
-    } else if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
-        // (boq_name, company, boq_value, boq_status, boq_sub_status, boq_submission_date, creation, modified, deal_status)
-        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,0.8fr,1fr,1fr,1fr,1.5fr,1fr,1fr,1fr]";
-    } else if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
-        // (boq_name, company, boq_value, boq_status, boq_sub_status, creation, modified, deal_status, actions)
-        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,0.8fr,1fr,1fr,1fr,1fr,1fr,60px,1fr]";
-    } else { // !isSubmissionDateColumnVisible && !isActionsColumnVisible
-        // (boq_name, company, boq_value, boq_status, boq_sub_status, creation, modified, deal_status)
-        gridTemplate = "md:grid-cols-[1.5fr,1.2fr,0.8fr,1fr,1fr,1fr,1fr,1fr,1fr]";
-    }
-
-    return gridTemplate;
-}, [activeTabStatus, tableLogic.columnVisibility.actions,showAssignedSalesColumn]); // Dependencies for this memo
     // NEW: Calculate gridColsClass dynamically based on visible columns
-  
+    const calculatedGridColsClass = useMemo(() => {
+        const isSubmissionDateColumnVisible = false;
+        const isActionsColumnVisible = tableLogic.columnVisibility.actions;
+        if (showAssignedSalesColumn) {
+            if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
+                return "md:pl-3 md:grid-cols-[40px_1.2fr_0.8fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr_60px] md:gap-x-2";
+            }
+            if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
+                return "md:pl-3 md:grid-cols-[40px_1.2fr_0.8fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr] md:gap-x-2";
+            }
+            if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
+                return "md:pl-3 md:grid-cols-[40px_1.4fr_0.8fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr_60px] md:gap-x-2";
+            }
+            return "md:pl-3 md:grid-cols-[40px_1.4fr_0.8fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr] md:gap-x-2";
+        }
+
+        if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
+            return "md:pl-3 md:grid-cols-[40px_1.2fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr_60px] md:gap-x-2";
+        }
+        if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
+            return "md:pl-3 md:grid-cols-[40px_1.2fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr] md:gap-x-2";
+        }
+        if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
+            return "md:pl-3 md:grid-cols-[40px_1.4fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr_60px] md:gap-x-2";
+        }
+        return "md:pl-3 md:grid-cols-[40px_1.4fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr] md:gap-x-2";
+    }, [tableLogic.columnVisibility.actions, showAssignedSalesColumn]); // Dependencies for this memo
+    // NEW: Calculate gridColsClass dynamically based on visible columns
+
 
     return (
         <DataTable
             tableLogic={tableLogic}
-            isLoading={isBoqsLoading || usersLoading}
+            isLoading={isBoqsLoading || usersLoading || estimationValuesLoading}
             // onRowClick={(row) => {
             //     if (isStandalonePage) {
             //         navigate(`/boqs/boq?id=${row.original.name}`); // Direct navigation for standalone page
@@ -585,33 +635,36 @@ const calculatedGridColsClass = useMemo(() => {
             //     }
             // }}
             renderMobileRow={renderBoqMobileRow}
-            globalSearchPlaceholder="Search BOQs..."
+            globalSearchPlaceholder="Search Projects..."
             shouldExpandHeight={true} // BoqTableView always tells DataTable to expand to fill its parent's height
             className={className} // Pass parent's className to DataTable's root div
-            minWidth="1200px"
-             gridColsClass={calculatedGridColsClass}
+            minWidth="1000px"
+            gridColsClass={calculatedGridColsClass}
 
-            headerTitle={<span className="tracking-tight">BOQs</span>}
-            noResultsMessage="No BOQs found."
-            // Minimalist animated tabs with sliding indicator
-            renderTopToolbarActions={
-                <SlidingTabs
-                    tabs={[
-                        { label: 'All', value: 'All' },
-                        ...statusOptions.map(opt => ({ label: opt.label, value: opt.value }))
-                    ]}
-                    activeTab={activeTabStatus}
-                    onTabChange={setActiveTabStatus}
-                />
-            }
+            headerTitle={<span className="tracking-tight">Projects</span>}
+            noResultsMessage="No Projects found."
             renderToolbarActions={(filteredData) => (
-                <DataTableExportButton
-                    data={filteredData}
-                    columns={boqExportFields}
-                    fileName="BOQs_List_Export"
-                    label="Export BOQs List"
-                />
+                <div className="flex items-center gap-2">
+                    <DataTableExportButton
+                        data={filteredData}
+                        columns={boqExportFields}
+                        fileName="Projects_List_Export"
+                        label="Export Projects List"
+                        className="md:w-48 justify-center"
+                    />
+                    <BoqBcsTaskExport projectIds={filteredData.map(b => b.name)} className="md:w-48 justify-center" />
+                </div>
             )}
+            renderSubComponent={(row) => {
+                // Determine layout rules based on permissions or data context if necessary
+                return (
+                    <div className="py-2 pl-4 pr-8 md:pl-8 w-full cursor-default bg-white pb-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="w-full overflow-hidden">
+                            <ConnectedProjectEstimationsTable projectId={row.original.name} enableCompactMode={true} />
+                        </div>
+                    </div>
+                );
+            }}
         />
     );
 };

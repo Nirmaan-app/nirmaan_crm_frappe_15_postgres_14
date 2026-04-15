@@ -10,7 +10,8 @@ import { useDialogStore } from "@/store/dialogStore";
 import { StatCard } from "../Home/StatsGrid";
 import { formatItems, boqNameFormatter, taskNameFormatter } from "../Home/StatsGrid";
 import { formatRoleName } from "./MemberList";
-import { useFrappeUpdateDoc,useSWRConfig } from "frappe-react-sdk";
+import { useFrappePostCall, useSWRConfig } from "frappe-react-sdk";
+import ReactSelect from "react-select";
 
 // Assuming 'member' type to help with intellisense
 interface Member {
@@ -49,8 +50,10 @@ const validateEditForm = (firstName: string, lastName: string, mobileNo: string)
 export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member; tasks: any[]; contacts: any[]; boqs: any[] }) => {
     const { openStatsDetailDialog } = useDialogStore();
     const role = localStorage.getItem("role"); // Role of the CURRENT logged-in user
-    const { updateDoc } = useFrappeUpdateDoc();
-      const { mutate } = useSWRConfig();
+    const { call: updateMemberProfile, loading: isSavingProfile } = useFrappePostCall(
+        "nirmaan_crm.api.users.update_crm_member_profile.update_crm_member_profile"
+    );
+    const { mutate } = useSWRConfig();
     
 
     // State for edit mode
@@ -59,14 +62,22 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
     const [editedFirstName, setEditedFirstName] = useState(member?.first_name || "");
     const [editedLastName, setEditedLastName] = useState(member?.last_name || "");
     const [editedMobileNo, setEditedMobileNo] = useState(member?.mobile_no || "");
+    const [editedDesignation, setEditedDesignation] = useState(member?.nirmaan_role_name || "");
 
     const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
+    const roleProfileOptions = useMemo(() => [
+        { label: "Nirmaan Sales User Profile", value: "Nirmaan Sales User Profile" },
+        { label: "Nirmaan Estimations User Profile", value: "Nirmaan Estimations User Profile" },
+        { label: "Nirmaan Estimations Lead Profile", value: "Nirmaan Estimations Lead Profile" },
+        { label: "Nirmaan Admin User Profile", value: "Nirmaan Admin User Profile" },
+    ], []);
 
     // Sync edited fields when 'member' prop changes (e.g., when viewing a different member)
     useEffect(() => {
         setEditedFirstName(member?.first_name || "");
         setEditedLastName(member?.last_name || "");
         setEditedMobileNo(member?.mobile_no || "");
+        setEditedDesignation(member?.nirmaan_role_name || "");
     }, [member]);
 
     // 1. Local state for the date range filter. This ONLY affects this component.
@@ -144,6 +155,7 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
         };
 
         switch (memberRole) {
+            case 'Nirmaan Estimations Lead Profile':
             case 'Nirmaan Estimations User Profile':
                 return [
                     allPossibleCards.boqReceived,
@@ -173,30 +185,38 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
             });
             return; // STOP save process if errors exist
         }
+        if (!editedDesignation) {
+            toast({
+                title: "Form Validation Error",
+                description: "Designation is required.",
+                variant: "destructive",
+            });
+            return;
+        }
 
-        // Example: Using useFrappeUpdateDoc (you would need to import and initialize it)
         try {
-            await updateDoc('User', member.name, {
+            await updateMemberProfile({
+                user_id: member.name,
                 first_name: editedFirstName,
                 last_name: editedLastName,
                 mobile_no: editedMobileNo,
+                role_profile_name: editedDesignation,
             });
-             mutate(key => typeof key === 'string' && key.startsWith('all-members'));
-             mutate(key => typeof key === 'string' && key.startsWith(`user-${member.name}`));
-            
-            
-
-            // Optionally, refetch member data or update local state after successful save
-            console.log('User profile updated successfully!');
-            setIsEditing(false); // Exit edit mode
-        } catch (error) {
-            console.error('Failed to update user profile:', error);
-            // Handle error (e.g., show a toast notification)
+            mutate(key => typeof key === 'string' && key.startsWith('all-members'));
+            mutate(key => typeof key === 'string' && key.startsWith(`user-${member.name}`));
+            toast({
+                title: "Success",
+                description: "Team member updated successfully.",
+                variant: "success",
+            });
+            setIsEditing(false);
+        } catch (error: any) {
+            toast({
+                title: "Update failed",
+                description: error?.message || "Unable to update member details.",
+                variant: "destructive",
+            });
         }
-
-        // For now, just log and exit edit mode
-        console.log("Saving changes:", { first_name: editedFirstName, mobile_no: editedMobileNo });
-        setIsEditing(false); // Exit edit mode
     };
 
      const handleCancel = () => {
@@ -204,6 +224,7 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
         setEditedFirstName(member?.first_name || "");
         setEditedLastName(member?.last_name || "");
         setEditedMobileNo(member?.mobile_no || "");
+        setEditedDesignation(member?.nirmaan_role_name || "");
         setValidationErrors({}); // Clear validation errors
         setIsEditing(false);
     };
@@ -215,71 +236,88 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
     return (
         <div className="space-y-6">
             <div className="bg-background p-6 rounded-lg border shadow-sm">
-                <div className="grid grid-cols-2 gap-y-6 items-center">
-                    <div>
-                        {isEditing ? (
-                            <>
-                              {/* Label for Edited First Name */}
-        <label htmlFor="edit-first-name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mt-4 block">
-            First Name
-        </label>
-        <Input
-            id="edit-first-name" // <-- Linked to the label
-            value={editedFirstName}
-            onChange={(e) => setEditedFirstName(e.target.value)}
-            className="mt-1"
-        />
-
-        {/* Label for Edited Last Name */}
-        <label htmlFor="edit-last-name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mt-4 block">
-            Last Name
-        </label>
-        <Input
-            id="edit-last-name" // <-- Linked to the label
-            value={editedLastName}
-            onChange={(e) => setEditedLastName(e.target.value)}
-            className="mt-1"
-        />
-                            </>
-                           
-                        ) : (
-                            <>
-                        <p className="text-xs text-muted-foreground">User Name</p>
-
-                            <p className="text-md font-bold text-destructive">{member?.full_name}</p>
-                            </>
-                        )}
-                    </div>
-                    <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Designation</p>
-                        <p className="text-md font-semibold text-destructive">{formatRoleName(member?.nirmaan_role_name) || 'N/A'}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground">Email</p>
-                        <p className="font-semibold">{member?.name}</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Phone Number</p>
-                        {isEditing ? (
+                {isEditing ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label htmlFor="edit-first-name" className="text-sm font-medium">
+                                First Name
+                            </label>
                             <Input
-                                value={editedMobileNo}
-                                type="number"
-                                
-                                onChange={(e) => setEditedMobileNo(e.target.value)}
-                                className="mt-1 text-right" // Align text to right
+                                id="edit-first-name"
+                                value={editedFirstName}
+                                onChange={(e) => setEditedFirstName(e.target.value)}
+                                className="mt-2"
                             />
-                        ) : (
-                            <p className="font-semibold">{member?.mobile_no || 'N/A'}</p>
-                        )}
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium">Designation</label>
+                            <ReactSelect
+                                options={roleProfileOptions}
+                                value={roleProfileOptions.find(opt => opt.value === editedDesignation) || null}
+                                onChange={(val) => setEditedDesignation(val?.value || "")}
+                                className="mt-2"
+                                classNamePrefix="react-select"
+                                placeholder="Select designation..."
+                                isSearchable={false}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="edit-last-name" className="text-sm font-medium">
+                                Last Name
+                            </label>
+                            <Input
+                                id="edit-last-name"
+                                value={editedLastName}
+                                onChange={(e) => setEditedLastName(e.target.value)}
+                                className="mt-2"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="edit-phone-number" className="text-sm font-medium">
+                                Phone Number
+                            </label>
+                            <Input
+                                id="edit-phone-number"
+                                value={editedMobileNo}
+                                type="tel"
+                                onChange={(e) => setEditedMobileNo(e.target.value)}
+                                className="mt-2"
+                            />
+                        </div>
+                        <div className="md:col-span-2">
+                            <p className="text-xs text-muted-foreground">Email</p>
+                            <p className="font-semibold">{member?.name}</p>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="grid grid-cols-2 gap-y-6 items-center">
+                        <div>
+                            <p className="text-xs text-muted-foreground">User Name</p>
+                            <p className="text-md font-bold text-destructive">{member?.full_name}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-xs text-muted-foreground">Designation</p>
+                            <p className="text-md font-semibold text-destructive">{formatRoleName(member?.nirmaan_role_name) || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Email</p>
+                            <p className="font-semibold">{member?.name}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-xs text-muted-foreground">Phone Number</p>
+                            <p className="font-semibold">{member?.mobile_no || 'N/A'}</p>
+                        </div>
+                    </div>
+                )}
                 {/* Edit/Save/Cancel buttons */}
                 {isCurrentUserAdmin && ( // Only show buttons if the current user is an Admin
                     <div className="flex justify-end gap-2 mt-6 border-t pt-4">
                         {isEditing ? (
                             <>
-                                <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                <Button variant="destructive" onClick={handleSave}>Save</Button>
+                                <Button variant="outline" onClick={handleCancel} disabled={isSavingProfile}>Cancel</Button>
+                                <Button variant="destructive" onClick={handleSave} disabled={isSavingProfile}>
+                                    {isSavingProfile ? "Saving..." : "Save"}
+                                </Button>
                             </>
                         ) : (
                             <Button variant="outline" onClick={() => setIsEditing(true)}>Edit</Button>
@@ -413,6 +451,7 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
 //         };
         
 //         switch (memberRole) {
+//             case 'Nirmaan Estimations Lead Profile':
 //             case 'Nirmaan Estimations User Profile':
 //                 return [
 //                     allPossibleCards.boqReceived,

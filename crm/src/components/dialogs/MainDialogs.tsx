@@ -23,6 +23,8 @@ import { EditDealStatusForm } from "@/pages/BOQS/forms/EditBoqDealStatusForm";
 import { EditBcsStatusForm } from "@/pages/BOQS/forms/EditBcsStatusForm";
 
 import { CompanyProgressForm } from "@/pages/Companies/forms/CompanyProgressForm"
+
+import { EditProjectEstimationForm } from "@/pages/BOQS/forms/EditProjectEstimationForm";
 // ============================================================================================
 // START OF CHANGES: Importing new forms for Estimation and Admin flows
 // ============================================================================================
@@ -75,6 +77,9 @@ export const MainDialogs = () => {
         editEstimationTask, closeEditEstimationTaskDialog,
         selectTaskProfileDialog, closeSelectTaskProfileDialog,
 
+        // NEW: Estimation Tasks from the Project Estimations Table
+        editProjectEstimation, closeEditProjectEstimationDialog,
+
         // ============================================================================================
         // END OF CHANGES
         // ============================================================================================
@@ -84,8 +89,8 @@ export const MainDialogs = () => {
     // Helper to generate a dynamic title
     const getEditBoqTitle = () => {
         const mode = editBoq.context.mode;
-        if (mode === 'details') return 'Edit BOQ Details';
-        if (mode === 'status') return 'Update Status';
+        if (mode === 'details') return 'Edit project Details';
+        if (mode === 'status') return 'Project Status';
         // if (mode === 'remark') return 'Add New Remark';
         // if (mode === 'assigned') return 'Edit Assigned';
 
@@ -170,7 +175,7 @@ export const MainDialogs = () => {
             <ReusableFormDialog
                 isOpen={newBoq.isOpen}
                 onClose={closeNewBoqDialog}
-                title="Add New BOQ"
+                title="Add New Project"
                 className="max-w-lg"
             >
                 <NewBoqForm onSuccess={closeNewBoqDialog} />
@@ -378,6 +383,20 @@ export const MainDialogs = () => {
                     />
                 ) : (
                     <p className="text-destructive">Error: Company ID missing for progress update.</p>
+                )}
+            </ReusableFormDialog>
+
+            <ReusableFormDialog
+                isOpen={editProjectEstimation.isOpen}
+                onClose={closeEditProjectEstimationDialog}
+                title="" // Handled inside the component
+                className="max-w-md p-0 overflow-hidden" 
+            >
+                {editProjectEstimation.context?.estimationData && (
+                    <EditProjectEstimationForm
+                        estimationData={editProjectEstimation.context.estimationData}
+                        onSuccess={closeEditProjectEstimationDialog}
+                    />
                 )}
             </ReusableFormDialog>
 

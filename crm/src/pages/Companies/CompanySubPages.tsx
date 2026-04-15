@@ -774,7 +774,7 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
             <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                    placeholder="Search BOQs..."
+                    placeholder="Search Project..."
                     className="pl-10"
                     value={globalFilter ?? ''}
                     onChange={(event) => setGlobalFilter(event.target.value)}
@@ -833,8 +833,8 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
     <DataTable
       tableLogic={tableLogic}
       isLoading={false}
-      headerTitle={<span>BOQ List</span>}
-      noResultsMessage="No BOQs found."
+      headerTitle={<span>Project List</span>}
+      noResultsMessage="No Projects found."
       globalSearchPlaceholder="Search BOQs by name or status..."
       className="h-full"
       shouldExpandHeight={true}
@@ -850,12 +850,19 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
   const navigate = useNavigate();
   const { isMobile } = useViewport(); // Check viewport
 
-  // Contact Designation Options
+  // Contact Designation & Department Options
   const contactDesignationOptions = useMemo(() => {
     if (!contacts) return [];
     const set = new Set<string>();
     contacts.forEach(c => c.designation && set.add(c.designation));
     return Array.from(set).map(designation => ({ label: designation, value: designation }));
+  }, [contacts]);
+
+  const contactDepartmentOptions = useMemo(() => {
+    if (!contacts) return [];
+    const set = new Set<string>();
+    contacts.forEach(c => c.department && set.add(c.department));
+    return Array.from(set).map(dept => ({ label: dept, value: dept }));
   }, [contacts]);
 
   // Contact Columns for Desktop
@@ -868,13 +875,18 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
     meta: { title: "Designation", filterVariant: "select", filterOptions: contactDesignationOptions, enableSorting: true },
     cell: ({ row }) => <span>{row.original.designation || 'N/A'}</span>,
     filterFn: 'faceted',
-  }], [contactDesignationOptions]);
+  }, {
+    accessorKey: "department",
+    meta: { title: "Department", filterVariant: "select", filterOptions: contactDepartmentOptions, enableSorting: true },
+    cell: ({ row }) => <span>{row.original.department || 'N/A'}</span>,
+    filterFn: 'faceted',
+  }], [contactDesignationOptions, contactDepartmentOptions]);
 
   const tableLogic = useDataTableLogic<CRMContacts>({
     data: contacts,
     columns: contactColumns,
     initialSorting: [{ id: 'first_name', desc: false }],
-    customGlobalFilterFn: ['first_name', 'last_name', 'designation']
+    customGlobalFilterFn: ['first_name', 'last_name', 'designation', 'department']
   });
   
   // Destructure for mobile rendering
@@ -903,7 +915,8 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
-                            <TableHead className="text-right">Designation</TableHead>
+                            <TableHead className="text-center">Designation</TableHead>
+                            <TableHead className="text-right">Department</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -920,7 +933,8 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
                                         className="cursor-pointer"
                                     >
                                         <TableCell className="font-medium text-blue-600 underline">{contact.first_name} {contact.last_name}</TableCell>
-                                        <TableCell className="text-right">{contact.designation || 'N/A'}</TableCell>
+                                        <TableCell className="text-center">{contact.designation || 'N/A'}</TableCell>
+                                        <TableCell className="text-right">{contact.department || 'N/A'}</TableCell>
                                     </TableRow>
                                 );
                             })
@@ -946,7 +960,7 @@ const ContactDataTable = ({ contacts }: { contacts: CRMContacts[] }) => {
       globalSearchPlaceholder="Search contacts by name or designation..."
       className="h-full"
       shouldExpandHeight={true}
-      gridColsClass="md:grid-cols-[2fr,1fr]"
+      gridColsClass="md:grid-cols-[2fr,1fr,1fr]"
       onRowClick={(row) => navigate(`/contacts/contact?id=${row.original.name}`)}
     />
   );
@@ -1127,7 +1141,7 @@ export const CompanySubPages = ({ boqs, contacts, tasks }: CompanySubPagesProps)
         <Tabs defaultValue="boqs" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-transparent p-0 border">
             <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">
-            BOQs
+            Projects
             <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
                 {boqs.length}
             </span>

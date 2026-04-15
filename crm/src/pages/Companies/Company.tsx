@@ -4,6 +4,7 @@ import { toast } from "@/hooks/use-toast";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { CRMBOQ } from "@/types/NirmaanCRM/CRMBOQ";
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { useFrappeDeleteDoc, useFrappeGetDoc, useFrappeGetDocList, useSWRConfig } from "frappe-react-sdk";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +16,7 @@ import { CompanySubPages } from "./CompanySubPages";
 import {CompanyProgressCard} from "./components/CompanyProgressCard"
 import { useDialogStore } from "@/store/dialogStore";
 import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
+import { BoqBcsTaskExport } from "../BOQS/components/BoqBcsTaskExport";
 
 // Assume you have an EditCompanyForm component for the dialog
 // import { EditCompanyForm } from "./EditCompanyForm"; 
@@ -122,10 +124,13 @@ const active=activeProjectsfilter()
                                 <h1 className="hidden md:block text-md md:text-2xl font-bold ">Company Details</h1> {/* Main title for the page */}
                             </div>
             
-                            <Button variant="ghost" size="sm" className="text-destructive" onClick={() => openEditCompanyDialog({ companyData: companyData })}>
-                                <SquarePen className="w-4 h-4 mr-2" />
-                                EDIT
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => openEditCompanyDialog({ companyData: companyData })}>
+                                    <SquarePen className="w-4 h-4 mr-2" />
+                                    EDIT
+                                </Button>
+                                <BoqBcsTaskExport companyId={id} />
+                            </div>
                 </div>
             <CompanyDetailsCard
                 company={companyData}

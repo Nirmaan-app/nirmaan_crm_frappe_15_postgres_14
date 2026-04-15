@@ -311,7 +311,7 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
             <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                    placeholder="Search BOQs..."
+                    placeholder="Search Projects..."
                     className="pl-10"
                     value={globalFilter ?? ''}
                     onChange={(event) => setGlobalFilter(event.target.value)}
@@ -355,7 +355,7 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
                             })
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center h-24">No BOQs found.</TableCell>
+                                <TableCell colSpan={4} className="text-center h-24">No Projects found.</TableCell>
                             </TableRow>
                         )}
                     </TableBody>
@@ -370,8 +370,8 @@ const BoqDataTable = ({ boqs }: { boqs: CRMBOQ[] }) => {
     <DataTable
       tableLogic={tableLogic}
       isLoading={false}
-      headerTitle={<span>BOQ List</span>}
-      noResultsMessage="No BOQs found."
+      headerTitle={<span>Project List</span>}
+      noResultsMessage="No Projects found."
       globalSearchPlaceholder="Search BOQs by name or status..."
       className="h-full"
       shouldExpandHeight={true}
@@ -559,7 +559,7 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
                 {/* <h2 className="text-lg font-semibold mb-2">Activities and Opportunities</h2> */}
                 <Tabs defaultValue="boqs" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 border">
-                        <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">BOQs<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                        <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">Projects<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
                             {boqs.length}
                         </span></TabsTrigger>
                         <TabsTrigger value="tasks" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-r-md rounded-l-none">Tasks<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">

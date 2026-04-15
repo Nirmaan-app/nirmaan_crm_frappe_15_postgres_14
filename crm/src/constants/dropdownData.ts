@@ -36,17 +36,21 @@ export const BOQsubStatusOptions = [
 
 export const BOQmainStatusOptions = [
   { label: "New", value: "New" },
+  { label: "In-Progress", value: "In-Progress" },
+  { label: "Won", value: "Won" },
+  { label: "Negotiation", value: "Negotiation" },
+  { label: "Hold", value: "Hold" },
+  { label: "Dropped", value: "Dropped" },
+  { label: "Lost", value: "Lost" },
+];
 
+export const ProjectEstimationStatusOptions = [
+  { label: "New", value: "New" },
   { label: "In-Progress", value: "In-Progress" },
   { label: "BOQ Submitted", value: "BOQ Submitted" },
   { label: "Partial BOQ Submitted", value: "Partial BOQ Submitted" },
   { label: "Revision Submitted", value: "Revision Submitted" },
   { label: "Revision Pending", value: "Revision Pending" },
-  { label: "Negotiation", value: "Negotiation" },
-  { label: "Won", value: "Won" },
-  { label: "Lost", value: "Lost" },
-  { label: "Dropped", value: "Dropped" },
-  { label: "Hold", value: "Hold" },
 ];
 
 

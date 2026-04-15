@@ -37,7 +37,8 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
             "nirmaan_role_name": ["in", [
                 "Nirmaan Sales User Profile",
                 "Nirmaan Admin User Profile",
-                "Nirmaan Estimations User Profile"
+                "Nirmaan Estimations User Profile",
+                "Nirmaan Estimations Lead Profile"
             ]]
         },
         limit: 0,
@@ -45,7 +46,7 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
 
     const { data: estimationUsers, isLoading: estimationLoading } = useFrappeGetDocList<CRMUsers>("CRM Users", {
         fields: ["name", "full_name"],
-        filters: { nirmaan_role_name: "Nirmaan Estimations User Profile" },
+        filters: { nirmaan_role_name: ["in", ["Nirmaan Estimations User Profile", "Nirmaan Estimations Lead Profile"]] },
         limit: 0,
     }, "estimation-users-list");
 
@@ -90,7 +91,7 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
             if (filterType === 'company' || filterType === 'contact') {
                 if (activeTab === 'me') newFilters.push(['assigned_sales', '=', user_id]);
             }
-        } else if (role === 'Nirmaan Estimations User Profile') {
+        } else if (role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimations Lead Profile') {
             // if (filterType === 'boq' && activeTab === 'me') {
             //     newFilters.push(['assigned_estimations', '=', user_id]);
             // }
@@ -148,7 +149,7 @@ export const AssignmentFilterControls = ({ onFilterChange, filterType }: Assignm
     //     return null;
     // }
 
-    if (role === 'Nirmaan Estimations User Profile') {
+    if (role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimations Lead Profile') {
         // Show tabs ONLY for the BOQ list.
         if (filterType === 'boq') {
             return (
