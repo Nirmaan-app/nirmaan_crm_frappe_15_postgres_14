@@ -559,7 +559,7 @@ export const ContactSubPages = ({ boqs, tasks }: ContactSubPagesProps) => {
                 {/* <h2 className="text-lg font-semibold mb-2">Activities and Opportunities</h2> */}
                 <Tabs defaultValue="boqs" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 border">
-                        <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">BOQs<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                        <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">Projects<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
                             {boqs.length}
                         </span></TabsTrigger>
                         <TabsTrigger value="tasks" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-r-md rounded-l-none">Tasks<span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">

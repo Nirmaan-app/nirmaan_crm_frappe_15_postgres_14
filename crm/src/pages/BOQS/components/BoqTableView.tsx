@@ -598,27 +598,27 @@ export const BoqTableView = ({
         const isActionsColumnVisible = tableLogic.columnVisibility.actions;
         if (showAssignedSalesColumn) {
             if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
-                return "md:pl-3 md:grid-cols-[40px_1.5fr_1fr_1.2fr_1fr_1fr_1fr_1.2fr_1.2fr_1fr_60px]";
+                return "md:pl-3 md:grid-cols-[40px_1.2fr_0.8fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr_60px] md:gap-x-2";
             }
             if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
-                return "md:pl-3 md:grid-cols-[40px_1.5fr_1fr_1.2fr_1fr_1fr_1fr_1.2fr_1.2fr_1fr]";
+                return "md:pl-3 md:grid-cols-[40px_1.2fr_0.8fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr] md:gap-x-2";
             }
             if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
-                return "md:pl-3 md:grid-cols-[40px_1.5fr_1fr_1.2fr_1fr_1fr_1.2fr_1.2fr_1fr_60px]";
+                return "md:pl-3 md:grid-cols-[40px_1.4fr_0.8fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr_60px] md:gap-x-2";
             }
-            return "md:pl-3 md:grid-cols-[40px_1.5fr_1fr_1.2fr_1fr_1fr_1.2fr_1.2fr_1fr]";
+            return "md:pl-3 md:grid-cols-[40px_1.4fr_0.8fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr] md:gap-x-2";
         }
 
         if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
-            return "md:pl-3 md:grid-cols-[40px_1.5fr_1.2fr_1fr_1fr_1fr_1.2fr_1.2fr_1fr_60px]";
+            return "md:pl-3 md:grid-cols-[40px_1.2fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr_60px] md:gap-x-2";
         }
         if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
-            return "md:pl-3 md:grid-cols-[40px_1.5fr_1.2fr_1fr_1fr_1fr_1.2fr_1.2fr_1fr]";
+            return "md:pl-3 md:grid-cols-[40px_1.2fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr] md:gap-x-2";
         }
         if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
-            return "md:pl-3 md:grid-cols-[40px_1.5fr_1.2fr_1fr_1fr_1.2fr_1.2fr_1fr_60px]";
+            return "md:pl-3 md:grid-cols-[40px_1.4fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr_60px] md:gap-x-2";
         }
-        return "md:pl-3 md:grid-cols-[40px_1.5fr_1.2fr_1fr_1fr_1.2fr_1.2fr_1fr]";
+        return "md:pl-3 md:grid-cols-[40px_1.4fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr] md:gap-x-2";
     }, [tableLogic.columnVisibility.actions, showAssignedSalesColumn]); // Dependencies for this memo
     // NEW: Calculate gridColsClass dynamically based on visible columns
 
@@ -638,7 +638,7 @@ export const BoqTableView = ({
             globalSearchPlaceholder="Search Projects..."
             shouldExpandHeight={true} // BoqTableView always tells DataTable to expand to fill its parent's height
             className={className} // Pass parent's className to DataTable's root div
-            minWidth="1200px"
+            minWidth="1000px"
             gridColsClass={calculatedGridColsClass}
 
             headerTitle={<span className="tracking-tight">Projects</span>}

@@ -1141,7 +1141,7 @@ export const CompanySubPages = ({ boqs, contacts, tasks }: CompanySubPagesProps)
         <Tabs defaultValue="boqs" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-transparent p-0 border">
             <TabsTrigger value="boqs" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-l-md rounded-r-none">
-            BOQs
+            Projects
             <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
                 {boqs.length}
             </span>
