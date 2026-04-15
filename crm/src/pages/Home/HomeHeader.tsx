@@ -111,6 +111,7 @@ interface EnrichedCRMTask {
     modified: string;
     contact_name: string;
     company_name_display: string;
+    task_profile?: string;
 }
 
 
@@ -126,6 +127,16 @@ export const HomeHeader = () => {
 
     const canViewSalesReview = isAdmin || isSalesUser;
     const canViewEstimationsReview = isAdmin || isEstimationsUser;
+    const visibleTabCount =
+        (canViewSalesReview ? 1 : 0) +
+        (canViewEstimationsReview ? 2 : 0);
+
+    const tabsListClassName = cn(
+        "grid w-full h-auto gap-1 md:w-auto md:gap-0",
+        visibleTabCount === 1 && "grid-cols-1 md:w-[240px]",
+        visibleTabCount === 2 && "grid-cols-1 sm:grid-cols-2 md:w-[400px]",
+        visibleTabCount >= 3 && "grid-cols-1 sm:grid-cols-3 md:w-[600px]"
+    );
 
     const initialDefaultTab = useMemo(() => {
         if (!canViewSalesReview && canViewEstimationsReview) {
@@ -184,7 +195,7 @@ export const HomeHeader = () => {
 
                 {(canViewSalesReview || canViewEstimationsReview) && (
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-                        <TabsList className={cn("grid w-full md:w-auto", canViewSalesReview && canViewEstimationsReview ? "grid-cols-1 sm:grid-cols-3 md:w-[600px]" : "grid-cols-1 sm:grid-cols-2 md:w-[400px]")}>
+                        <TabsList className={tabsListClassName}>
                             {canViewSalesReview && (
                                 <TabsTrigger
                                     value="sales_review"

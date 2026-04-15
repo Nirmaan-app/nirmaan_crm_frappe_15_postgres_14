@@ -208,8 +208,8 @@ export function DataTableDateFilter<TData>({
                 </div>
             </PopoverTrigger>
 
-            <PopoverContent className="w-auto min-w-[300px] max-w-[320px] p-0 overflow-hidden" align="end" sideOffset={8}>
-                <div className="p-3 space-y-3">
+            <PopoverContent className="w-auto min-w-[300px] max-w-[320px] p-0 flex flex-col max-h-[380px]" align="end" sideOffset={8}>
+                <div className="p-3 space-y-3 flex-1 overflow-y-auto">
                     {/* Operator Selection */}
                     <div className="space-y-1.5">
                         <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">

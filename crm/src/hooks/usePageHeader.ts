@@ -9,7 +9,7 @@ const getPageTitle = (pathname: string): string => {
     if (pathname.startsWith('/tasks/task')) return 'Task Details';
     if (pathname.startsWith('/companies')) return 'Companies';
     if (pathname.startsWith('/contacts')) return 'Contacts';
-    if (pathname.startsWith('/boqs')) return 'BOQs';
+    if (pathname.startsWith('/boqs')) return 'Projects';
     if (pathname.startsWith('/tasks')) return 'Tasks';
     if (pathname.startsWith('/calendar')) return 'Calendar';
     if (pathname.startsWith('/settings')) return 'Settings';

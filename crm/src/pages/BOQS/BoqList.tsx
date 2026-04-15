@@ -84,7 +84,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
           const role = localStorage.getItem('role');
     
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterType, setFilterType] = useState("By BOQ"); // Changed default to "By BOQ"
+    const [filterType, setFilterType] = useState("By Project"); // Changed default to "By Project"
     // const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
  
     const [assignmentFilters, setAssignmentFilters] = useState([]);
@@ -144,7 +144,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         let filtered = boqs;
 
         // Apply filters independently if they have values
-        if (filterType === 'By BOQ' && selectedBoqs.length > 0) {
+        if (filterType === 'By Project' && selectedBoqs.length > 0) {
              filtered = filtered.filter(boq => boq.boq_name && selectedBoqs.includes(boq.boq_name));
         } else if (filterType === 'By Company' && selectedCompanies.length > 0) {
              filtered = filtered.filter(boq => boq.company && selectedCompanies.includes(boq.company));
@@ -171,7 +171,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
                 case 'By Contact':
                     const contactName = `${boq?.first_name || ''} ${boq?.last_name || ''}`.toLowerCase();
                     return contactName.includes(lowercasedQuery);
-                case 'By BOQ': return boq.boq_name?.toLowerCase().includes(lowercasedQuery);
+                case 'By Project': return boq.boq_name?.toLowerCase().includes(lowercasedQuery);
                 case 'By Status': return boq.boq_status?.toLowerCase().includes(lowercasedQuery);
 
                 default: return true;
