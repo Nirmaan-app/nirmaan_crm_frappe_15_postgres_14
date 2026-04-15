@@ -217,7 +217,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ boqs }) => {
       headerTitle="BOQs"
       gridColsClass="grid-cols-[minmax(160px,2fr),minmax(140px,1.5fr),80px,130px,100px]"
       minWidth="620px"
-      globalSearchPlaceholder="Search BOQs..."
+      globalSearchPlaceholder="Search Project..."
       noResultsMessage="No BOQs found for this user."
     />
   );

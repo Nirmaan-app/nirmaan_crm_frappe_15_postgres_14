@@ -20,7 +20,7 @@ export const BoqBcsStatusCard = ({ boq }: BoqBcsStatusCardProps) => {
     const { openEditBcsStatusDialog } = useDialogStore();
 
     const role = localStorage.getItem('role');
-    const canEdit = role === 'Nirmaan Admin User Profile' || role === 'Nirmaan Estimations User Profile';
+    const canEdit = role === 'Nirmaan Admin User Profile' || role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimations Lead Profile';
 
     const handleUpdateBcsStatusClick = () => {
         if (boq) {

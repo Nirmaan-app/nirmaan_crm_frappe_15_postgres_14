@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { nameValidationSchema } from "./nameValidation";
 
 export const boqFormSchema = z.object({
   // boq_name: nameValidationSchema,
@@ -26,6 +25,7 @@ export const boqFormSchema = z.object({
     .optional(),
   // boq_size: z.number().optional(),
   boq_type: z.array(z.string()).optional().default([]),
+  create_bcs: z.boolean().optional().default(false),
   // boq_value: z.number().optional(),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
@@ -61,13 +61,15 @@ export const boqFormSchema = z.object({
   }
 
   // --- Custom validation for website URL ---
-  if (data.boq_link && data.boq_link.trim() !== "" &&
-    !data.boq_link.startsWith("http://") && !data.boq_link.startsWith("https://") && !data.boq_link.startsWith("www.")) {
-    // If it's not a valid URL starting with http/https, mark it as invalid here.
-    // We will prepend 'https://' during submission.
-    try {
-      z.string().url().parse(`https://${data.boq_link}`);
-    } catch (e) {
+  if (data.boq_link && data.boq_link.trim() !== "") {
+    const rawLink = data.boq_link.trim();
+    const parsedLink = rawLink.startsWith("http://") || rawLink.startsWith("https://")
+      ? rawLink
+      : rawLink.startsWith("www.")
+        ? `https://${rawLink}`
+        : `https://${rawLink}`;
+
+    if (!z.string().url().safeParse(parsedLink).success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Please enter a valid URL (e.g., www.example.com or https://example.com).",
@@ -78,177 +80,44 @@ export const boqFormSchema = z.object({
 
 
   // --- Status-Specific Validations ---
-  switch (data.boq_status) {
-    case "New":
+  const normalizedStatus = (data.boq_status || "")
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  switch (normalizedStatus) {
+    case "new":
+    case "in progress":
       // Deadline: Required
       if (!data.boq_submission_date || data.boq_submission_date.trim() === "") {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "BOQ Submission Deadline is required for New BOQs.",
+          message: "Project Submission Deadline is required.",
           path: ['boq_submission_date'],
         });
       }
-      // Link: Optional (handled by original schema)
-      // Remarks: Optional (handled by original schema)
       break;
 
-    case "In-Progress":
-      // Sub Status: Required
-      if (!data.boq_sub_status || data.boq_sub_status.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Sub Status is required for In-Progress BOQs.",
-          path: ['boq_sub_status'],
-        });
-      }
-      // Deadline: Required (Copy old)
-      if (!data.boq_submission_date || data.boq_submission_date.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Submission Deadline is required for In-Progress BOQs.",
-          path: ['boq_submission_date'],
-        });
-      }
-      // Link: Optional
-      // Remarks: Optional
-      break;
-
-    case "BOQ Submitted":
-    case "Partial BOQ Submitted": // Same rules for both
-      // Deadline: Not Required (X) - we might want to clear it in UI if set
-      // Link: Required (*)
-      if (!data.boq_link || data.boq_link.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Link is required when BOQ is Submitted.",
-          path: ['boq_link'],
-        });
-      } else if (!z.string().url().safeParse(data.boq_link).success) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Please enter a valid URL for BOQ Link.",
-          path: ['boq_link'],
-        });
-      }
-      // Remarks: Required for "Partial BOQ Submitted"
-      if (data.boq_status === "Partial BOQ Submitted" && (!data.remarks || data.remarks.trim() === "")) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Remarks are required for Partial BOQ Submitted.",
-          path: ['remarks'],
-        });
-      }
-      if (data.boq_status === "Partial BOQ Submitted" && (!data.boq_submission_date || data.boq_submission_date.trim() === "")) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Submission Deadline is required for In-Progress BOQs.",
-          path: ['boq_submission_date'],
-        });
-      }
-      // --- NEW VALIDATION LOGIC ADDED HERE ---
-      if (!data.boq_value || data.boq_value <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `BOQ Value is required for the "${data.boq_status}" status.`,
-          path: ['boq_value'],
-        });
-      }
-      // --- END OF NEW LOGIC ---
-
-      break;
-
-    case "Revision Pending":
-      // Sub Status: Required
-      if (!data.boq_sub_status || data.boq_sub_status.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Sub Status is required for Revision Pending BOQs.",
-          path: ['boq_sub_status'],
-        });
-      }
-      // Deadline: Required (Copy old)
-      if (!data.boq_submission_date || data.boq_submission_date.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Submission Deadline is required for Revision Pending BOQs.",
-          path: ['boq_submission_date'],
-        });
-      }
-      // Link: Optional
-      // Remarks: Optional
-      break;
-
-    case "Revision Submitted":
-      // Deadline: Not Required (X)
-      // Link: Required (*)
-      if (!data.boq_link || data.boq_link.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "BOQ Link is required when Revision is Submitted.",
-          path: ['boq_link'],
-        });
-      } else if (!z.string().url().safeParse(data.boq_link).success) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Please enter a valid URL for BOQ Link.",
-          path: ['boq_link'],
-        });
-      }
-      // --- NEW VALIDATION LOGIC ADDED HERE ---
-      if (!data.boq_value || data.boq_value <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `BOQ Value is required for the "${data.boq_status}" status.`,
-          path: ['boq_value'],
-        });
-      }
-      // --- END OF NEW LOGIC ---
-      // Remarks: Optional
-      break;
-
-    case "Negotiation":
-      // Deadline: Not Required (X)
-      // Link: Not Required (X)
+    case "negotiation":
+    case "hold": // Legacy mapping
+    case "lost":
+    case "dropped":
       // Remarks: Required (*)
       if (!data.remarks || data.remarks.trim() === "") {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Remarks are required for Negotiation BOQs.",
+          message: `Remarks are required for "${data.boq_status}" status.`,
           path: ['remarks'],
         });
       }
       break;
 
-    case "Won":
-    case "Lost":
-    case "Dropped":
-      // Deadline: Not Required (X)
-      // Link: Not Required (X)
-      // Remarks: Required (*) for Lost/Dropped
-      if ((data.boq_status === "Lost" || data.boq_status === "Dropped") && (!data.remarks || data.remarks.trim() === "")) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Remarks are required for ${data.boq_status} BOQs.`,
-          path: ['remarks'],
-        });
-      }
-      break;
-
-    case "Hold":
-      // Deadline: Not Required (X)
-      // Link: Not Required (X)
-      // Remarks: Required (*)
-      if (!data.remarks || data.remarks.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Remarks are required for Hold BOQs.",
-          path: ['remarks'],
-        });
-      }
+    case "won":
       break;
 
     default:
-      // Default case, perhaps for initial load or unhandled statuses
+      // Default case, for initial load or legacy statuses (BOQ Submitted, Revision Pending, etc.)
       break;
   }
 });
@@ -304,6 +173,7 @@ export const boqDetailsSchema = z.object({
     .nullable()
     .optional(),
   boq_type: z.array(z.string()).optional().default([]),
+  create_bcs: z.boolean().optional().default(false),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
   city: z.string().optional(),
@@ -325,5 +195,20 @@ export const boqDetailsSchema = z.object({
       path: ['other_city'],
     });
   }
-});
 
+  const normalizedStatus = (data.boq_status || "")
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (["new", "in progress"].includes(normalizedStatus)) {
+    if (!data.boq_submission_date || data.boq_submission_date.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Project Submission Deadline is required.",
+        path: ["boq_submission_date"],
+      });
+    }
+  }
+});

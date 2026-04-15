@@ -197,8 +197,8 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
           )}
         </FormControl><FormMessage /></FormItem>)} />
 
-        <FormField name="boq" control={form.control} render={({ field }) => (<FormItem><FormLabel>BOQ</FormLabel><FormControl>
-          <ReactSelect options={boqOptions} isLoading={boqsLoading} value={boqOptions.find(b => b.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select BOQ (Optional)" isClearable isDisabled={!(selectedContactByUser || contactIdFromContext)} />
+        <FormField name="boq" control={form.control} render={({ field }) => (<FormItem><FormLabel>Project</FormLabel><FormControl>
+          <ReactSelect options={boqOptions} isLoading={boqsLoading} value={boqOptions.find(b => b.value === field.value)} onChange={val => field.onChange(val?.value)} menuPosition={'auto'} placeholder="Select Project (Optional)" isClearable isDisabled={!(selectedContactByUser || contactIdFromContext)} />
         </FormControl><FormMessage /></FormItem>)} />
 
         <FormField name="remarks" control={form.control} render={({ field }) => (<FormItem><FormLabel>Remarks<sup>*</sup></FormLabel><FormControl><Textarea placeholder="e.g. Discuss Q3 results." {...field} /></FormControl><FormMessage /></FormItem>)} />

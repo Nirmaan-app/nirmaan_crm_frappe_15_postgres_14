@@ -12,6 +12,7 @@ interface DataTableExportButtonProps<TData> {
   columns: DataTableColumnDef<TData>[]; // The full column definitions to guide export
   fileName?: string; // Optional base file name for the CSV
   label?: string; // Optional button label
+  className?: string; // Optional custom styling
 }
 
 export function DataTableExportButton<TData>({
@@ -19,6 +20,7 @@ export function DataTableExportButton<TData>({
   columns,
   fileName = 'export',
   label = 'Export CSV',
+  className,
 }: DataTableExportButtonProps<TData>) {
 
   const handleExport = () => {
@@ -32,8 +34,9 @@ export function DataTableExportButton<TData>({
       onClick={handleExport}
       disabled={data.length === 0} // Disable if no data available for export
       className={cn(
-        "h-10 w-full md:w-auto", // Existing styling
-        "hidden md:inline-flex"    // <--- ADDED: Hide on mobile, show as inline-flex on desktop
+        "h-9 w-full md:w-auto", // Standardized to h-9
+        "hidden md:inline-flex",
+        className
       )}
     >
       <Download className="mr-2 h-4 w-4" /> {/* Standard icon size for button */}

@@ -11,6 +11,10 @@ export type DataTableColumnDef<TData, TValue = unknown> = ColumnDef<TData, TValu
     enableSorting?: boolean; // Explicitly enable sorting for this column in the UI
     filterVariant?: 'text' | 'select' | 'date' | 'multiSelect'; // Type of filter to render
     filterOptions?: { label: string; value: string; icon?: React.ComponentType<{ className?: string }> }[]; // Options for 'select'/'multiSelect' filters
+    excludeFromExport?: boolean;
+    exportHeaderName?: string;
+    isCurrency?: boolean;
+    exportValue?: (row: TData) => string | number | boolean | null;
   };
 };
 

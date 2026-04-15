@@ -58,7 +58,7 @@ const MobileBoqListItem = ({ boq }: { boq: EnrichedBoq }) => {
                     </span>
 
                     {
-                        (role != "Nirmaan Estimations User Profile") && (
+                        (role != "Nirmaan Estimations User Profile" && role != "Nirmaan Estimations Lead Profile") && (
 <Button variant="outline" size="sm" className="h-8 w-8 rounded-full border-destructive text-destructive" onClick={(e) => { e.stopPropagation();handleCreateTask({ boqId: boq.name, companyId: boq.company, contactId: boq.contact })  }}>
                         <Plus className="w-4 h-4 mr-0" /> 
 
@@ -84,7 +84,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
           const role = localStorage.getItem('role');
     
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterType, setFilterType] = useState("By BOQ"); // Changed default to "By BOQ"
+    const [filterType, setFilterType] = useState("By Project"); // Changed default to "By Project"
     // const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
  
     const [assignmentFilters, setAssignmentFilters] = useState([]);
@@ -104,7 +104,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
     const swrKey = `all-boqs-${JSON.stringify(assignmentFilters)}`;
 
     const { data: boqs, isLoading } = useFrappeGetDocList<EnrichedBoq>("CRM BOQ", {
-        fields: ["name", "boq_name", "boq_status","city","boq_sub_status","boq_submission_date", "boq_type","boq_value", "company", "contact", "boq_size","company.company_name", "contact.first_name","boq_link", "contact.last_name", "modified","assigned_sales"],
+        fields: ["name", "boq_name", "boq_status","city","boq_sub_status","boq_submission_date", "boq_type","create_bcs","boq_value", "company", "contact", "boq_size","company.company_name", "contact.first_name","boq_link", "contact.last_name", "modified","assigned_sales"],
         filters: assignmentFilters,
         limit: 0,
         orderBy: { field: "modified", order: "desc" }
@@ -144,7 +144,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
         let filtered = boqs;
 
         // Apply filters independently if they have values
-        if (filterType === 'By BOQ' && selectedBoqs.length > 0) {
+        if (filterType === 'By Project' && selectedBoqs.length > 0) {
              filtered = filtered.filter(boq => boq.boq_name && selectedBoqs.includes(boq.boq_name));
         } else if (filterType === 'By Company' && selectedCompanies.length > 0) {
              filtered = filtered.filter(boq => boq.company && selectedCompanies.includes(boq.company));
@@ -171,7 +171,7 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
                 case 'By Contact':
                     const contactName = `${boq?.first_name || ''} ${boq?.last_name || ''}`.toLowerCase();
                     return contactName.includes(lowercasedQuery);
-                case 'By BOQ': return boq.boq_name?.toLowerCase().includes(lowercasedQuery);
+                case 'By Project': return boq.boq_name?.toLowerCase().includes(lowercasedQuery);
                 case 'By Status': return boq.boq_status?.toLowerCase().includes(lowercasedQuery);
 
                 default: return true;
@@ -204,7 +204,8 @@ export const BoqList = ({ onBoqSelect, activeBoqId }: BoqListProps) => {
 
         selectedStatuses,
         setSelectedStatuses,
-        statusOptions
+        statusOptions,
+        filteredProjectIds: filteredBoqs?.map(b => b.name) || []
     };
 
     return (

@@ -1,17 +1,8 @@
-
-
 // src/pages/Layout/HomePage.tsx
-import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
-import { useMemo } from "react";
-import { EnrichedCRMTask } from "../Tasks/Tasks"; // Reusing this type
 import { HomeHeader } from "../Home/HomeHeader";
-import { PendingTasks } from "../Home/PendingTasks";
-import { StatsGrid } from "../Home/StatsGrid";
-import { EstimationsHomePage } from "../Home/EstimationsHomePage";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 export const HomePage = () => {
-    // Fetch pending tasks for the top card]
-    const { role,full_name, isLoading } = useCurrentUser()
+    const { isLoading } = useCurrentUser()
 
     // const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]]
     // const homePageTaskSWR =  `all-tasks-${JSON.stringify(homePageTaskFilter)}`;
@@ -36,23 +27,12 @@ export const HomePage = () => {
 
     // console.log("enrichedTasks",enrichedTasks)
     if (isLoading) return <div>Loading</div>
-    else if (role === "Nirmaan Estimations User Profile") {
-        return (
-            <div className="space-y-6">
-                <EstimationsHomePage FullName={full_name}/>
-            </div>
-        )
-    }
-    else {
-        return (
-            <div className="space-y-6">
-                <HomeHeader />
-                {/* <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
-            <StatsGrid /> */}
-            </div>
 
-        )
-    }
+    return (
+        <div className="space-y-6">
+            <HomeHeader />
+        </div>
+    )
 };
 
 

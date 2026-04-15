@@ -13,12 +13,18 @@ const getFilteredNavItems = (role: string | null): NavItem[] => {
   if (!role) {
     return [];
   }
+  const isEstimationsRole =
+    role === 'Nirmaan Estimations User Profile' ||
+    role === 'Nirmaan Estimates User Profile' ||
+    role === 'Nirmaan Estimations lead Profile' ||
+    role === 'Nirmaan Estimations Lead Profile';
+
   // ... (Your filtering logic remains the same)
   if (role === 'Nirmaan Sales User Profile') {
     return items.filter(item => item.label !== 'My Team');
   }
-  if (role === 'Nirmaan Estimations User Profile') {
-    return items.filter(item => ['Home', 'BOQs', 'Tasks'].includes(item.label));
+  if (isEstimationsRole) {
+    return items.filter(item => ['Home', 'Projects', 'Tasks'].includes(item.label));
   }
   if (role === 'Nirmaan Admin User Profile') {
     return items;

@@ -42,7 +42,7 @@ export const MemberDetails = ({ memberId }) => {
     // Fetch BOQs based on the user's role.
     const { data: boqs, isLoading: boqsLoading } = useFrappeGetDocList("CRM BOQ", {
         fields: ["*"], // TODO: Specify fields in production
-        filters: memberRole === 'Nirmaan Estimations User Profile'
+        filters: memberRole === 'Nirmaan Estimations User Profile' || memberRole === 'Nirmaan Estimations Lead Profile'
             ? [['assigned_estimations', '=', memberEmail]] // Filter for Estimation users
             : [['assigned_sales', '=', memberEmail]],      // Filter for Sales users
         limit: 0,
@@ -66,6 +66,7 @@ export const MemberDetails = ({ memberId }) => {
         switch (memberRole) {
             case 'Nirmaan Admin User Profile':
                 return ['overview'];
+            case 'Nirmaan Estimations Lead Profile':
             case 'Nirmaan Estimations User Profile':
                 return ['overview', 'boqs',"tasks"];
             case 'Nirmaan Sales User Profile':

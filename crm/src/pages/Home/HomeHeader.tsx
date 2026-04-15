@@ -68,19 +68,19 @@
 
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Calendar, Search, Plus } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GlobalSearchInput } from "@/components/common/GlobalSearchInput";
 import { PendingTasks } from "./PendingTasks";
 import { StatsGrid } from "./StatsGrid";
 import { useFrappeGetDocList } from "frappe-react-sdk";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { AllBOQs, PendingBOQs } from "./EstimationsHomePage"; // Assuming these are your Estimations Review components
+import { EstimationsReviewTable } from "./components/EstimationsReviewTable";
+import { BoqBcsReviewTable } from "./components/BoqBcsReviewTable";
 
 // --- shadcn/ui Tabs Imports ---
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskTableView } from "../Tasks/components/TaskTableView";
 import { SalesPerformanceTable } from "./components/SalesPerformanceTable";
 import { ExceptionReportForCompanies } from "./components/ExceptionReportForCompanies";
@@ -111,6 +111,7 @@ interface EnrichedCRMTask {
     modified: string;
     contact_name: string;
     company_name_display: string;
+    task_profile?: string;
 }
 
 
@@ -119,25 +120,48 @@ export const HomeHeader = () => {
     const fullName = localStorage.getItem('fullName'); // From your code
     const role = localStorage.getItem('role'); // From your code
 
+    const isAdmin = role === 'Nirmaan Admin User Profile';
+    const isSalesUser = role === 'Nirmaan Sales User Profile';
+    const isEstimationsUser =
+        role === 'Nirmaan Estimations User Profile' || role === 'Nirmaan Estimates User Profile' || role === 'Nirmaan Estimations Lead Profile' || role === 'Nirmaan Estimations lead Profile'
+
+    const canViewSalesReview = isAdmin || isSalesUser;
+    const canViewEstimationsReview = isAdmin || isEstimationsUser;
+    const visibleTabCount =
+        (canViewSalesReview ? 1 : 0) +
+        (canViewEstimationsReview ? 2 : 0);
+
+    const tabsListClassName = cn(
+        "grid w-full h-auto gap-1 md:w-auto md:gap-0",
+        visibleTabCount === 1 && "grid-cols-1 md:w-[240px]",
+        visibleTabCount === 2 && "grid-cols-1 sm:grid-cols-2 md:w-[400px]",
+        visibleTabCount >= 3 && "grid-cols-1 sm:grid-cols-3 md:w-[600px]"
+    );
 
     const initialDefaultTab = useMemo(() => {
-        if (role === 'Nirmaan Estimates User Profile') { // Check for Estimates role
+        if (!canViewSalesReview && canViewEstimationsReview) {
             return 'estimations_review';
         }
-        return 'sales_review'; // Default for Admin, Sales, or any other role
-    }, [role]); // Re-evaluate if role changes (though localStorage is usually static after login)
+        return 'sales_review';
+    }, [canViewSalesReview, canViewEstimationsReview]);
 
     // State for the active tab, synced with URL search parameters
-    const [activeTab, setActiveTab] = useStateSyncedWithParams<string>('homeTab', "sales_review");
+    const [activeTab, setActiveTab] = useStateSyncedWithParams<string>('homeTab', initialDefaultTab);
 
-    // Determine if the current user is an Admin (using your exact logic)
-    const isAdmin = role === 'Nirmaan Admin User Profile';
+    useEffect(() => {
+        if (activeTab === 'sales_review' && !canViewSalesReview) {
+            setActiveTab('estimations_review');
+        }
+        if (activeTab === 'estimations_review' && !canViewEstimationsReview) {
+            setActiveTab('sales_review');
+        }
+    }, [activeTab, canViewSalesReview, canViewEstimationsReview, setActiveTab]);
 
     // --- Data Fetching for Sales Review ---
     const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]];
     const homePageTaskSWR = `all-tasks-${JSON.stringify(homePageTaskFilter)}`;
     const { data: tasksData, isLoading: tasksLoading } = useFrappeGetDocList<EnrichedCRMTask>("CRM Task", {
-        fields: ["name", "type", "start_date", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name", "creation", "modified","task_profile"],
+        fields: ["name", "type", "start_date", "status", "contact", "company", "boq", "contact.first_name", "contact.last_name", "company.company_name", "creation", "modified", "task_profile"],
         filters: homePageTaskFilter,
         limit: 0,
         orderBy: {
@@ -169,32 +193,45 @@ export const HomeHeader = () => {
                     </Button>
                 </div>
 
-                {/* --- REPLACED WITH SHADCN TABS --- */}
-                {isAdmin && ( // Only show Tabs for Admins, based on your logic
+                {(canViewSalesReview || canViewEstimationsReview) && (
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-                        <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
-                            <TabsTrigger
-                                value="sales_review"
-                                className={cn(
-                                    "data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground", // Red active theme
-                                    "data-[state=inactive]:text-muted-foreground data-[state=inactive]:bg-background hover:data-[state=inactive]:bg-accent" // White/gray inactive theme
-                                )}
-                            >
-                                Sales Review
-                            </TabsTrigger>
-                            <TabsTrigger // This tab is always shown if isAdmin is true
-                                value="estimations_review"
-                                className={cn(
-                                    "data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground", // Red active theme
-                                    "data-[state=inactive]:text-muted-foreground data-[state=inactive]:bg-background hover:data-[state=inactive]:bg-accent" // White/gray inactive theme
-                                )}
-                            >
-                                Estimations Review
-                            </TabsTrigger>
+                        <TabsList className={tabsListClassName}>
+                            {canViewSalesReview && (
+                                <TabsTrigger
+                                    value="sales_review"
+                                    className={cn(
+                                        "data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground",
+                                        "data-[state=inactive]:text-muted-foreground data-[state=inactive]:bg-background hover:data-[state=inactive]:bg-accent"
+                                    )}
+                                >
+                                    Sales Review
+                                </TabsTrigger>
+                            )}
+                            {canViewEstimationsReview && (
+                                <TabsTrigger
+                                    value="estimations_review"
+                                    className={cn(
+                                        "data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground",
+                                        "data-[state=inactive]:text-muted-foreground data-[state=inactive]:bg-background hover:data-[state=inactive]:bg-accent"
+                                    )}
+                                >
+                                    Estimations Review
+                                </TabsTrigger>
+                            )}
+                            {canViewEstimationsReview && (
+                                <TabsTrigger
+                                    value="boq_bcs_review"
+                                    className={cn(
+                                        "data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground",
+                                        "data-[state=inactive]:text-muted-foreground data-[state=inactive]:bg-background hover:data-[state=inactive]:bg-accent"
+                                    )}
+                                >
+                                    BOQ/BCS Review
+                                </TabsTrigger>
+                            )}
                         </TabsList>
                     </Tabs>
                 )}
-               
 
                 {/* Global Search Input, fixed under tabs (or directly under greeting if tabs are hidden) */}
                 {/* <div className="relative mt-4 mb-2 flex-shrink-0">
@@ -204,13 +241,13 @@ export const HomeHeader = () => {
 
             {/* Content area based on active tab, scrolls below fixed header */}
             <div className="flex-1 px-4"> {/* flex-1 allows this section to fill remaining space */}
-                {activeTab === 'sales_review' && (
+                {canViewSalesReview && activeTab === 'sales_review' && (
                     <div className="space-y-2"> {/* Use space-y- to manage spacing between components */}
-                         <div className="relative mt-0 mb-0 flex-shrink-0">
-                           <GlobalSearchInput className="flex-1" />
-                       </div>
-                       
-                       {/* {isAdmin ? (
+                        <div className="relative mt-0 mb-0 flex-shrink-0">
+                            <GlobalSearchInput className="flex-1" />
+                        </div>
+
+                        {/* {isAdmin ? (
                         <>
                         <SalesPerformanceTable className="mt-8 border-t border-gray-200 pt-4"/>
                          <TaskTableView taskProfiles="Sales" tableContainerClassName="max-h-[280px]" />
@@ -221,9 +258,9 @@ export const HomeHeader = () => {
                             // If not Admin, show PendingTasks (original behavior)
                             <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
                         )} */}
-                          {isAdmin ? (
+                        {isAdmin ? (
                             <>
-                            
+
                                 {/* --- COLLAPSIBLE SALES PERFORMANCE TABLE --- */}
                                 <CollapsibleSection title="Sales Performance" defaultOpen={true}>
                                     <SalesPerformanceTable className="border-none p-0 shadow-none" /> {/* Remove default styling from table here */}
@@ -241,19 +278,23 @@ export const HomeHeader = () => {
                             // Non-Admin view retains PendingTasks
                             <PendingTasks tasks={enrichedTasks} isLoading={tasksLoading} />
                         )}
-                        
+
                         <StatsGrid />
                     </div>
                 )}
 
-
-{activeTab === 'estimations_review' && (
+                {canViewEstimationsReview && activeTab === 'estimations_review' && (
                     <div className="flex-1 flex flex-col min-h-0">
-                        <PendingBOQs />
-                        {/* <AllBOQs /> */}
+                        <EstimationsReviewTable />
                     </div>
                 )}
-                
+
+                {canViewEstimationsReview && activeTab === 'boq_bcs_review' && (
+                    <div className="flex-1 flex flex-col min-h-0">
+                        <BoqBcsReviewTable />
+                    </div>
+                )}
+
             </div>
         </div>
     );

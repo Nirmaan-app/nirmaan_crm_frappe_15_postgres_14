@@ -14,6 +14,7 @@
   "boq_name",
   "boq_size",
   "boq_type",
+  "create_bcs",
   "boq_value",
   "boq_submission_date",
   "boq_link",
@@ -67,6 +68,12 @@
    "label": "BOQ Type"
   },
   {
+   "default": "0",
+   "fieldname": "create_bcs",
+   "fieldtype": "Check",
+   "label": "Create BCS"
+  },
+  {
    "fieldname": "boq_value",
    "fieldtype": "Data",
    "label": "BOQ Value"
@@ -84,7 +91,8 @@
   {
    "fieldname": "city",
    "fieldtype": "Data",
-   "label": "City"
+   "label": "City",
+   "reqd": 1
   },
   {
    "fieldname": "remarks",
@@ -95,8 +103,8 @@
    "default": "New",
    "fieldname": "boq_status",
    "fieldtype": "Data",
-   "label": "BOQ Status",
-   "options": "Won\nLost\nHold\nRevision Pending\nNegotiation\nRevision Submitted"
+   "label": "Project Status",
+   "options": "New\nIn Progress\nWon\nNegotiation\nOn Hold\nDropped\nLost\nHold\nRevision Pending\nRevision Submitted"
   },
   {
    "fieldname": "boq_sub_status",
