@@ -46,7 +46,7 @@ def on_user_update(doc, method=None):
 		profile.last_name = doc.last_name
 		profile.full_name = doc.full_name
 		profile.mobile_no = doc.mobile_no
-		profile.role_profile = doc.role_profile_name
+		profile.nirmaan_role_name = doc.role_profile_name
 		profile.save(ignore_permissions=True)
 
 # Creating infinite loop if enabled with nirmaan users controller on_trash function
