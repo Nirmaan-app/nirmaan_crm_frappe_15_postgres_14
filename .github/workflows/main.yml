@@ -49,5 +49,5 @@ jobs:
           build-args: |
             FRAPPE_PATH=https://github.com/frappe/frappe
             FRAPPE_BRANCH=version-15
-          secrets: |
-            apps_json=${{ runner.temp }}/secrets/apps.json
+          secret-files: |
+            "apps_json=${{ runner.temp }}/secrets/apps.json"
