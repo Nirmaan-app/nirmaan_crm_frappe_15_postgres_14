@@ -87,10 +87,11 @@ export const LocationOptions = [
 // ... (your existing LocationOptions, TeamSizeOptions, etc.)
 
 export const CompanyProgressPriorityOptions = [
-    { label: "Meet Every Week", value: "Meet Every Week" },
+  { label: "Meet Every Week", value: "Meet Every Week" },
   { label: "Meet Once Every 2 Weeks", value: "Meet Once Every 2 Weeks" },
   { label: "Meet Once a Month", value: "Meet Once a Month" },
   { label: "Hold", value: "Hold" },
+  { label: "Future Prospect", value: "Future Prospect" },
 ];
 
 export const TeamSizeOptions = [

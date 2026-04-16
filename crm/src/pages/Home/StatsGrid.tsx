@@ -218,9 +218,9 @@ export const StatsGrid = () => {
         { title: "Total Task", data: statsData?.totalMeetings },
         { title: "Unique Meetings", data: statsData?.uniqueMeetings },
         { title: "Pending Task", data: statsData?.pendingTasks },
-        { title: "Pending BOQ", data: statsData?.pendingBoq },
-        { title: "BOQ Received", data: statsData?.boqReceived },
-        { title: "BOQ Sent", data: statsData?.boqSent },
+        { title: "Pending Projects", data: statsData?.pendingBoq },
+        { title: "Projects Received", data: statsData?.boqReceived },
+        { title: "Projects Sent", data: statsData?.boqSent },
         { title: "Hot Deals", data: statsData?.hotDeals },
     ];
 

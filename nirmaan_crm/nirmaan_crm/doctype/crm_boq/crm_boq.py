@@ -36,6 +36,10 @@ class CRMBOQ(Document):
 
 	def on_update(self):
 		packages = self._get_selected_packages()
+		
+		# Cleanup tasks for removed packages first
+		self._cleanup_removed_package_tasks(packages)
+
 		if not packages:
 			return
 
@@ -53,6 +57,26 @@ class CRMBOQ(Document):
 			# BCS rows are created only when explicitly enabled from project create/edit flow.
 			if should_create_bcs:
 				self._create_project_estimation_if_missing(package_name, "BCS", assigned_to)
+
+	def on_trash(self):
+		"""Cleanup all associated tasks when the project is deleted."""
+		frappe.db.delete("CRM Project Estimation", {"parent_project": self.name})
+
+	def _cleanup_removed_package_tasks(self, current_packages):
+		"""Deletes all Project Estimation (BOQ/BCS) tasks for packages that are no longer selected."""
+		if self.is_new():
+			return
+
+		existing_tasks = frappe.get_all(
+			"CRM Project Estimation",
+			filters={"parent_project": self.name},
+			fields=["name", "package_name"]
+		)
+		
+		for task in existing_tasks:
+			# If the package_name of the task is not in the current selection, delete it
+			if task.package_name not in current_packages:
+				frappe.delete_doc("CRM Project Estimation", task.name, ignore_permissions=True)
 
 	def _get_selected_packages(self):
 		raw_packages = getattr(self, "boq_type", None)

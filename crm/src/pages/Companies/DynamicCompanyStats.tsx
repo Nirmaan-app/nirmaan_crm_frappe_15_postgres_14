@@ -98,8 +98,8 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
         { title: "Follow Up Meetings", data: statsData?.followUpMeetings },
 
         // { title: "Pending Tasks", data: statsData?.pendingTasks },
-        { title: "BOQ Received", data: statsData?.boqReceived },
-        { title: "BOQ Sent", data: statsData?.boqSent },
+        { title: "Projects Received", data: statsData?.boqReceived },
+        { title: "Projects Sent", data: statsData?.boqSent },
     ];
 
     return (

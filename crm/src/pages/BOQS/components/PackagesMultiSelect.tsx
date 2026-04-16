@@ -29,15 +29,18 @@ interface PackagesMultiSelectProps {
   onChange: (packages: string[]) => void;
   placeholder?: string;
   disabled?: boolean;
+  packagesWithTasks?: string[];
 }
-
 export function PackagesMultiSelect({
   value,
   onChange,
   placeholder = "Select packages...",
   disabled = false,
+  packagesWithTasks = [],
 }: PackagesMultiSelectProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingValue, setPendingValue] = useState<string[] | null>(null);
   const [customInput, setCustomInput] = useState("");
 
   // Convert string array to react-select format
@@ -84,12 +87,35 @@ export function PackagesMultiSelect({
       return;
     }
 
-    // Filter out "Others" from selected values (should never be in there, but just in case)
+    // Filter out "Others" from selected values
     const filteredValues = newValue
       .filter((opt) => opt.value !== OTHERS_OPTION.value)
       .map((opt) => opt.value);
 
+    // Check if any removed packages have associated tasks
+    const removedPackages = value.filter(v => !filteredValues.includes(v));
+    const hasTasksToRemove = removedPackages.some(pkg => packagesWithTasks.includes(pkg));
+
+    if (hasTasksToRemove && (actionMeta.action === "remove-value" || actionMeta.action === "pop-value" || actionMeta.action === "clear")) {
+      setPendingValue(filteredValues);
+      setIsConfirmOpen(true);
+      return;
+    }
+
     onChange(filteredValues);
+  };
+
+  const handleConfirmRemoval = () => {
+    if (pendingValue !== null) {
+      onChange(pendingValue);
+    }
+    setPendingValue(null);
+    setIsConfirmOpen(false);
+  };
+
+  const handleCancelRemoval = () => {
+    setPendingValue(null);
+    setIsConfirmOpen(false);
   };
 
   const handleAddCustomPackage = () => {
@@ -208,6 +234,32 @@ export function PackagesMultiSelect({
               disabled={!customInput.trim()}
             >
               Add Package
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Removal Confirmation Dialog */}
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remove Package?</DialogTitle>
+            <DialogDescription className="py-2">
+              Are you sure you want to remove this package? <br />
+              <span className="font-semibold text-destructive">
+                This action will also delete all tasks associated with this package.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button type="button" variant="outline" onClick={handleCancelRemoval}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleConfirmRemoval}
+            >
+              Confirm
             </Button>
           </DialogFooter>
         </DialogContent>

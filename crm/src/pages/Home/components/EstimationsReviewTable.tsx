@@ -3,6 +3,7 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronDown, ChevronRight, Link2, SquarePen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { useDialogStore } from "@/store/dialogStore";
 import { cn } from "@/lib/utils";
 
@@ -84,6 +85,7 @@ const COMPLETED_STATUSES = new Set([
 ]);
 
 const WIP_STATUSES = new Set([
+  "new",
   "in progress",
   "in-progress",
   "partial boq submitted",
@@ -359,7 +361,14 @@ export const TaskTable = ({
               <tr key={item.name} className={cn("align-top", overdue ? "bg-red-50 hover:bg-red-100/50" : dueToday ? "bg-yellow-50 hover:bg-yellow-100/50" : "hover:bg-gray-50")}>
                 {showProjectName && (
                   <td className="px-3 py-2 text-sm text-gray-900">
-                    {projectMap.get(item.parent_project || "")?.boq_name || item.parent_project || "--"}
+                    {item.parent_project ? (
+                      <Link
+                        to={`/boqs/boq?id=${item.parent_project}`}
+                        className="text-primary font-semibold hover:underline"
+                      >
+                         {projectMap.get(item.parent_project)?.boq_name || item.parent_project}
+                      </Link>
+                    ) : "--"}
                   </td>
                 )}
                 <td className="px-3 py-2 text-sm text-gray-900">{item.package_name || item.title || "--"}</td>
@@ -695,15 +704,15 @@ export const EstimationsReviewTable = () => {
     const summaries: ProjectSummary[] = Array.from(grouped.entries()).map(([projectId, items]) => {
       const project = projectMap.get(projectId);
       const derivedValue = items.reduce((acc, item) => acc + (Number(item.value) || 0), 0);
+      // Use derived sum from estimation rows when they exist;
+      // fall back to legacy boq_value only when there are no estimation items.
+      const totalValue = items.length > 0 ? derivedValue : (Number(project?.boq_value) || 0);
 
       return {
         projectId,
         projectName: project?.boq_name || projectId,
         status: project?.boq_status || "--",
-        totalValue:
-          project?.boq_value !== undefined && project?.boq_value !== null
-            ? Number(project.boq_value)
-            : derivedValue,
+        totalValue,
         tasks: items.length,
         overdue: items.filter((item) => isOverdue(item.deadline, item.status)).length,
       };
@@ -900,7 +909,13 @@ export const EstimationsReviewTable = () => {
                                                     ) : (
                                                       <ChevronRight className="h-4 w-4 text-gray-500" />
                                                     )}
-                                                    {project.projectName}
+                                                    <Link
+                                                      to={`/boqs/boq?id=${project.projectId}`}
+                                                      className="text-primary font-semibold hover:underline"
+                                                      onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                      {project.projectName}
+                                                    </Link>
                                                   </div>
                                                 </td>
                                                 <td className="px-3 py-2">

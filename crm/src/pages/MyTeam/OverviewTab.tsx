@@ -146,9 +146,9 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
 
         const allPossibleCards = {
             pendingTasks: { title: "Pending Tasks", data: statsData?.pendingTasks },
-            boqReceived: { title: "BOQs Received", data: statsData?.boqReceived },
-            boqSent: { title: "BOQs Sent", data: statsData?.boqSent },
-            pendingBoq: { title: "Pending BOQs", data: statsData?.pendingBoq },
+            boqReceived: { title: "Projects Received", data: statsData?.boqReceived },
+            boqSent: { title: "Projects Sent", data: statsData?.boqSent },
+            pendingBoq: { title: "Pending Projects", data: statsData?.pendingBoq },
             hotDeals: { title: "Hot Deals", data: statsData?.hotDeals },
             totalMeetings: { title: "Total Meetings", data: statsData?.totalMeetings },
             uniqueMeetings: { title: "Unique Meetings", data: statsData?.uniqueMeetings },

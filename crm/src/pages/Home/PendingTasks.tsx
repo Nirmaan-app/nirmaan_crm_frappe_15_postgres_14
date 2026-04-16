@@ -15,6 +15,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"; // 3. Import Dropdown components
 // ... other imports
+import { Link } from "react-router-dom";
 import { TaskStatusIcon } from "@/components/ui/TaskStatusIcon";
 
 type FilterOption = 'last 7 days' | 'Today' | 'All';
@@ -28,7 +29,7 @@ const PendingTaskRow = ({ task }: { task: EnrichedCRMTask }) => {
                     <div className="flex">
                         <TaskStatusIcon status={task.status} className="mr-1 flex-shrink-0" />
                         {task.task_profile==="Sales"?(
-                        <div> 
+                            <div>
                             
                             <span className="font-semibold">{task?.type}</span> with <span className="font-semibold">{task?.first_name}</span>{" "} from {task?.company_name} {" "}
                             <p className="text-xs inline-block text-muted-foreground p-0 m-0">
@@ -37,14 +38,19 @@ const PendingTaskRow = ({ task }: { task: EnrichedCRMTask }) => {
                         </div>
                         ):(
                             <div>
-                            
-                            <span className="font-semibold">{task?.type}</span> for <span className="font-semibold"> {task?.boq} {" "}</span>
-                            <p className="text-xs inline-block text-muted-foreground p-0 m-0">
-                               {formatCasualDate(task.start_date)}
-                            </p>
-                        </div>
+                                <span className="font-semibold">{task?.type}</span> for {" "}
+                                {task?.boq ? (
+                                    <Link to={`/boqs/boq?id=${task.boq}`} className="text-primary font-semibold hover:underline">
+                                        {task.boq}
+                                    </Link>
+                                ) : (
+                                    <span className="font-semibold">N/A</span>
+                                )}{" "}
+                                <p className="text-xs inline-block text-muted-foreground p-0 m-0">
+                                    {formatCasualDate(task.start_date)}
+                                </p>
+                            </div>
                         )}
-                        
                     </div>
                 </span>
                 <Button variant="outline" size="sm" onClick={() => openEditTaskDialog({ taskData: task, mode: 'updateStatus' })}>

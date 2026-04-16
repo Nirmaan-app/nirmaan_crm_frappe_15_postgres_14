@@ -53,7 +53,7 @@ export const BoqBcsReviewTable = () => {
         return map;
     }, [teamUsers]);
 
-    const targetStatuses = new Set(["in progress", "in-progress", "partial boq submitted", "revision pending", "hold"]);
+    const targetStatuses = new Set(["new", "in progress", "in-progress", "partial boq submitted", "revision pending", "hold"]);
     const normalizeStatus = (status: string) => (status||"").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
 
     const pendingWipEstimations = useMemo(() => {

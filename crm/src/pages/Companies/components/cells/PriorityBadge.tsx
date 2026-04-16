@@ -29,6 +29,12 @@ const PRIORITY_CONFIG = [
     styles: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-800',
   },
   {
+    // "Future prospect"
+    match: (p: string) => p.includes('future'),
+    label: 'Future',
+    styles: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800',
+  },
+  {
     // "Hold" - paused
     match: (p: string) => p.includes('hold'),
     label: 'Hold',
