@@ -25,8 +25,11 @@ jobs:
           ]
           EOF
           )
-          APPS_JSON_B64=$(printf '%s' "$APPS_JSON" | base64 -w 0)
-          echo "base64=${APPS_JSON_B64}" >> "$GITHUB_OUTPUT"
+          {
+            echo "apps_json_raw<<__EOF__"
+            printf '%s\n' "$APPS_JSON"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -52,4 +55,5 @@ jobs:
           build-args: |
             FRAPPE_PATH=https://github.com/frappe/frappe
             FRAPPE_BRANCH=version-15
-            APPS_JSON_BASE64=${{ steps.apps_json.outputs.base64 }}
+          secrets: |
+            "apps_json=${{ steps.apps_json.outputs.apps_json_raw }}"
