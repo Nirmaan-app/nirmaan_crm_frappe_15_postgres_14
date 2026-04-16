@@ -188,6 +188,13 @@ export const boqDetailsSchema = z.object({
       path: ['company'],
     });
   }
+  if (!data.boq_type || data.boq_type.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "At least one package is required.",
+      path: ['boq_type'],
+    });
+  }
   if (data.city === "Others" && (!data.other_city || data.other_city.trim() === "")) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

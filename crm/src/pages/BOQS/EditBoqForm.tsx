@@ -101,6 +101,22 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     return packages;
   }, [estimations]);
 
+  const packagesWithAnyTasks = useMemo(() => {
+    const packages = new Set<string>();
+    (estimations || []).forEach((est) => {
+      const pkg = (est.package_name || "").trim();
+      if (pkg) packages.add(pkg);
+    });
+    return Array.from(packages);
+  }, [estimations]);
+
+  // Detect if this project has legacy tasks (migrated from old data)
+  const hasLegacyTasks = useMemo(() => {
+    return (estimations || []).some(
+      (est) => (est.package_name || "").trim() === "Legacy"
+    );
+  }, [estimations]);
+
   const pendingBcsPackages = useMemo(() => {
     return (selectedPackages || [])
       .map((pkg: string) => (pkg || "").trim())
@@ -131,11 +147,17 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       const initialCityValue = isStandardCity ? boqData.city : "Others";
       const initialOtherCityValue = isStandardCity ? "" : boqData.city || "";
 
+      // Build packages list, injecting "Legacy" if legacy tasks exist
+      const parsedPackages = parsePackages(boqData.boq_type);
+      if (hasLegacyTasks && !parsedPackages.includes("Legacy")) {
+        parsedPackages.unshift("Legacy");
+      }
+
       form.reset({
         ...boqData,
         city: initialCityValue || "",
         other_city: initialOtherCityValue,
-        boq_type: parsePackages(boqData.boq_type),
+        boq_type: parsedPackages,
         create_bcs: boqData.create_bcs === 1,
         boq_value: Number(boqData.boq_value) || 0,
         boq_size: Number(boqData.boq_size) || 0,
@@ -147,7 +169,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         boq_submission_date: boqData.boq_submission_date || ""
       });
     }
-  }, [boqData, form]);
+  }, [boqData, form, hasLegacyTasks]);
 
   useEffect(() => {
     if (isCreateBcsLocked && !form.getValues("create_bcs")) {
@@ -338,6 +360,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                       value={field.value || []}
                       onChange={field.onChange}
                       placeholder="Select packages..."
+                      packagesWithTasks={packagesWithAnyTasks}
                     />
                   </FormControl>
                   <FormMessage />

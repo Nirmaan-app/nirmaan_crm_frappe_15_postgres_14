@@ -191,7 +191,10 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
         .filter((est) => (est.document_type || '').toUpperCase() === 'BCS')
         .reduce((sum, est) => sum + (Number(est.value) || 0), 0);
 
-    const totalValue = boqTotalFromRows > 0 ? boqTotalFromRows : (Number(boq?.boq_value) || 0);
+    // If estimation rows exist, always use the aggregated sum (even if zero);
+    // fall back to legacy boq_value only when there are no BOQ estimation rows at all.
+    const hasBoqEstimations = (estimations || []).some((est) => (est.document_type || '').toUpperCase() === 'BOQ');
+    const totalValue = hasBoqEstimations ? boqTotalFromRows : (Number(boq?.boq_value) || 0);
     const hasBcsValue = bcsTotalFromRows > 0;
     const profitValue = hasBcsValue ? totalValue - bcsTotalFromRows : 0;
     const profitPercent = hasBcsValue && totalValue > 0 ? (profitValue / totalValue) * 100 : 0;

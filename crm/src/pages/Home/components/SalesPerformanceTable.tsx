@@ -235,7 +235,7 @@ export const SalesPerformanceTable: React.FC<SalesPerformanceTableProps> = ({ cl
             titlePrefix = "Unique Meetings";
             dialogItemType = 'Task';
         } else if (metricType === 'BOQ') {
-            titlePrefix = "BOQ Received";
+            titlePrefix = "Projects Received";
             formatterToUse = boqNameFormatter;
             dialogItemType = 'BOQ';
         }
@@ -455,7 +455,7 @@ export const SalesPerformanceTable: React.FC<SalesPerformanceTableProps> = ({ cl
                     {/* BOQ Row */}
                     <div className="mb-3">
                         <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-1.5 flex items-center gap-1">
-                            <FileText className="w-3 h-3" /> BOQ Received
+                            <FileText className="w-3 h-3" /> Projects Received
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                             {periods.map(period => {
