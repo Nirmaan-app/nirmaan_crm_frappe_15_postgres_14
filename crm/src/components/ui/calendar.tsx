@@ -575,6 +575,8 @@ export type CalendarProps = DayPickerProps & {
   rangeMiddleClassName?: string
   hiddenClassName?: string
   data?: any
+  /** When true, renders a tighter grid (32px cells) suitable for narrow popovers like column filters. */
+  compact?: boolean
 }
 type NavView = "days" | "years"
 function Calendar({
@@ -583,6 +585,7 @@ function Calendar({
   showYearSwitcher = true,
   yearRange = 12,
   numberOfMonths,
+  compact = false,
   ...props
 }: CalendarProps) {
   const [navView, setNavView] = React.useState<NavView>("days")
@@ -603,12 +606,16 @@ function Calendar({
   const columnsDisplayed = navView === "years" ? 1 : numberOfMonths
   const _monthsClassName = cn("relative", props.monthsClassName)
   const _monthCaptionClassName = cn(
-    `relative ${"mx-24"} w-[150px] flex h-7 items-center justify-center border border-gray-300 rounded-md`,
+    "relative flex h-7 items-center justify-center border border-gray-300 rounded-md",
+    compact
+      ? "mx-auto w-[120px]"
+      : "mx-24 w-[150px]",
     props.monthCaptionClassName
   )
   const _weekdaysClassName = cn("flex flex-row border-b border-gray-300", props.weekdaysClassName)
   const _weekdayClassName = cn(
-    `${isMobile ? "w-10" : "w-10"} text-sm font-normal text-muted-foreground`,
+    compact ? "w-8 text-xs" : "w-10 text-sm",
+    "font-normal text-muted-foreground tabular-nums",
     props.weekdayClassName
   )
   const _monthClassName = cn("w-full", props.monthClassName)
@@ -636,15 +643,25 @@ function Calendar({
     props.buttonPreviousClassName
   )
   const _navClassName = cn("flex items-start", props.navClassName)
-  const _monthGridClassName = cn("mx-auto mt-4", props.monthGridClassName)
-  const _weekClassName = cn("mt-2 flex w-max items-start border-b border-gray-300", props.weekClassName)
+  const _monthGridClassName = cn(
+    "mx-auto",
+    compact ? "mt-2" : "mt-4",
+    props.monthGridClassName
+  )
+  const _weekClassName = cn(
+    compact ? "mt-1" : "mt-2",
+    "flex w-max items-start border-b border-gray-300",
+    props.weekClassName
+  )
   const _dayClassName = cn(
-    `flex ${isMobile ? "size-10" : "size-10"} flex-1 items-center justify-center p-0 text-sm`,
+    "flex flex-1 items-center justify-center p-0 tabular-nums",
+    compact ? "size-8 text-[13px]" : "size-10 text-sm",
     props.dayClassName
   )
   const _dayButtonClassName = cn(
     buttonVariants({ variant: "ghost" }),
-    `${isMobile ? "size-8" : "size-6"} rounded-full p-0 font-normal transition-none aria-selected:opacity-100`,
+    compact ? "size-7" : (isMobile ? "size-8" : "size-6"),
+    "rounded-full p-0 font-normal transition-none aria-selected:opacity-100",
     props.dayButtonClassName
   )
   const buttonRangeClassName =
@@ -683,10 +700,7 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
-      style={{
-        width: 248.8 * (columnsDisplayed ?? 1) + "px",
-      }}
+      className={cn(compact ? "p-2" : "p-3", className)}
       classNames={{
         months: _monthsClassName,
         month_caption: _monthCaptionClassName,
