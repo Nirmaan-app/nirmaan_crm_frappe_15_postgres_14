@@ -494,9 +494,9 @@ export const AllBOQs = () => {
             accessorKey: "boq_name",
             meta: { title: "Project Name", filterVariant: 'select', enableSorting: true, filterOptions: projectNamesOptions },
             cell: ({ row }) => (
-                <span className="text-primary font-semibold hover:underline text-left">
+                <Link to={`/boqs/boq?id=${row.original.name}`} className="text-primary font-semibold hover:underline text-left">
                     {row.original.boq_name}
-                </span>
+                </Link>
             ),
            
         },
@@ -627,9 +627,9 @@ export const AllBOQs = () => {
     const renderBoqMobileRow = (row: Row<BOQ>) => (
         <div className="flex justify-between items-start p-3 border rounded-lg">
             <div className="flex flex-col text-left">
-                <p className="text-primary font-semibold hover:underline text-left">
+                <Link to={`/boqs/boq?id=${row.original.name}`} className="text-primary font-semibold hover:underline text-left">
                     {row.original.boq_name}
-                </p>
+                </Link>
                 <p className="text-sm text-muted-foreground">{row.original.company || '--'}</p>
                 <p className="text-xs text-muted-foreground">Created By: {row.original.owner} </p>
                 <p className="text-xs text-muted-foreground mt-1">

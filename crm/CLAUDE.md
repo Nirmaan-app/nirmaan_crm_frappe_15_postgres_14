@@ -37,7 +37,7 @@ FrappeProvider          → frappe-react-sdk: API, auth, socket
 ### Two-Tier Authorization
 
 1. **ProtectedRoute** - Checks login status via `useAuth()`
-2. **AuthorizationGuard** - Checks role from localStorage (no API call per navigation)
+2. **AuthorizationGuard** - Checks role from localStorage key `role` (not `userRole`)
 
 Role/user data stored in localStorage after login for fast access. Trade-off: role changes require page reload.
 
@@ -47,13 +47,14 @@ Role/user data stored in localStorage after login for fast access. Trade-off: ro
 |------|----------------|
 | Nirmaan Sales User Profile | `/`, `/boqs`, `/contacts`, `/companies`, `/tasks`, `/calendar` |
 | Nirmaan Estimations User Profile | `/`, `/boqs`, `/calendar`, `/tasks` |
-| Nirmaan Admin User Profile | All routes including `/team` |
+| Nirmaan Estimations Lead User Profile | `/`, `/boqs`, `/calendar`, `/tasks` |
+| Nirmaan Admin User Profile | All routes including `/team`, `/team/packages` |
 
 ## State Management
 
 ### Dialog Store (Zustand)
 
-`src/store/dialogStore.ts` - 20+ dialog types with typed context payloads:
+`src/store/dialogStore.ts` - 24 dialog types with typed context payloads:
 
 ```typescript
 const { openNewTaskDialog, closeNewTaskDialog } = useDialogStore();
@@ -62,9 +63,11 @@ openNewTaskDialog({ companyId, contactId, boqId, task_profile: 'Sales' });
 
 **Key behavior**: Dialog context persists on close (not cleared), allowing reopen with same data.
 
+**New dialog types (April 2026):** `newEstimationTask`, `editEstimationTask`, `editProjectEstimation`, `companyProgress`
+
 ### Dialog Modes
 
-- **BOQ dialogs**: `'details' | 'status' | 'attachment'`
+- **BOQ dialogs**: `'details' | 'status' | 'attachment' | 'assigned-esitmate'`
 - **Task dialogs**: `'edit' | 'updateStatus' | 'scheduleNext'`
 
 ## Form Validation Pattern
@@ -114,6 +117,8 @@ const swrKey = `all-tasks-CIS${JSON.stringify(assignmentFilters)}`;
 | `useStatusStyles` | Memoized status → color mapping |
 | `useUserRoles` | Role-based UI conditionals |
 | `useViewPort` | Viewport detection for responsive layout |
+| `useUserRoleLists` | Role-based user option lists (Sales+Admin, Estimations+Lead) |
+| `useTaskCreationHandler` | Role-aware task creation dialog routing |
 
 ## Styling
 
@@ -145,11 +150,19 @@ Each page typically contains:
 
 - **BOQ.tsx** - Multi-mode editing (details, status, attachment)
 - **TaskList.tsx** - Infinite scroll, status filtering, date grouping
-- **EditTaskForm.tsx** - Task profile-aware (Sales vs Estimations have different fields)
+- **EditTaskForm.tsx** - Task profile-aware (Sales vs Estimates have different fields)
+
+### New Pages (April 2026)
+
+- **Packages** (`/team/packages`) - Admin-only CRUD for CRM BOQ Package (specialization management)
+- **ProjectEstimationsTable** - Per-package estimation rows inside BOQ detail view
+- **EditProjectEstimationForm** - BOQ vs BCS status editing with conditional value requirements
+- **BoqBcsTaskExport** - CSV export of CRM Project Estimation data with contact resolution
+- **EstimationsHomePage** - Estimation user dashboard with deadline-based color coding and review tables
 
 ## Task Profiles
 
-Tasks have a `task_profile` field: `'Sales' | 'Estimations'`
+Tasks have a `task_profile` field: `'Sales' | 'Estimates'`
 
 - Different form fields per profile
 - Admin users see `selectTaskProfileDialog` to choose profile on creation

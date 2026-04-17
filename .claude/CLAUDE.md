@@ -46,7 +46,7 @@ nirmaan_crm/
 │       └── store/          # Zustand state management
 │
 └── nirmaan_crm/            # Frappe Python backend
-    ├── nirmaan_crm/doctype/  # 7 DocTypes (core business entities)
+    ├── nirmaan_crm/doctype/  # 9 DocTypes (core business entities)
     ├── api/                  # Custom REST endpoints
     ├── integrations/         # Event handlers & controllers
     └── patches/              # Database migrations
@@ -58,7 +58,9 @@ nirmaan_crm/
 |---------|---------|
 | CRM Company | Lead/company records with assigned sales, priority |
 | CRM Contacts | Contact persons linked to companies |
-| CRM BOQ | Bill of Quantities (quotes/opportunities) with deal pipeline |
+| CRM BOQ | Project container with package-based estimation pipeline (UI: 'Projects') |
+| CRM Project Estimation | Per-package estimation child of CRM BOQ (BOQ/BCS per package) |
+| CRM BOQ Package | Master package list with lead auto-routing (fixture) |
 | CRM Task | Activities with date, status, task_profile |
 | CRM Users | CRM profile extending Frappe User |
 | CRM Note | Internal notes/comments |
@@ -89,6 +91,7 @@ Whitelisted methods in `nirmaan_crm/api/`:
 - `get_modified_crm_company.py` - Modified company records
 - `global_search.py` - Cross-doctype search
 - `users/get_sales_performance.py` - Sales metrics
+- `update_crm_member_profile.py` - Admin-only team member profile updates
 
 DocType controllers handle lifecycle events via `hooks.py` doc_events.
 
@@ -108,6 +111,8 @@ Custom permission query conditions in `permissions.py`:
 - `boq_permission_query_conditions` - Filter BOQs by assigned_sales
 
 User creation auto-generates CRM Users profile via `integrations/controllers/crm_users.py`.
+
+4 role profiles exist: Admin, Sales, Estimations User, Estimations Lead. The Lead profile shares backend roles with Estimations User but is differentiated by role-profile name string.
 
 ## Database Migrations
 

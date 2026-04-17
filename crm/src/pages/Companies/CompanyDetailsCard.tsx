@@ -48,7 +48,7 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts, acti
                     <div>
                         {/* <p className="text-xs text-muted-foreground">Company Name</p> */}
                         <div className="flex items-center gap-2">
-                            <p className="text-sm text-muted-foreground">BOQ Company</p>
+                            <p className="text-sm text-muted-foreground">Company Name</p>
 
                             <Button
                                 variant="ghost" // Use a ghost variant for a subtle, icon-only button
@@ -82,11 +82,11 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts, acti
                         <p className="font-bold text-sm">{formatDateWithOrdinal(company.last_meeting)}</p> {/* This is static for now */}
                     </div>
                     <div>
-                        <p className="text-xs text-muted-foreground">Total BOQs</p>
+                        <p className="text-xs text-muted-foreground">Total Projects</p>
                         <p className="font-bold text-lg">{String(totalProjects).padStart(2, '0')}</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Active BOQs</p>
+                        <p className="text-xs text-muted-foreground">Active Projects</p>
                         <p className="font-bold text-lg">{activeProjects}</p> {/* This is static for now */}
                     </div>
                     <div>

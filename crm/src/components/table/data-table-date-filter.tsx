@@ -17,7 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Filter, FilterX, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Filter, FilterX, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Filter value structure
@@ -98,7 +98,6 @@ export function DataTableDateFilter<TData>({
     column,
 }: DataTableDateFilterProps<TData>) {
     const filterValue = column.getFilterValue() as DateFilterValue | undefined;
-    const applyButtonRef = React.useRef<HTMLButtonElement>(null);
 
     // Internal state
     const [operator, setOperator] = React.useState<string>(filterValue?.operator || 'Is');
@@ -132,14 +131,20 @@ export function DataTableDateFilter<TData>({
         setTimespan(currentFilter?.operator === 'Timespan' && typeof currentFilter?.value === 'string' ? currentFilter.value : undefined);
     }, [column.getFilterValue()]);
 
-    // Auto-scroll to apply button on mobile
-    React.useEffect(() => {
-        if (popoverOpen && applyButtonRef.current) {
-            setTimeout(() => {
-                applyButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }, 100);
+    // Compact summary of the current, *unapplied* selection — shown inline in the header.
+    const previewSummary = React.useMemo<string | null>(() => {
+        if (operator === 'Between' && dateRange.from && dateRange.to) {
+            return `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d, yy')}`;
         }
-    }, [popoverOpen]);
+        if (['Is', '<=', '>='].includes(operator) && date) {
+            return format(date, 'MMM d, yyyy');
+        }
+        if (operator === 'Timespan' && timespan) {
+            const found = timespanGroups.flatMap(g => g.options).find(o => o.value === timespan);
+            return found?.label ?? null;
+        }
+        return null;
+    }, [operator, date, dateRange, timespan]);
 
     const handleApplyFilter = () => {
         let newFilter: DateFilterValue | undefined = undefined;
@@ -208,97 +213,86 @@ export function DataTableDateFilter<TData>({
                 </div>
             </PopoverTrigger>
 
-            <PopoverContent className="w-auto min-w-[300px] max-w-[320px] p-0 flex flex-col max-h-[380px]" align="end" sideOffset={8}>
-                <div className="p-3 space-y-3 flex-1 overflow-y-auto">
-                    {/* Operator Selection */}
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-                            Filter type
-                        </label>
-                        <Select value={operator} onValueChange={setOperator}>
-                            <SelectTrigger className="h-9 text-sm">
-                                <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {dateOperators.map((op) => (
-                                    <SelectItem key={op.value} value={op.value} className="text-sm">
-                                        {op.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+            <PopoverContent
+                className="w-[300px] p-0 flex flex-col overflow-hidden"
+                align="end"
+                sideOffset={8}
+            >
+                {/* Compact header: inline Select + live selection chip */}
+                <div className="flex items-center gap-2 px-3 pt-3">
+                    <Select value={operator} onValueChange={setOperator}>
+                        <SelectTrigger className="h-8 text-xs flex-1 min-w-0">
+                            <SelectValue placeholder="Filter type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {dateOperators.map((op) => (
+                                <SelectItem key={op.value} value={op.value} className="text-sm">
+                                    {op.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {previewSummary && (
+                        <span
+                            className="shrink-0 max-w-[140px] truncate h-8 px-2 inline-flex items-center rounded-md bg-muted/60 text-[11px] tabular-nums text-foreground"
+                            title={previewSummary}
+                        >
+                            {previewSummary}
+                        </span>
+                    )}
+                </div>
 
+                <div className="px-3 pb-2 pt-2">
                     {/* Date Range Calendar */}
                     {operator === 'Between' && (
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-1.5">
-                                <CalendarIcon className="h-3 w-3" />
-                                Select range
-                            </label>
-                            <div className="calendar-fixed-container rounded-md border border-border bg-background overflow-hidden">
-                                <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={dateRange?.from}
-                                    selected={dateRange}
-                                    onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
-                                    numberOfMonths={1}
-                                    fixedWeeks
-                                    showOutsideDays
-                                    className="!w-full"
-                                />
-                            </div>
-                            {dateRange.from && dateRange.to && (
-                                <p className="text-xs text-muted-foreground text-center py-1">
-                                    {format(dateRange.from, 'MMM d, yyyy')} – {format(dateRange.to, 'MMM d, yyyy')}
-                                </p>
-                            )}
+                        <div className="calendar-fixed-container calendar-fixed-container--compact">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={dateRange?.from}
+                                selected={dateRange}
+                                onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
+                                numberOfMonths={1}
+                                fixedWeeks
+                                showOutsideDays
+                                compact
+                                className="!w-full"
+                            />
                         </div>
                     )}
 
                     {/* Single Date Calendar */}
                     {['Is', '<=', '>='].includes(operator) && (
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-1.5">
-                                <CalendarIcon className="h-3 w-3" />
-                                {operator === 'Is' ? 'Select date' : operator === '<=' ? 'On or before' : 'On or after'}
-                            </label>
-                            <div className="calendar-fixed-container rounded-md border border-border bg-background overflow-hidden">
-                                <Calendar
-                                    mode="single"
-                                    selected={date}
-                                    onSelect={setDate}
-                                    initialFocus
-                                    numberOfMonths={1}
-                                    fixedWeeks
-                                    showOutsideDays
-                                    className="!w-full"
-                                />
-                            </div>
-                            {date && (
-                                <p className="text-xs text-muted-foreground text-center py-1">
-                                    {format(date, 'MMMM d, yyyy')}
-                                </p>
-                            )}
+                        <div className="calendar-fixed-container calendar-fixed-container--compact">
+                            <Calendar
+                                mode="single"
+                                selected={date}
+                                onSelect={setDate}
+                                initialFocus
+                                numberOfMonths={1}
+                                fixedWeeks
+                                showOutsideDays
+                                compact
+                                className="!w-full"
+                            />
                         </div>
                     )}
 
-                    {/* Timespan Selection */}
+                    {/* Timespan Selection — no calendar, just a grouped select */}
                     {operator === 'Timespan' && (
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-1.5">
+                        <div className="py-2">
+                            <div className="mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-medium">
                                 <Clock className="h-3 w-3" />
                                 Time period
-                            </label>
+                            </div>
                             <Select value={timespan} onValueChange={setTimespan}>
-                                <SelectTrigger className="h-9 text-sm">
+                                <SelectTrigger className="h-8 text-xs">
                                     <SelectValue placeholder="Choose period" />
                                 </SelectTrigger>
-                                <SelectContent className="max-h-[280px]">
+                                <SelectContent className="max-h-[240px]">
                                     {timespanGroups.map((group) => (
                                         <React.Fragment key={group.label}>
-                                            <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                                            <div className="px-2 py-1 text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-medium">
                                                 {group.label}
                                             </div>
                                             {group.options.map((opt) => (
@@ -315,7 +309,7 @@ export function DataTableDateFilter<TData>({
                 </div>
 
                 {/* Action Footer */}
-                <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-t border-border bg-muted/30">
+                <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-border/60 bg-muted/30">
                     <Button
                         variant="ghost"
                         size="sm"
@@ -331,9 +325,8 @@ export function DataTableDateFilter<TData>({
                         size="sm"
                         className="h-8 px-4 text-xs bg-destructive hover:bg-destructive/90"
                         onClick={handleApplyFilter}
-                        ref={applyButtonRef}
                     >
-                        Apply filter
+                        Apply
                     </Button>
                 </div>
             </PopoverContent>

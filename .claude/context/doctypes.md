@@ -1,6 +1,6 @@
 # DocTypes Reference
 
-Detailed documentation for all 7 DocTypes in Nirmaan CRM.
+Detailed documentation for all 9 DocTypes in Nirmaan CRM.
 
 ## DocType Summary
 
@@ -9,6 +9,8 @@ Detailed documentation for all 7 DocTypes in Nirmaan CRM.
 | CRM Company | Nirmaan CRM | company_name | No |
 | CRM Contacts | Nirmaan CRM | email | No |
 | CRM BOQ | Nirmaan CRM | boq_name | No |
+| CRM Project Estimation | Nirmaan CRM | title | No |
+| CRM BOQ Package | Nirmaan CRM | package_name | No |
 | CRM Task | Nirmaan CRM | - | Yes (hash) |
 | CRM Users | Nirmaan CRM | - | Yes (hash) |
 | CRM Note | Nirmaan CRM | - | Yes (hash) |
@@ -76,7 +78,7 @@ Detailed documentation for all 7 DocTypes in Nirmaan CRM.
 
 ## CRM BOQ
 
-**Purpose:** Bill of Quantities representing quotes/opportunities in the deal pipeline.
+**Purpose:** Project container (formerly BOQ) with package-based estimations pipeline.
 
 **File:** `nirmaan_crm/doctype/crm_boq/crm_boq.json`
 
@@ -86,7 +88,8 @@ Detailed documentation for all 7 DocTypes in Nirmaan CRM.
 |-------|------|----------|-------|
 | boq_name | Data | Yes | Primary key, unique |
 | boq_size | Select | No | Small, Medium, Large |
-| boq_type | Select | No | Type classification |
+| boq_type | Select | No | JSON array of package names |
+| create_bcs | Check | No | Enables BCS estimations per package; permanently locked once enabled |
 | boq_value | Currency | No | Deal value |
 | boq_submission_date | Date | No | When BOQ was submitted |
 | boq_link | Data | No | URL to BOQ document |
@@ -102,24 +105,84 @@ Detailed documentation for all 7 DocTypes in Nirmaan CRM.
 | company | Link | No | → CRM Company |
 | contact | Link | No | → CRM Contacts |
 
+**UI Rename:** Displayed as 'Project' in the frontend UI, but the DocType name remains `CRM BOQ`.
+
 ### BOQ Status Values
 
 | Status | Description |
 |--------|-------------|
 | New | Fresh lead, no submission |
-| BOQ Submitted | Full BOQ sent to client |
-| Partial BOQ Submitted | Partial submission |
+| In Progress | Active work underway |
+| Won | Deal closed successfully |
 | Negotiation | Price negotiation phase |
+| On Hold | Temporarily paused |
+| Dropped | Abandoned by team |
+| Lost | Deal lost |
+| Hold | On hold (legacy) |
 | Revision Pending | Client requested changes |
 | Revision Submitted | Revised BOQ sent |
-| Hold | On hold |
-| Won | Deal closed successfully |
-| Lost | Deal lost |
+
+Note: "BOQ Submitted" and "Partial BOQ Submitted" removed from project-level; these now exist only at estimation level.
 
 ### Permissions
 
 - Sales users see BOQs where `assigned_sales` = user
 - Estimations users see all BOQs
+
+---
+
+## CRM Project Estimation
+
+**Purpose:** Per-package, per-document-type estimation child of CRM BOQ. Each project spawns N estimations (one BOQ row per package, optionally one BCS row per package).
+
+**File:** `nirmaan_crm/doctype/crm_project_estimation/crm_project_estimation.json`
+
+### Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| title | Data | Yes | Primary key (autoname). Format: `{project} - {package} {BOQ\|BCS}` |
+| parent_project | Link | Yes | → CRM BOQ |
+| document_type | Select | Yes | BOQ or BCS |
+| package_name | Data | Yes | Package identifier |
+| value | Currency | No | Required >0 for certain statuses |
+| link | Data | No | External document URL |
+| status | Data | No | Free-text status, default "New" |
+| sub_status | Data | No | Secondary status |
+| assigned_to | Link | No | → CRM Users (per-package owner) |
+| deadline | Date | No | Inherits boq_submission_date from parent on creation |
+| remarks | Text | No | |
+
+### Value Requirement by Status
+
+Value > 0 is required when:
+- BOQ document_type: status is "BOQ Submitted", "Partial BOQ Submitted", or "Revision Submitted"
+- BCS document_type: status is "Done"
+
+### Permissions
+
+System Manager, Nirmaan Admin User, Nirmaan Estimations User, Nirmaan Sales User (all full CRUD).
+
+---
+
+## CRM BOQ Package
+
+**Purpose:** Master classification list for estimation packages. Fixture-style doctype with auto-routing via assigned_lead.
+
+**File:** `nirmaan_crm/doctype/crm_boq_package/crm_boq_package.json`
+
+### Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| package_name | Data | Yes | Primary key (autoname), unique |
+| assigned_lead | Link | No | → CRM Users (default lead for auto-routing) |
+
+### Fixture Data
+
+10 pre-seeded packages: Electrical, HVAC Ducting, HVAC VRF-DX, HVAC AHU+Chilled Water, FA, PA, Access Control, CCTV, Data & Networking, BMS.
+
+Custom packages can be added by users at runtime.
 
 ---
 
@@ -242,7 +305,11 @@ CRM Company ─────┬────── CRM Contacts (company)
 CRM Contacts ────┬────── CRM BOQ (contact)
                  └────── CRM Task (contact)
 
-CRM BOQ ─────────────── CRM Task (boq)
+CRM BOQ ─────────┬────── CRM Task (boq)
+                 └────── CRM Project Estimation (parent_project) [1:N]
+                           └── package_name ← CRM BOQ Package.package_name
+
+CRM BOQ Package ─────── assigned_lead → CRM Users (auto-routing)
 
 CRM Users ───────────── User (via email)
 
