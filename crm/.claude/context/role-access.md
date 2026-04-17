@@ -6,25 +6,29 @@ Authorization system for Nirmaan CRM frontend.
 
 | Profile | Backend Roles | Primary Use |
 |---------|---------------|-------------|
-| Nirmaan Admin User Profile | System Manager, Nirmaan Admin | Team management, all access |
+| Nirmaan Admin User Profile | System Manager, Nirmaan Admin User, Nirmaan Estimations User, Nirmaan Sales User | Team management, all access |
 | Nirmaan Sales User Profile | Nirmaan Sales User | Lead/contact management |
-| Nirmaan Estimations User Profile | Nirmaan Estimations User | BOQ estimations |
+| Nirmaan Estimations User Profile | Nirmaan Estimations User, System Manager | BOQ estimations |
+| Nirmaan Estimations Lead Profile | Nirmaan Estimations User, System Manager | Estimation team lead, package routing |
+
+Note: Lead profile has same backend roles as Estimations User — differentiation is via role-profile NAME string only.
 
 ---
 
 ## Route Access Matrix
 
-| Route | Admin | Sales | Estimations |
-|-------|-------|-------|-------------|
-| `/` (Home) | Y | Y | Y |
-| `/boqs` | Y | Y | Y |
-| `/contacts` | Y | Y | N |
-| `/companies` | Y | Y | N |
-| `/tasks` | Y | Y | Y |
-| `/calendar` | Y | Y | Y |
-| `/team` | Y | N | N |
-| `/settings` | Y | Y | Y |
-| `/prospects` | Y | Y | N |
+| Route | Admin | Sales | Estimations | Est. Lead |
+|-------|-------|-------|-------------|-----------|
+| `/` (Home) | Y | Y | Y | Y |
+| `/boqs` (Projects) | Y | Y | Y | Y |
+| `/contacts` | Y | Y | N | N |
+| `/companies` | Y | Y | N | N |
+| `/tasks` | Y | Y | Y | Y |
+| `/calendar` | Y | Y | Y | Y |
+| `/settings` | Y | Y | Y | Y |
+| `/team` | Y | N | N | N |
+| `/team/packages` | Y | N | N | N |
+| `/team/details` | Y | N | N | N |
 
 ---
 
@@ -35,8 +39,8 @@ Authorization system for Nirmaan CRM frontend.
 ```typescript
 // 1. ProtectedRoute - Checks login status
 <ProtectedRoute>
-  // 2. AuthorizationGuard - Checks role
-  <AuthorizationGuard allowedRoles={['Admin', 'Sales']}>
+  // 2. AuthorizationGuard - Checks role from localStorage
+  <AuthorizationGuard>
     <PageComponent />
   </AuthorizationGuard>
 </ProtectedRoute>
@@ -57,19 +61,9 @@ Authorization system for Nirmaan CRM frontend.
 **File:** `src/routesConfig.tsx`
 
 ```typescript
-export const routesConfig = [
-  {
-    path: '/',
-    element: <Home />,
-    allowedRoles: ['Admin', 'Sales', 'Estimations'],
-  },
-  {
-    path: '/team',
-    element: <MyTeamPage />,
-    allowedRoles: ['Admin'],
-  },
-  // ...
-];
+// Authorization is NOT per-route config.
+// AuthorizationGuard reads localStorage.getItem('role') and
+// checks against hardcoded role lists in the guard component.
 ```
 
 ---
@@ -81,7 +75,7 @@ export const routesConfig = [
 ```typescript
 // useCurrentUser.ts
 const user = await fetchCRMUser(email);
-localStorage.setItem('userRole', user.nirmaan_role_name);
+localStorage.setItem('role', user.nirmaan_role_name);
 localStorage.setItem('userEmail', user.email);
 ```
 
@@ -89,10 +83,8 @@ localStorage.setItem('userEmail', user.email);
 
 ```typescript
 // AuthorizationGuard.tsx
-const userRole = localStorage.getItem('userRole');
-if (!allowedRoles.includes(userRole)) {
-  return <Navigate to="/" />;
-}
+const userRole = localStorage.getItem('role');
+// Checks against hardcoded role lists per route in the guard component
 ```
 
 ### Trade-off
@@ -111,7 +103,7 @@ if (!allowedRoles.includes(userRole)) {
 
 ```typescript
 export function useUserRoles() {
-  const role = localStorage.getItem('userRole');
+  const role = localStorage.getItem('role');
 
   return {
     isAdmin: role === 'Nirmaan Admin User Profile',
@@ -121,6 +113,16 @@ export function useUserRoles() {
   };
 }
 ```
+
+> **Note:** There is NO `isEstimationsLead` flag. Components needing Lead-specific checks must compare `localStorage.getItem('role') === 'Nirmaan Estimations Lead Profile'` directly.
+
+### useUserRoleLists
+
+**File:** `src/hooks/useUserRoleLists.ts`
+
+Fetches users across all 4 role profiles and returns:
+- `salesUserOptions` -- Sales + Admin users
+- `estimationUserOptions` -- Estimations User + Estimations Lead users
 
 ### Usage
 
@@ -185,12 +187,12 @@ function NewTaskButton() {
 
 Backend filters data by `assigned_sales` field:
 
-| DocType | Sales User Sees | Estimations Sees | Admin Sees |
-|---------|-----------------|------------------|------------|
-| CRM Company | Own | - | All |
-| CRM Contacts | Own | - | All |
-| CRM BOQ | Own | All | All |
-| CRM Task | Own | Own | All |
+| DocType | Sales User Sees | Estimations Sees | Est. Lead Sees | Admin Sees |
+|---------|-----------------|------------------|----------------|------------|
+| CRM Company | Own | - | - | All |
+| CRM Contacts | Own | - | - | All |
+| CRM BOQ | Own | All | All | All |
+| CRM Task | Own | Own | Own | All |
 
 ### API Role Filtering
 
@@ -198,10 +200,20 @@ Backend filters data by `assigned_sales` field:
 // global_search API
 const results = await call({
   search_term: query,
-  user_role: localStorage.getItem('userRole'),
+  user_role: localStorage.getItem('role'),
 });
 // Backend filters results by role
 ```
+
+### AssignmentFilterControls
+
+**File:** `src/components/ui/AssignmentFilterControls.tsx`
+
+Per-role filter UI on list pages:
+- **Sales**: "Assigned to Me / All" tabs on Company & Contact lists
+- **Estimations User/Lead**: "Filter by Sales User" multi-select on BOQ list
+- **Admin**: Sales-user dropdown on all list types
+- Includes `__UNASSIGNED__` sentinel for "not set" filter
 
 ---
 
@@ -213,18 +225,17 @@ const results = await call({
 {
   path: '/new-page',
   element: <NewPage />,
-  allowedRoles: ['Admin', 'Sales'],
 }
 ```
 
-2. **Wrap with guards in router:**
+2. **Add role check in AuthorizationGuard** (hardcoded role lists in the guard component):
 
 ```typescript
 <Route
   path="/new-page"
   element={
     <ProtectedRoute>
-      <AuthorizationGuard allowedRoles={['Admin', 'Sales']}>
+      <AuthorizationGuard>
         <NewPage />
       </AuthorizationGuard>
     </ProtectedRoute>
@@ -245,9 +256,9 @@ const results = await call({
 
 ### Task Forms
 
-| Field | Sales | Estimations | Admin |
-|-------|-------|-------------|-------|
-| task_profile | Auto: "Sales" | Auto: "Estimations" | Selectable |
+| Field | Sales | Estimations / Est. Lead | Admin |
+|-------|-------|-------------------------|-------|
+| task_profile | Auto: "Sales" | Auto: "Estimates" | Selectable |
 | company | Required | Optional | Required |
 | contact | Optional | Hidden | Optional |
 | boq | Optional | Required | Optional |

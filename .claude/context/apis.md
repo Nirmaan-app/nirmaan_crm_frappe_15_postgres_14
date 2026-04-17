@@ -11,6 +11,7 @@ All whitelisted API endpoints in Nirmaan CRM.
 | `get_sales_tasks` | api/get_sales_tasks.py | Aggregated task data |
 | `get_modified_crm_companies` | api/get_modified_crm_company.py | Enriched company list |
 | `get_sales_performance` | api/users/get_sales_performance.py | Sales metrics |
+| `update_crm_member_profile` | api/users/update_crm_member_profile.py | Admin-only team member profile updates |
 
 ---
 

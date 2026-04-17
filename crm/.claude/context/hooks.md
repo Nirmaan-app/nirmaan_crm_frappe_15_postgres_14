@@ -42,7 +42,7 @@ const { user, isLoading, error } = useCurrentUser();
 ```
 
 **Side Effects:**
-- Sets `localStorage.userRole`
+- Sets `localStorage.role`
 - Sets `localStorage.userEmail`
 - Sets `localStorage.userName`
 
@@ -134,15 +134,18 @@ await deleteTask('task-001');
 
 **File:** `src/hooks/useTaskCreationHandler.ts`
 
-**Purpose:** Handle task creation flow with dialog management.
+**Purpose:** Role-aware task creation dialog routing.
 
 ```typescript
 const { handleCreateTask } = useTaskCreationHandler();
 
-// Opens appropriate dialog based on user role
-// Admin: profile selection dialog first
-// Sales/Estimations: direct to form with auto-assigned profile
+// Reads localStorage.role and dispatches:
+// Sales → openNewTaskDialog({task_profile:'Sales'})
+// Estimations User/Lead → openNewEstimationTaskDialog({task_profile:'Estimates'})
+// Admin → openSelectTaskProfileDialog first, then routes to Sales or Estimates dialog
 ```
+
+**Note:** `useFabOptions.ts` has an internal duplicate of this logic — the external hook should be canonical.
 
 ---
 
@@ -337,18 +340,18 @@ if (isAdmin) {
 
 **File:** `src/hooks/useUserRoleLists.tsx`
 
-**Purpose:** Fetch user lists filtered by role.
+**Purpose:** Batch-fetch user lists filtered by 4 role profiles.
 
 ```typescript
 const {
-  salesUsers,
-  estimationsUsers,
-  allUsers,
+  salesUserOptions,       // Sales + Admin users
+  estimationUserOptions,  // Estimations User + Estimations Lead users
+  getUserFullNameByEmail,  // email → full_name lookup
   isLoading,
 } = useUserRoleLists();
-
-// For dropdowns: "Assign to Sales" → salesUsers
 ```
+
+Fetches from `CRM Users` with `nirmaan_role_name` filter. `shouldRetryOnError: false` to avoid 403 retry storms.
 
 ---
 

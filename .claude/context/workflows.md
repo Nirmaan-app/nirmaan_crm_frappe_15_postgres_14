@@ -15,6 +15,8 @@ Complete `doc_events` mapping from `hooks.py`:
 | CRM Users | on_trash | `controllers.crm_users.on_trash` | Deletes User Permissions + User doc |
 | User Permission | after_insert | `controllers.user_permission.after_insert` | Sets `has_company = "true"` on CRM Users |
 | CRM Task | on_update | `controllers.last_meeting_on.on_meeting_update` | Updates Company/Contact `last_meeting` |
+| CRM BOQ | on_update | (inline) | Auto-creates/deletes Project Estimations per package; routes leads via CRM BOQ Package.assigned_lead |
+| CRM BOQ | on_trash | (inline) | Cascade-deletes all CRM Project Estimation rows |
 
 **Commented-out hooks** (present in code but disabled):
 - `CRM Company` / `CRM Contacts` permission query conditions
@@ -78,6 +80,35 @@ Triggered by `CRM Task.on_update` hook.
 
 ---
 
+## CRM BOQ Package Management (on_update)
+
+Triggered by `CRM BOQ` save (inline in `crm_boq.py`).
+
+### Package Parsing
+
+`boq_type` field stores a JSON array of package names. The parser (`_get_selected_packages`) handles:
+- JSON array: `["Electrical", "HVAC Ducting"]`
+- Comma-separated legacy: `"Electrical, HVAC"`
+- Single string: `"Electrical"`
+
+### On Every Save
+
+1. **Parse packages** from `boq_type` field
+2. **Remove orphan estimations** — delete `CRM Project Estimation` rows whose `package_name` is no longer in the current selection (also deletes associated tasks)
+3. **Create BOQ estimations** — for each package, create a `CRM Project Estimation` with `document_type="BOQ"` if one doesn't already exist
+4. **Create BCS estimations** — if `create_bcs=1`, create a `CRM Project Estimation` with `document_type="BCS"` per package
+5. **Auto-route leads** — looks up `CRM BOQ Package.assigned_lead` for each package and sets `assigned_to` on the new estimation
+
+### BCS Creation Lock
+
+Once `create_bcs` is set to 1 (or any BCS estimation already exists), the toggle is permanently locked to 1. This prevents accidental deletion of BCS estimations and their associated work.
+
+### Cascade Delete (on_trash)
+
+When a CRM BOQ is deleted, all `CRM Project Estimation` rows where `parent_project = self.name` are cascade-deleted.
+
+---
+
 ## Permission Query Conditions
 
 Active conditions in `hooks.py`:
@@ -101,15 +132,18 @@ Active conditions in `hooks.py`:
 
 | Status | Business Meaning |
 |--------|-----------------|
-| New | Fresh BOQ, just created |
-| BOQ Submitted | Full BOQ sent to client |
-| Partial BOQ Submitted | Incomplete BOQ sent |
+| New | Fresh project, just created |
+| In Progress | Active estimation work |
 | Revision Pending | Client requested changes |
-| Revision Submitted | Updated BOQ sent |
+| Revision Submitted | Updated estimation sent |
 | Negotiation | Price/terms being discussed |
-| Hold | Paused by client or internal |
+| On Hold | Paused by client or internal |
 | Won | Deal closed successfully |
-| Lost | Deal lost to competitor or cancelled |
+| Lost | Deal lost to competitor |
+| Dropped | Project dropped |
+| Hold | Legacy hold status |
+
+**Note:** 'BOQ Submitted' and 'Partial BOQ Submitted' now exist only at the `CRM Project Estimation` level, not at the project level.
 
 ### Deal status lifecycle
 
@@ -142,8 +176,34 @@ fixtures = [
     {"dt": "Role", "filters": [["role_name", "like", "Nirmaan %"]]},
     {"dt": "Role Profile", "filters": [["role_profile", "like", "Nirmaan %"]]},
     "Portal Menu Item",
-    "CRM Company Type"
+    "CRM Company Type",
+    "CRM BOQ Package"
 ]
 ```
 
 These are installed on `bench --site <site> migrate` and export with `bench --site <site> export-fixtures`.
+
+---
+
+## Migration: Legacy BOQ → Project Estimations
+
+**File:** `patches/v0_0/migrate_legacy_boq_projects_to_estimations.py`
+
+Transforms legacy CRM BOQ records (free-text `boq_type`, single status) into the new package-granular estimation model.
+
+### Rules
+
+1. **No package** → creates "Legacy" BOQ + BCS estimations
+2. **Single package** → that package's BOQ + BCS (preserves original value)
+3. **Multiple packages** → "Legacy" BOQ/BCS (carries value) + one BOQ/BCS per extra package (value blank)
+
+### Status Normalization
+
+- Project-level outcome statuses (Won/Lost/Dropped/Hold/Negotiation) are preserved at the project level
+- Detail-level statuses (BOQ Submitted, Partial BOQ Submitted, etc.) mapped to "In-Progress" at project level
+- BCS estimations start at "Pending"
+- IN PROGRESS/IN-PROGRESS → In-Progress; ON HOLD/HOLD → Hold
+
+### Package Name Normalization
+
+Recognizes common variations: HVAC VRF-DX, HVAC DUCTING, FIRE FIGHTING, ELECTRICAL, ELV, BMS, FAPA, MEP via regex tokenization.
