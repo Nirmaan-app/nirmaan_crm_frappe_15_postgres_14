@@ -62,9 +62,9 @@ export const DynamicCompanyStats = ({ companyId }: DynamicCompanyStatsProps) => 
 
         // const pendingTasks = allTasks.filter(t => t.status === "Scheduled");
         const boqReceived = allBoqs;
-        const boqSent = allBoqs.filter(b => ["BOQ Submitted", "Revision Submitted"].includes(b.boq_status));
-        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In-Progress", "Partial BOQ Submitted"].includes(b.boq_status));
-        const hotDeals = allBoqs.filter(b => ["Revision Submitted", "Negotiation"].includes(b.boq_status));
+        const boqSent = allBoqs.filter(b => ["Submitted", "Partially Submitted"].includes(b.boq_status));
+        const pendingBoq = allBoqs.filter(b => ["New", "In-Progress"].includes(b.boq_status));
+        const hotDeals = allBoqs.filter(b => ["Submitted", "Negotiation"].includes(b.boq_status));
         const wonDeals = allBoqs.filter(b => ["Won"].includes(b.boq_status));
         const allMeetings = allTasks
          const followUpMeetings = allTasks.filter(t => ["Follow-up", "Follow-up BOQ"].includes(t.type));

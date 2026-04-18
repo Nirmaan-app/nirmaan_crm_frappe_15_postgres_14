@@ -97,7 +97,7 @@ export const PendingBOQs = () => {
     // --- Data Fetching for Pending BOQs ---
     const { data: pendingBoqs, isLoading: isPendingBoqsLoading, error } = useFrappeGetDocList<BOQ>('CRM BOQ', {
         fields: ["*"], // Fetch all necessary fields for display, filtering, and export
-        filters: [["boq_status", "in", ["New", "Revision Pending", "In-Progress","Partial BOQ Submitted"]]], // Specific filters for "Pending"
+        filters: [["boq_status", "in", ["New", "In-Progress", "Partially Submitted"]]], // Specific filters for "Pending"
         limit: 0, // No pagination limit, fetch all
         orderBy: { field: 'modified', order: 'desc' } // Default sorting for data fetching
     }, "all-boqs-estimate-pending"); // Unique cache key for this specific data fetch

@@ -8,10 +8,11 @@ import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { CRMNote } from "@/types/NirmaanCRM/CRMNote";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { useFrappeGetDoc, useFrappeGetDocList, useSWRConfig, useFrappeUpdateDoc } from "frappe-react-sdk";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Plus, SquarePen, Wallet, Calendar, Clock, FolderOpen } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Plus, RefreshCw, SquarePen, Wallet, Calendar, Clock, FolderOpen } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
-import { useStatusStyles } from "@/hooks/useStatusStyles";
+import { useStatusStyles, isCascadeDerivedBoqStatus } from "@/hooks/useStatusStyles";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
 import { toast } from "@/hooks/use-toast";
@@ -182,6 +183,7 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
     const { getUserFullNameByEmail } = useUserRoleLists();
     const role = localStorage.getItem('role');
     const isSalesProfile = role === 'Nirmaan Sales User Profile';
+    const canManageStatus = role === 'Nirmaan Sales User Profile' || role === 'Nirmaan Admin User Profile';
 
     // Total should be BOQ-only, not BOQ+BCS.
     const boqTotalFromRows = (estimations || [])
@@ -206,6 +208,14 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                 <div>
                     <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full mb-3 ${getBoqStatusClass(boq?.boq_status || 'New')}`}>
                         {boq?.boq_status || 'New'}
+                        {isCascadeDerivedBoqStatus(boq?.boq_status) && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <RefreshCw className="h-3 w-3 ml-1 opacity-70" />
+                                </TooltipTrigger>
+                                <TooltipContent>Auto-derived from package submissions</TooltipContent>
+                            </Tooltip>
+                        )}
                     </span>
                     <h1 className="text-xl md:text-2xl font-bold text-foreground mb-4 leading-tight">
                         {boq?.boq_name || 'N/A'}
@@ -252,15 +262,17 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
             <div className="md:w-2/3 flex flex-col">
                 <div className="flex justify-end p-4 border-b border-gray-100">
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 text-xs font-semibold bg-gray-50 hover:bg-gray-100"
-                            onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })}
-                        >
-                            <SquarePen className="w-3.5 h-3.5 mr-2" />
-                            Project Status
-                        </Button>
+                        {canManageStatus && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 text-xs font-semibold bg-gray-50 hover:bg-gray-100"
+                                onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })}
+                            >
+                                <SquarePen className="w-3.5 h-3.5 mr-2" />
+                                Project Status
+                            </Button>
+                        )}
                         <Button
                             variant="outline"
                             size="sm"

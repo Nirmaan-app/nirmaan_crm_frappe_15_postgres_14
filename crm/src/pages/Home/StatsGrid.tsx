@@ -133,11 +133,11 @@ export const StatsGrid = () => {
 
         // UPDATED: formatItems now accepts a `type` and adds it to the returned object
       
-        const pendingTasks = allTasks.filter(t => t.status === "Scheduled")     
+        const pendingTasks = allTasks.filter(t => t.status === "Scheduled")
         const boqReceived = allBoqs
-        const boqSent = allBoqs.filter(b => ["BOQ Submitted", "Revision Submitted"].includes(b.boq_status));
-        const pendingBoq = allBoqs.filter(b => ["New", "Revision Pending", "In-Progress","Partial BOQ Submitted"].includes(b.boq_status));
-        const hotDeals = allBoqs.filter(b => ["Revision Submitted", "Negotiation"].includes(b.boq_status));
+        const boqSent = allBoqs.filter(b => ["Submitted", "Partially Submitted"].includes(b.boq_status));
+        const pendingBoq = allBoqs.filter(b => ["New", "In-Progress"].includes(b.boq_status));
+        const hotDeals = allBoqs.filter(b => ["Submitted", "Negotiation"].includes(b.boq_status));
         const allMeetings = allTasks
         // CORRECTED: Use the unique link fields `contact` and `company` for a reliable identifier
         const uniqueMeetingIdentifiers = new Set();

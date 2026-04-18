@@ -37,10 +37,8 @@ interface ProjectsTabProps {
 const STATUS_OPTIONS = [
   { label: 'New', value: 'New' },
   { label: 'In-Progress', value: 'In-Progress' },
-  { label: 'BOQ Submitted', value: 'BOQ Submitted' },
-  { label: 'Partial BOQ Submitted', value: 'Partial BOQ Submitted' },
-  { label: 'Revision Pending', value: 'Revision Pending' },
-  { label: 'Revision Submitted', value: 'Revision Submitted' },
+  { label: 'Partially Submitted', value: 'Partially Submitted' },
+  { label: 'Submitted', value: 'Submitted' },
   { label: 'Negotiation', value: 'Negotiation' },
   { label: 'Won', value: 'Won' },
   { label: 'Lost', value: 'Lost' },
