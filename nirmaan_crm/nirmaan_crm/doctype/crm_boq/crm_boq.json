@@ -104,7 +104,7 @@
    "fieldname": "boq_status",
    "fieldtype": "Data",
    "label": "Project Status",
-   "options": "New\nIn Progress\nWon\nNegotiation\nOn Hold\nDropped\nLost\nHold\nRevision Pending\nRevision Submitted"
+   "options": "New\nIn-Progress\nPartially Submitted\nSubmitted\nWon\nNegotiation\nHold\nDropped\nLost"
   },
   {
    "fieldname": "boq_sub_status",

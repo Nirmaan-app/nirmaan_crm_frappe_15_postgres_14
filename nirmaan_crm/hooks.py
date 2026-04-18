@@ -156,7 +156,10 @@ doc_events={
     },
     "CRM Task": {
 		"on_update": "nirmaan_crm.integrations.controllers.last_meeting_on.on_meeting_update",
-  }
+  },
+    "CRM Project Estimation": {
+        "on_update": "nirmaan_crm.integrations.controllers.crm_project_estimation.on_estimation_update",
+    }
 }
 
 # Scheduled Tasks

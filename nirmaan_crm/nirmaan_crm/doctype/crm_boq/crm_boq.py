@@ -6,6 +6,21 @@ import json
 from frappe.model.document import Document
 from frappe.utils import cint
 
+LOCK_STATUSES = {"Won", "Lost", "Dropped", "Hold", "Negotiation"}
+
+# Estimation status tokens — lowercased for case-insensitive comparison
+EST_NEW = "new"
+EST_IN_PROGRESS = "in-progress"
+EST_REVISION_PENDING = "revision pending"
+EST_BOQ_SUBMITTED = "boq submitted"
+EST_PARTIAL_SUBMITTED = "partial boq submitted"
+EST_REVISION_SUBMITTED = "revision submitted"
+
+PROGRESS_BUCKET = {EST_NEW, EST_IN_PROGRESS, EST_REVISION_PENDING}
+SUBMITTED_ANY = {EST_BOQ_SUBMITTED, EST_PARTIAL_SUBMITTED, EST_REVISION_SUBMITTED}
+SUBMITTED_FULL = {EST_BOQ_SUBMITTED, EST_REVISION_SUBMITTED}
+
+
 class CRMBOQ(Document):
 	def validate(self):
 		self._lock_create_bcs_once_enabled()
@@ -36,27 +51,29 @@ class CRMBOQ(Document):
 
 	def on_update(self):
 		packages = self._get_selected_packages()
-		
+
 		# Cleanup tasks for removed packages first
 		self._cleanup_removed_package_tasks(packages)
 
-		if not packages:
-			return
+		if packages:
+			should_create_bcs = cint(getattr(self, "create_bcs", 0)) == 1
 
-		should_create_bcs = cint(getattr(self, "create_bcs", 0)) == 1
+			for package_name in packages:
+				# Route to the package's specific lead, if configured in CRM BOQ Package.
+				# If the package is custom (not found) or has no lead configured, it remains unassigned.
+				package_lead = frappe.db.get_value("CRM BOQ Package", package_name, "assigned_lead")
+				assigned_to = package_lead if package_lead else None
 
-		for package_name in packages:
-			# Route to the package's specific lead, if configured in CRM BOQ Package.
-			# If the package is custom (not found) or has no lead configured, it remains unassigned.
-			package_lead = frappe.db.get_value("CRM BOQ Package", package_name, "assigned_lead")
-			assigned_to = package_lead if package_lead else None
+				# BOQ estimation rows are always created for package-based projects.
+				self._create_project_estimation_if_missing(package_name, "BOQ", assigned_to)
 
-			# BOQ estimation rows are always created for package-based projects.
-			self._create_project_estimation_if_missing(package_name, "BOQ", assigned_to)
+				# BCS rows are created only when explicitly enabled from project create/edit flow.
+				if should_create_bcs:
+					self._create_project_estimation_if_missing(package_name, "BCS", assigned_to)
 
-			# BCS rows are created only when explicitly enabled from project create/edit flow.
-			if should_create_bcs:
-				self._create_project_estimation_if_missing(package_name, "BCS", assigned_to)
+		# Cascade: re-derive status from current estimation state.
+		# Handles lock-exit (manual status change to non-lock) and post-deletion re-derivation.
+		recompute_parent_project_status(self.name)
 
 	def on_trash(self):
 		"""Cleanup all associated tasks when the project is deleted."""
@@ -144,3 +161,48 @@ class CRMBOQ(Document):
 
 		if existing_toggle_value == 1 or has_existing_bcs_rows:
 			self.create_bcs = 1
+
+
+def recompute_parent_project_status(project_name):
+	"""Re-derive CRM BOQ.boq_status from sibling BOQ-type Project Estimations.
+
+	Skipped if parent is in LOCK_STATUSES (manual deal outcomes are sticky).
+	Uses frappe.db.set_value with update_modified=False to bypass on_update
+	and avoid recursion with estimation creation logic.
+	"""
+	if not project_name or not frappe.db.exists("CRM BOQ", project_name):
+		return
+
+	current_status = frappe.db.get_value("CRM BOQ", project_name, "boq_status")
+	if current_status in LOCK_STATUSES:
+		return
+
+	sibling_statuses = frappe.get_all(
+		"CRM Project Estimation",
+		filters={"parent_project": project_name, "document_type": "BOQ"},
+		pluck="status",
+	)
+	if not sibling_statuses:
+		return
+
+	normalized = [s.strip().lower() for s in sibling_statuses if s]
+	derived = _derive_status(normalized)
+
+	if derived and derived != current_status:
+		frappe.db.set_value(
+			"CRM BOQ", project_name, "boq_status", derived,
+			update_modified=False,
+		)
+
+
+def _derive_status(statuses):
+	"""Pure derivation function — no Frappe context needed. Order matters."""
+	if all(s == EST_NEW for s in statuses):
+		return "New"
+	if all(s in SUBMITTED_FULL for s in statuses):
+		return "Submitted"
+	if any(s in SUBMITTED_ANY for s in statuses):
+		return "Partially Submitted"
+	if all(s in PROGRESS_BUCKET for s in statuses):
+		return "In-Progress"
+	return None
