@@ -264,7 +264,6 @@ fixtures = [
     {"dt": "Role Profile", "filters": [["role_profile", "like", "Nirmaan %"]]},
     "Portal Menu Item",
     "CRM Company Type",
-    "CRM BOQ Package"
 ]
 
 
