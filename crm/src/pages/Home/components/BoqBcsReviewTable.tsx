@@ -1,7 +1,10 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TaskTable } from "./EstimationsReviewTable";
+import { PendingEstimationsTable } from "./PendingEstimationsTable";
+
+const TARGET_STATUSES = new Set(["new", "in progress", "in-progress", "partial boq submitted", "revision pending", "hold"]);
+const normalizeStatus = (status: string) => (status || "").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
 
 export const BoqBcsReviewTable = () => {
     // role based access
@@ -13,7 +16,7 @@ export const BoqBcsReviewTable = () => {
     const { data: estimations, isLoading: estimationsLoading } = useFrappeGetDocList<any>(
         "CRM Project Estimation",
         {
-          fields: ["name", "parent_project", "title", "package_name", "document_type", "value", "link", "status", "sub_status", "deadline", "remarks", "assigned_to", "creation"],
+          fields: ["name", "parent_project", "title", "package_name", "document_type", "value", "link", "status", "sub_status", "deadline", "remarks", "assigned_to", "creation", "modified"],
           limit: 0,
         },
         "home-boqbcs-review-estimations"
@@ -22,7 +25,7 @@ export const BoqBcsReviewTable = () => {
     const { data: projects, isLoading: projectsLoading } = useFrappeGetDocList<any>(
         "CRM BOQ",
         {
-          fields: ["name", "boq_name"],
+          fields: ["name", "boq_name", "company"],
           limit: 0,
         },
         "home-boqbcs-review-projects"
@@ -44,7 +47,7 @@ export const BoqBcsReviewTable = () => {
         });
         return map;
       }, [projects]);
-    
+
     const userNameMap = useMemo(() => {
         const map = new Map<string, string>();
         (teamUsers || []).forEach((user: any) => {
@@ -53,11 +56,8 @@ export const BoqBcsReviewTable = () => {
         return map;
     }, [teamUsers]);
 
-    const targetStatuses = new Set(["new", "in progress", "in-progress", "partial boq submitted", "revision pending", "hold"]);
-    const normalizeStatus = (status: string) => (status||"").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
-
     const pendingWipEstimations = useMemo(() => {
-        const items = (estimations || []).filter((item: any) => targetStatuses.has(normalizeStatus(item.status)));
+        const items = (estimations || []).filter((item: any) => TARGET_STATUSES.has(normalizeStatus(item.status)));
         // Admin and leads see all tasks
         if (isEstimationLead) return items;
         // Regular estimation users see only their own assigned tasks
@@ -80,14 +80,12 @@ export const BoqBcsReviewTable = () => {
 
     return (
         <div className="space-y-4">
-           <TaskTable 
+           <PendingEstimationsTable
              items={pendingWipEstimations}
-             showProjectName={true}
              projectMap={projectMap}
              userNameMap={userNameMap}
              isEstimationsTeam={isEstimationsTeam}
              title="Pending Tasks"
-             maxHeightClass="max-h-[calc(90vh-200px)]"
            />
         </div>
     )
