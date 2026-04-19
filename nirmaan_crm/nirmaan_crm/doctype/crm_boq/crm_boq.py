@@ -23,8 +23,6 @@ SUBMITTED_FULL = {EST_BOQ_SUBMITTED, EST_REVISION_SUBMITTED}
 
 class CRMBOQ(Document):
 	def validate(self):
-		self._lock_create_bcs_once_enabled()
-
 		if self.boq_status in ["Won", "Lost"]:
 			self.deal_status = "Cold"
 
@@ -71,9 +69,74 @@ class CRMBOQ(Document):
 				if should_create_bcs:
 					self._create_project_estimation_if_missing(package_name, "BCS", assigned_to)
 
+		# Task A: Cascade boq_submission_date to all child estimations when opted in.
+		self._cascade_deadline_to_children()
+
+		# Task B: When create_bcs toggled 1 -> 0, hard-delete existing BCS estimation rows.
+		self._cleanup_bcs_rows_on_toggle_off()
+
 		# Cascade: re-derive status from current estimation state.
 		# Handles lock-exit (manual status change to non-lock) and post-deletion re-derivation.
 		recompute_parent_project_status(self.name)
+
+	def _cascade_deadline_to_children(self):
+		"""Overwrite `deadline` on every child CRM Project Estimation when BOQ submission date changes.
+
+		Opt-in via transient field `cascade_deadline` on the in-memory doc, or
+		`self.flags.cascade_deadline_to_children`. Silently skipped otherwise for
+		backwards compatibility.
+		"""
+		opt_in = bool(getattr(self, "cascade_deadline", None)) or bool(
+			getattr(self.flags, "cascade_deadline_to_children", False)
+		)
+		if not opt_in:
+			return
+
+		before = self.get_doc_before_save()
+		if not before:
+			return
+
+		def _norm(val):
+			# Treat "", None, and other falsy-date inputs uniformly as None so Postgres
+			# never receives '' for a Date column.
+			if val in (None, "", "None"):
+				return None
+			return val
+
+		prev_deadline = _norm(getattr(before, "boq_submission_date", None))
+		new_deadline = _norm(getattr(self, "boq_submission_date", None))
+		if prev_deadline == new_deadline:
+			return
+
+		child_names = frappe.get_all(
+			"CRM Project Estimation",
+			filters={"parent_project": self.name},
+			pluck="name",
+		)
+		for child_name in child_names:
+			frappe.db.set_value(
+				"CRM Project Estimation",
+				child_name,
+				"deadline",
+				new_deadline,
+				update_modified=True,
+			)
+
+	def _cleanup_bcs_rows_on_toggle_off(self):
+		"""Hard-delete all BCS estimation rows when create_bcs transitions 1 -> 0."""
+		before = self.get_doc_before_save()
+		if not before:
+			return
+
+		prev_toggle = cint(getattr(before, "create_bcs", 0))
+		current_toggle = cint(getattr(self, "create_bcs", 0))
+		if not (prev_toggle == 1 and current_toggle == 0):
+			return
+
+		frappe.db.delete(
+			"CRM Project Estimation",
+			{"parent_project": self.name, "document_type": "BCS"},
+		)
 
 	def on_trash(self):
 		"""Cleanup all associated tasks when the project is deleted."""
@@ -145,30 +208,13 @@ class CRMBOQ(Document):
 		)
 		doc.insert(ignore_permissions=True)
 
-	def _lock_create_bcs_once_enabled(self):
-		if self.is_new():
-			return
-
-		existing_toggle_value = cint(
-			frappe.db.get_value(self.doctype, self.name, "create_bcs") or 0
-		)
-		has_existing_bcs_rows = bool(
-			frappe.db.exists(
-				"CRM Project Estimation",
-				{"parent_project": self.name, "document_type": "BCS"},
-			)
-		)
-
-		if existing_toggle_value == 1 or has_existing_bcs_rows:
-			self.create_bcs = 1
-
-
 def recompute_parent_project_status(project_name):
 	"""Re-derive CRM BOQ.boq_status from sibling BOQ-type Project Estimations.
 
 	Skipped if parent is in LOCK_STATUSES (manual deal outcomes are sticky).
-	Uses frappe.db.set_value with update_modified=False to bypass on_update
-	and avoid recursion with estimation creation logic.
+	Writes a Version record directly when the status transitions so the change
+	surfaces in BoqSubmissionHistory UI (frappe.db.set_value alone bypasses the
+	save() lifecycle and therefore does not create a Version).
 	"""
 	if not project_name or not frappe.db.exists("CRM BOQ", project_name):
 		return
@@ -191,7 +237,26 @@ def recompute_parent_project_status(project_name):
 	if derived and derived != current_status:
 		frappe.db.set_value(
 			"CRM BOQ", project_name, "boq_status", derived,
-			update_modified=False,
+			update_modified=True,
+		)
+		_log_auto_status_version(project_name, current_status, derived)
+
+
+def _log_auto_status_version(project_name, old_status, new_status):
+	"""Insert a Frappe Version row shaped like the UI expects, with an auto marker."""
+	try:
+		version_doc = frappe.new_doc("Version")
+		version_doc.ref_doctype = "CRM BOQ"
+		version_doc.docname = project_name
+		version_doc.data = json.dumps({
+			"changed": [["boq_status", old_status or "", new_status]],
+			"auto_derived": True,
+		})
+		version_doc.insert(ignore_permissions=True)
+	except Exception:
+		frappe.log_error(
+			title="CRM BOQ auto-status Version log failed",
+			message=frappe.get_traceback(),
 		)
 
 

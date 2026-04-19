@@ -107,22 +107,25 @@ Detailed documentation for all 9 DocTypes in Nirmaan CRM.
 
 **UI Rename:** Displayed as 'Project' in the frontend UI, but the DocType name remains `CRM BOQ`.
 
-### BOQ Status Values
+### BOQ Status Values (April 2026)
 
-| Status | Description |
-|--------|-------------|
-| New | Fresh lead, no submission |
-| In Progress | Active work underway |
-| Won | Deal closed successfully |
-| Negotiation | Price negotiation phase |
-| On Hold | Temporarily paused |
-| Dropped | Abandoned by team |
-| Lost | Deal lost |
-| Hold | On hold (legacy) |
-| Revision Pending | Client requested changes |
-| Revision Submitted | Revised BOQ sent |
+Auto-derived from child `CRM Project Estimation` rows via `recompute_parent_project_status` (see workflows.md).
 
-Note: "BOQ Submitted" and "Partial BOQ Submitted" removed from project-level; these now exist only at estimation level.
+| Status | Description | Source |
+|--------|-------------|--------|
+| New | All child estimations New | Auto-derived |
+| In-Progress | All children in progress bucket (new / in-progress / revision pending) | Auto-derived |
+| Partially Submitted | Some estimations submitted, others not | Auto-derived |
+| Submitted | All children BOQ Submitted or Revision Submitted | Auto-derived |
+| Negotiation | Price negotiation phase | Manual (LOCK) |
+| Hold | Temporarily paused | Manual (LOCK) |
+| Won | Deal closed successfully | Manual (LOCK) |
+| Lost | Deal lost | Manual (LOCK) |
+| Dropped | Abandoned by team | Manual (LOCK) |
+
+**Removed (April 2026):** `In Progress` (renamed to `In-Progress`), `On Hold` (renamed to `Hold`), `BOQ Submitted`, `Partial BOQ Submitted`, `Revision Pending`, `Revision Submitted` (last four live only on the estimation row; aggregates roll up to `Submitted`/`Partially Submitted`).
+
+LOCK_STATUSES `{Won, Lost, Dropped, Hold, Negotiation}` block auto re-derivation.
 
 ### Permissions
 
