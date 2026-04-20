@@ -223,7 +223,10 @@ export const PendingEstimationsTable = ({
         accessorKey: "remarks",
         meta: { title: "Remarks", enableSorting: false },
         cell: ({ row }) => (
-          <span className="text-sm text-gray-700 truncate" title={row.original.remarks || ""}>
+          <span
+            className="text-sm text-gray-700 line-clamp-2 break-words"
+            title={row.original.remarks || ""}
+          >
             {row.original.remarks || "--"}
           </span>
         ),
@@ -267,9 +270,10 @@ export const PendingEstimationsTable = ({
         cell: ({ row }) => (
           <span
             className={cn(
-              "inline-flex rounded px-2 py-1 text-xs font-semibold",
+              "inline-flex rounded px-2 py-1 text-xs font-semibold whitespace-nowrap truncate max-w-full",
               getStatusPillClass(row.original.status)
             )}
+            title={row.original.status || ""}
           >
             {row.original.status || "--"}
           </span>
@@ -285,13 +289,18 @@ export const PendingEstimationsTable = ({
           enableSorting: true,
         },
         cell: ({ row }) => (
-          <span className="text-sm text-gray-700">{row.original.sub_status || "--"}</span>
+          <span
+            className="text-sm text-gray-700 line-clamp-2 break-words"
+            title={row.original.sub_status || ""}
+          >
+            {row.original.sub_status || "--"}
+          </span>
         ),
         filterFn: "faceted" as any,
       },
       {
         accessorKey: "modified",
-        meta: { title: "Last Updated", filterVariant: "date", enableSorting: true },
+        meta: { title: "Updated", filterVariant: "date", enableSorting: true },
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">{formatDate(row.original.modified)}</span>
         ),
@@ -345,8 +354,8 @@ export const PendingEstimationsTable = ({
   });
 
   const gridColsClass = isEstimationsTeam
-    ? "md:grid-cols-[1.2fr_minmax(100px,1fr)_1fr_0.7fr_0.9fr_1.1fr_0.9fr_0.7fr_0.9fr_0.9fr_0.9fr_60px] md:gap-x-2 md:pl-2"
-    : "md:grid-cols-[1.2fr_minmax(100px,1fr)_1fr_0.7fr_0.9fr_1.1fr_0.9fr_0.7fr_0.9fr_0.9fr_0.9fr] md:gap-x-2 md:pl-2";
+    ? "md:grid-cols-[1.4fr_minmax(110px,1fr)_1fr_0.5fr_0.9fr_1.1fr_0.9fr_0.5fr_1.1fr_1.3fr_1fr_60px] md:gap-x-2 md:pl-2"
+    : "md:grid-cols-[1.4fr_minmax(110px,1fr)_1fr_0.5fr_0.9fr_1.1fr_0.9fr_0.5fr_1.1fr_1.3fr_1fr] md:gap-x-2 md:pl-2";
 
   const getRowClassName = (row: Row<EstimationRow>) => {
     if (isOverdue(row.original.deadline, row.original.status))
@@ -374,7 +383,7 @@ export const PendingEstimationsTable = ({
       noResultsMessage="No BOQ/BCS rows found."
       getRowClassName={getRowClassName}
       renderToolbarActions={renderToolbarActions}
-      minWidth="1200px"
+      minWidth="1500px"
       containerClassName="max-h-none"
     />
   );
