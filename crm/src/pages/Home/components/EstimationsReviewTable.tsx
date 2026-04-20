@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useFrappeGetDocList } from "frappe-react-sdk";
-import { ChevronDown, ChevronRight, Link2, SquarePen } from "lucide-react";
+import { ChevronDown, ChevronRight, Info, Link2, SquarePen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "react-router-dom";
 import { useDialogStore } from "@/store/dialogStore";
 import { cn } from "@/lib/utils";
@@ -67,15 +68,34 @@ interface ProjectSummary {
   overdue: number;
 }
 
-const TEAM_KEY = "__TEAM__";
 const UNASSIGNED_KEY = "__UNASSIGNED__";
-const ESTIMATION_REVIEW_PROJECT_STATUSES = new Set(["new", "in progress", "negotiation"]);
+const ESTIMATION_REVIEW_EXCLUDED_STATUSES = new Set(["won", "lost", "dropped", "hold"]);
 
-const STATUS_TABS: Array<{ label: string; value: StatusTab }> = [
-  { label: "ALL", value: "ALL" },
-  { label: "WIP", value: "WIP" },
-  { label: "PENDING", value: "PENDING" },
-  { label: "COMPLETED", value: "COMPLETED" },
+const STATUS_TABS: Array<{ label: string; value: StatusTab; tooltipTitle: string; tooltipBody: string }> = [
+  {
+    label: "ALL",
+    value: "ALL",
+    tooltipTitle: "Estimation statuses shown",
+    tooltipBody: 'All statuses except "Not Applicable".',
+  },
+  {
+    label: "WIP",
+    value: "WIP",
+    tooltipTitle: "WIP — Estimation statuses",
+    tooltipBody: "New, In Progress, Partial BOQ Submitted",
+  },
+  {
+    label: "PENDING",
+    value: "PENDING",
+    tooltipTitle: "Pending — Estimation statuses",
+    tooltipBody: "Revision Pending, Hold",
+  },
+  {
+    label: "COMPLETED",
+    value: "COMPLETED",
+    tooltipTitle: "Completed — Estimation statuses",
+    tooltipBody: "Done, BOQ Submitted, Revision Submitted",
+  },
 ];
 
 const COMPLETED_STATUSES = new Set([
@@ -180,6 +200,37 @@ export const getStatusPillClass = (status?: string) => {
 
   return "bg-gray-100 text-gray-700 border border-gray-200";
 };
+
+const InfoHint = ({
+  title,
+  body,
+  side = "bottom",
+  align = "start",
+}: {
+  title: string;
+  body: string;
+  side?: "top" | "right" | "bottom" | "left";
+  align?: "start" | "center" | "end";
+}) => (
+  <TooltipProvider delayDuration={150}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={title}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center rounded text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-400"
+        >
+          <Info className="h-3.5 w-3.5" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side={side} align={align} sideOffset={6} className="max-w-[260px] px-3 py-2">
+        <div className="text-[10px] font-semibold uppercase tracking-wide opacity-80">{title}</div>
+        <div className="mt-1 text-xs font-medium leading-relaxed">{body}</div>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
 
 const CountButton = ({
   count,
@@ -523,7 +574,7 @@ export const EstimationsReviewTable = () => {
   const eligibleProjectIds = useMemo(() => {
     const ids = new Set<string>();
     (projects || []).forEach((project) => {
-      if (ESTIMATION_REVIEW_PROJECT_STATUSES.has(normalizeStatus(project.boq_status))) {
+      if (!ESTIMATION_REVIEW_EXCLUDED_STATUSES.has(normalizeStatus(project.boq_status))) {
         ids.add(project.name);
       }
     });
@@ -766,25 +817,37 @@ export const EstimationsReviewTable = () => {
 
   return (
     <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-4">
-      <div className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
-        {isEstimationLead ? "Team Task Allocation Overview" : "My Task Overview"}
+      <div className="flex items-center gap-2 rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
+        <span>{isEstimationLead ? "Team Task Allocation Overview" : "My Task Overview"}</span>
+        <InfoHint
+          title="Projects included"
+          body="All CRM Project statuses except: Won, Lost, Dropped, Hold."
+        />
       </div>
 
       <div className="flex flex-wrap gap-2 rounded-md bg-gray-100 p-2">
         {STATUS_TABS.map((tab) => (
-          <button
+          <span
             key={tab.value}
-            type="button"
-            onClick={() => setStatusTab(tab.value)}
             className={cn(
-              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              "inline-flex items-center gap-1 rounded-md pr-2 transition-colors",
               statusTab === tab.value
-                ? "bg-white text-gray-900 shadow-sm ring-1 ring-destructive"
-                : "text-gray-500 hover:bg-white/70"
+                ? "bg-white shadow-sm ring-1 ring-destructive"
+                : "hover:bg-white/70"
             )}
           >
-            {tab.label}
-          </button>
+            <button
+              type="button"
+              onClick={() => setStatusTab(tab.value)}
+              className={cn(
+                "rounded-md px-4 py-1.5 text-sm font-medium",
+                statusTab === tab.value ? "text-gray-900" : "text-gray-500"
+              )}
+            >
+              {tab.label}
+            </button>
+            <InfoHint title={tab.tooltipTitle} body={tab.tooltipBody} />
+          </span>
         ))}
       </div>
 
