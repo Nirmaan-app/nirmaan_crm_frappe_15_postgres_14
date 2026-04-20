@@ -42,14 +42,13 @@ const STATUS_CONFIG: Record<string, { styles: string; label: string }> = {
     styles: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
     label: 'Partial',
   },
-  // Revision statuses
-  'Revision Submitted': {
-    styles: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
-    label: 'Revision',
+  'Partially Submitted': {
+    styles: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
+    label: 'Partially Submitted',
   },
-  'Revision Pending': {
-    styles: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800',
-    label: 'Rev. Pending',
+  Submitted: {
+    styles: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800',
+    label: 'Submitted',
   },
   // Business statuses
   Negotiation: {

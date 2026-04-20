@@ -35,8 +35,6 @@ export const BOQsubStatusOptions = [
 ];
 
 export const BOQmainStatusOptions = [
-  { label: "New", value: "New" },
-  { label: "In-Progress", value: "In-Progress" },
   { label: "Won", value: "Won" },
   { label: "Negotiation", value: "Negotiation" },
   { label: "Hold", value: "Hold" },

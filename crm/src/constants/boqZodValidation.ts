@@ -117,7 +117,7 @@ export const boqFormSchema = z.object({
       break;
 
     default:
-      // Default case, for initial load or legacy statuses (BOQ Submitted, Revision Pending, etc.)
+      // Default case, for initial load or cascade-derived statuses (Partially Submitted, Submitted, etc.)
       break;
   }
 });

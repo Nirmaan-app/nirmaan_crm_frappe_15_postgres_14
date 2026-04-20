@@ -12,13 +12,14 @@ import { useFrappeGetDocList, useFrappeUpdateDoc, useSWRConfig } from "frappe-re
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect, { MenuPosition } from "react-select";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BOQmainStatusOptions } from "@/constants/dropdownData";
 import { boqFormSchema, boqDetailsSchema } from "@/constants/boqZodValidation"
 import { LocationOptions } from "@/constants/dropdownData";
 import { INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 import { PackagesMultiSelect } from "./components/PackagesMultiSelect";
 import { parsePackages, serializePackages } from "@/constants/boqPackages";
+import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
 
 const normalizeStatus = (status?: string) =>
   (status || "")
@@ -124,11 +125,6 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
   }, [selectedPackages, existingBcsPackages]);
 
   const hasPendingBcsForSelectedPackages = pendingBcsPackages.length > 0;
-  const isCreateBcsLocked = useMemo(() => {
-    const hasStoredFlag = Number(boqData?.create_bcs || 0) === 1;
-    return Boolean(hasStoredFlag || existingBcsPackages.size > 0);
-  }, [boqData?.create_bcs, existingBcsPackages]);
-  const disableCreateBcsToggle = isCreateBcsLocked || !hasPendingBcsForSelectedPackages;
 
   const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>(
     "CRM Contacts",
@@ -171,11 +167,10 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     }
   }, [boqData, form, hasLegacyTasks]);
 
-  useEffect(() => {
-    if (isCreateBcsLocked && !form.getValues("create_bcs")) {
-      form.setValue("create_bcs", true, { shouldValidate: false, shouldDirty: false });
-    }
-  }, [isCreateBcsLocked, form]);
+  // Note: previously the `create_bcs` checkbox was forcibly re-checked when the
+  // backend reported `isCreateBcsLocked`. The server-side lock has been removed
+  // and unchecking now triggers a hard-delete flow. The force-check effect has
+  // been intentionally deleted so users can uncheck (with confirmation).
 
   useEffect(() => {
     const clearFieldsBasedOnStatus = (status: string | undefined) => {
@@ -197,6 +192,15 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     clearFieldsBasedOnStatus(watchedBoqStatus);
   }, [watchedBoqStatus, form]);
 
+  // State for cascade-deadline confirm dialog
+  const [cascadeDialogOpen, setCascadeDialogOpen] = useState(false);
+  const [pendingSubmitValues, setPendingSubmitValues] = useState<EditBoqFormValues | null>(null);
+
+  // State for BCS uncheck confirm dialog
+  const [bcsUncheckDialogOpen, setBcsUncheckDialogOpen] = useState(false);
+  // Tracks whether the checkbox is currently unchecked AFTER an edit (was previously checked)
+  const [bcsPendingDelete, setBcsPendingDelete] = useState(false);
+
   const loading = updateLoading;
   const refreshProjectCaches = async (projectId: string) => {
     await Promise.all([
@@ -213,7 +217,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
     ]);
   };
 
-  const onSubmit = async (values: EditBoqFormValues) => {
+  const performSave = async (values: EditBoqFormValues, cascadeDeadline?: 0 | 1) => {
     try {
       if (!boqData) throw new Error("BOQ data is missing");
       const dataToSave: any = { ...values };
@@ -234,7 +238,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       if (dataToSave.boq_type && Array.isArray(dataToSave.boq_type)) {
         dataToSave.boq_type = serializePackages(dataToSave.boq_type);
       }
-      dataToSave.create_bcs = isCreateBcsLocked ? 1 : (dataToSave.create_bcs ? 1 : 0);
+      dataToSave.create_bcs = dataToSave.create_bcs ? 1 : 0;
       if (dataToSave.city === "Others") {
         dataToSave.city = dataToSave.other_city?.trim() || "";
       }
@@ -248,6 +252,9 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         }
         dataToSave.boq_link = formattedLink;
       }
+      if (typeof cascadeDeadline === "number") {
+        dataToSave.cascade_deadline = cascadeDeadline;
+      }
       await updateDoc("CRM BOQ", boqData.name, {
         ...dataToSave, boq_link: dataToSave.boq_link || boqData.boq_link, remarks: dataToSave?.remarks || boqData.remarks, boq_sub_status: null
       });
@@ -258,6 +265,48 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       toast({ title: "Error", description: (error as Error).message, variant: "destructive" });
     }
   };
+
+  const onSubmit = async (values: EditBoqFormValues) => {
+    // Edit-mode only: if deadline changed, ask user whether to cascade.
+    const isEdit = !!boqData?.name;
+    const deadlineDirty =
+      isEdit &&
+      mode === 'details' &&
+      (values.boq_submission_date || "") !== (boqData?.boq_submission_date || "");
+
+    if (deadlineDirty) {
+      setPendingSubmitValues(values);
+      setCascadeDialogOpen(true);
+      return;
+    }
+    await performSave(values);
+  };
+
+  const handleCascadeChoice = async (cascade: boolean) => {
+    const values = pendingSubmitValues;
+    setCascadeDialogOpen(false);
+    setPendingSubmitValues(null);
+    if (!values) return;
+    await performSave(values, cascade ? 1 : 0);
+  };
+
+  const handleCascadeDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      // User dismissed (Escape / outside click) — do NOT submit.
+      setCascadeDialogOpen(false);
+      setPendingSubmitValues(null);
+      return;
+    }
+    setCascadeDialogOpen(true);
+  };
+
+  // Track whether the BCS checkbox is currently in a "pending delete" state.
+  // True only when the BOQ was previously checked and the user has now unchecked it.
+  const watchedCreateBcs = form.watch("create_bcs");
+  useEffect(() => {
+    const originallyChecked = Number(boqData?.create_bcs || 0) === 1;
+    setBcsPendingDelete(originallyChecked && !watchedCreateBcs);
+  }, [watchedCreateBcs, boqData?.create_bcs]);
 
   const isRequired = (fieldName: keyof EditBoqFormValues) => {
     const normalizedStatus = normalizeStatus(watchedBoqStatus);
@@ -370,35 +419,56 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
             <FormField
               name="create_bcs"
               control={form.control}
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                  <FormControl>
-                    <Checkbox
-                      checked={!!field.value}
-                      disabled={disableCreateBcsToggle}
-                      onCheckedChange={(checked) => field.onChange(!!checked)}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Create BCS tasks for selected packages</FormLabel>
-                    {isCreateBcsLocked && (
-                      <p className="text-[11px] text-muted-foreground">
-                        BCS creation is permanently enabled for this project. New packages will auto-create BCS.
-                      </p>
-                    )}
-                    {!isCreateBcsLocked && disableCreateBcsToggle && (
-                      <p className="text-[11px] text-muted-foreground">
-                        No new packages pending for BCS. Add a new package to enable this option.
-                      </p>
-                    )}
-                    {!isCreateBcsLocked && !disableCreateBcsToggle && (
-                      <p className="text-[11px] text-muted-foreground">
-                        New package(s): {pendingBcsPackages.join(", ")}. Enable this to create BCS only for these package(s).
-                      </p>
-                    )}
-                  </div>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Allow toggling if: (a) there are pending packages needing BCS (can check on),
+                // OR (b) the BOQ currently has existing BCS estimations (can uncheck to delete),
+                // OR (c) the form value is currently true (so user can toggle off).
+                const canUncheck = existingBcsPackages.size > 0 || !!field.value;
+                const canCheck = hasPendingBcsForSelectedPackages;
+                const toggleDisabled = field.value ? !canUncheck : !canCheck;
+                return (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                    <FormControl>
+                      <Checkbox
+                        checked={!!field.value}
+                        disabled={toggleDisabled}
+                        onCheckedChange={(checked) => {
+                          const next = !!checked;
+                          if (!next && !!field.value) {
+                            // Going from checked -> unchecked: confirm destructive action.
+                            setBcsUncheckDialogOpen(true);
+                            return;
+                          }
+                          field.onChange(next);
+                        }}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none flex-1">
+                      <FormLabel>Create BCS tasks for selected packages</FormLabel>
+                      {existingBcsPackages.size > 0 && field.value && (
+                        <p className="text-[11px] text-muted-foreground">
+                          BCS estimations exist for this project. Unchecking will delete all BCS rows.
+                        </p>
+                      )}
+                      {!field.value && !hasPendingBcsForSelectedPackages && existingBcsPackages.size === 0 && (
+                        <p className="text-[11px] text-muted-foreground">
+                          No new packages pending for BCS. Add a new package to enable this option.
+                        </p>
+                      )}
+                      {field.value && hasPendingBcsForSelectedPackages && existingBcsPackages.size === 0 && (
+                        <p className="text-[11px] text-muted-foreground">
+                          New package(s): {pendingBcsPackages.join(", ")}. Enable this to create BCS only for these package(s).
+                        </p>
+                      )}
+                      {bcsPendingDelete && (
+                        <p className="text-[11px] text-destructive font-medium">
+                          Warning: Saving will permanently delete all BCS-type Project Estimations for this Project. This cannot be undone.
+                        </p>
+                      )}
+                    </div>
+                  </FormItem>
+                );
+              }}
             />
             {!isHidden("boq_submission_date") && (
               <FormField
@@ -537,6 +607,39 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
           <Button type="submit" className="bg-destructive hover:bg-destructive/90" disabled={loading}>{loading ? "Saving..." : "Confirm"}</Button>
         </div>
       </form>
+
+      {/* Deadline cascade confirmation */}
+      <ReusableAlertDialog
+        open={cascadeDialogOpen}
+        onOpenChange={handleCascadeDialogOpenChange}
+        title="Update Linked Project Estimations?"
+        confirmText="Yes, update all"
+        cancelText="No, keep as is"
+        onConfirm={() => handleCascadeChoice(true)}
+      >
+        <p className="text-sm text-foreground">
+          The Project Deadline has changed. Do you also want to update the deadline on all linked Project Estimations (BOQ and BCS)?
+        </p>
+      </ReusableAlertDialog>
+
+      {/* BCS uncheck confirmation */}
+      <ReusableAlertDialog
+        open={bcsUncheckDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) setBcsUncheckDialogOpen(false);
+        }}
+        title="Disable BCS for this Project?"
+        confirmText="Yes, delete BCS estimations"
+        cancelText="Cancel"
+        onConfirm={() => {
+          form.setValue("create_bcs", false, { shouldDirty: true });
+          setBcsUncheckDialogOpen(false);
+        }}
+      >
+        <p className="text-sm text-foreground">
+          Disabling BCS will permanently delete all BCS-type Project Estimations for this Project. This action cannot be undone. Proceed?
+        </p>
+      </ReusableAlertDialog>
     </Form>
   );
 };

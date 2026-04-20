@@ -43,15 +43,19 @@ export const useStatusStyles = (entityType: StatusEntityType) => {
                 return 'border-blue-400 bg-blue-50 text-blue-800';
             
             // Submission statuses
-            case 'boq submitted': 
+            case 'boq submitted':
                 return 'border-indigo-300 bg-indigo-50 text-indigo-700';
-            case 'partial boq submitted': 
+            case 'partial boq submitted':
                 return 'border-purple-300 bg-purple-50 text-purple-700';
-            
+            case 'partially submitted':
+                return 'border-purple-300 bg-purple-50 text-purple-700';
+            case 'submitted':
+                return 'border-emerald-300 bg-emerald-50 text-emerald-700';
+
             // Revision statuses
-            case 'revision submitted': 
+            case 'revision submitted':
                 return 'border-blue-300 bg-blue-50 text-blue-700';
-            case 'revision pending': 
+            case 'revision pending':
                 return 'border-orange-300 bg-orange-50 text-orange-700';
             
             // Business statuses
@@ -86,5 +90,11 @@ export const useStatusStyles = (entityType: StatusEntityType) => {
     }
 
     // Fallback function if an unknown entity type is provided
-    return (status: string) => 'border-gray-300 bg-gray-100 text-gray-700';
+    return (_status: string) => 'border-gray-300 bg-gray-100 text-gray-700';
+};
+
+export const isCascadeDerivedBoqStatus = (status: string | undefined | null): boolean => {
+  if (!status) return false;
+  const normalized = status.toLowerCase();
+  return ["new", "in-progress", "partially submitted", "submitted"].includes(normalized);
 };

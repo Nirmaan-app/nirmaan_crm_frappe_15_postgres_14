@@ -8,10 +8,11 @@ import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { CRMNote } from "@/types/NirmaanCRM/CRMNote";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { useFrappeGetDoc, useFrappeGetDocList, useSWRConfig, useFrappeUpdateDoc } from "frappe-react-sdk";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Plus, SquarePen, Wallet, Calendar, Clock, FolderOpen } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Plus, RefreshCw, SquarePen, Wallet, Calendar, Clock, FolderOpen, AlarmClock, CalendarPlus, History } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
-import { useStatusStyles } from "@/hooks/useStatusStyles";
+import { useStatusStyles, isCascadeDerivedBoqStatus } from "@/hooks/useStatusStyles";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
 import { toast } from "@/hooks/use-toast";
@@ -182,6 +183,7 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
     const { getUserFullNameByEmail } = useUserRoleLists();
     const role = localStorage.getItem('role');
     const isSalesProfile = role === 'Nirmaan Sales User Profile';
+    const canManageStatus = role === 'Nirmaan Sales User Profile' || role === 'Nirmaan Admin User Profile';
 
     // Total should be BOQ-only, not BOQ+BCS.
     const boqTotalFromRows = (estimations || [])
@@ -206,6 +208,14 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                 <div>
                     <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full mb-3 ${getBoqStatusClass(boq?.boq_status || 'New')}`}>
                         {boq?.boq_status || 'New'}
+                        {isCascadeDerivedBoqStatus(boq?.boq_status) && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <RefreshCw className="h-3 w-3 ml-1 opacity-70" />
+                                </TooltipTrigger>
+                                <TooltipContent>Auto-derived from package submissions</TooltipContent>
+                            </Tooltip>
+                        )}
                     </span>
                     <h1 className="text-xl md:text-2xl font-bold text-foreground mb-4 leading-tight">
                         {boq?.boq_name || 'N/A'}
@@ -252,15 +262,17 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
             <div className="md:w-2/3 flex flex-col">
                 <div className="flex justify-end p-4 border-b border-gray-100">
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 text-xs font-semibold bg-gray-50 hover:bg-gray-100"
-                            onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })}
-                        >
-                            <SquarePen className="w-3.5 h-3.5 mr-2" />
-                            Project Status
-                        </Button>
+                        {canManageStatus && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 text-xs font-semibold bg-gray-50 hover:bg-gray-100"
+                                onClick={() => openEditBoqDialog({ boqData: boq, mode: 'status' })}
+                            >
+                                <SquarePen className="w-3.5 h-3.5 mr-2" />
+                                Project Status
+                            </Button>
+                        )}
                         <Button
                             variant="outline"
                             size="sm"
@@ -287,7 +299,6 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                         <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Assigned Sales</p>
                         <p className="text-sm font-semibold text-gray-900">{getUserFullNameByEmail(boq?.assigned_sales || "") || 'N/A'}</p>
                     </div>
-
                     <div>
                         <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Company Name</p>
                         {company?.name ? (
@@ -320,16 +331,33 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                     </div>
                 </div>
 
-                <div className="bg-gray-50/50 p-3 lg:px-6 flex items-center justify-start gap-6 border-t border-gray-100 text-[10px] text-gray-500 font-medium">
-                    <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5" />
-                        Added: {boq?.creation ? formatDateWithOrdinal(boq.creation) : 'N/A'}
-                    </div>
+                <div className="px-6 pb-4">
+                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Remarks</p>
+                    {boq?.remarks ? (
+                        <p className="text-sm font-semibold text-gray-900 whitespace-pre-wrap break-words">{boq.remarks}</p>
+                    ) : (
+                        <p className="text-sm font-semibold text-muted-foreground">—</p>
+                    )}
+                </div>
+
+                <div className="bg-gray-50/50 p-3 lg:px-6 flex flex-wrap items-center justify-start gap-2 border-t border-gray-100">
+                    {boq?.creation && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                            <CalendarPlus className="w-3 h-3" />
+                            Added: {formatDateWithOrdinal(boq.creation)}
+                        </span>
+                    )}
                     {boq?.modified && (
-                        <div className="flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5" />
+                        <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                            <History className="w-3 h-3" />
                             Updated: {formatDateWithOrdinal(boq.modified)}
-                        </div>
+                        </span>
+                    )}
+                    {boq?.boq_submission_date && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+                            <AlarmClock className="w-3 h-3" />
+                            Deadline: {formatDateWithOrdinal(boq.boq_submission_date)}
+                        </span>
                     )}
                 </div>
             </div>
@@ -526,6 +554,7 @@ interface ChangeEntry extends Array<string | any> {
 
 interface ParsedVersionData {
     changed?: ChangeEntry[];
+    auto_derived?: boolean;
 }
 
 // 1. UPDATED: TransformedHistoryItem Interface
@@ -539,6 +568,7 @@ interface TransformedHistoryItem {
     owner: string; // Owner for *this specific version entry*
     source_type?: string; // e.g. 'Project', 'BOQ', 'BCS'
     source_title?: string;
+    auto_derived?: boolean; // true when Version was written by backend cascade
 }
 
 
@@ -593,7 +623,8 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                         link: boqLinkChange ? boqLinkChange[2] : undefined,
                         owner: version.owner,
                         source_type: 'PROJECT',
-                        source_title: boqData?.boq_name || 'Project Details'
+                        source_title: boqData?.boq_name || 'Project Details',
+                        auto_derived: parsedData.auto_derived === true,
                     };
                 } catch (e) {
                     return null;
@@ -686,6 +717,14 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded text-white ${item.source_type === 'BOQ' ? 'bg-blue-600' : item.source_type === 'BCS' ? 'bg-purple-600' : 'bg-gray-800'}`}>
                             {item.source_type}
                         </span>
+                        {item.auto_derived && (
+                            <span
+                                className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200"
+                                title="Auto-derived from package submissions"
+                            >
+                                <RefreshCw className="w-2.5 h-2.5" /> AUTO
+                            </span>
+                        )}
                         <span className="text-xs font-semibold text-gray-800 truncate max-w-[120px]" title={item.source_title}>{item.source_title}</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-1 mt-1">
@@ -738,7 +777,7 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
 
     return (
         <div className="bg-background pt-2 p-4 rounded-lg border shadow-sm flex-col mt-4 shrink-0">
-            <h2 className="font-semibold mb-4 text-xs md:text-sm uppercase tracking-wide text-gray-500">BOQ/BCS Submission History</h2>
+            <h2 className="font-semibold mb-4 text-xs md:text-sm uppercase tracking-wide text-gray-500">Project Status Update History</h2>
 
             {/* Desktop Table View */}
             <div className="hidden md:block overflow-auto border border-border/60 rounded-lg max-h-[300px]">
@@ -761,9 +800,19 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                                     <TableCell className="font-medium text-xs text-foreground whitespace-nowrap align-top pt-3">{item.date}</TableCell>
                                     <TableCell className="align-top pt-3">
                                         <div className="flex flex-col gap-0.5">
-                                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded w-max text-white ${item.source_type === 'BOQ' ? 'bg-blue-600' : item.source_type === 'BCS' ? 'bg-purple-600' : 'bg-gray-800'}`}>
-                                                {item.source_type}
-                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded w-max text-white ${item.source_type === 'BOQ' ? 'bg-blue-600' : item.source_type === 'BCS' ? 'bg-purple-600' : 'bg-gray-800'}`}>
+                                                    {item.source_type}
+                                                </span>
+                                                {item.auto_derived && (
+                                                    <span
+                                                        className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200"
+                                                        title="Auto-derived from package submissions"
+                                                    >
+                                                        <RefreshCw className="w-2.5 h-2.5" /> AUTO
+                                                    </span>
+                                                )}
+                                            </div>
                                             <span className="text-xs font-semibold text-gray-900 truncate max-w-[180px]" title={item.source_title}>{item.source_title}</span>
                                             {item.link && (
                                                 <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-500 hover:underline mt-0.5 inline-flex items-center">

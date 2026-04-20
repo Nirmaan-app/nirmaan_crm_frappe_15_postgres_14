@@ -137,7 +137,7 @@ const formatValue = (value?: number) => {
   return `INR ${Number(value).toFixed(2)} L`;
 };
 
-const isOverdue = (deadline?: string, status?: string) => {
+export const isOverdue = (deadline?: string, status?: string) => {
   if (!deadline || isCompletedStatus(status)) return false;
 
   const today = new Date();
@@ -163,7 +163,7 @@ export const isDueToday = (deadline?: string, status?: string) => {
   return dueDate.getTime() === today.getTime();
 };
 
-const getStatusPillClass = (status?: string) => {
+export const getStatusPillClass = (status?: string) => {
   const normalized = normalizeStatus(status);
 
   if (COMPLETED_STATUSES.has(normalized)) {

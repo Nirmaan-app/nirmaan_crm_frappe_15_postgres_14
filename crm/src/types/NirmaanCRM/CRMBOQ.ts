@@ -33,7 +33,7 @@ export interface CRMBOQ{
 	/**	Remarks : Text	*/
 	remarks?: string
 	/**	BOQ Status : Data	*/
-	boq_status?: string
+	boq_status?: 'New' | 'In-Progress' | 'Partially Submitted' | 'Submitted' | 'Won' | 'Negotiation' | 'Hold' | 'Dropped' | 'Lost'
 	/**	BOQ Sub Status : Data	*/
 	boq_sub_status?: string
 	/**	Assigned Sales : Data	*/

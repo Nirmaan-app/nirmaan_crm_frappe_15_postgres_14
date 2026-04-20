@@ -90,7 +90,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
             await Promise.all([
                 mutate(`project-estimations-${editingEst.parent_project}`),
                 mutate(`project-estimations-edit-${editingEst.parent_project}`),
-                mutate(`BOQ/${editingEst.parent_project}`),
+                mutate(`BOQ/${editingEst.parent_project}`, undefined, { revalidate: true }),
                 mutate("all-project-estimation-values"),
                 mutate("all-boqs-all-view"),
                 mutate("home-estimation-review-estimations"),

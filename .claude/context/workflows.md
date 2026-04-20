@@ -15,8 +15,9 @@ Complete `doc_events` mapping from `hooks.py`:
 | CRM Users | on_trash | `controllers.crm_users.on_trash` | Deletes User Permissions + User doc |
 | User Permission | after_insert | `controllers.user_permission.after_insert` | Sets `has_company = "true"` on CRM Users |
 | CRM Task | on_update | `controllers.last_meeting_on.on_meeting_update` | Updates Company/Contact `last_meeting` |
-| CRM BOQ | on_update | (inline) | Auto-creates/deletes Project Estimations per package; routes leads via CRM BOQ Package.assigned_lead |
+| CRM BOQ | on_update | (inline) | Auto-creates/deletes Project Estimations per package; routes leads via CRM BOQ Package.assigned_lead; re-derives `boq_status` via `recompute_parent_project_status` |
 | CRM BOQ | on_trash | (inline) | Cascade-deletes all CRM Project Estimation rows |
+| CRM Project Estimation | on_update | `controllers.crm_project_estimation.on_estimation_update` | Cascades to parent CRM BOQ → `recompute_parent_project_status` (BOQ-type rows only) |
 
 **Commented-out hooks** (present in code but disabled):
 - `CRM Company` / `CRM Contacts` permission query conditions
@@ -130,20 +131,25 @@ Active conditions in `hooks.py`:
 
 ### Status values (`boq_status`)
 
-| Status | Business Meaning |
-|--------|-----------------|
-| New | Fresh project, just created |
-| In Progress | Active estimation work |
-| Revision Pending | Client requested changes |
-| Revision Submitted | Updated estimation sent |
-| Negotiation | Price/terms being discussed |
-| On Hold | Paused by client or internal |
-| Won | Deal closed successfully |
-| Lost | Deal lost to competitor |
-| Dropped | Project dropped |
-| Hold | Legacy hold status |
+| Status | Business Meaning | Origin |
+|--------|-----------------|--------|
+| New | All child estimations are New | Auto-derived |
+| In-Progress | All child estimations in progress bucket | Auto-derived |
+| Partially Submitted | Some but not all estimations submitted | Auto-derived |
+| Submitted | All estimations submitted/revision-submitted | Auto-derived |
+| Negotiation | Price/terms being discussed | Manual (LOCK) |
+| Hold | Paused by client or internal | Manual (LOCK) |
+| Won | Deal closed successfully | Manual (LOCK) |
+| Lost | Deal lost to competitor | Manual (LOCK) |
+| Dropped | Project dropped | Manual (LOCK) |
 
-**Note:** 'BOQ Submitted' and 'Partial BOQ Submitted' now exist only at the `CRM Project Estimation` level, not at the project level.
+### Auto-derivation cascade (April 2026)
+
+`boq_status` is recomputed from child `CRM Project Estimation` (BOQ type only) via `recompute_parent_project_status` in `crm_boq.py`, triggered by both `CRM BOQ.on_update` and `CRM Project Estimation.on_update` (→ `on_estimation_update` in `integrations/controllers/crm_project_estimation.py`).
+
+**LOCK_STATUSES** `{Won, Lost, Dropped, Hold, Negotiation}` short-circuit the recompute — manual outcomes are sticky.
+
+**Removed from the enum (April 2026):** `BOQ Submitted`, `Partial BOQ Submitted`, `Revision Pending`, `Revision Submitted` — these exist only at the Project Estimation level now. Renames: `In Progress` → `In-Progress`, `On Hold` → `Hold`. See patches `rename_legacy_boq_status_values.py` and `recompute_boq_status_from_estimations.py`.
 
 ### Deal status lifecycle
 

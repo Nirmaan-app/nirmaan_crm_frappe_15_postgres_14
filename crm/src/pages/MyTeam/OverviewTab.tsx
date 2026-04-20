@@ -112,9 +112,9 @@ export const OverviewTab = ({ member, tasks, contacts, boqs }: { member: Member;
         // --- ALL YOUR STATS LOGIC IS NOW HERE ---
         const pendingTasks = allTasksInPeriod.filter(t => t.status === "Scheduled");
         const boqReceived = allBoqsInPeriod;
-        const boqSent = allBoqsInPeriod.filter(b => ["BOQ Submitted", "Revision Submitted"].includes(b.boq_status));
-        const pendingBoq = allBoqsInPeriod.filter(b => ["New", "Revision Pending", "In-Progress"].includes(b.boq_status));
-        const hotDeals = allBoqsInPeriod.filter(b => ["Revision Submitted", "Negotiation"].includes(b.boq_status));
+        const boqSent = allBoqsInPeriod.filter(b => ["Submitted", "Partially Submitted"].includes(b.boq_status));
+        const pendingBoq = allBoqsInPeriod.filter(b => ["New", "In-Progress"].includes(b.boq_status));
+        const hotDeals = allBoqsInPeriod.filter(b => ["Submitted", "Negotiation"].includes(b.boq_status));
         const allMeetings = allTasksInPeriod; // Assuming all tasks are meetings for this stat
 
         const uniqueMeetingIdentifiers = new Set();

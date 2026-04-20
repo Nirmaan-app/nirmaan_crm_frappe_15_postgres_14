@@ -598,15 +598,15 @@ export const BoqTableView = ({
         const isActionsColumnVisible = tableLogic.columnVisibility.actions;
         if (showAssignedSalesColumn) {
             if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
-                return "md:pl-3 md:grid-cols-[40px_1.2fr_0.8fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr_60px] md:gap-x-2";
+                return "md:pl-3 md:grid-cols-[40px_1.2fr_minmax(96px,1fr)_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr_60px] md:gap-x-2";
             }
             if (isSubmissionDateColumnVisible && !isActionsColumnVisible) {
-                return "md:pl-3 md:grid-cols-[40px_1.2fr_0.8fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr] md:gap-x-2";
+                return "md:pl-3 md:grid-cols-[40px_1.2fr_minmax(96px,1fr)_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr] md:gap-x-2";
             }
             if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
-                return "md:pl-3 md:grid-cols-[40px_1.4fr_0.8fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr_60px] md:gap-x-2";
+                return "md:pl-3 md:grid-cols-[40px_1.3fr_minmax(96px,1fr)_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr_60px] md:gap-x-2";
             }
-            return "md:pl-3 md:grid-cols-[40px_1.4fr_0.8fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr] md:gap-x-2";
+            return "md:pl-3 md:grid-cols-[40px_1.3fr_minmax(96px,1fr)_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr] md:gap-x-2";
         }
 
         if (isSubmissionDateColumnVisible && isActionsColumnVisible) {
@@ -616,9 +616,9 @@ export const BoqTableView = ({
             return "md:pl-3 md:grid-cols-[40px_1.2fr_1.1fr_0.9fr_0.9fr_1fr_1fr_1fr] md:gap-x-2";
         }
         if (!isSubmissionDateColumnVisible && isActionsColumnVisible) {
-            return "md:pl-3 md:grid-cols-[40px_1.4fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr_60px] md:gap-x-2";
+            return "md:pl-3 md:grid-cols-[40px_1.3fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr_60px] md:gap-x-2";
         }
-        return "md:pl-3 md:grid-cols-[40px_1.4fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr] md:gap-x-2";
+        return "md:pl-3 md:grid-cols-[40px_1.3fr_1.1fr_0.9fr_0.9fr_1.1fr_1.1fr_1fr] md:gap-x-2";
     }, [tableLogic.columnVisibility.actions, showAssignedSalesColumn]); // Dependencies for this memo
     // NEW: Calculate gridColsClass dynamically based on visible columns
 
