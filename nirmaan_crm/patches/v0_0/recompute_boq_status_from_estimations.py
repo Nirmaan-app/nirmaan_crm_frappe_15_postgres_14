@@ -17,6 +17,7 @@ def execute():
     candidates = frappe.get_all(
         "CRM BOQ",
         filters={"boq_status": ["not in", list(LOCK_STATUSES)]},
+        order_by="creation asc",
         pluck="name",
     )
 
