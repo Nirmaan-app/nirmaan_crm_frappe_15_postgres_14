@@ -429,6 +429,8 @@ export const BoqTableView = ({
                             : '—'}
                     </span>
                 ),
+                filterFn: 'faceted',
+                enableSorting: true,
             });
         }
 
