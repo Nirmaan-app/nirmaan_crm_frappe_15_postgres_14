@@ -196,16 +196,18 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
     const hasBoqEstimations = boqRows.length > 0;
     const totalValue = hasBoqEstimations ? boqTotalFromRows : (Number(boq?.boq_value) || 0);
 
-    // Margin is only applicable when BCS is enabled on the project (create_bcs toggle).
-    const showMargin = Number(boq?.create_bcs || 0) === 1;
-    const canComputeMargin = showMargin && totalValue > 0;
-    const marginPercent = canComputeMargin ? (1 - bcsTotalFromRows / totalValue) * 100 : 0;
-    const isProfit = marginPercent >= 0;
-
     // Incomplete-data warnings: a row counts as "pending" when its value is null/undefined or 0.
     const isValueMissing = (v: number | null | undefined) => v == null || Number(v) === 0;
     const boqMissingCount = boqRows.filter((est) => isValueMissing(est.value)).length;
     const bcsMissingCount = bcsRows.filter((est) => isValueMissing(est.value)).length;
+
+    // Margin is only applicable when BCS is enabled on the project (create_bcs toggle).
+    const showMargin = Number(boq?.create_bcs || 0) === 1;
+    // BCS is "incomplete" when enabled but any row is missing a value, or no rows exist at all.
+    const isBcsIncomplete = showMargin && (bcsRows.length === 0 || bcsMissingCount > 0);
+    const canComputeMargin = showMargin && !isBcsIncomplete && totalValue > 0;
+    const marginPercent = canComputeMargin ? (1 - bcsTotalFromRows / totalValue) * 100 : 0;
+    const isProfit = marginPercent >= 0;
     const showBoqWarning = hasBoqEstimations && boqMissingCount > 0;
     const showMarginWarning = showMargin && (
         boqRows.length === 0 || bcsRows.length === 0 || boqMissingCount > 0 || bcsMissingCount > 0
@@ -278,10 +280,12 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
 
                     {!isSalesProfile && showMargin && (
                         <div className={cn("flex items-center gap-2 p-3 rounded-lg border",
+                            isBcsIncomplete ? "bg-amber-50/60 border-amber-200" :
                             !canComputeMargin ? "bg-gray-50/50 border-gray-200" :
                             isProfit ? "bg-emerald-50/50 border-emerald-100/60" : "bg-red-50/50 border-red-100/60"
                         )}>
                             <div className={cn("p-1.5 rounded-md",
+                                isBcsIncomplete ? "bg-amber-100 text-amber-700" :
                                 !canComputeMargin ? "bg-gray-100 text-gray-500" :
                                 isProfit ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
                             )}>
@@ -289,7 +293,12 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                             </div>
                             <div>
                                 <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Margin</p>
-                                {canComputeMargin ? (
+                                {isBcsIncomplete ? (
+                                    <p className="text-sm font-bold text-amber-700 inline-flex items-center gap-1.5">
+                                        BCS Incomplete
+                                        <WarningIcon message={marginWarningMsg} />
+                                    </p>
+                                ) : canComputeMargin ? (
                                     <p className={cn("text-sm font-bold inline-flex items-center gap-1.5", isProfit ? "text-emerald-700" : "text-red-600")}>
                                         {isProfit ? "Profit" : "Loss"}: {marginPercent.toFixed(1)}%
                                         {showMarginWarning && <WarningIcon message={marginWarningMsg} />}
@@ -989,7 +998,7 @@ export const BOQ = () => {
     };
 
     return (
-        <div className="flex flex-col h-full max-h-screen overflow-y-auto space-y-4 mb-6">
+        <div className="flex flex-col h-full max-h-screen overflow-y-auto overflow-x-hidden space-y-4 mb-6">
             <div className="sticky top-0 z-20 bg-background p-2 shrink-0">
                 <div className="flex items-center gap-4"> {/* Container for back button and header text */}
 

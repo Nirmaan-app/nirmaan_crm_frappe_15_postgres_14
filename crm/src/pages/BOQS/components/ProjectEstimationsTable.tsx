@@ -52,7 +52,7 @@ export const ProjectEstimationsTable = ({
     }
 
     return (
-        <div className="bg-background max-h-[400px] overflow-y-auto w-full p-4  rounded-lg border shadow-sm shrink-0">
+        <div className="bg-background w-full p-4 rounded-lg border shadow-sm shrink-0">
             <div className="flex items-center gap-2 mb-4">
                 <h2 className="text-lg font-semibold">BOQ/BCS</h2>
                 <div className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -60,7 +60,7 @@ export const ProjectEstimationsTable = ({
                 </div>
             </div>
 
-            <div className="overflow-x-auto border border-border/60 rounded-lg max-h-[400px]">
+            <div className="overflow-auto border border-border/60 rounded-lg max-h-[400px]">
                 <Table>
                     <TableHeader className="bg-muted/30 z-10 sticky top-0">
                         <TableRow>
