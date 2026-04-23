@@ -110,7 +110,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
     if (!editingEst) return null;
 
     return (
-        <form onSubmit={handleEditSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 styled-scrollbar">
+        <form onSubmit={handleEditSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto overflow-x-hidden px-1 styled-scrollbar">
             <div className="flex flex-col gap-1.5 mb-2 -mt-2 bg-muted/20 p-3 rounded-md border border-muted/50">
                 <div className="flex items-center gap-2 text-primary font-semibold">
                     <PenLine className="w-4 h-4" />
@@ -204,14 +204,8 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                 )}
 
             <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">{editingEst.document_type} Link{(
-                    (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                    (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-                ) && <sup>*</sup>}</label>
-                <Input name="link" required={(
-                    (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                    (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-                )} defaultValue={editingEst.link || ""} placeholder="https://..." className="h-9 hover:border-primary/50 focus-visible:ring-1" />
+                <label className="text-xs font-medium text-muted-foreground">{editingEst.document_type} Link</label>
+                <Input name="link" defaultValue={editingEst.link || ""} placeholder="https://..." className="h-9 hover:border-primary/50 focus-visible:ring-1" />
             </div>
 
             <div className="space-y-1">
@@ -225,7 +219,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                 )} className="resize-none h-20 hover:border-primary/50 focus-visible:ring-1" defaultValue={editingEst.remarks || ""} placeholder="Enter remarks..." />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t mt-4 bg-muted/10 -mx-6 px-6 -mb-6 pb-6 pt-6 rounded-b-lg">
+            <div className="flex justify-end gap-3 pt-4 border-t mt-4">
                 <Button type="button" variant="outline" className="w-24 border-gray-300" onClick={onSuccess}>
                     Cancel
                 </Button>
