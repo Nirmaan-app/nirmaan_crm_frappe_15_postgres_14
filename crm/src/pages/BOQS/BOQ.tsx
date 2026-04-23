@@ -183,7 +183,7 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
     const { getUserFullNameByEmail } = useUserRoleLists();
     const role = localStorage.getItem('role');
     const isSalesProfile = role === 'Nirmaan Sales User Profile';
-    const canManageStatus = role === 'Nirmaan Sales User Profile' || role === 'Nirmaan Admin User Profile';
+    const canManageStatus = role === 'Nirmaan Sales User Profile' || role === 'Nirmaan Admin User Profile' || role === 'Nirmaan Estimations Lead Profile';
 
     // Total should be BOQ-only, not BOQ+BCS.
     const boqRows = (estimations || []).filter((est) => (est.document_type || '').toUpperCase() === 'BOQ');
