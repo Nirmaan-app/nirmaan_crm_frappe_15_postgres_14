@@ -68,7 +68,7 @@
 
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
+import { Calendar, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GlobalSearchInput } from "@/components/common/GlobalSearchInput";
 import { PendingTasks } from "./PendingTasks";
@@ -183,14 +183,26 @@ export const HomeHeader = () => {
             <div className="sticky top-0 z-20 bg-background px-4 mt-0 flex-shrink-0"> {/* Fixed header section */}
                 <div className="flex justify-between items-center mb-2">
                     <h1 className="text-md md:text-2xl font-bold">Welcome, {fullName}!</h1>
-                    <Button
-                        variant="outline"
-                        className="border-destructive text-destructive hover:bg-destructive/5 hover:text-destructive"
-                        onClick={() => navigate('/calendar')}
-                    >
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Calendar
-                    </Button>
+                    <div className="flex gap-2">
+                        {(isAdmin || isSalesUser) && (
+                            <Button
+                                variant="outline"
+                                className="border-destructive text-destructive hover:bg-destructive/5 hover:text-destructive"
+                                onClick={() => navigate('/reports')}
+                            >
+                                <BarChart3 className="w-4 h-4 mr-2" />
+                                Reports
+                            </Button>
+                        )}
+                        <Button
+                            variant="outline"
+                            className="border-destructive text-destructive hover:bg-destructive/5 hover:text-destructive"
+                            onClick={() => navigate('/calendar')}
+                        >
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Calendar
+                        </Button>
+                    </div>
                 </div>
 
                 {(canViewSalesReview || canViewEstimationsReview) && (

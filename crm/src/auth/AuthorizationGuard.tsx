@@ -36,7 +36,7 @@ export const AuthorizationGuard = () => {
   // --- The rest of your logic remains the same, but now uses the variables from localStorage ---
 
   if (role === 'Nirmaan Sales User Profile') {
-    const allowedBasePaths = ['/', '/boqs', '/contacts', '/companies', '/tasks','/calendar'];
+    const allowedBasePaths = ['/', '/boqs', '/contacts', '/companies', '/tasks', '/calendar', '/reports'];
     if (!isPathAllowed(location.pathname, allowedBasePaths)) {
       return <Navigate to="/" replace />;
     }
