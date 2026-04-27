@@ -61,7 +61,7 @@ const toFacetOptions = (values: Iterable<string>) =>
     value: v,
   }));
 
-const INITIAL_SORTING = [{ id: "modified", desc: true }] as const;
+const INITIAL_SORTING = [{ id: "creation", desc: true }] as const;
 const SEARCHABLE_KEYS = [
   "project_name",
   "company",
@@ -76,10 +76,10 @@ const SEARCHABLE_KEYS = [
 const formatDate = (value?: string) =>
   value
     ? new Date(value).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
     : "--";
 
 export const PendingEstimationsTable = ({
@@ -299,10 +299,10 @@ export const PendingEstimationsTable = ({
         filterFn: "faceted" as any,
       },
       {
-        accessorKey: "modified",
-        meta: { title: "Updated", filterVariant: "date", enableSorting: true },
+        accessorKey: "creation",
+        meta: { title: "Added", filterVariant: "date", enableSorting: true },
         cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">{formatDate(row.original.modified)}</span>
+          <span className="text-sm text-muted-foreground">{formatDate(row.original.creation)}</span>
         ),
         filterFn: "dateRange" as any,
       },

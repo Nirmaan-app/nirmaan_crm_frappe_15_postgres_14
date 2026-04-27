@@ -20,6 +20,7 @@ import { INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 import { PackagesMultiSelect } from "./components/PackagesMultiSelect";
 import { parsePackages, serializePackages } from "@/constants/boqPackages";
 import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
+import { isCascadeDerivedBoqStatus } from "@/hooks/useStatusStyles";
 
 const normalizeStatus = (status?: string) =>
   (status || "")
@@ -157,7 +158,9 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         create_bcs: boqData.create_bcs === 1,
         boq_value: Number(boqData.boq_value) || 0,
         boq_size: Number(boqData.boq_size) || 0,
-        boq_status: boqData.boq_status || "",
+        boq_status: (mode === 'status' && isCascadeDerivedBoqStatus(boqData.boq_status))
+          ? ""
+          : (boqData.boq_status || ""),
         boq_link: "",
         company: boqData.company || "",
         contact: boqData.contact || "",
@@ -568,6 +571,11 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         )}
         {mode === 'status' && (
           <>
+            {isCascadeDerivedBoqStatus(boqData?.boq_status) && (
+              <p className="text-xs text-muted-foreground">
+                Current auto-status: <span className="font-medium text-foreground">{boqData?.boq_status}</span>
+              </p>
+            )}
             <FormField name="boq_status" control={form.control} render={({ field }) => (
               <FormItem>
                 <FormLabel>Update Status</FormLabel>

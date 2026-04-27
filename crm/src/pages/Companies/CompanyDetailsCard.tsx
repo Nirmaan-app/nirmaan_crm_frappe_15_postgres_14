@@ -106,6 +106,21 @@ export const CompanyDetailsCard = ({ company, totalProjects, totalContacts, acti
                         <p className="font-bold text-sm">{company?.team_size || "N/A"}</p>
                     </div>
                 </div>
+                <div className="mt-4 pt-4 border-t">
+                    <p className="text-xs text-muted-foreground">Website</p>
+                    {company?.company_website ? (
+                        <a
+                            href={company.company_website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-sm text-primary underline underline-offset-2 hover:opacity-80 break-all"
+                        >
+                            {company.company_website}
+                        </a>
+                    ) : (
+                        <p className="font-semibold text-sm">N/A</p>
+                    )}
+                </div>
             </div>
         </div>
     );

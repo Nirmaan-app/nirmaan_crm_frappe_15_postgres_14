@@ -4,9 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists";
-import { Send, PenLine } from "lucide-react";
+import { Send } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { CRMProjectEstimation } from "../components/ProjectEstimationsTable";
+import { getStatusPillClass } from "@/pages/Home/components/EstimationsReviewTable";
 
 interface EditProjectEstimationFormProps {
     estimationData: CRMProjectEstimation;
@@ -109,15 +111,66 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
 
     if (!editingEst) return null;
 
+    const documentType = (editingEst.document_type || "").toUpperCase();
+    const isBcs = documentType === "BCS";
+    const displayTitle =
+        editingEst.package_name ||
+        (editingEst.title?.startsWith(`${editingEst.parent_project} - `)
+            ? editingEst.title.replace(`${editingEst.parent_project} - `, "")
+            : editingEst.title) ||
+        "Estimation";
+
     return (
-        <form onSubmit={handleEditSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 styled-scrollbar">
-            <div className="flex flex-col gap-1.5 mb-2 -mt-2 bg-muted/20 p-3 rounded-md border border-muted/50">
-                <div className="flex items-center gap-2 text-primary font-semibold">
-                    <PenLine className="w-4 h-4" />
-                    <span>Editing: {editingEst.title || "Estimation"}</span>
+        <form onSubmit={handleEditSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto overflow-x-hidden -mr-6 pr-6 styled-scrollbar">
+            <div className="relative -mx-6 pl-7 pr-6 pt-2 pb-3.5 mb-5 border-b border-border">
+                <span
+                    aria-hidden
+                    className={cn(
+                        "absolute left-0 top-0 bottom-0 w-[3px]",
+                        isBcs ? "bg-violet-500" : "bg-blue-500"
+                    )}
+                />
+                <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70 mb-1">
+                    Edit task
                 </div>
-                <div className="text-xs font-semibold text-muted-foreground">
-                    Project: <span className="text-foreground">{editingEst.parent_project}</span>
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <h2
+                                className="text-[15px] font-semibold text-foreground leading-tight tracking-tight truncate"
+                                title={displayTitle}
+                            >
+                                {displayTitle}
+                            </h2>
+                            <span
+                                className={cn(
+                                    "shrink-0 inline-flex items-center px-1.5 py-[1px] rounded-sm text-[10px] font-bold tracking-wider",
+                                    isBcs
+                                        ? "bg-violet-100 text-violet-700"
+                                        : "bg-blue-100 text-blue-700"
+                                )}
+                            >
+                                {documentType || "BOQ"}
+                            </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-1 truncate">
+                            in{" "}
+                            <span
+                                className="font-medium text-foreground/80"
+                                title={editingEst.parent_project}
+                            >
+                                {editingEst.parent_project}
+                            </span>
+                        </p>
+                    </div>
+                    <span
+                        className={cn(
+                            "shrink-0 inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap mt-1",
+                            getStatusPillClass(editingEst.status)
+                        )}
+                    >
+                        {editingEst.status || "New"}
+                    </span>
                 </div>
             </div>
 
@@ -204,14 +257,8 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                 )}
 
             <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">{editingEst.document_type} Link{(
-                    (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                    (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-                ) && <sup>*</sup>}</label>
-                <Input name="link" required={(
-                    (editingEst.document_type === 'BOQ' && ["BOQ Submitted", "Partial BOQ Submitted", "Revision Submitted"].includes(editingEst.status)) ||
-                    (editingEst.document_type === 'BCS' && editingEst.status === 'Done')
-                )} defaultValue={editingEst.link || ""} placeholder="https://..." className="h-9 hover:border-primary/50 focus-visible:ring-1" />
+                <label className="text-xs font-medium text-muted-foreground">{editingEst.document_type} Link</label>
+                <Input name="link" defaultValue={editingEst.link || ""} placeholder="https://..." className="h-9 hover:border-primary/50 focus-visible:ring-1" />
             </div>
 
             <div className="space-y-1">
@@ -225,7 +272,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                 )} className="resize-none h-20 hover:border-primary/50 focus-visible:ring-1" defaultValue={editingEst.remarks || ""} placeholder="Enter remarks..." />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t mt-4 bg-muted/10 -mx-6 px-6 -mb-6 pb-6 pt-6 rounded-b-lg">
+            <div className="flex justify-end gap-3 pt-4 border-t mt-4">
                 <Button type="button" variant="outline" className="w-24 border-gray-300" onClick={onSuccess}>
                     Cancel
                 </Button>

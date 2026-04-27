@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PendingEstimationsTable } from "./PendingEstimationsTable";
 
 const TARGET_STATUSES = new Set(["new", "in progress", "in-progress", "partial boq submitted", "revision pending", "hold"]);
+const EXCLUDED_PROJECT_STATUSES = new Set(["won", "lost", "dropped", "hold"]);
 const normalizeStatus = (status: string) => (status || "").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
 
 export const BoqBcsReviewTable = () => {
@@ -25,7 +26,7 @@ export const BoqBcsReviewTable = () => {
     const { data: projects, isLoading: projectsLoading } = useFrappeGetDocList<any>(
         "CRM BOQ",
         {
-          fields: ["name", "boq_name", "company"],
+          fields: ["name", "boq_name", "company", "boq_status"],
           limit: 0,
         },
         "home-boqbcs-review-projects"
@@ -57,7 +58,12 @@ export const BoqBcsReviewTable = () => {
     }, [teamUsers]);
 
     const pendingWipEstimations = useMemo(() => {
-        const items = (estimations || []).filter((item: any) => TARGET_STATUSES.has(normalizeStatus(item.status)));
+        const items = (estimations || []).filter((item: any) => {
+            if (!TARGET_STATUSES.has(normalizeStatus(item.status))) return false;
+            const project = projectMap.get(item.parent_project);
+            if (project && EXCLUDED_PROJECT_STATUSES.has(normalizeStatus(project.boq_status))) return false;
+            return true;
+        });
         // Admin and leads see all tasks
         if (isEstimationLead) return items;
         // Regular estimation users see only their own assigned tasks
@@ -65,7 +71,7 @@ export const BoqBcsReviewTable = () => {
             const assignee = (item.assigned_to || "").trim();
             return assignee === userEmail;
         });
-    }, [estimations, isEstimationLead, userEmail]);
+    }, [estimations, projectMap, isEstimationLead, userEmail]);
 
     if (estimationsLoading || projectsLoading || usersLoading) {
         return (

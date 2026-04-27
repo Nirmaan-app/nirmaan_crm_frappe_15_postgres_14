@@ -16,7 +16,6 @@ import { CompanySubPages } from "./CompanySubPages";
 import {CompanyProgressCard} from "./components/CompanyProgressCard"
 import { useDialogStore } from "@/store/dialogStore";
 import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
-import { BoqBcsTaskExport } from "../BOQS/components/BoqBcsTaskExport";
 
 // Assume you have an EditCompanyForm component for the dialog
 // import { EditCompanyForm } from "./EditCompanyForm"; 
@@ -129,7 +128,6 @@ const active=activeProjectsfilter()
                                     <SquarePen className="w-4 h-4 mr-2" />
                                     EDIT
                                 </Button>
-                                <BoqBcsTaskExport companyId={id} />
                             </div>
                 </div>
             <CompanyDetailsCard
