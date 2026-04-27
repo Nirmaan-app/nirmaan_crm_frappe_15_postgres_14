@@ -21,10 +21,10 @@ export interface CohortMatrix {
 }
 
 export interface SalesCohortReportData {
-  cohort_month: string;
+  cohort_months: string[];
   cohort_label: string;
   cohort_size: number;
-  salesperson: string | null;
+  salespersons: string[];
   statuses: string[];
   months: CohortMonthSpec[];
   projects: CohortProjectRow[];
@@ -32,6 +32,6 @@ export interface SalesCohortReportData {
 }
 
 export interface UseSalesCohortReportArgs {
-  cohortMonth: string;
-  salesperson?: string | null;
+  cohortMonths: string[];
+  salespersons: string[];
 }

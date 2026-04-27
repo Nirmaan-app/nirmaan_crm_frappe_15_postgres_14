@@ -25,22 +25,26 @@ export const CohortMatrix = ({ report, projectsByName }: Props) => {
         <div className="sticky left-0 z-10 bg-muted/40 border-b border-r border-border/60 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Status
         </div>
-        {report.months.map(m => (
-          <div
-            key={m.key}
-            className={cn(
-              'border-b border-border/60 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center',
-              m.is_cohort_month && 'bg-destructive/5 text-destructive'
-            )}
-          >
-            <div>{m.label}</div>
-            {m.is_cohort_month && (
+        {report.months.map(m => {
+          const monthTotal = Object.values(report.matrix[m.key] || {}).reduce(
+            (sum, arr) => sum + arr.length,
+            0
+          );
+          return (
+            <div
+              key={m.key}
+              className={cn(
+                'border-b border-border/60 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center',
+                m.is_cohort_month && 'bg-destructive/5 text-destructive'
+              )}
+            >
+              <div>{m.label}</div>
               <div className="text-[10px] font-normal normal-case tracking-normal opacity-80 mt-0.5">
-                cohort
+                {m.is_cohort_month ? `Cohort · ${monthTotal}` : `Total · ${monthTotal}`}
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
 
         {rowStatuses.map((status, idx) => (
           <div key={status} className="contents">

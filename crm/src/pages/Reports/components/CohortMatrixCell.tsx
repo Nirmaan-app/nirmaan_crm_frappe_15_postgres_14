@@ -51,6 +51,7 @@ export const CohortMatrixCell = ({
       <span
         className={cn(
           'tabular-nums text-base font-semibold',
+          isClickable && 'text-blue-600 underline underline-offset-2',
           !isClickable && 'text-muted-foreground/40 font-normal'
         )}
       >

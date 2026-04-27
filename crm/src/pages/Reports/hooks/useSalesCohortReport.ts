@@ -7,20 +7,24 @@ import type {
 } from '../types';
 
 export const useSalesCohortReport = ({
-  cohortMonth,
-  salesperson,
+  cohortMonths,
+  salespersons,
 }: UseSalesCohortReportArgs) => {
-  const swrKey = `cohort-report-${cohortMonth}-${salesperson || 'all'}`;
+  const swrKey = useMemo(() => {
+    const m = [...cohortMonths].sort().join(',');
+    const s = [...salespersons].sort().join(',') || 'all';
+    return `cohort-report-${m}-${s}`;
+  }, [cohortMonths, salespersons]);
 
   const { data, error, isLoading, mutate } = useFrappeGetCall<{
     message: SalesCohortReportData;
   }>(
     'nirmaan_crm.api.reports.sales_cohort.get_sales_cohort_report',
     {
-      cohort_month: cohortMonth,
-      ...(salesperson ? { assigned_sales: salesperson } : {}),
+      cohort_months: JSON.stringify(cohortMonths),
+      assigned_sales: JSON.stringify(salespersons),
     },
-    swrKey,
+    cohortMonths.length ? swrKey : null,
     { revalidateOnFocus: false }
   );
 

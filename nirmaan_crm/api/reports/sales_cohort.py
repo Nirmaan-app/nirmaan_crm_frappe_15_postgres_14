@@ -56,11 +56,18 @@ def _project_row(boq):
     }
 
 
-def _build_month_specs(year, month):
+def _build_month_specs(cohort_months):
+    selected_set = set()
+    for cm in cohort_months:
+        y, m = map(int, cm.split("-"))
+        selected_set.add((y, m))
+
     today = getdate(nowdate())
     today_year, today_month = today.year, today.month
+
+    start_y, start_m = min(selected_set)
     specs = []
-    y, m = year, month
+    y, m = start_y, start_m
     while (y, m) <= (today_year, today_month):
         last_day = calendar.monthrange(y, m)[1]
         end_dt = get_datetime(f"{y}-{m:02d}-{last_day} 23:59:59")
@@ -70,7 +77,7 @@ def _build_month_specs(year, month):
             "end": end_dt,
             "key": f"{y}-{m:02d}",
             "label": end_dt.strftime("%b %Y"),
-            "is_cohort_month": (y, m) == (year, month),
+            "is_cohort_month": (y, m) in selected_set,
         })
         m += 1
         if m == 13:
@@ -78,13 +85,29 @@ def _build_month_specs(year, month):
     return specs
 
 
-def _empty_response(cohort_month, month_specs, salesperson):
-    cohort_label = month_specs[0]["label"] if month_specs else ""
+def _format_cohort_label(cohort_months):
+    if not cohort_months:
+        return ""
+    pairs = sorted({tuple(map(int, cm.split("-"))) for cm in cohort_months})
+    if len(pairs) == 1:
+        y, m = pairs[0]
+        return f"{calendar.month_abbr[m]} {y}"
+
+    years = {y for y, _ in pairs}
+    if len(years) == 1:
+        y = next(iter(years))
+        months_str = ", ".join(calendar.month_abbr[m] for _, m in pairs)
+        return f"{months_str} {y}"
+
+    return ", ".join(f"{calendar.month_abbr[m]} {y}" for y, m in pairs)
+
+
+def _empty_response(cohort_months, month_specs, salespersons):
     return {
-        "cohort_month": cohort_month,
-        "cohort_label": cohort_label,
+        "cohort_months": cohort_months,
+        "cohort_label": _format_cohort_label(cohort_months),
         "cohort_size": 0,
-        "salesperson": salesperson,
+        "salespersons": salespersons or [],
         "statuses": CANONICAL_STATUSES,
         "months": [
             {
@@ -156,28 +179,43 @@ def _resolve_role_profile():
 
 
 @frappe.whitelist()
-def get_sales_cohort_report(cohort_month, assigned_sales=None):
+def get_sales_cohort_report(cohort_months, assigned_sales=None):
+    if isinstance(cohort_months, str):
+        cohort_months = frappe.parse_json(cohort_months)
+    if isinstance(assigned_sales, str):
+        assigned_sales = frappe.parse_json(assigned_sales)
+    if not cohort_months:
+        frappe.throw("At least one cohort month is required")
+
     role_profile = _resolve_role_profile()
     is_admin = role_profile == "Nirmaan Admin User Profile"
     is_sales = role_profile == "Nirmaan Sales User Profile"
     if not (is_admin or is_sales):
         frappe.throw("Not permitted to view reports", frappe.PermissionError)
     if not is_admin:
-        assigned_sales = frappe.session.user
+        assigned_sales = [frappe.session.user]
 
-    year, month = map(int, cohort_month.split("-"))
-    cohort_start = getdate(f"{year}-{month:02d}-01")
-    last_day = calendar.monthrange(year, month)[1]
-    cohort_end = get_datetime(f"{year}-{month:02d}-{last_day} 23:59:59")
+    selected_set = set()
+    for cm in cohort_months:
+        y, m = map(int, cm.split("-"))
+        selected_set.add((y, m))
 
-    month_specs = _build_month_specs(year, month)
+    earliest_y, earliest_m = min(selected_set)
+    latest_y, latest_m = max(selected_set)
+    broadest_start = getdate(f"{earliest_y}-{earliest_m:02d}-01")
+    latest_last_day = calendar.monthrange(latest_y, latest_m)[1]
+    broadest_end = get_datetime(
+        f"{latest_y}-{latest_m:02d}-{latest_last_day} 23:59:59"
+    )
+
+    month_specs = _build_month_specs(cohort_months)
 
     boq_filters = [
-        ["creation", ">=", cohort_start],
-        ["creation", "<=", cohort_end],
+        ["creation", ">=", broadest_start],
+        ["creation", "<=", broadest_end],
     ]
     if assigned_sales:
-        boq_filters.append(["assigned_sales", "=", assigned_sales])
+        boq_filters.append(["assigned_sales", "in", assigned_sales])
 
     boq_rows = frappe.get_all(
         "CRM BOQ",
@@ -196,8 +234,13 @@ def get_sales_cohort_report(cohort_month, assigned_sales=None):
         limit=0,
     )
 
+    boq_rows = [
+        b for b in boq_rows
+        if (getdate(b["creation"]).year, getdate(b["creation"]).month) in selected_set
+    ]
+
     if not boq_rows:
-        return _empty_response(cohort_month, month_specs, assigned_sales)
+        return _empty_response(cohort_months, month_specs, assigned_sales)
 
     boq_names = [b["name"] for b in boq_rows]
     transitions = _fetch_status_transitions(boq_names)
@@ -213,10 +256,10 @@ def get_sales_cohort_report(cohort_month, assigned_sales=None):
         matrix[spec["key"]] = {k: v for k, v in bucket.items() if v}
 
     return {
-        "cohort_month": cohort_month,
-        "cohort_label": month_specs[0]["label"] if month_specs else "",
+        "cohort_months": cohort_months,
+        "cohort_label": _format_cohort_label(cohort_months),
         "cohort_size": len(boq_rows),
-        "salesperson": assigned_sales,
+        "salespersons": assigned_sales or [],
         "statuses": CANONICAL_STATUSES,
         "months": [
             {

@@ -1,17 +1,11 @@
 import { useMemo } from 'react';
 import { format, subMonths, startOfMonth } from 'date-fns';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import ReactSelect from 'react-select';
 import { Label } from '@/components/ui/label';
 
 interface Props {
-  value: string;
-  onChange: (value: string) => void;
+  value: string[];
+  onChange: (next: string[]) => void;
 }
 
 export const CohortMonthSelector = ({ value, onChange }: Props) => {
@@ -26,21 +20,27 @@ export const CohortMonthSelector = ({ value, onChange }: Props) => {
     });
   }, []);
 
+  const selectedOptions = useMemo(
+    () => options.filter((o) => value.includes(o.value)),
+    [options, value]
+  );
+
   return (
-    <div className="flex flex-col gap-1.5 flex-1 md:max-w-[200px]">
-      <Label className="text-xs text-muted-foreground">Cohort Month</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="flex flex-col gap-1.5 flex-1 md:max-w-[280px]">
+      <Label className="text-xs text-muted-foreground">Cohort Months</Label>
+      <ReactSelect
+        isMulti
+        options={options}
+        value={selectedOptions}
+        onChange={(opts) => onChange((opts ?? []).map((o) => o.value))}
+        closeMenuOnSelect={false}
+        hideSelectedOptions={false}
+        placeholder="Select month(s)…"
+        className="text-sm"
+        menuPlacement="auto"
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+      />
     </div>
   );
 };

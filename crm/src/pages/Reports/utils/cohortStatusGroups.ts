@@ -20,13 +20,12 @@ export const LOCK_STATUSES = new Set<CanonicalStatus>([
   'Negotiation',
 ]);
 
-export type StatusGroup = 'active' | 'won' | 'lost' | 'hold';
+export type StatusGroup = 'active' | 'won' | 'lost';
 
 export const STATUS_GROUP: Record<StatusGroup, CanonicalStatus[]> = {
-  active: ['New', 'In-Progress', 'Partially Submitted', 'Submitted', 'Negotiation'],
+  active: ['New', 'In-Progress', 'Partially Submitted', 'Submitted', 'Negotiation', 'Hold'],
   won: ['Won'],
   lost: ['Lost', 'Dropped'],
-  hold: ['Hold'],
 };
 
 export const getStatusGroup = (status: string): StatusGroup | 'unknown' => {
