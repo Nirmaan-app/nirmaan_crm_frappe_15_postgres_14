@@ -11,6 +11,7 @@ import { SalesPersonSelector } from './components/SalesPersonSelector';
 import { CohortMatrix } from './components/CohortMatrix';
 import { CohortSummaryStrip } from './components/CohortSummaryStrip';
 import { CohortEmptyState } from './components/CohortEmptyState';
+import { getLatestCohortKey } from './utils/cohortRange';
 
 export const SalesCohortReport = () => {
   const navigate = useNavigate();
@@ -46,7 +47,8 @@ export const SalesCohortReport = () => {
   });
 
   const currentMonth = format(new Date(), 'yyyy-MM');
-  const isCurrentMonthInCohort = cohortMonths.includes(currentMonth);
+  const latestCohortKey = cohortMonths.length > 0 ? getLatestCohortKey(cohortMonths) : null;
+  const isLatestCohortStillForming = latestCohortKey === currentMonth;
   const noCohortSelected = cohortMonths.length === 0;
 
   return (
@@ -90,9 +92,9 @@ export const SalesCohortReport = () => {
         />
       ) : (
         <>
-          {isCurrentMonthInCohort && !isLoading && (
+          {isLatestCohortStillForming && !isLoading && (
             <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              This cohort is still forming. Column count will grow each month.
+              Latest cohort month is still forming. Counts will keep changing this month.
             </div>
           )}
 
