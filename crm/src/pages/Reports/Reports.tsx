@@ -5,7 +5,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { ArrowRight, BarChart3, Sparkles } from 'lucide-react';
+import { ArrowRight, BarChart3, Activity } from 'lucide-react';
 
 export const Reports = () => {
   const navigate = useNavigate();
@@ -40,15 +40,23 @@ export const Reports = () => {
           </CardHeader>
         </Card>
 
-        <Card className="border-border/60 opacity-60 cursor-not-allowed">
+        <Card
+          onClick={() => navigate('/reports/flow')}
+          className="group cursor-pointer border-border/60 hover:border-destructive/40 hover:shadow-md transition-all"
+        >
           <CardHeader className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md bg-muted text-muted-foreground">
-                <Sparkles className="w-5 h-5" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-md bg-destructive/10 text-destructive">
+                  <Activity className="w-5 h-5" />
+                </div>
+                <CardTitle className="text-lg">Flow Report</CardTitle>
               </div>
-              <CardTitle className="text-lg">Placeholder Report</CardTitle>
+              <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-destructive group-hover:translate-x-0.5 transition-all" />
             </div>
-            <CardDescription>Coming soon.</CardDescription>
+            <CardDescription>
+              Funnel of projects received in the last ~3 months — won, lost, and in negotiation.
+            </CardDescription>
           </CardHeader>
         </Card>
       </div>

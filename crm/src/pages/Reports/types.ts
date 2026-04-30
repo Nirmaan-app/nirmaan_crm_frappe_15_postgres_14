@@ -35,3 +35,25 @@ export interface UseSalesCohortReportArgs {
   cohortMonths: string[];
   salespersons: string[];
 }
+
+export interface FlowProjectRow {
+  name: string;
+  boq_name: string;
+  company: string;
+  boq_status: string;
+  creation: string;
+  boq_value?: string;
+  assigned_sales?: string;
+}
+
+export interface FlowReportData {
+  windowStart: string;
+  windowEnd: string;
+  windowLabel: string;
+  totalReceived: number;
+  projects: FlowProjectRow[];
+}
+
+export interface UseFlowReportArgs {
+  salespersons: string[];
+}
