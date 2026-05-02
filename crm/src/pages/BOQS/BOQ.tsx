@@ -762,7 +762,8 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                             link: boqLinkChange ? boqLinkChange[2] : undefined,
                             owner: version.owner,
                             source_type: est?.document_type || 'ESTIMATION',
-                            source_title: est?.title || docname
+                            source_title: est?.title || docname,
+                            auto_derived: parsedData.auto_derived === true,
                         };
                     } catch (e) {
                         return null;

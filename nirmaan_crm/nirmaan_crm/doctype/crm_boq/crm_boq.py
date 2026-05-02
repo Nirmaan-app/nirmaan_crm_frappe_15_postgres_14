@@ -15,10 +15,15 @@ EST_REVISION_PENDING = "revision pending"
 EST_BOQ_SUBMITTED = "boq submitted"
 EST_PARTIAL_SUBMITTED = "partial boq submitted"
 EST_REVISION_SUBMITTED = "revision submitted"
+EST_DONE = "done"
+EST_NOT_APPLICABLE = "not applicable"
 
 PROGRESS_BUCKET = {EST_NEW, EST_IN_PROGRESS, EST_REVISION_PENDING}
 SUBMITTED_ANY = {EST_BOQ_SUBMITTED, EST_PARTIAL_SUBMITTED, EST_REVISION_SUBMITTED}
 SUBMITTED_FULL = {EST_BOQ_SUBMITTED, EST_REVISION_SUBMITTED}
+TERMINAL_BUCKET = {EST_DONE, EST_NOT_APPLICABLE}
+
+TERMINAL_PROJECT_STATUSES = {"Won", "Lost", "Dropped"}
 
 
 class CRMBOQ(Document):
@@ -74,6 +79,11 @@ class CRMBOQ(Document):
 
 		# Task B: When create_bcs toggled 1 -> 0, hard-delete existing BCS estimation rows.
 		self._cleanup_bcs_rows_on_toggle_off()
+
+		# Task C: When project transitions into a terminal status, mark all linked
+		# estimations Done. LOCK_STATUSES short-circuits the up-cascade below anyway,
+		# so the down-cascade audit trail goes in first.
+		self._cascade_done_to_estimations()
 
 		# Cascade: re-derive status from current estimation state.
 		# Handles lock-exit (manual status change to non-lock) and post-deletion re-derivation.
@@ -137,6 +147,44 @@ class CRMBOQ(Document):
 			"CRM Project Estimation",
 			{"parent_project": self.name, "document_type": "BCS"},
 		)
+
+	def _cascade_done_to_estimations(self):
+		"""Mark all linked CRM Project Estimation rows as `Done` when this project
+		transitions into a terminal status (Won / Lost / Dropped). Skips rows already
+		at `Done` or `Not Applicable`. No reverse cascade if the parent later moves
+		out of the terminal set.
+		"""
+		before = self.get_doc_before_save()
+		if not before:
+			return
+
+		prev_status = getattr(before, "boq_status", None)
+		new_status = self.boq_status
+		if new_status not in TERMINAL_PROJECT_STATUSES:
+			return
+		if prev_status == new_status:
+			return
+
+		targets = frappe.get_all(
+			"CRM Project Estimation",
+			filters={
+				"parent_project": self.name,
+				"status": ["not in", ["Done", "Not Applicable"]],
+			},
+			fields=["name", "status"],
+		)
+		if not targets:
+			return
+
+		for t in targets:
+			frappe.db.set_value(
+				"CRM Project Estimation",
+				t.name,
+				"status",
+				"Done",
+				update_modified=True,
+			)
+			_log_estimation_auto_status_version(t.name, t.status, "Done")
 
 	def on_trash(self):
 		"""Cleanup all associated tasks when the project is deleted."""
@@ -260,14 +308,44 @@ def _log_auto_status_version(project_name, old_status, new_status):
 		)
 
 
+def _log_estimation_auto_status_version(estimation_name, old_status, new_status):
+	"""Insert a Frappe Version row for a CRM Project Estimation row, with an auto marker.
+
+	Mirrors `_log_auto_status_version` but targets the estimation child doctype so the
+	BoqSubmissionHistory UI can render an AUTO badge for cascade-driven child changes.
+	"""
+	try:
+		version_doc = frappe.new_doc("Version")
+		version_doc.ref_doctype = "CRM Project Estimation"
+		version_doc.docname = estimation_name
+		version_doc.data = json.dumps({
+			"changed": [["status", old_status or "", new_status]],
+			"auto_derived": True,
+		})
+		version_doc.insert(ignore_permissions=True)
+	except Exception:
+		frappe.log_error(
+			title="CRM Project Estimation auto-status Version log failed",
+			message=frappe.get_traceback(),
+		)
+
+
 def _derive_status(statuses):
-	"""Pure derivation function — no Frappe context needed. Order matters."""
-	if all(s == EST_NEW for s in statuses):
+	"""Pure derivation function — no Frappe context needed. Order matters.
+
+	Terminal child rows (Done / Not Applicable) are filtered out so a single manually
+	closed package doesn't break parent derivation. If every row is terminal, returns
+	None so the parent stays at its current status.
+	"""
+	filtered = [s for s in statuses if s not in TERMINAL_BUCKET]
+	if not filtered:
+		return None
+	if all(s == EST_NEW for s in filtered):
 		return "New"
-	if all(s in SUBMITTED_FULL for s in statuses):
+	if all(s in SUBMITTED_FULL for s in filtered):
 		return "Submitted"
-	if any(s in SUBMITTED_ANY for s in statuses):
+	if any(s in SUBMITTED_ANY for s in filtered):
 		return "Partially Submitted"
-	if all(s in PROGRESS_BUCKET for s in statuses):
+	if all(s in PROGRESS_BUCKET for s in filtered):
 		return "In-Progress"
 	return None

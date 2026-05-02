@@ -222,6 +222,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                             <option value="Partial BOQ Submitted">Partial BOQ Submitted</option>
                             <option value="Revision Submitted">Revision Submitted</option>
                             <option value="Revision Pending">Revision Pending</option>
+                            <option value="Done">Done</option>
                         </>
                     ) : (
                         <>
