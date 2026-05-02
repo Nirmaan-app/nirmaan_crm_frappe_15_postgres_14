@@ -21,6 +21,7 @@ import { PackagesMultiSelect } from "./components/PackagesMultiSelect";
 import { parsePackages, serializePackages } from "@/constants/boqPackages";
 import { ReusableAlertDialog } from "@/components/ui/ReusableDialogs";
 import { isCascadeDerivedBoqStatus } from "@/hooks/useStatusStyles";
+import { useUserRoleLists } from "@/hooks/useUserRoleLists";
 
 const normalizeStatus = (status?: string) =>
   (status || "")
@@ -53,6 +54,12 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
 
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
   const { mutate } = useSWRConfig();
+
+  const normalizedRole = (localStorage.getItem("role") || "").toLowerCase().trim();
+  const canEditAssignedSales =
+    normalizedRole === "nirmaan admin user profile" ||
+    normalizedRole === "nirmaan estimations lead profile";
+  const { salesUserOptions, isLoading: salesUsersLoading } = useUserRoleLists();
 
   // 1. Fetch ALL companies to populate the company dropdown.
   const { data: allCompanies, isLoading: companiesLoading } = useFrappeGetDocList<CRMCompany>(
@@ -165,7 +172,8 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         company: boqData.company || "",
         contact: boqData.contact || "",
         remarks: boqData.remarks || "",
-        boq_submission_date: boqData.boq_submission_date || ""
+        boq_submission_date: boqData.boq_submission_date || "",
+        assigned_sales: boqData.assigned_sales || "",
       });
     }
   }, [boqData, form, hasLegacyTasks]);
@@ -563,10 +571,34 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 </FormItem>
               )}
             />
-            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact </FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value) || ""}
+            <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Company Contact</FormLabel><FormControl><ReactSelect options={contactOptions} isLoading={contactsLoading} value={contactOptions.find(c => c.value === field.value) || ""}
               onChange={val => field.onChange((val as any)?.value || "")}
               menuPosition={'auto' as MenuPosition} isOptionDisabled={(option) => option.value === field.value}
             /></FormControl><FormMessage /></FormItem>)} />
+            {canEditAssignedSales && (
+              <FormField
+                control={form.control}
+                name="assigned_sales"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assigned Salesperson</FormLabel>
+                    <FormControl>
+                      <ReactSelect
+                        options={salesUserOptions}
+                        value={salesUserOptions.find(u => u.value === field.value) || null}
+                        onChange={val => field.onChange((val as any)?.value || "")}
+                        placeholder="Select a salesperson..."
+                        isLoading={salesUsersLoading}
+                        isClearable
+                        className="text-sm"
+                        menuPosition={'auto' as MenuPosition}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </>
         )}
         {mode === 'status' && (
