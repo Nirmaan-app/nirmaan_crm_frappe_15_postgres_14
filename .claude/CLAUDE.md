@@ -60,7 +60,7 @@ nirmaan_crm/
 | CRM Contacts | Contact persons linked to companies |
 | CRM BOQ | Project container with package-based estimation pipeline (UI: 'Projects') |
 | CRM Project Estimation | Per-package estimation child of CRM BOQ (BOQ/BCS per package) |
-| CRM BOQ Package | Master package list with lead auto-routing (fixture) |
+| CRM BOQ Package | Master package list with lead auto-routing (managed via `/team/packages` UI; seed fixture removed Apr 2026) |
 | CRM Task | Activities with date, status, task_profile |
 | CRM Users | CRM profile extending Frappe User |
 | CRM Note | Internal notes/comments |

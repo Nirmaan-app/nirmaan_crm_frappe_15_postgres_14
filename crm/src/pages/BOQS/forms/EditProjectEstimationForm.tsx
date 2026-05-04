@@ -97,6 +97,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                 mutate("all-boqs-all-view"),
                 mutate("home-estimation-review-estimations"),
                 mutate("home-estimation-review-projects"),
+                mutate("home-boqbcs-review-estimations"),
                 mutate((key) => typeof key === 'string' && key.startsWith('all-boqs-')),
                 mutate((key) => typeof key === 'string' && key.startsWith('project-estimations-')),
 
