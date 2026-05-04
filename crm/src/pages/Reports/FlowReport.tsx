@@ -2,13 +2,20 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStateSyncedWithParams } from '@/hooks/useSearchParamsManager';
 import { useFlowReport } from './hooks/useFlowReport';
 import { SalesPersonSelector } from './components/SalesPersonSelector';
 import { CohortEmptyState } from './components/CohortEmptyState';
 import { FlowMetricTile } from './components/FlowMetricTile';
-import { FLOW_BUCKETS, type FlowBucketDef } from './utils/flowBuckets';
+import { FlowFunnel } from './components/FlowFunnel';
+import {
+  FLOW_BUCKETS,
+  FUNNEL_DROPS,
+  FUNNEL_STAGES,
+  type FlowBucketDef,
+} from './utils/flowBuckets';
 import type { CanonicalStatus } from './utils/cohortStatusGroups';
 import type { FlowProjectRow, FlowReportData } from './types';
 
@@ -111,53 +118,96 @@ const FlowBody = ({ report, primaryBuckets, secondaryBuckets }: FlowBodyProps) =
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="text-sm text-muted-foreground">
         Window: <span className="font-medium text-foreground">{report.windowLabel}</span>
         <span className="mx-2">•</span>
         <span className="font-medium text-foreground">{report.totalReceived}</span> projects
       </div>
 
-      {primaryBuckets.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {primaryBuckets.map((bucket) => (
-            <FlowMetricTile
-              key={bucket.key}
-              def={bucket}
-              projects={filterByBucket(report.projects, bucket)}
-              total={report.totalReceived}
-              showPct={bucket.key !== 'received'}
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <section className="space-y-3">
+          <header className="flex items-center justify-between border-b pb-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Tile View
+            </h2>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Current
+            </span>
+          </header>
+          <div className="space-y-3">
+            {primaryBuckets.length > 0 && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {primaryBuckets.map((bucket) => (
+                  <FlowMetricTile
+                    key={bucket.key}
+                    def={bucket}
+                    projects={filterByBucket(report.projects, bucket)}
+                    total={report.totalReceived}
+                    showPct={bucket.key !== 'received'}
+                  />
+                ))}
+              </div>
+            )}
 
-      {secondaryBuckets.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {secondaryBuckets.map((bucket) => (
-            <FlowMetricTile
-              key={bucket.key}
-              def={bucket}
-              projects={filterByBucket(report.projects, bucket)}
+            {secondaryBuckets.length > 0 && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {secondaryBuckets.map((bucket) => (
+                  <FlowMetricTile
+                    key={bucket.key}
+                    def={bucket}
+                    projects={filterByBucket(report.projects, bucket)}
+                    total={report.totalReceived}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <header className="flex items-center justify-between border-b pb-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Funnel View
+            </h2>
+            <span className="text-[10px] uppercase tracking-wider text-emerald-600">
+              New
+            </span>
+          </header>
+          <Card className="p-4">
+            <FlowFunnel
+              projects={report.projects}
               total={report.totalReceived}
+              stages={FUNNEL_STAGES}
+              drops={FUNNEL_DROPS}
             />
-          ))}
-        </div>
-      )}
+          </Card>
+        </section>
+      </div>
     </div>
   );
 };
 
 const FlowLoadingSkeleton = () => (
-  <div className="space-y-4">
+  <div className="space-y-6">
     <Skeleton className="h-4 w-64" />
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <Skeleton key={i} className="h-24" />
-      ))}
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <Skeleton className="h-24" />
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-24" />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={`p-${i}`} className="h-24" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+        </div>
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-80" />
+      </div>
     </div>
   </div>
 );
