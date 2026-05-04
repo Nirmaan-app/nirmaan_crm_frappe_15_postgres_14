@@ -51,6 +51,24 @@ export const ProjectEstimationStatusOptions = [
   { label: "Revision Pending", value: "Revision Pending" },
 ];
 
+export const BoqTypeEstimationStatusOptions = [
+  { label: "New", value: "New" },
+  { label: "In-Progress", value: "In-Progress" },
+  { label: "BOQ Submitted", value: "BOQ Submitted" },
+  { label: "Partial BOQ Submitted", value: "Partial BOQ Submitted" },
+  { label: "Revision Submitted", value: "Revision Submitted" },
+  { label: "Revision Pending", value: "Revision Pending" },
+  { label: "Done", value: "Done" },
+];
+
+export const BcsTypeEstimationStatusOptions = [
+  { label: "New", value: "New" },
+  { label: "In-Progress", value: "In-Progress" },
+  { label: "Done", value: "Done" },
+  { label: "Hold", value: "Hold" },
+  { label: "Not Applicable", value: "Not Applicable" },
+];
+
 
 
 export const LocationOptions = [
