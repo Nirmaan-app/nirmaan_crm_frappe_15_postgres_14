@@ -7,7 +7,24 @@ from frappe.model.document import Document
 
 class CRMProjectEstimation(Document):
 	def validate(self):
+		self._force_done_for_terminal_parent()
 		self._validate_status_based_value_requirement()
+
+	def _force_done_for_terminal_parent(self):
+		"""When parent project is terminal (Won / Lost / Dropped), force `status='Done'`.
+
+		Covers the edge case where a user adds an estimation row to a closed project —
+		the row should auto-receive the closed-deal status without manual intervention.
+		Runs before `_validate_status_based_value_requirement` so BCS-Done value-required
+		validation still kicks in for new BCS rows on terminal parents.
+		"""
+		if self.status in {"Done", "Not Applicable"}:
+			return
+		if not self.parent_project:
+			return
+		parent_status = frappe.db.get_value("CRM BOQ", self.parent_project, "boq_status")
+		if parent_status in {"Won", "Lost", "Dropped"}:
+			self.status = "Done"
 
 	def _validate_status_based_value_requirement(self):
 		# Keep migration/new inserts backward-compatible; enforce on edit/update flow.

@@ -97,6 +97,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                 mutate("all-boqs-all-view"),
                 mutate("home-estimation-review-estimations"),
                 mutate("home-estimation-review-projects"),
+                mutate("home-boqbcs-review-estimations"),
                 mutate((key) => typeof key === 'string' && key.startsWith('all-boqs-')),
                 mutate((key) => typeof key === 'string' && key.startsWith('project-estimations-')),
 
@@ -222,6 +223,7 @@ export const EditProjectEstimationForm = ({ estimationData, onSuccess }: EditPro
                             <option value="Partial BOQ Submitted">Partial BOQ Submitted</option>
                             <option value="Revision Submitted">Revision Submitted</option>
                             <option value="Revision Pending">Revision Pending</option>
+                            <option value="Done">Done</option>
                         </>
                     ) : (
                         <>

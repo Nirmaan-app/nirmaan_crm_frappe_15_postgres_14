@@ -178,7 +178,7 @@ const BoqTaskDetails = ({ allTasks, boqId, companyId, contactId }: { allTasks: C
 
 // --- NEW COMBINED PROJECT OVERVIEW CARD ---
 const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMBOQ, contact?: CRMContacts, company?: CRMCompany, estimations?: CRMProjectEstimation[] }) => {
-    const { openEditBoqDialog } = useDialogStore();
+    const { openEditBoqDialog, openRenameBoqNameDialog } = useDialogStore();
     const getBoqStatusClass = useStatusStyles("boq");
     const { getUserFullNameByEmail } = useUserRoleLists();
     const role = localStorage.getItem('role');
@@ -259,9 +259,25 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                             </Tooltip>
                         )}
                     </span>
-                    <h1 className="text-xl md:text-2xl font-bold text-foreground mb-4 leading-tight">
-                        {boq?.boq_name || 'N/A'}
-                    </h1>
+                    <div className="flex items-start gap-2 mb-4">
+                        <h1 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
+                            {boq?.boq_name || 'N/A'}
+                        </h1>
+                        {boq?.name && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-primary shrink-0 mt-1"
+                                onClick={() => openRenameBoqNameDialog({
+                                    currentDoctype: "CRM BOQ",
+                                    currentDocName: boq.name,
+                                })}
+                                aria-label="Rename Project"
+                            >
+                                <SquarePen className="w-4 h-4" />
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 <div className={cn("grid gap-2 mt-4", (isSalesProfile || !showMargin) ? "grid-cols-1" : "grid-cols-2")}>
@@ -746,7 +762,8 @@ const BoqSubmissionHistory = ({ versions, estVersions, estimations, boqData }: {
                             link: boqLinkChange ? boqLinkChange[2] : undefined,
                             owner: version.owner,
                             source_type: est?.document_type || 'ESTIMATION',
-                            source_title: est?.title || docname
+                            source_title: est?.title || docname,
+                            auto_derived: parsedData.auto_derived === true,
                         };
                     } catch (e) {
                         return null;

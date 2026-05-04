@@ -17,6 +17,9 @@ import { ProtectedRoute } from "@/auth/ProtectedRoute";
 import { MyTeamPage } from "@/pages/MyTeam/MyTeamPage";
 import { MobileMemberDetailsPage } from "@/pages/MyTeam/MobileMemberDetailsPage";
 import { PackagesList } from "@/pages/Packages/PackagesList";
+import { Reports } from "@/pages/Reports/Reports";
+import { SalesCohortReport } from "@/pages/Reports/SalesCohortReport";
+import { FlowReport } from "@/pages/Reports/FlowReport";
 // --- CHANGE 1: Import the new AuthorizationGuard ---
 import { AuthorizationGuard } from "@/auth/AuthorizationGuard";
 import ForgotPassword from "@/pages/forgot-password";
@@ -67,6 +70,14 @@ export const appRoutes = [
                 ],
               },
               { path: "calendar", element: <TaskCalendar /> },
+              {
+                path: "reports",
+                children: [
+                  { index: true, element: <Reports /> },
+                  { path: "sales-cohort", element: <SalesCohortReport /> },
+                  { path: "flow", element: <FlowReport /> },
+                ],
+              },
               { path: "settings", element: <Settings /> },
               {
                 path: "tasks",

@@ -1,7 +1,7 @@
 
 
 // src/pages/BOQS/BoqTableView.tsx
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Row, ColumnFiltersState } from '@tanstack/react-table';
 import { useFrappeGetDocList } from 'frappe-react-sdk';
@@ -17,10 +17,15 @@ import { useStatusStyles } from '@/hooks/useStatusStyles';
 import { useUserRoleLists } from '@/hooks/useUserRoleLists';
 import { formatDateWithOrdinal } from '@/utils/FormatDate'; // Your date formatting utility
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronDown } from 'lucide-react';
+import { ChevronRight, ChevronDown, X } from 'lucide-react';
 import { parsePackages } from "@/constants/boqPackages";
+import {
+    BoqTypeEstimationStatusOptions,
+    BcsTypeEstimationStatusOptions,
+} from '@/constants/dropdownData';
 import { ConnectedProjectEstimationsTable } from './ProjectEstimationsTable';
 import { BoqBcsTaskExport } from './BoqBcsTaskExport';
+import { EstimationStatusFilter } from './EstimationStatusFilter';
 
 
 // Interface for the BOQ data
@@ -54,7 +59,65 @@ interface ProjectEstimationValueRow {
     parent_project?: string;
     document_type?: string;
     value?: number;
+    status?: string;
 }
+
+const formatChipValues = (values: string[]): string => {
+    if (values.length === 0) return '';
+    if (values.length === 1) return values[0];
+    if (values.length === 2) return values.join(', ');
+    return `${values[0]} +${values.length - 1}`;
+};
+
+interface EstimationFilterChipsProps {
+    boq: string[];
+    bcs: string[];
+    onClearBoq: () => void;
+    onClearBcs: () => void;
+}
+
+const EstimationFilterChips: React.FC<EstimationFilterChipsProps> = ({ boq, bcs, onClearBoq, onClearBcs }) => {
+    if (boq.length === 0 && bcs.length === 0) return null;
+    const showOr = boq.length > 0 && bcs.length > 0;
+    return (
+        <span className="inline-flex items-center gap-1.5 flex-wrap font-normal text-[11px]">
+            <span className="text-muted-foreground/50">·</span>
+            {boq.length > 0 && (
+                <span className="inline-flex items-center gap-1">
+                    <span className="font-medium text-foreground/70">BOQ Status:</span>
+                    <span className="text-primary/80">{formatChipValues(boq)}</span>
+                    <button
+                        type="button"
+                        onClick={onClearBoq}
+                        className="text-muted-foreground/60 hover:text-foreground transition-colors"
+                        aria-label="Clear BOQ Status filter"
+                    >
+                        <X className="h-3 w-3" />
+                    </button>
+                </span>
+            )}
+            {showOr && (
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70 px-1.5 py-0.5 border border-border/50 rounded-sm">
+                    OR
+                </span>
+            )}
+            {bcs.length > 0 && (
+                <span className="inline-flex items-center gap-1">
+                    <span className="font-medium text-foreground/70">BCS Status:</span>
+                    <span className="text-primary/80">{formatChipValues(bcs)}</span>
+                    <button
+                        type="button"
+                        onClick={onClearBcs}
+                        className="text-muted-foreground/60 hover:text-foreground transition-colors"
+                        aria-label="Clear BCS Status filter"
+                    >
+                        <X className="h-3 w-3" />
+                    </button>
+                </span>
+            )}
+        </span>
+    );
+};
 
 interface BoqTableViewProps {
     onBoqSelect?: (id: string) => void;
@@ -86,9 +149,11 @@ export const BoqTableView = ({
         orderBy: { field: 'modified', order: 'desc' },
     }, "all-boqs-all-view");
 
-    // Aggregate BOQ-only values from child estimations for "Project Value" column
+    // Aggregate BOQ-only values from child estimations for "Project Value" column.
+    // The `status` field is also fetched here to power the BOQ/BCS estimation-status filters
+    // in the toolbar — one fetch serves both concerns.
     const { data: estimationValues, isLoading: estimationValuesLoading } = useFrappeGetDocList<ProjectEstimationValueRow>('CRM Project Estimation', {
-        fields: ["parent_project", "document_type", "value"],
+        fields: ["parent_project", "document_type", "value", "status"],
         limit: 0,
     }, "all-project-estimation-values");
 
@@ -125,6 +190,47 @@ export const BoqTableView = ({
 
         return { projectValueById: valueMap, hasProjectBoqEntries: hasEntries };
     }, [estimationValues]);
+
+    // Index estimation statuses by project for the toolbar BOQ/BCS status filters.
+    // Each project maps to two status sets (one per document_type), populated only
+    // from rows that carry a non-empty status.
+    const estimationsByProject = useMemo(() => {
+        const map = new Map<string, { boq: Set<string>; bcs: Set<string> }>();
+        (estimationValues || []).forEach((row) => {
+            if (!row.parent_project || !row.status) return;
+            const type = (row.document_type || "").trim().toUpperCase();
+            if (type !== 'BOQ' && type !== 'BCS') return;
+            const bucket = map.get(row.parent_project) ?? { boq: new Set<string>(), bcs: new Set<string>() };
+            if (type === 'BOQ') bucket.boq.add(row.status);
+            else bucket.bcs.add(row.status);
+            map.set(row.parent_project, bucket);
+        });
+        return map;
+    }, [estimationValues]);
+
+    // Toolbar filter state — independent multi-selects for BOQ-type and BCS-type
+    // estimation statuses. Combined with OR semantics in `filteredBoqs` below.
+    const [selectedBoqStatuses, setSelectedBoqStatuses] = useState<string[]>([]);
+    const [selectedBcsStatuses, setSelectedBcsStatuses] = useState<string[]>([]);
+    const hasEstimationFilter = selectedBoqStatuses.length > 0 || selectedBcsStatuses.length > 0;
+
+    // Pre-filter the BOQ list before it reaches `useDataTableLogic`. Sits outside
+    // TanStack's column-filter pipeline (which does AND across columns) so we can
+    // express OR cross-filter combination cleanly.
+    const filteredBoqs = useMemo<BOQ[]>(() => {
+        if (!boqs) return [];
+        if (!hasEstimationFilter) return boqs;
+        const boqSet = new Set(selectedBoqStatuses);
+        const bcsSet = new Set(selectedBcsStatuses);
+
+        return boqs.filter(boq => {
+            const links = estimationsByProject.get(boq.name);
+            if (!links) return false; // hide projects with zero estimations
+            const matchesBoq = boqSet.size > 0 && [...links.boq].some(s => boqSet.has(s));
+            const matchesBcs = bcsSet.size > 0 && [...links.bcs].some(s => bcsSet.has(s));
+            return matchesBoq || matchesBcs; // OR across filters; ANY within each
+        });
+    }, [boqs, estimationsByProject, hasEstimationFilter, selectedBoqStatuses, selectedBcsStatuses]);
 
     const getProjectValue = (row: BOQ): number | undefined => {
         if (hasProjectBoqEntries.has(row.name)) {
@@ -477,7 +583,7 @@ export const BoqTableView = ({
 
     // --- Initialize `useDataTableLogic` Hook ---
     const tableLogic = useDataTableLogic<BOQ>({
-        data: boqs || [], // The data to display
+        data: filteredBoqs, // pre-filtered by the BOQ/BCS estimation toolbar filters
         columns: columns, // ALL column definitions (visibility handled separately)
         initialSorting: [{ id: 'modified', desc: true }], // Default sort order
         initialColumnFilters: initialColumnFilters, // Pass initial filter state
@@ -643,8 +749,47 @@ export const BoqTableView = ({
             minWidth="1000px"
             gridColsClass={calculatedGridColsClass}
 
-            headerTitle={<span className="tracking-tight">Projects</span>}
+            headerTitle={
+                <span className="inline-flex items-center gap-3 tracking-tight">
+                    <span>Projects</span>
+                    <EstimationFilterChips
+                        boq={selectedBoqStatuses}
+                        bcs={selectedBcsStatuses}
+                        onClearBoq={() => setSelectedBoqStatuses([])}
+                        onClearBcs={() => setSelectedBcsStatuses([])}
+                    />
+                </span>
+            }
             noResultsMessage="No Projects found."
+            renderTopToolbarActions={(
+                <div className="flex flex-col md:flex-row md:items-center gap-2 flex-wrap">
+                    <EstimationStatusFilter
+                        label="BOQ Status"
+                        options={BoqTypeEstimationStatusOptions}
+                        value={selectedBoqStatuses}
+                        onChange={setSelectedBoqStatuses}
+                    />
+                    <EstimationStatusFilter
+                        label="BCS Status"
+                        options={BcsTypeEstimationStatusOptions}
+                        value={selectedBcsStatuses}
+                        onChange={setSelectedBcsStatuses}
+                    />
+                    {hasEstimationFilter && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSelectedBoqStatuses([]);
+                                setSelectedBcsStatuses([]);
+                            }}
+                            className="inline-flex items-center gap-1 h-9 px-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <X className="h-3.5 w-3.5" />
+                            Clear estimation filters
+                        </button>
+                    )}
+                </div>
+            )}
             renderToolbarActions={(filteredData) => (
                 <div className="flex items-center gap-2">
                     <DataTableExportButton

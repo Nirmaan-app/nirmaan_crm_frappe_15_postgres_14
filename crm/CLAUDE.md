@@ -45,10 +45,12 @@ Role/user data stored in localStorage after login for fast access. Trade-off: ro
 
 | Role | Allowed Routes |
 |------|----------------|
-| Nirmaan Sales User Profile | `/`, `/boqs`, `/contacts`, `/companies`, `/tasks`, `/calendar` |
+| Nirmaan Sales User Profile | `/`, `/boqs`, `/contacts`, `/companies`, `/tasks`, `/calendar`, `/reports` |
 | Nirmaan Estimations User Profile | `/`, `/boqs`, `/calendar`, `/tasks` |
 | Nirmaan Estimations Lead User Profile | `/`, `/boqs`, `/calendar`, `/tasks` |
-| Nirmaan Admin User Profile | All routes including `/team`, `/team/packages` |
+| Nirmaan Admin User Profile | All routes including `/team`, `/team/packages`, `/reports` |
+
+`/reports` (added Apr 2026) hosts two sub-reports: `/reports/sales-cohort` and `/reports/flow`. Estimations roles do not have access. Backend endpoint `nirmaan_crm/api/reports/sales_cohort.py` forces non-admin callers to `[session.user]` as a server-side security boundary.
 
 ## State Management
 
@@ -148,17 +150,19 @@ Each page typically contains:
 
 ### Complex Pages
 
-- **BOQ.tsx** - Multi-mode editing (details, status, attachment)
+- **BOQ.tsx** - Multi-mode editing (details, status, attachment); Margin tile (Profit/Loss/BCS Incomplete states) + pending-data warnings on Project Overview
 - **TaskList.tsx** - Infinite scroll, status filtering, date grouping
 - **EditTaskForm.tsx** - Task profile-aware (Sales vs Estimates have different fields)
+- **Reports** - Hub at `/reports` with sub-reports: `SalesCohortReport` (cohort progression matrix; single-month timeline vs multi-month range view, contiguous-month selection rule) and `FlowReport` (3-month outcome funnel). Status canon in `pages/Reports/utils/cohortStatusGroups.ts`; month-range utilities in `cohortRange.ts`; flow buckets declarative in `flowBuckets.ts`.
 
 ### New Pages (April 2026)
 
-- **Packages** (`/team/packages`) - Admin-only CRUD for CRM BOQ Package (specialization management)
+- **Packages** (`/team/packages`) - Admin-only CRUD for CRM BOQ Package (specialization management; the seed fixture was removed Apr 2026, this UI now manages the doctype directly)
 - **ProjectEstimationsTable** - Per-package estimation rows inside BOQ detail view
 - **EditProjectEstimationForm** - BOQ vs BCS status editing with conditional value requirements
 - **BoqBcsTaskExport** - CSV export of CRM Project Estimation data with contact resolution
 - **EstimationsHomePage** - Estimation user dashboard with deadline-based color coding and review tables
+- **Reports** (`/reports`, `/reports/sales-cohort`, `/reports/flow`) - Sales/Admin only; cohort + flow analytics
 
 ## Task Profiles
 

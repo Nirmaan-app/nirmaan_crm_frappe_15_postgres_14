@@ -33,6 +33,7 @@ export const boqFormSchema = z.object({
   company: z.string().min(1, "Company is required"),
   contact: z.string().optional(),
   remarks: z.string().optional(),
+  assigned_sales: z.string().optional(),
 
 
 
@@ -180,6 +181,7 @@ export const boqDetailsSchema = z.object({
   company: z.string().min(1, "Company is required"),
   contact: z.string().optional(),
   remarks: z.string().optional(),
+  assigned_sales: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (!data.company || data.company.trim() === "") {
     ctx.addIssue({

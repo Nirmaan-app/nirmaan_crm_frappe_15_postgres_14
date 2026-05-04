@@ -177,9 +177,18 @@ console.log("currentDocName",currentDocName)
       // Invalidate specific related caches for a BOQ (if currentDoctype is "CRM BOQ"):
       if (currentDoctype === "CRM BOQ") {
           mutate(`BOQ/${values.newName}`); // Specific detail key for the new BOQ
-          mutate(key => typeof key === 'string' && key.startsWith('all-tasks-')); // Tasks related to this BOQ
-          mutate(key => typeof key === 'string' && key.startsWith('all-notes-')); // Notes related to this BOQ
-          mutate(key => typeof key === 'string' && key.startsWith('all-boqs-')); // General BOQ lists
+          mutate(key => typeof key === 'string' && key.startsWith('BOQ/')); // Sweep stale OLD-id detail keys
+          mutate(key => typeof key === 'string' && key.startsWith('all-tasks-'));
+          mutate(key => typeof key === 'string' && key.startsWith('all-notes-'));
+          mutate(key => typeof key === 'string' && key.startsWith('all-boqs-'));
+          mutate(key => typeof key === 'string' && key.startsWith('project-estimations-'));
+          mutate(key => typeof key === 'string' && key.startsWith('all-est-versions-project-'));
+          mutate(key => typeof key === 'string' && key.startsWith('all-version-'));
+          mutate('all-project-estimation-values');
+          mutate('all-boqs-all-view');
+          mutate('home-estimation-review-estimations');
+          mutate('home-estimation-review-projects');
+          mutate('all-boqs-existornot');
       }
 
 

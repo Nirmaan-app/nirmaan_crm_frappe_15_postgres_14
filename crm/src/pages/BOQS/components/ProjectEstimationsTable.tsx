@@ -4,6 +4,7 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists";
 import { SquarePen } from "lucide-react";
 import { useDialogStore } from "@/store/dialogStore";
+import { getStatusPillClass } from "@/pages/Home/components/EstimationsReviewTable";
 
 export interface CRMProjectEstimation {
     name: string;
@@ -95,7 +96,7 @@ export const ProjectEstimationsTable = ({
                                     ) : '--'}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded text-blue-600 bg-blue-50`}>
+                                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${getStatusPillClass(est.status)}`}>
                                         {est.status || 'New'}
                                     </span>
                                 </TableCell>
