@@ -46,14 +46,27 @@ export interface FlowProjectRow {
   assigned_sales?: string;
 }
 
+export type FlowBucketKey =
+  | 'received'
+  | 'moved'
+  | 'active'
+  | 'negotiationHold'
+  | 'won'
+  | 'lost';
+
+export type FlowActivityBucketKey = 'active' | 'negotiationHold' | 'won' | 'lost';
+
 export interface FlowReportData {
   windowStart: string;
   windowEnd: string;
   windowLabel: string;
-  totalReceived: number;
-  projects: FlowProjectRow[];
+  selectedMonths: string[];
+  received: FlowProjectRow[];
+  moved: FlowProjectRow[];
+  buckets: Record<FlowActivityBucketKey, FlowProjectRow[]>;
 }
 
 export interface UseFlowReportArgs {
+  windowMonths: string[];
   salespersons: string[];
 }
