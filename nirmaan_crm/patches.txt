@@ -13,4 +13,4 @@ nirmaan_crm.patches.v0_0.set_default_bcs_status
 nirmaan_crm.patches.v0_0.migrate_legacy_boq_projects_to_estimations
 nirmaan_crm.patches.v0_0.rename_legacy_boq_status_values
 nirmaan_crm.patches.v0_0.recompute_boq_status_from_estimations
-nirmaan_crm.patches.v0_0.backfill_estimation_done_for_terminal_projects
+nirmaan_crm.patches.v0_0.revert_cascaded_done_estimations

@@ -96,7 +96,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-01 13:50:56.367083",
+ "modified": "2026-05-08 09:52:19.871103",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM Project Estimation",
@@ -156,5 +156,6 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
