@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { Info } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { STATUS_GROUP, type CanonicalStatus } from '../utils/cohortStatusGroups';
 import { cn } from '@/lib/utils';
@@ -10,13 +9,30 @@ interface Props {
   report: SalesCohortReportData;
 }
 
+type TileAccent = 'success' | 'destructive' | 'muted';
+
 interface Tile {
   label: string;
   value: number;
   pct?: number;
-  accent?: 'destructive' | 'muted';
+  accent?: TileAccent;
   tooltip?: string;
 }
+
+// Single chromatic accent per tile via 2px left rail. Numbers, labels and
+// borders stay neutral so color earns its place by being scarce.
+const railClass = (accent?: TileAccent) => {
+  switch (accent) {
+    case 'success':
+      return 'border-l-emerald-500';
+    case 'destructive':
+      return 'border-l-rose-500';
+    case 'muted':
+      return 'border-l-slate-300 dark:border-l-slate-600';
+    default:
+      return 'border-l-slate-200 dark:border-l-slate-800';
+  }
+};
 
 export const CohortSummaryStrip = ({ report }: Props) => {
   const tiles = useMemo<Tile[]>(() => {
@@ -34,11 +50,12 @@ export const CohortSummaryStrip = ({ report }: Props) => {
 
     return [
       { label: 'Cohort Size', value: total },
-      { label: 'Won', value: wonCount, pct: pct(wonCount), accent: 'destructive' },
+      { label: 'Won', value: wonCount, pct: pct(wonCount), accent: 'success' },
       {
         label: 'Lost',
         value: lostCount,
         pct: pct(lostCount),
+        accent: 'muted',
         tooltip: `Includes: ${STATUS_GROUP.lost.join(', ')}`,
       },
       {
@@ -51,16 +68,26 @@ export const CohortSummaryStrip = ({ report }: Props) => {
   }, [report]);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {tiles.map((t) => (
-        <Card key={t.label} className="p-4">
-          <div className="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {t.label}
+        <div
+          key={t.label}
+          className={cn(
+            'flex flex-col rounded-md border border-border bg-background',
+            'border-l-[2px]',
+            railClass(t.accent),
+            'px-4 py-3.5',
+          )}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              {t.label}
+            </span>
             {t.tooltip && (
               <Tooltip>
                 <TooltipTrigger
-                  className="cursor-help inline-flex items-center"
                   aria-label={`Info about ${t.label}`}
+                  className="cursor-help inline-flex items-center text-muted-foreground/60 transition-colors hover:text-muted-foreground"
                 >
                   <Info className="h-3 w-3" />
                 </TooltipTrigger>
@@ -68,22 +95,18 @@ export const CohortSummaryStrip = ({ report }: Props) => {
               </Tooltip>
             )}
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span
-              className={cn(
-                'tabular-nums text-2xl md:text-3xl font-bold',
-                t.accent === 'destructive' && 'text-destructive',
-              )}
-            >
-              {t.value}
-            </span>
-            {t.pct !== undefined && (
-              <span className="tabular-nums text-sm text-muted-foreground">
-                {t.pct}%
-              </span>
-            )}
+
+          <div className="mt-3 text-[26px] font-medium leading-none tracking-tight tabular-nums text-foreground">
+            {t.value}
           </div>
-        </Card>
+
+          {t.pct !== undefined && (
+            <div className="mt-2 flex items-baseline gap-1 text-[11px] tabular-nums text-muted-foreground">
+              <span className="font-semibold text-foreground/80">{t.pct}%</span>
+              <span className="text-muted-foreground/80">of cohort</span>
+            </div>
+          )}
+        </div>
       ))}
     </div>
   );

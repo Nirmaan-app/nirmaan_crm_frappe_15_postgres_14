@@ -27,7 +27,7 @@ const requiresValueByStatus = (documentType?: string, status?: string) => {
     const normalizedStatus = normalizeStatus(status);
     return (
         (docType === "BOQ" &&
-            ["boq submitted", "partial boq submitted", "revision submitted"].includes(normalizedStatus)) ||
+            ["boq submitted", "partial boq submitted", "revision submitted", "done"].includes(normalizedStatus)) ||
         (docType === "BCS" && normalizedStatus === "done")
     );
 };

@@ -12,6 +12,7 @@ interface MonthOption {
 interface Props {
   value: string[];
   onChange: (next: string[]) => void;
+  label?: string;
 }
 
 const CheckboxOption = (props: OptionProps<MonthOption, true>) => (
@@ -26,7 +27,7 @@ const CheckboxOption = (props: OptionProps<MonthOption, true>) => (
   </components.Option>
 );
 
-export const CohortMonthSelector = ({ value, onChange }: Props) => {
+export const CohortMonthSelector = ({ value, onChange, label = 'Cohort Months' }: Props) => {
   const options = useMemo<MonthOption[]>(() => {
     const now = startOfMonth(new Date());
     return Array.from({ length: 12 }, (_, i) => {
@@ -69,7 +70,7 @@ export const CohortMonthSelector = ({ value, onChange }: Props) => {
 
   return (
     <div className="flex flex-col gap-1.5 flex-1 md:max-w-[280px]">
-      <Label className="text-xs text-muted-foreground">Cohort Months</Label>
+      <Label className="text-xs text-muted-foreground">{label}</Label>
       <ReactSelect<MonthOption, true>
         isMulti
         options={options}

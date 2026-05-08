@@ -1,68 +1,52 @@
-import { useFrappeGetDocList } from 'frappe-react-sdk';
+import { useFrappeGetCall } from 'frappe-react-sdk';
 import { useMemo } from 'react';
-import { format, startOfMonth, subMonths } from 'date-fns';
-import type {
-  FlowProjectRow,
-  FlowReportData,
-  UseFlowReportArgs,
-} from '../types';
+import type { FlowReportData, UseFlowReportArgs, FlowProjectRow } from '../types';
 
-export const useFlowReport = ({ salespersons }: UseFlowReportArgs) => {
-  const { windowStart, windowEnd, windowLabel } = useMemo(() => {
-    const today = new Date();
-    const start = startOfMonth(subMonths(today, 3));
-    return {
-      windowStart: format(start, 'yyyy-MM-dd'),
-      windowEnd: format(today, 'yyyy-MM-dd'),
-      windowLabel: `${format(start, 'MMM yyyy')} – ${format(today, 'MMM yyyy')}`,
-    };
-  }, []);
+interface ServerResponse {
+  window_start: string;
+  window_end: string;
+  window_label: string;
+  selected_months: string[];
+  received: FlowProjectRow[];
+  moved: FlowProjectRow[];
+  buckets: {
+    active: FlowProjectRow[];
+    negotiationHold: FlowProjectRow[];
+    won: FlowProjectRow[];
+    lost: FlowProjectRow[];
+  };
+}
 
-  const filters = useMemo(() => {
-    const f: Array<[string, string, string | string[]]> = [
-      ['creation', '>=', windowStart],
-      ['creation', '<=', `${windowEnd} 23:59:59`],
-    ];
-    if (salespersons.length > 0) {
-      f.push(['assigned_sales', 'in', salespersons]);
-    }
-    return f;
-  }, [windowStart, windowEnd, salespersons]);
-
+export const useFlowReport = ({ windowMonths, salespersons }: UseFlowReportArgs) => {
   const swrKey = useMemo(() => {
+    const m = [...windowMonths].sort().join(',');
     const s = [...salespersons].sort().join(',') || 'all';
-    return `flow-report-${windowStart}-${windowEnd}-${s}`;
-  }, [windowStart, windowEnd, salespersons]);
+    return `flow-report-${m}-${s}`;
+  }, [windowMonths, salespersons]);
 
-  const { data, error, isLoading, mutate } = useFrappeGetDocList<FlowProjectRow>(
-    'CRM BOQ',
+  const { data, error, isLoading, mutate } = useFrappeGetCall<{ message: ServerResponse }>(
+    'nirmaan_crm.api.reports.flow_report.get_flow_report',
     {
-      fields: [
-        'name',
-        'boq_name',
-        'company',
-        'boq_status',
-        'creation',
-        'boq_value',
-        'assigned_sales',
-      ],
-      filters: filters as never,
-      orderBy: { field: 'creation', order: 'desc' },
-      limit: 0,
+      window_months: JSON.stringify(windowMonths),
+      assigned_sales: JSON.stringify(salespersons),
     },
-    swrKey
+    windowMonths.length ? swrKey : null,
+    { revalidateOnFocus: false },
   );
 
   const report = useMemo<FlowReportData | undefined>(() => {
-    if (!data) return undefined;
+    const msg = data?.message;
+    if (!msg) return undefined;
     return {
-      windowStart,
-      windowEnd,
-      windowLabel,
-      totalReceived: data.length,
-      projects: data,
+      windowStart: msg.window_start,
+      windowEnd: msg.window_end,
+      windowLabel: msg.window_label,
+      selectedMonths: msg.selected_months,
+      received: msg.received,
+      moved: msg.moved,
+      buckets: msg.buckets,
     };
-  }, [data, windowStart, windowEnd, windowLabel]);
+  }, [data]);
 
   return {
     report,
