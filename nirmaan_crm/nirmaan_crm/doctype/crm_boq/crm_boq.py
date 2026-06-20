@@ -82,6 +82,12 @@ class CRMBOQ(Document):
 		# Handles lock-exit (manual status change to non-lock) and post-deletion re-derivation.
 		recompute_parent_project_status(self.name)
 
+		# Cascade: re-derive boq_value as the sum of child BOQ estimation values.
+		# Runs here too so package add/remove (which create/delete estimation rows
+		# inside this on_update) are reflected — estimation deletion does not fire the
+		# CRM Project Estimation on_update hook.
+		recompute_parent_project_value(self.name)
+
 	def _cascade_deadline_to_children(self):
 		"""Overwrite `deadline` on every child CRM Project Estimation when BOQ submission date changes.
 
@@ -243,6 +249,52 @@ def recompute_parent_project_status(project_name):
 			update_modified=True,
 		)
 		_log_auto_status_version(project_name, current_status, derived)
+
+
+def recompute_parent_project_value(project_name, update_modified=True):
+	"""Re-derive CRM BOQ.boq_value as the sum of child BOQ-type estimation values.
+
+	Keeps the persisted parent value (read by company lists & reports) in sync with
+	the package rows shown on the detail page. Unlike status, value is recomputed
+	regardless of LOCK_STATUSES — a Won/Lost project should still reflect its total.
+
+	Guard: if the project has no BOQ estimation rows it is a legacy/single-value
+	project, so its manually-entered boq_value is left untouched (mirrors the
+	frontend `hasBoqEstimations` fallback). Never wipes a legacy value to 0.
+
+	update_modified: live callers (package edit / project save) use True (default)
+	so the project's "Updated" date reflects the real change — matching the status
+	recompute. The one-time backfill patch passes False so it does not rewrite
+	historical timestamps in bulk.
+	"""
+	if not project_name or not frappe.db.exists("CRM BOQ", project_name):
+		return
+
+	values = frappe.get_all(
+		"CRM Project Estimation",
+		filters={"parent_project": project_name, "document_type": "BOQ"},
+		pluck="value",
+	)
+	if not values:
+		return
+
+	total = 0.0
+	for raw in values:
+		try:
+			total += float(raw or 0)
+		except (TypeError, ValueError):
+			continue
+
+	total = round(total, 2)
+	# boq_value is a Data field; store a clean string ("696" not "696.0").
+	new_value = str(int(total)) if float(total).is_integer() else str(total)
+
+	current = frappe.db.get_value("CRM BOQ", project_name, "boq_value")
+	if (current or "") != new_value:
+		frappe.db.set_value(
+			"CRM BOQ", project_name, "boq_value", new_value,
+			update_modified=update_modified,
+		)
 
 
 def _log_auto_status_version(project_name, old_status, new_status):
