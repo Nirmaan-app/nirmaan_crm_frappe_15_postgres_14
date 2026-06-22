@@ -8,7 +8,7 @@ import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
 import { CRMNote } from "@/types/NirmaanCRM/CRMNote";
 import { CRMTask } from "@/types/NirmaanCRM/CRMTask";
 import { useFrappeGetDoc, useFrappeGetDocList, useSWRConfig, useFrappeUpdateDoc } from "frappe-react-sdk";
-import { AlertTriangle, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Plus, RefreshCw, SquarePen, Wallet, Calendar, Clock, FolderOpen, AlarmClock, CalendarPlus, History } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Plus, RefreshCw, SquarePen, Wallet, Calendar, Clock, FolderOpen, AlarmClock, CalendarPlus, History, ExternalLink } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useStateSyncedWithParams } from "@/hooks/useSearchParamsManager";
 import { useStatusStyles, isCascadeDerivedBoqStatus } from "@/hooks/useStatusStyles";
@@ -29,6 +29,7 @@ import { useTaskCreationHandler } from "@/hooks/useTaskCreationHandler";
 import { FullPageSkeleton } from "@/components/common/FullPageSkeleton";
 import { parsePackages } from "@/constants/boqPackages";
 import { ProjectEstimationsTable, CRMProjectEstimation } from "./components/ProjectEstimationsTable";
+import { FinancialBreakdownDialog } from "./components/FinancialBreakdownDialog";
 import { BoqBcsTaskExport } from "./components/BoqBcsTaskExport";
 import { cn } from "@/lib/utils";
 
@@ -185,16 +186,19 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
     const isSalesProfile = role === 'Nirmaan Sales User Profile';
     const canManageStatus = role === 'Nirmaan Sales User Profile' || role === 'Nirmaan Admin User Profile' || role === 'Nirmaan Estimations Lead Profile';
 
+    const [financialOpen, setFinancialOpen] = useState(false);
+
     // Total should be BOQ-only, not BOQ+BCS.
     const boqRows = (estimations || []).filter((est) => (est.document_type || '').toUpperCase() === 'BOQ');
     const bcsRows = (estimations || []).filter((est) => (est.document_type || '').toUpperCase() === 'BCS');
     const boqTotalFromRows = boqRows.reduce((sum, est) => sum + (Number(est.value) || 0), 0);
     const bcsTotalFromRows = bcsRows.reduce((sum, est) => sum + (Number(est.value) || 0), 0);
 
-    // If estimation rows exist, always use the aggregated sum (even if zero);
-    // fall back to legacy boq_value only when there are no BOQ estimation rows at all.
+    // Always show the project's stored value (boq_value) — it is kept in sync with
+    // the package rows by the backend rollup. Fall back to the live package sum only
+    // when the stored field is empty (e.g. a project not yet rolled up).
     const hasBoqEstimations = boqRows.length > 0;
-    const totalValue = hasBoqEstimations ? boqTotalFromRows : (Number(boq?.boq_value) || 0);
+    const totalValue = Number(boq?.boq_value) || boqTotalFromRows;
 
     // Incomplete-data warnings: a row counts as "pending" when its value is null/undefined or 0.
     const isValueMissing = (v: number | null | undefined) => v == null || Number(v) === 0;
@@ -212,6 +216,8 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
     const showMarginWarning = showMargin && (
         boqRows.length === 0 || bcsRows.length === 0 || boqMissingCount > 0 || bcsMissingCount > 0
     );
+    // Drives the amber state of the financial-breakdown card / info icon.
+    const financialIncomplete = isBcsIncomplete || showMarginWarning || totalValue === 0;
 
     const boqWarningMsg = `${boqMissingCount} of ${boqRows.length} BOQ package(s) have no value recorded. Total may be understated. Click to view.`;
     const marginWarningMsg = (() => {
@@ -295,40 +301,64 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                     </div>
 
                     {!isSalesProfile && showMargin && (
-                        <div className={cn("flex items-center gap-2 p-3 rounded-lg border",
-                            isBcsIncomplete ? "bg-amber-50/60 border-amber-200" :
-                            !canComputeMargin ? "bg-gray-50/50 border-gray-200" :
-                            isProfit ? "bg-emerald-50/50 border-emerald-100/60" : "bg-red-50/50 border-red-100/60"
-                        )}>
-                            <div className={cn("p-1.5 rounded-md",
-                                isBcsIncomplete ? "bg-amber-100 text-amber-700" :
-                                !canComputeMargin ? "bg-gray-100 text-gray-500" :
-                                isProfit ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
-                            )}>
-                                <Wallet className="w-4 h-4" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Margin</p>
-                                {isBcsIncomplete ? (
-                                    <p className="text-sm font-bold text-amber-700 inline-flex items-center gap-1.5">
-                                        BCS Incomplete
-                                        <WarningIcon message={marginWarningMsg} />
-                                    </p>
-                                ) : canComputeMargin ? (
-                                    <p className={cn("text-sm font-bold inline-flex items-center gap-1.5", isProfit ? "text-emerald-700" : "text-red-600")}>
-                                        {isProfit ? "Profit" : "Loss"}: {marginPercent.toFixed(1)}%
-                                        {showMarginWarning && <WarningIcon message={marginWarningMsg} />}
-                                    </p>
-                                ) : (
-                                    <p className="text-sm font-bold text-gray-500 inline-flex items-center gap-1.5">
-                                        --
-                                        {showMarginWarning && <WarningIcon message={marginWarningMsg} />}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button
+                                    type="button"
+                                    onClick={() => setFinancialOpen(true)}
+                                    aria-label="View financial breakdown"
+                                    aria-haspopup="dialog"
+                                    aria-expanded={financialOpen}
+                                    className={cn("group text-left flex items-center gap-2 p-3 rounded-lg border transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                                        isBcsIncomplete ? "bg-amber-50/60 border-amber-200 hover:bg-amber-50" :
+                                        !canComputeMargin ? "bg-gray-50/50 border-gray-200 hover:bg-gray-100/70" :
+                                        isProfit ? "bg-emerald-50/50 border-emerald-100/60 hover:bg-emerald-50" : "bg-red-50/50 border-red-100/60 hover:bg-red-50"
+                                    )}
+                                >
+                                    <div className={cn("p-1.5 rounded-md shrink-0",
+                                        isBcsIncomplete ? "bg-amber-100 text-amber-700" :
+                                        !canComputeMargin ? "bg-gray-100 text-gray-500" :
+                                        isProfit ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
+                                    )}>
+                                        <Wallet className="w-4 h-4" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Margin</p>
+                                        {isBcsIncomplete ? (
+                                            <p className="text-sm font-bold text-amber-700 leading-tight">BCS Incomplete</p>
+                                        ) : canComputeMargin ? (
+                                            <p className={cn("text-sm font-bold leading-tight inline-flex items-center gap-1", isProfit ? "text-emerald-700" : "text-red-600")}>
+                                                {isProfit ? "Profit" : "Loss"}: {Math.abs(marginPercent).toFixed(1)}%
+                                                {/* Non-color cue that the % is based on incomplete data; the card's
+                                                    own tooltip already explains it (marginWarningMsg) on hover. */}
+                                                {showMarginWarning && <AlertTriangle className="w-3 h-3 text-amber-500" aria-label="based on incomplete data" />}
+                                            </p>
+                                        ) : (
+                                            <p className="text-sm font-bold text-gray-500 leading-tight">--</p>
+                                        )}
+                                    </div>
+                                    <ExternalLink className="w-3.5 h-3.5 shrink-0 self-start text-blue-600 group-hover:text-blue-700 transition-colors" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                                {financialIncomplete ? marginWarningMsg : "View the package-wise BOQ vs BCS breakdown and margin."}
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                 </div>
+
+                {!isSalesProfile && showMargin && (
+                    <FinancialBreakdownDialog
+                        open={financialOpen}
+                        onOpenChange={setFinancialOpen}
+                        projectName={boq?.boq_name || boq?.name || "Project"}
+                        companyName={company?.company_name}
+                        boqRows={boqRows}
+                        bcsRows={bcsRows}
+                        totalValue={totalValue}
+                        bcsIncomplete={isBcsIncomplete}
+                    />
+                )}
             </div>
 
             {/* Right Column: Details Grid */}
