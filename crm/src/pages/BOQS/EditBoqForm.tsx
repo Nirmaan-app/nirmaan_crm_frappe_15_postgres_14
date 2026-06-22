@@ -266,6 +266,12 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
       if (typeof cascadeDeadline === "number") {
         dataToSave.cascade_deadline = cascadeDeadline;
       }
+      // When the project has BOQ estimation rows, boq_value is derived (sum of
+      // package values) and shown read-only. Don't send the stale/derived value —
+      // the backend recomputes it from the child rows on save.
+      if (hasBoqEstimations) {
+        delete dataToSave.boq_value;
+      }
       await updateDoc("CRM BOQ", boqData.name, {
         ...dataToSave, boq_link: dataToSave.boq_link || boqData.boq_link, remarks: dataToSave?.remarks || boqData.remarks, boq_sub_status: null
       });
