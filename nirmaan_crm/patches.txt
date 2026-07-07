@@ -15,3 +15,4 @@ nirmaan_crm.patches.v0_0.rename_legacy_boq_status_values
 nirmaan_crm.patches.v0_0.recompute_boq_status_from_estimations
 nirmaan_crm.patches.v0_0.revert_cascaded_done_estimations
 nirmaan_crm.patches.v0_0.recompute_boq_value_from_estimations
+nirmaan_crm.patches.v0_0.seed_unknown_contact

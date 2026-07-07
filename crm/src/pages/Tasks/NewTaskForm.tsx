@@ -14,6 +14,7 @@ import * as z from "zod";
 import ReactSelect from 'react-select';
 import { useMemo, useEffect } from "react";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
+import { UNKNOWN_CONTACT_OPTION } from "@/constants/unknownContact";
 
 
 // import { taskTypeOptions } from "@/constants/dropdownData";
@@ -24,7 +25,7 @@ const taskFormSchema = z.object({
   start_date: z.string().min(1, "Date is required"),
   // time: z.string().min(1, "Time is required"),
   company: z.string().min(1, "Company is required"),
-  contact: z.string().optional(),
+  contact: z.string().min(1, "Contact is required"),
   boq: z.string().optional(),
   assigned_sales: z.string().optional(),
   remarks: z.string().min(1, "Remark is required"),
@@ -109,7 +110,15 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
 
   // --- OPTIONS FOR DROPDOWNS ---
   const companyOptions = useMemo(() => allCompanies?.map(c => ({ label: c.company_nick ? `${c.company_name} (${c.company_nick})` : c.company_name, value: c.name })) || [], [allCompanies]);
-  const contactOptions = useMemo(() => contactsList?.map(c => ({ label: c.first_name, value: c.name })) || [], [contactsList]);
+  const contactOptions = useMemo(() => {
+    const options = contactsList?.map(c => ({ label: c.first_name, value: c.name })) || [];
+    // Always offer the global "Unknown" placeholder so a task can still be
+    // logged for a company that has no real contact yet.
+    if (!options.some(o => o.value === UNKNOWN_CONTACT_OPTION.value)) {
+      options.push(UNKNOWN_CONTACT_OPTION);
+    }
+    return options;
+  }, [contactsList]);
   const boqOptions = useMemo(() => boqsList?.map(b => ({ label: b.boq_name, value: b.name })) || [], [boqsList]);
 
   // const taskTypeOptions = [ {label: "Meeting", value: "Meeting"}, {label: "Call", value: "Call"},{label: "Virtual", value: "Virtual"}, {label: "Follow-up", value: "Follow-up"} ];
@@ -187,7 +196,7 @@ export const NewTaskForm = ({ onSuccess }: NewTaskFormProps) => {
 
 
         {/* --- DYNAMIC CONTACT FIELD --- */}
-        <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact</FormLabel><FormControl>
+        <FormField name="contact" control={form.control} render={({ field }) => (<FormItem><FormLabel>Contact<sup>*</sup></FormLabel><FormControl>
           {contactIdFromContext ? (
             // If a contactId was provided directly, show its name disabled.
             <Input value={contactDocFromContext ? `${contactDocFromContext.first_name} ${contactDocFromContext.last_name}` : "Loading..."} disabled />
