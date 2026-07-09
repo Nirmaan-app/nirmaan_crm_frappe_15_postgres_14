@@ -57,7 +57,7 @@ nirmaan_crm/
 | DocType | Purpose |
 |---------|---------|
 | CRM Company | Lead/company records with assigned sales, priority |
-| CRM Contacts | Contact persons linked to companies |
+| CRM Contacts | Contact persons linked to companies (incl. global `unknown@nirmaan.app` placeholder — see Unknown Contact Placeholder) |
 | CRM BOQ | Project container with package-based estimation pipeline (UI: 'Projects') |
 | CRM Project Estimation | Per-package estimation child of CRM BOQ (BOQ/BCS per package) |
 | CRM BOQ Package | Master package list with lead auto-routing (managed via `/team/packages` UI; seed fixture removed Apr 2026) |
@@ -113,6 +113,12 @@ Custom permission query conditions in `permissions.py`:
 User creation auto-generates CRM Users profile via `integrations/controllers/crm_users.py`.
 
 4 role profiles exist: Admin, Sales, Estimations User, Estimations Lead. The Lead profile shares backend roles with Estimations User but is differentiated by role-profile name string.
+
+## Unknown Contact Placeholder
+
+A CRM Task effectively needs a contact, but a company can exist with zero contacts. To let a task still be logged, a single **global placeholder contact** `unknown@nirmaan.app` (first name "Unknown", no company) is seeded via `patches/v0_0/seed_unknown_contact.py`. The shared id lives in `integrations/controllers/unknown_contact.py` (`UNKNOWN_CONTACT`), mirrored on the frontend by `crm/src/constants/unknownContact.ts` (`UNKNOWN_CONTACT_ID`).
+
+Resolution is **manual/inline — there is no doc_events hook**: from the task update dialog the user either selects an existing company contact or creates a new one, which replaces the placeholder on that task (frontend `ResolveContactSection`). `CRM Contacts.before_insert` (`crm_contacts.py`) still stamps `assigned_sales = owner` for Sales-user creators; Admins pick `assigned_sales` in the resolve form.
 
 ## Database Migrations
 

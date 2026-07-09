@@ -152,7 +152,7 @@ Each page typically contains:
 
 - **BOQ.tsx** - Multi-mode editing (details, status, attachment); Margin tile (Profit/Loss/BCS Incomplete states) + pending-data warnings on Project Overview
 - **TaskList.tsx** - Infinite scroll, status filtering, date grouping
-- **EditTaskForm.tsx** - Task profile-aware (Sales vs Estimates have different fields)
+- **EditTaskForm.tsx** - Task profile-aware (Sales vs Estimates have different fields); shows an inline **Resolve Contact** collapse (`ResolveContactSection`) when the task's contact is the Unknown placeholder
 - **Reports** - Hub at `/reports` with sub-reports: `SalesCohortReport` (cohort progression matrix; single-month timeline vs multi-month range view, contiguous-month selection rule) and `FlowReport` (3-month outcome funnel). Status canon in `pages/Reports/utils/cohortStatusGroups.ts`; month-range utilities in `cohortRange.ts`; flow buckets declarative in `flowBuckets.ts`.
 
 ### New Pages (April 2026)
@@ -170,6 +170,14 @@ Tasks have a `task_profile` field: `'Sales' | 'Estimates'`
 
 - Different form fields per profile
 - Admin users see `selectTaskProfileDialog` to choose profile on creation
+
+## Unknown Contact Resolve Flow
+
+Sales task forms (`NewTaskForm`, `EditTaskForm` scheduleNext) offer a global **"Unknown"** placeholder contact (`src/constants/unknownContact.ts` → `UNKNOWN_CONTACT_ID`, backend id `unknown@nirmaan.app`) so a task can be logged for a company that has no real contact yet.
+
+- In the task update dialog, when the task's contact is the placeholder, `Tasks/ResolveContactSection.tsx` renders an **inline collapsible** panel that first lets the user **select an existing company contact** (Unknown excluded) or switch to **create a new one** (company auto-set from the task, `assigned_sales` picker Admin-only). Either path links the contact to the task **directly (no second dialog)**; a local `resolvedContact` state hides the panel and updates the header immediately.
+- `EditTaskForm` contact lists filter by **`taskData.company`** (not the linked contact's company, which is empty for the placeholder), so a company's real contacts — including a just-resolved one — load correctly. Rescheduling carries the resolved contact into the `scheduleNext` reopen.
+- Backend/data handling: [../.claude/CLAUDE.md](../.claude/CLAUDE.md) → "Unknown Contact Placeholder".
 
 ## Mobile Layout
 
