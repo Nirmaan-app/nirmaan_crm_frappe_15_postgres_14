@@ -12,12 +12,14 @@ import { useFrappeCreateDoc, useFrappeGetDoc, useFrappeUpdateDoc, useSWRConfig,u
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ReactSelect from "react-select";
-import { useEffect,useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatDate, formatTime12Hour,formatDateWithOrdinal } from "@/utils/FormatDate";
-import { Calendar, Clock } from "lucide-react"; // Import icons for a nicer UI
+import { Building2, Calendar, Clock } from "lucide-react"; // Import icons for a nicer UI
 import { salesTaskTypeOptions } from "@/constants/dropdownData";
 import { useUserRoleLists } from "@/hooks/useUserRoleLists"
 import { CRMContacts } from "@/types/NirmaanCRM/CRMContacts";
+import { UNKNOWN_CONTACT_ID, UNKNOWN_CONTACT_OPTION } from "@/constants/unknownContact";
+import { ResolveContactSection } from "./ResolveContactSection";
 
 
 // A flexible schema for all modes
@@ -91,7 +93,14 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { taskData, mode } = editTask.context;
 
   // console.log("taskDatasales",taskData)
-  
+
+  // When the task still points at the global "Unknown" placeholder, let the user
+  // resolve it inline (create the real contact + link it) without leaving this
+  // dialog. Once resolved we hold it locally so the panel hides and the header
+  // reflects the real contact immediately.
+  const [resolvedContact, setResolvedContact] = useState<{ name: string; first_name: string } | null>(null);
+  const isUnknownContact = !resolvedContact && taskData?.contact === UNKNOWN_CONTACT_ID;
+
   const { salesUserOptions, isLoading: usersLoading } = useUserRoleLists();
   const role = localStorage.getItem("role")
 
@@ -103,6 +112,8 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     taskData?.contact, // The ID of the contact from the task
    // Only run this fetch if taskData and its contact field exist
   );
+  // Prefer the just-resolved contact so the header updates without a refetch.
+  const displayContactName = resolvedContact?.first_name || contactDoc?.first_name;
   const form = useForm<EditTaskFormValues>({
     resolver: zodResolver(editTaskSchema),
     defaultValues: {},
@@ -111,9 +122,25 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const selectedStatus = form.watch("status");
   const selectedReason = form.watch("reason");
 
-  const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: [["company", "=", contactDoc?.company]], fields: ["name", "first_name", "last_name"], limit: 0 });
+  // Filter by the task's company directly (the linked contact — e.g. the Unknown
+  // placeholder — may have no company, which would otherwise hide real contacts).
+  // Explicit "all-contacts-" SWR key so creating a contact (which mutates all
+  // "all-contacts-*" keys) invalidates this list and it refetches with the new one.
+  const { data: contactsList, isLoading: contactsLoading } = useFrappeGetDocList<CRMContacts>("CRM Contacts", { filters: [["company", "=", taskData?.company || contactDoc?.company]], fields: ["name", "first_name", "last_name"], limit: 0 }, `all-contacts-taskform-${taskData?.company || contactDoc?.company || ''}`);
 
-  const contactOptions = useMemo(() => contactsList?.map(c => ({ label: c.first_name, value: c.name })) || [], [contactsList]);
+  const contactOptions = useMemo(() => {
+    const options = contactsList?.map(c => ({ label: c.first_name, value: c.name })) || [];
+    // Show a just-resolved contact immediately, before the list cache refetches.
+    if (resolvedContact && !options.some(o => o.value === resolvedContact.name)) {
+      options.push({ label: resolvedContact.first_name, value: resolvedContact.name });
+    }
+    // Offer the global "Unknown" placeholder for follow-ups on companies with
+    // no real contact yet.
+    if (!options.some(o => o.value === UNKNOWN_CONTACT_OPTION.value)) {
+      options.push(UNKNOWN_CONTACT_OPTION);
+    }
+    return options;
+  }, [contactsList, resolvedContact]);
 
   useEffect(() => {
     if (taskData) {
@@ -144,6 +171,13 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       });
     }
   }, [taskData, form,mode]);
+
+  // Reflect a just-resolved contact in the (scheduleNext) contact dropdown.
+  useEffect(() => {
+    if (resolvedContact) {
+      form.setValue("contact", resolvedContact.name);
+    }
+  }, [resolvedContact, form]);
 
   // --- STEP 2: ADD A useEffect TO CLEAR/VALIDATE FIELDS ON CHANGE ---
   useEffect(() => {
@@ -205,7 +239,10 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           shouldCloseDialog = false; // Prevent the current dialog from closing
           // Immediately open the dialog again, but in the new 'scheduleNext' mode.
           // React will efficiently re-render the dialog's content.
-          openEditTaskDialog({ taskData, mode: 'scheduleNext' });
+          openEditTaskDialog({
+            taskData: { ...taskData, contact: resolvedContact?.name || taskData.contact },
+            mode: 'scheduleNext',
+          });
         }
       } else if (mode === 'scheduleNext') {
         await createDoc("CRM Task", {
@@ -213,7 +250,9 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           start_date:values.start_date,
           // time: values.time,
           status: 'Scheduled',
-          contact: values.contact||taskData.contact,
+          // Respect the user's explicit dropdown choice first (they may pick
+          // Unknown on purpose); fall back to a just-resolved contact, then the task's.
+          contact: values.contact || resolvedContact?.name || taskData.contact,
           company: taskData.company,
           task_profile:"Sales",
           assigned_sales: values.assigned_sales||taskData.assigned_sales,
@@ -257,7 +296,16 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   };
 
   return (
-    <Form {...form}>
+    <div className="space-y-4">
+      {/* --- RESOLVE UNKNOWN CONTACT (inline collapsible) --- */}
+      {isUnknownContact && taskData && (
+        <ResolveContactSection
+          companyId={taskData.company}
+          taskName={taskData.name}
+          onResolved={setResolvedContact}
+        />
+      )}
+      <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
         {/* --- RENDER FOR 'edit' or 'scheduleNext' MODE --- */}
@@ -266,7 +314,10 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             <div className="flex justify-between items-start text-sm mb-4 border-b pb-4">
               {/* Main Task Info */}
               <div className="flex flex-col gap-2">
-                <p className="font-semibold">{taskData?.type} for {contactDoc?.first_name}</p>
+                {mode === 'scheduleNext' && (
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-destructive underline underline-offset-2">Previous Task</span>
+                )}
+                <p className="font-semibold">{taskData?.type} for {displayContactName}</p>
 
                 {/* --- START: 2. ADDED UI ELEMENTS FOR DATE AND TIME --- */}
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -274,6 +325,12 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     <Calendar className="w-3.5 h-3.5" />
                     <span>{formatDateWithOrdinal(taskData?.start_date)}</span>
                   </div>
+                  {taskData?.company && (
+                    <div className="flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5" />
+                      <span>{taskData.company}</span>
+                    </div>
+                  )}
                   {/* <div className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
                     <span>{formatTime12Hour(taskData?.time)}</span>
@@ -329,7 +386,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         {mode === 'updateStatus' && (
           <>
             <div className="flex justify-between items-start text-sm mb-4 border-b pb-4">
-              <div className="flex flex-col gap-2"><p className="font-semibold">{taskData?.type} for {contactDoc?.first_name}</p><div className="flex items-center gap-4 text-xs text-muted-foreground"><div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /><span>{formatDateWithOrdinal(taskData?.start_date)}</span></div><div className="flex items-center gap-1.5"></div></div></div>
+              <div className="flex flex-col gap-2"><p className="font-semibold">{taskData?.type} for {displayContactName}</p><div className="flex items-center gap-4 text-xs text-muted-foreground"><div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /><span>{formatDateWithOrdinal(taskData?.start_date)}</span></div>{taskData?.company && (<div className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /><span>{taskData.company}</span></div>)}</div></div>
               <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
             </div>
 
@@ -366,7 +423,8 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           <Button type="submit" className="bg-destructive hover:bg-destructive/90" disabled={loading}>{loading ? "Saving..." : "Confirm"}</Button>
         </div>
       </form>
-    </Form>
+      </Form>
+    </div>
   );
 };
 
@@ -567,7 +625,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 //           <>
 //             <div className="flex justify-between items-start text-sm mb-4 border-b pb-4">
 //               <div className="flex flex-col gap-2">
-//                 <p className="font-semibold">{taskData?.type} for {contactDoc?.first_name}</p>
+//                 <p className="font-semibold">{taskData?.type} for {displayContactName}</p>
 
 //                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
 //                   <div className="flex items-center gap-1.5">
@@ -617,7 +675,7 @@ export const EditTaskForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 //         {mode === 'updateStatus' && (
 //           <>
 //             <div className="flex justify-between items-start text-sm mb-4 border-b pb-4">
-//               <div className="flex flex-col gap-2"><p className="font-semibold">{taskData?.type} for {contactDoc?.first_name}</p><div className="flex items-center gap-4 text-xs text-muted-foreground"><div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /><span>{formatDate(taskData?.start_date)}</span></div><div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /><span>{formatTime12Hour(taskData?.time)}</span></div></div></div>
+//               <div className="flex flex-col gap-2"><p className="font-semibold">{taskData?.type} for {displayContactName}</p><div className="flex items-center gap-4 text-xs text-muted-foreground"><div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /><span>{formatDate(taskData?.start_date)}</span></div><div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /><span>{formatTime12Hour(taskData?.time)}</span></div></div></div>
 //               <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap">{taskData?.status}</span>
 //             </div>
 
