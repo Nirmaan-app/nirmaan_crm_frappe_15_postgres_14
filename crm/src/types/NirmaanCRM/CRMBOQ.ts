@@ -28,6 +28,8 @@ export interface CRMBOQ{
 	boq_submission_date?: string
 	/**	BOQ Link : Data	*/
 	boq_link?: string
+	/**	Nirmaan Stack Link : Data	*/
+	stack_project_link?: string
 	/**	City : Data	*/
 	city?: string
 	/**	Remarks : Text	*/

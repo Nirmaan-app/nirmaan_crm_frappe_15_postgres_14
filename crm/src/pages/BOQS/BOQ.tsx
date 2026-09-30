@@ -432,15 +432,24 @@ const ProjectOverviewCard = ({ boq, contact, company, estimations }: { boq: CRMB
                             <p className="text-sm font-semibold text-gray-900">N/A</p>
                         )}
                     </div>
-                </div>
-
-                <div className="px-6 pb-4">
-                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Remarks</p>
-                    {boq?.remarks ? (
-                        <p className="text-sm font-semibold text-gray-900 whitespace-pre-wrap break-words">{boq.remarks}</p>
-                    ) : (
-                        <p className="text-sm font-semibold text-muted-foreground">—</p>
-                    )}
+                    <div>
+                        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Project Link</p>
+                        {boq?.stack_project_link ? (
+                            <a href={boq.stack_project_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-red-600 text-white hover:bg-red-700 transition-colors text-xs font-semibold px-3 py-1.5 rounded w-full sm:w-auto text-center mx-auto sm:mx-0">
+                                <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> Open in Stack
+                            </a>
+                        ) : (
+                            <p className="text-sm font-semibold text-gray-900">N/A</p>
+                        )}
+                    </div>
+                    <div className="sm:col-span-2 min-w-0">
+                        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Remarks</p>
+                        {boq?.remarks ? (
+                            <p className="text-sm font-semibold text-gray-900 whitespace-pre-wrap break-words">{boq.remarks}</p>
+                        ) : (
+                            <p className="text-sm font-semibold text-muted-foreground">—</p>
+                        )}
+                    </div>
                 </div>
 
                 <div className="bg-gray-50/50 p-3 lg:px-6 flex flex-wrap items-center justify-start gap-2 border-t border-gray-100">

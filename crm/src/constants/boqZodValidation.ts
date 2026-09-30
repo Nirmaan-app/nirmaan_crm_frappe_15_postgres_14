@@ -1,5 +1,16 @@
 import * as z from "zod";
 
+// Optional link that, when filled, must be a full http:// or https:// URL.
+export const httpUrlSchema = z.string().trim().optional().refine((value) => {
+  if (!value) return true;
+  try {
+    const url = new URL(value);
+    return (url.protocol === "http:" || url.protocol === "https:") && !!url.hostname;
+  } catch {
+    return false;
+  }
+}, { message: "Enter a valid link starting with http:// or https://" });
+
 export const boqFormSchema = z.object({
   // boq_name: nameValidationSchema,
   boq_size: z.coerce
@@ -29,6 +40,7 @@ export const boqFormSchema = z.object({
   // boq_value: z.number().optional(),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
+  stack_project_link: httpUrlSchema,
   city: z.string().optional(),
   company: z.string().min(1, "Company is required"),
   contact: z.string().optional(),
@@ -177,6 +189,7 @@ export const boqDetailsSchema = z.object({
   create_bcs: z.boolean().optional().default(false),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
+  stack_project_link: httpUrlSchema,
   city: z.string().optional(),
   company: z.string().min(1, "Company is required"),
   contact: z.string().optional(),
