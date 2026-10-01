@@ -18,6 +18,7 @@ import { LocationOptions } from "@/constants/dropdownData";
 import { nameValidationSchema, INVALID_NAME_CHARS_REGEX } from "@/constants/nameValidation";
 import { PackagesMultiSelect } from "./components/PackagesMultiSelect";
 import { serializePackages } from "@/constants/boqPackages";
+import { httpUrlSchema } from "@/constants/boqZodValidation";
 
 const normalizeStatus = (status?: string) =>
   (status || "")
@@ -56,6 +57,7 @@ const boqFormSchema = z.object({
   // boq_value: z.number().optional(),
   boq_submission_date: z.string().optional(),
   boq_link: z.string().optional(),
+  stack_project_link: httpUrlSchema,
   city: z.string().optional(),
   company: z.string().min(1, "Company is required"),
   contact: z.string().optional(),
@@ -244,7 +246,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
       contact: contactIdFromContext || "",
       boq_name: "", boq_size: "", boq_type: [], boq_value: "",
       create_bcs: false,
-      boq_submission_date: "", boq_link: "",
+      boq_submission_date: "", boq_link: "", stack_project_link: "",
       city:
       
       "", remarks: "", assigned_sales: "", assigned_estimations: isEstimationsUser ? currentUserId : "",
@@ -327,6 +329,7 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
         }
         dataToSubmit.boq_link = formattedLink;
       }
+      dataToSubmit.stack_project_link = (dataToSubmit.stack_project_link || "").trim();
 
 
 
@@ -510,9 +513,10 @@ export const NewBoqForm = ({ onSuccess }: NewBoqFormProps) => {
 
 {
 !isHidden("boq_link")&&(
- <FormField name="boq_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Project Link{isRequired("boq_link")&&<sup>*</sup>}</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
+ <FormField name="boq_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Drive Link{isRequired("boq_link")&&<sup>*</sup>}</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} />
 )
 }
+        <FormField name="stack_project_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Nirmaan Stack Link</FormLabel><FormControl><Input placeholder="Paste the link copied from Nirmaan Stack" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem> )} />
   
         {/* <FormField name="boq_link" control={form.control} render={({ field }) => ( <FormItem><FormLabel>BOQ Link</FormLabel><FormControl><Input placeholder="e.g. https://link.to/drive" {...field} /></FormControl><FormMessage /></FormItem> )} /> */}
 

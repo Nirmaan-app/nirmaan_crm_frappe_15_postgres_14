@@ -18,6 +18,7 @@
   "boq_value",
   "boq_submission_date",
   "boq_link",
+  "stack_project_link",
   "city",
   "remarks",
   "boq_status",
@@ -89,6 +90,12 @@
    "label": "BOQ Link"
   },
   {
+   "fieldname": "stack_project_link",
+   "fieldtype": "Data",
+   "label": "Nirmaan Stack Link",
+   "options": "URL"
+  },
+  {
    "fieldname": "city",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -143,7 +150,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-21 16:40:09.515657",
+ "modified": "2026-09-30 16:00:56.660063",
  "modified_by": "Administrator",
  "module": "Nirmaan CRM",
  "name": "CRM BOQ",
