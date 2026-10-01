@@ -3,6 +3,7 @@
 
 import frappe
 import json
+from urllib.parse import urlparse
 from frappe.model.document import Document
 from frappe.utils import cint
 
@@ -28,6 +29,15 @@ class CRMBOQ(Document):
 	def validate(self):
 		if self.boq_status in ["Won", "Lost"]:
 			self.deal_status = "Cold"
+		self._normalize_stack_project_link()
+
+	def _normalize_stack_project_link(self):
+		link = (self.stack_project_link or "").strip()
+		if link:
+			parsed = urlparse(link)
+			if parsed.scheme not in ("http", "https") or not parsed.netloc:
+				frappe.throw("Nirmaan Stack Link must be a valid link starting with http:// or https://")
+		self.stack_project_link = link or None
 
 	def before_insert(self):
 		if not (getattr(self, "city", None) or "").strip():

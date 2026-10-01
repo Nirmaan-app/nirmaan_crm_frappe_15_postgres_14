@@ -169,6 +169,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
           ? ""
           : (boqData.boq_status || ""),
         boq_link: "",
+        stack_project_link: boqData.stack_project_link || "",
         company: boqData.company || "",
         contact: boqData.contact || "",
         remarks: boqData.remarks || "",
@@ -273,7 +274,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
         delete dataToSave.boq_value;
       }
       await updateDoc("CRM BOQ", boqData.name, {
-        ...dataToSave, boq_link: dataToSave.boq_link || boqData.boq_link, remarks: dataToSave?.remarks || boqData.remarks, boq_sub_status: null
+        ...dataToSave, boq_link: dataToSave.boq_link || boqData.boq_link, stack_project_link: (dataToSave.stack_project_link || "").trim(), remarks: dataToSave?.remarks || boqData.remarks, boq_sub_status: null
       });
       toast({ title: "Success", description: "Project details updated." });
       await refreshProjectCaches(boqData.name);
@@ -508,7 +509,7 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project Link{isRequired("boq_link") && <sup>*</sup>}</FormLabel>
+                    <FormLabel>Drive Link{isRequired("boq_link") && <sup>*</sup>}</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. https://link.to/drive" {...field} />
                     </FormControl>
@@ -517,6 +518,19 @@ export const EditBoqForm = ({ onSuccess }: EditBoqFormProps) => {
                 )}
               />
             )}
+            <FormField
+              name="stack_project_link"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nirmaan Stack Link</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Paste the link copied from Nirmaan Stack" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField name="boq_size" control={form.control} render={({ field }) => (<FormItem><FormLabel>Carpet Area (Sqft)</FormLabel><FormControl><div className="relative"><Input type="number" {...field} value={field.value ?? ""} /><span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Sq.ft.</span></div></FormControl><FormMessage /></FormItem>)} />
             {hasBoqEstimations ? (
               <div className="space-y-1">
