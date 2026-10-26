@@ -125,6 +125,8 @@ interface BoqTableViewProps {
     isStandalonePage?: boolean;
     className?: string;
     tableContainerClassName?: string;
+    statusScope?: string[]; // Restrict fetched projects to these boq_status values (e.g. Home → Project Review)
+    title?: string;
 }
 
 export const BoqTableView = ({
@@ -133,6 +135,8 @@ export const BoqTableView = ({
     isStandalonePage = false,
     className,
     tableContainerClassName,
+    statusScope,
+    title = "Projects",
 }: BoqTableViewProps) => {
     const navigate = useNavigate();
     const getBoqStatusClass = useStatusStyles("boq");
@@ -143,11 +147,13 @@ export const BoqTableView = ({
 
 
     // --- Data Fetching for all BOQs ---
+    // Scoped views get their own SWR key so they don't overwrite the full /boqs cache
     const { data: boqs, isLoading: isBoqsLoading, error } = useFrappeGetDocList<BOQ>('CRM BOQ', {
         fields: ["*"],
+        filters: statusScope ? [["boq_status", "in", statusScope]] : undefined,
         limit: 0,
         orderBy: { field: 'modified', order: 'desc' },
-    }, "all-boqs-all-view");
+    }, statusScope ? `all-boqs-scoped-${JSON.stringify(statusScope)}` : "all-boqs-all-view");
 
     // Aggregate BOQ-only values from child estimations for "Project Value" column.
     // The `status` field is also fetched here to power the BOQ/BCS estimation-status filters
@@ -751,7 +757,7 @@ export const BoqTableView = ({
 
             headerTitle={
                 <span className="inline-flex items-center gap-3 tracking-tight">
-                    <span>Projects</span>
+                    <span>{title}</span>
                     <EstimationFilterChips
                         boq={selectedBoqStatuses}
                         bcs={selectedBcsStatuses}
