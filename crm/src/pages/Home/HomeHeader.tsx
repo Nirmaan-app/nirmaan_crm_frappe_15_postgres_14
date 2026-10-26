@@ -78,6 +78,7 @@ import { useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { EstimationsReviewTable } from "./components/EstimationsReviewTable";
 import { BoqBcsReviewTable } from "./components/BoqBcsReviewTable";
+import { BoqTableView } from "../BOQS/components/BoqTableView";
 
 // --- shadcn/ui Tabs Imports ---
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -114,6 +115,8 @@ interface EnrichedCRMTask {
     task_profile?: string;
 }
 
+// Active pipeline statuses shown in the admin-only Project Review tab
+const PROJECT_REVIEW_STATUSES = ["New", "In-Progress", "Partially Submitted"];
 
 export const HomeHeader = () => {
     const navigate = useNavigate();
@@ -127,15 +130,18 @@ export const HomeHeader = () => {
 
     const canViewSalesReview = isAdmin || isSalesUser;
     const canViewEstimationsReview = isAdmin || isEstimationsUser;
+    const canViewProjectReview = isAdmin;
     const visibleTabCount =
         (canViewSalesReview ? 1 : 0) +
-        (canViewEstimationsReview ? 2 : 0);
+        (canViewEstimationsReview ? 2 : 0) +
+        (canViewProjectReview ? 1 : 0);
 
     const tabsListClassName = cn(
         "grid w-full h-auto gap-1 md:w-auto md:gap-0",
         visibleTabCount === 1 && "grid-cols-1 md:w-[240px]",
         visibleTabCount === 2 && "grid-cols-1 sm:grid-cols-2 md:w-[400px]",
-        visibleTabCount >= 3 && "grid-cols-1 sm:grid-cols-3 md:w-[600px]"
+        visibleTabCount === 3 && "grid-cols-1 sm:grid-cols-3 md:w-[600px]",
+        visibleTabCount >= 4 && "grid-cols-2 sm:grid-cols-4 md:w-[800px]"
     );
 
     const initialDefaultTab = useMemo(() => {
@@ -155,7 +161,10 @@ export const HomeHeader = () => {
         if (activeTab === 'estimations_review' && !canViewEstimationsReview) {
             setActiveTab('sales_review');
         }
-    }, [activeTab, canViewSalesReview, canViewEstimationsReview, setActiveTab]);
+        if (activeTab === 'project_review' && !canViewProjectReview) {
+            setActiveTab(initialDefaultTab);
+        }
+    }, [activeTab, canViewSalesReview, canViewEstimationsReview, canViewProjectReview, initialDefaultTab, setActiveTab]);
 
     // --- Data Fetching for Sales Review ---
     const homePageTaskFilter: any = [["status", "in", ["Pending", "Scheduled"]]];
@@ -241,6 +250,17 @@ export const HomeHeader = () => {
                                     BOQ/BCS Review
                                 </TabsTrigger>
                             )}
+                            {canViewProjectReview && (
+                                <TabsTrigger
+                                    value="project_review"
+                                    className={cn(
+                                        "data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground",
+                                        "data-[state=inactive]:text-muted-foreground data-[state=inactive]:bg-background hover:data-[state=inactive]:bg-accent"
+                                    )}
+                                >
+                                    Project Review
+                                </TabsTrigger>
+                            )}
                         </TabsList>
                     </Tabs>
                 )}
@@ -304,6 +324,17 @@ export const HomeHeader = () => {
                 {canViewEstimationsReview && activeTab === 'boq_bcs_review' && (
                     <div className="flex-1 flex flex-col min-h-0">
                         <BoqBcsReviewTable />
+                    </div>
+                )}
+
+                {canViewProjectReview && activeTab === 'project_review' && (
+                    <div className="h-[calc(100vh-var(--navbar-height)-160px)] min-h-[400px] bg-background rounded-lg border">
+                        <BoqTableView
+                            isStandalonePage={true}
+                            statusScope={PROJECT_REVIEW_STATUSES}
+                            title="Project Review"
+                            className="h-full"
+                        />
                     </div>
                 )}
 
